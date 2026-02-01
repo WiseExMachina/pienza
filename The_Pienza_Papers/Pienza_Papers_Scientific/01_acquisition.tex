@@ -1,0 +1,304 @@
+\section{Phase 1: Data Acquisition}
+
+Project Pienza captures the behavior of an expert agent rather than a system in a learning phase. Prior to data collection, the agent had completed 24 months of field operations, effectively concluding the \textit{Exploration} stage of the Reinforcement Learning cycle.
+
+Applying the framework of Hopfield Networks, the agent’s decision policy is modeled as a "cooled" system settled into a stable local minimum (an attractor state). This equilibrium reflects an optimization specific to the agent's constraints, including geographic preferences, risk tolerance, and physical endurance. While a theoretical global optimum for city-wide revenue may exist in the state space, the captured dataset represents a phase of pure exploitation. By prioritizing established, low-variance heuristics over high-energy experimental maneuvers, the resulting dataset provides a high-fidelity record of a converged policy.
+
+\subsection*{Phase 1A: The 2-Engine Ingestion Infrastructure}
+The cornerstone of Project Pienza is its proprietary, high-fidelity data acquisition ecosystem. To overcome the inherent data sparsity of third-party exports, a dual-engine architecture was deployed to capture the full spectrum of the agent's operational reality. The primary acquisition campaign was executed over a strict 6-week observation window, spanning from August 22 to October 1, 2025 (inclusive).
+
+
+\subsection*{Engine 1: The Operational Telemetry (GTS Webapp)}
+
+To capture the ``Ground Truth'' of completed missions, a bespoke, lightweight Progressive Web Application (PWA) designated as the \textb{Geotimestamps (GTS)} Webapp was architected and deployed. The interface was intentionally designed for minimum cognitive load, functioning as a ``One-Touch Timestamping'' instrument while maintaining resilience through a production-grade stack (Netlify Frontend, Google Sheets Backend).
+
+\medskip
+\noindent \textbf{Lifecycle Mapping Protocol (T0--T4).} The system logs the five critical state transitions of a gig economy mission with geospatial precision:
+\begin{itemize}[noitemsep, topsep=3pt]
+  \item \textbf{T0:} Idle, searching for offers.
+    \item \textbf{T1:} Offer accepted; en route to pickup. \textit{(Text field for upfront fare)}.
+    \item \textbf{T2:} At pickup location; waiting for passenger.
+    \item \textbf{T3:} Ride started.
+    \item \textbf{T4:} Ride completed, transaction finalized. \textit{(Text field for realized fare)}.
+\end{itemize}
+
+\medskip
+\noindent \textbf{Technical Stack \& Evolution.} The system was engineered through an iterative development lifecycle to solve critical operational failures identified during field testing:
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Persistence Layer (v4.0):} Early iterations suffered from critical data loss during network intermittency. The architecture was upgraded to include a Stateful LocalStorage Manager, ensuring session continuity, and an Offline-First Queue System, guaranteeing 100\% data capture fidelity even in connectivity-denied environments.
+    \item \textbf{Geospatial Context Integration:} To overcome the geographic blindness of simple timestamps, a client-side asynchronous pipeline was implemented. This module orchestrates the browser's \texttt{navigator.geolocation} API with reverse-geocoding services, enriching every event with high-precision coordinates before persistence.
+\end{itemize}
+
+\vspace{0.3cm}
+\noindent Engine 1 Output (trip\_events): This stream represents the verified timeline of physical state transitions and realized financial outcomes ($N \approx 350$ completed trips).
+
+
+\subsection{Engine 2: The "Total Offer" Stream (OCR Pipeline)}
+To overcome Survivorship Bias, it was imperative to capture the decision boundary of the agent—specifically the Rejected Offers (The Negative Class). Since the market infrastructure provides no native access to historical offer logs, a custom "Optical State Archival" architecture was deployed.
+
+\subsubsection{Logging Interface}
+The acquisition interface was an iOS device configured with an \textbf{Assistive Touch Macro}. This allowed for a single-gesture capture protocol (The "Manual Cookie") that simultaneously acknowledged the offer cognitively and secured the data digitally.
+
+To ensure statistical representativeness, three operational mandates were enforced:
+\begin{enumerate}
+    \item \textbf{Full Spectrum Capture (Zero Filters):} All system-level destination filters and product category filters (Premium/Mid-tier/X) were disabled. This ensured the captured stream represented the unfiltered "True Market" liquidity, not a curated subset.
+    \item \textbf{Safety-Driven Random Sampling:} Offers occurring during high-cognitive-load maneuvers or complex passenger interactions were intentionally skipped. This data loss is classified as \textbf{Missing Completely at Random (MCAR)}, introducing no systemic bias into the profitability models.
+    \item \textbf{The "Driver-First" Learning Curve:} The dataset acknowledges a specific "Warm-Up" period (Week 1) where operational cadence took precedence over data capture, resulting in a small cluster of "Ghost Offers" (Completed missions without source image artifacts). These were programmatically handled in the Engineering Phase.
+\end{enumerate}
+
+\subsubsection{Digital Ingestion Pipeline}
+The ingestion pipeline utilizes the \textbf{Google Gemini Pro Vision API} to transform visual assets into structured data. A primary engineering challenge involved isolating the "Foreground Signal" (the new offer card) from "Background Noise" (the active navigation map and status bar of the current trip).
+
+\vspace{0.2cm}
+\textbf{Exclusionary Prompt Logic:}
+To ensure data integrity and prevent hallucination, the system prompt enforces strict scope limitations. The model is instructed to ignore all metadata in the status bar and navigation instructions, focusing exclusively on the central offer card.
+
+\begin{lstlisting}[language=Python, caption={Exclusionary Parsing Logic}]
+def generate_prompt(filename: str) -> str:
+    """Constructs the prompt to isolate new offers from active trip noise."""
+    return f"""
+    **Objective:** Extract data ONLY from the central pop-up card.
+    **Exclusion Rule:** IGNORE address info in the status bar. 
+    This belongs to the CURRENT ride, NOT the new offer.
+    **Output:** Respond ONLY with a markdown table.
+    """
+\end{lstlisting}
+
+\subsubsection{Pipeline Architecture}
+The Python orchestrator (v4.1) executes a three-stage transformation process:
+\begin{itemize}
+    \item \textbf{Sequential Ingest:} Processes image files in chronological sequence to preserve session continuity.
+    \item \textbf{Feature Extraction:} Captures 10-dimensional vectors, including \texttt{upfront\_fare}, \texttt{product\_tier}, and unstructured incentive tags (\textit{Surge/Turbo}).
+    \item \textbf{Robustness Layer:} Implements exponential backoff and rate-limiting to manage API quotas during high-volume batch processing.
+\end{itemize}
+
+\noindent \textbf{Engine 2 Output (\texttt{offers}):} This high-fidelity dataset captures the total universe of opportunities, including the critical Negative Class ($N \approx 4,700$ total offers).
+
+\vspace{0.4cm}
+\noindent At this stage, both engines exist as separate, unlinked entities. In the subsequent engineering phase, these disparate records were unified into a SQL-queryable relational schema.
+
+
+
+
+
+\subsubsection{The Post-Session Reconciliation Protocol}
+To maintain data integrity and preserve the agent's decision context, a rigorous post-session protocol was enforced immediately upon the completion of each fieldwork shift:
+
+\begin{enumerate}
+    \item \textbf{Telemetry Consolidation (GTS):} The raw, long-format event logs from the webapp were processed into a wide-format session ledger. This involved pruning duplicate entries and cancelled events, enabling the immediate calculation of session-level KPIs such as \textit{Net Spread} and \textit{Accumulated Deadhead}, metrics which would become engineered features in later stages.
+    
+    \item \textbf{High-Fidelity Cognitive Backtagging:} The Agent manually reviewed and tagged every rejected offer from that session to populate the target variable (\texttt{reason\_primary}) which would be explained in the following section. Executing this task same-day was imperative to capture the specific, contextual nuance of the decision before operational memory decay occurred.
+\end{enumerate}
+
+% --- PARTE 1B ---
+% --- PARTE 1B ---
+% --- PARTE 1B ---
+% --- PARTE 1B ---
+% --- PARTE 1B ---
+
+\subsection{Phase 1B: Data Staging and First Round of Feature Engineering}
+Executed concurrently within the strict acquisition window, Phase 1B focuses on the immediate semantic structuring and target definition of the incoming datastream. 
+
+\subsection{Core Entity: The \texttt{raw\_offers} Schema}
+
+The ingestion pipeline consolidated OCR outputs into a primary staging table. The raw schema captured the unstructured state of the visual data prior to normalization.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{l l l}
+        \toprule
+        \textbf{Column} & \textbf{Data Type} & \textbf{Description} \\
+        \midrule
+        \texttt{ocr\_id} & Integer (PK) & Incremental sequential identifier assigned during ingestion \\
+        \texttt{image\_filename} & String & Source asset filename stored in the archival vault. \\
+        \texttt{time\_taken} & String & Raw time string (HH:MM) extracted from the device status bar. \\
+        \texttt{ride\_type} & Categorical & Product class (e.g., \textit{X, mid-Tier, Premium}). \\
+        \texttt{upfront\_fare} & Numeric & The nominal fare amount presented in the offer card. \\
+        \texttt{pickup\_details} & String (Raw) & Combined text field containing ETA and distance to pickup. \\
+        \texttt{pickup\_address} & String (Raw) & Unstructured pickup location text (street, POI). \\
+        \texttt{trip\_details} & String (Raw) & Combined text field containing estimated trip duration and distance. \\
+        \texttt{dropoff\_address} & String (Raw) & Unstructured destination location text. \\
+        \texttt{rider\_rating} & String (Raw) & Combined text string with Passenger Rating and Trip Count. \\
+        \texttt{special\_note} & Text (Blob) & Unstructured text field capturing all incentive tags (\textit{Surge, Turbo+}) and \\ 
+        & & status flags (\textit{Reservation, Priority}). \\
+        \bottomrule
+    \end{tabular}
+    \caption{Definition of the \texttt{raw\_offers} schema post-ingestion.}
+    \label{tab:raw_schema}
+\end{table}
+
+
+\subsection{Target Engineering: \texttt{reason\_primary}}
+The target variable, \texttt{reason\_primary}, is a hierarchical filtration system formalized as the \textbf{Cognitive Cascade}. To ensure a clean signal for supervised learning, each offer is assigned a single, mutually exclusive label representing the entry-point failure across a three-tiered triage: geospatial feasibility (Tier 1), economic viability (Tier 2), and strategic alignment (Tier 3). This prevents label contamination by focusing the model on the primary decision driver. The definitive taxonomy is outlined in Table \ref{tab:target_lexicon}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l X} 
+        \toprule
+        \textbf{Class Label} & \textbf{Operational Logic} \\
+        \midrule
+        \texttt{dropoff\_non\_operational} & Destination lies within a pre-defined zone outside the operational area. \\
+        \addlinespace
+        \texttt{dropoff\_proxy} & Destination is outside the primary zone but acceptable if aligned with a homecoming vector toward \textit{Anzures}. \\
+        \addlinespace
+        \texttt{low\_profitability} & Offer fails baseline EPH requirements relative to estimated duration. \\
+        \addlinespace
+        \texttt{long\_pickup\_time} & Uncompensated pickup time exceeds tolerance; threshold relaxes during extreme gridlock. \\
+        \addlinespace
+        \texttt{strategic\_mismatch} & High-value offer rejected due to unfavorable routing context (e.g., \textit{Santa Fe $\to$ Polanco} during Friday's peak gridlock). \\
+        \addlinespace
+        \texttt{expected\_value\_gamble} & Viable offer rejected based on the probabilistic expectation of a superior imminent event. \\
+        \addlinespace
+        \texttt{NULL} (Implicit) & Absence of objection signals an accepted offer. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Lexicon of the Decision Target Variable (\texttt{reason\_primary}).}
+    \label{tab:target_lexicon}
+\end{table}
+
+
+
+
+
+
+
+
+\subsection{Contextual Feature Extraction: \texttt{heuristic\_flag}}
+The following table defines the categorical flags engineered to capture qualitative operational risks and strategic shifts that are not detectable through raw numerical features alone. These labels provide the model with the "Agent's perspective" on market conditions.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{Category} & \textbf{Flag Label} & \textbf{Operational Logic} \\
+        \midrule
+        \multirow{3}{*}{\textbf{Risk Mitigation}} 
+        & \texttt{deadhead\_risk} & Short-duration offers with a high probability of immediate return to an idle search state. \\
+        & \texttt{long\_ride\_risk} & Trips $>45$ min where high traffic volatility creates risk of uncompensated time. \\
+        & \texttt{dropoff\_uncertain} & Destinations with high geospatial entropy/ambiguity. \\
+        \midrule
+        \multirow{2}{*}{\textbf{Strategic Intent}} 
+        & \texttt{obj\_end\_session} & Intent to terminate the work shift; prioritizes homecoming vector alignment over intrinsic EPH. \\
+        & \texttt{friday\_gridlock} & Friday-specific regime; prioritizes egress from high-friction density sectors (\textit{Polanco}). \\
+        \midrule
+        \multirow{3}{*}{\textbf{System/Market}} 
+        & \texttt{trap} & Physically impossible platform time-estimates (e.g., 20 min predicted time from Vistahermosa to Polanco during morning traffic). \\
+        & \texttt{market\_anomaly} & Non-standard offer physics (e.g., operational outliers near National Holidays). \\
+        & \texttt{protest\_anomaly} & External socio-political shocks (marches, road closures) disrupting standard market flow. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Categorical Lexicon of Heuristic Flags for Model Enrichment.}
+    \label{tab:heuristic_flags}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Behavioral Targets and Operational Outcomes}
+To differentiate between agent intent and realized performance, the schema implements two distinct categorical dimensions: \texttt{offer\_action} (Binary Intent) and \texttt{outcome} (Realized State).
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l X} 
+        \toprule
+        \textbf{Target} & \textbf{Class Label} & \textbf{Strategic Context} \\
+        \midrule
+        \textbf{Intent} & \texttt{Accept / Reject} & Primary binary target for supervised imitation learning. \\
+        \midrule
+        \textbf{Outcome} & \texttt{completed} & Transaction successfully finalized. \\
+        & \texttt{rider\_canceled} & External termination by passenger post-acceptance. \\
+        & \texttt{driver\_canceled} & Agent-initiated termination due to post-acceptance friction. \\
+        & \texttt{system\_failure} & Offers intended for acceptance but lost due to operational capture latency. These are strategically mapped as \textbf{ACCEPTED} for model training to reflect the agent's true policy. \\
+        & \texttt{NULL} & Implicit state for rejected offers; no operational outcome generated. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Mapping of Behavioral Intent and Operational Outcome categories.}
+    \label{tab:outcomes}
+\end{table}
+
+
+
+
+
+
+
+
+
+\subsection{Driver State Inference}
+The variable \texttt{driver\_state\_at\_request} was engineered to classify the agent's operational context at the moment of an offer. This feature distinguishes between "Open" offers (received while \textit{Idle}) and "Chained" offers (received while \textit{On-Trip}), which is a primary driver of the agent's acceptance threshold.
+
+The inference process followed an evolutionary path from manual verification to hybrid automation:
+
+\begin{enumerate}
+    \item \textbf{Verification Phase (Manual):} During the initial collection weeks, state assignment was performed via human-in-the-loop validation during the daily back-tagging protocol. The agent cross-referenced OCR timestamps against mission logs to establish a ground-truth baseline.
+    
+    \item \textbf{Automated Phase (SQL + Google Apps Script):} The final population of the state variable was executed through a two-step process. First, the ETL pipeline established the relational join between the \texttt{offers} and \texttt{trip\_events} tables. Second, a Google Apps Script (\texttt{code.gs}) was deployed to programmatically assign the \textit{On-Trip} state to any offer with a timestamp falling between a mission’s \texttt{T1} (Acceptance) and \texttt{T4} (Completion) boundaries.
+\end{enumerate}
+
+
+
+
+
+
+\subsection{Geospatial Enrichment}
+To enable spatial clustering, the raw address strings required conversion to numerical coordinates. A serverless pipeline was architected using the \textbf{Google Geocoding API} within the Google Apps Script environment.
+
+To overcome the strict 6-minute execution limit of the Google Apps Script runtime, a \textit{Stateful Batch Processor} was engineered. The system utilized \texttt{PropertiesService} to persist the cursor position (last processed row) and deployed \textit{Time-Based Triggers} to autonomously resume execution every 10 minutes. This allowed the pipeline to process the entire dataset in background bursts without manual intervention.
+
+While the pipeline successfully populated the coordinate columns, a critical validation step was omitted: \textbf{Reverse Geocoding Verification}. The system naively accepted the API's top result as ground truth without auditing for semantic drift or "centroid defaults" (e.g., the API returning the center of a city for an ambiguous street name). This assumption of validity would later necessitate a massive "Deep Remediation" campaign during Phase 4, underscoring the risk of trusting black-box APIs without a human-in-the-loop audit.
+
+
+\subsection{Acquisition Artifact: The Enriched \texttt{offers} Dataset}
+By the conclusion of the acquisition campaign, the raw OCR stream had been enriched with manual behavioral labels, initial geospatial coordinates, and parsed operational metrics. The following schema represents the state of the dataset prior to the deep Data Engineering phase.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{Feature Name} & \textbf{Data Type} & \textbf{Categories / Definition} \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Source: OCR Extraction \& Initial Parsing}} \\
+        \midrule
+        \texttt{time\_taken} & String & Raw HH:MM timestamp from device. \\
+        \texttt{product\_tier} & Categorical & \textit{X, mid-Tier, Premium}. \\
+        \texttt{upfront\_fare} & Numeric & Nominal fare value (MXN). \\
+        \texttt{special\_note} & String & Unstructured text (\textit{Surge, Turbo, Priority}). \\
+        \texttt{star\_rating} & Numeric & Passenger rating (1.0--5.0 scale). \\
+        \texttt{trip\_count} & Integer & Lifetime trips completed by passenger. \\
+        \texttt{time\_to\_pickup} & Numeric & Parsed duration to pickup (seconds). \\
+        \texttt{dist\_to\_pickup} & Numeric & Parsed distance to pickup (km). \\
+        \texttt{est\_trip\_time} & Numeric & Parsed estimated trip duration (seconds). \\
+        \texttt{est\_trip\_dist} & Numeric & Parsed estimated trip distance (km). \\
+        
+        \midrule
+        \multicolumn{3}{c}{\textit{Source: Cognitive Backtagging \& Logic}} \\
+        \midrule
+        \texttt{offer\_action} & Binary & \textit{Accept, Reject}. \\
+        \texttt{reason\_primary} & Categorical & \textit{dropoff\_non\_operational, low\_profitability, long\_pickup, strategic\_mismatch, expected\_value\_gamble}. \\
+        \texttt{heuristic\_flag} & Categorical & \textit{deadhead\_risk, friday\_gridlock, obj\_end\_session, market\_anomaly, trap}. \\
+        \texttt{driver\_state} & Categorical & \textit{Idle} (Open), \textit{On-Trip} (Chained). \\
+        \texttt{outcome} & Categorical & \textit{Completed, Rider\_Cancel, Driver\_Cancel, System\_Failure}. \\
+        
+        \midrule
+        \multicolumn{3}{c}{\textit{Source: Google Geocoding API}} \\
+        \midrule
+        \texttt{pickup\_lat/lon} & Float & Initial coordinate estimation. \\
+        \texttt{dropoff\_lat/lon} & Float & Initial coordinate estimation. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Final Schema State of the Acquisition Phase ($N \approx 4,700$).}
+    \label{tab:acquisition_schema}
+\end{table}
