@@ -1,0 +1,299 @@
+\section{Phase 3: Diagnostic Audit \& Causal Inference (EDA)}
+
+Following the relational stabilization of the dataset in Phase 2, the project's analytical focus pivots toward inference and causal modeling. The Exploratory Data Analysis (EDA) phase is structured not merely as a descriptive step, but as a \textbf{Diagnostic Audit} to ensure the dataset is a precise digital twin of the agent's operational reality.
+
+The investigation was executed through two logical sub-phases:
+
+Phase 3A: The Full-Spectrum Diagnostic Audit
+\vspace{0.4cm}
+
+This initial sub-phase established the statistical foundations and hygiene of the data. The exhaustive analysis was conducted in three stages to manage \textit{outliers}, analyze distributions, and corroborate the inherent statistical properties of the variables:
+
+\begin{enumerate}
+    \item \textbf{Univariate Analysis:} Examination of each key variable's distribution in isolation to confirm data validity and establish the operational \textit{baseline} of each metric (e.g., average search time, max fare, etc.).
+    \item \textbf{Bivariate Temporal Analysis:} Operational friction was audited across four dimensions of time: \textit{Hour of Day} (circadian rhythm), \textit{Day of the Week} (social cycle), \textit{Volatibility} (long-term trends), and \textit{Interactions} (the combined effect of multiple temporal variables).
+    \item \textbf{Bivariate Financial Analysis:} Direct audit of the relationship between revenue, cost, and duration metrics (e.g., $EPH_{real}$ vs. $T_{trip}$), establishing the first-order correlations that explain overall profitability.
+\end{enumerate}
+\noindent The objective of this audit was to isolate the pure signal, preparing the groundwork for complex causal modeling.
+
+
+Phase 3B: The Physics of Selection (Causal Inference)
+\vspace{0.4cm}
+
+This sub-phase focuses on advanced frameworks that deconstruct the agent's micro-economy (Excess Return Coefficient, Optimal Stopping, and Algorithmic Deductible).
+
+
+\subsection{Phase 3A: The Full-Spectrum Diagnostic Audit}
+\subsection{Operational Baseline: Data Census}
+The primary objective of the univariate audit was to establish the numerical context of the $N \approx 4,765$ offers, defining the inherent market frequency and structural biases before feature analysis.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l r r | l r}
+        \toprule
+        \textbf{Decision Action} & \textbf{Count} & \textbf{Rate (\%)} & \textbf{Product Tier} & \textbf{Rate (\%)} \\
+        \midrule
+        Reject & 4,419 & 92.74 & UberX & 75.93 \\
+        Accepted & 346 & 7.26 & Comfort & 17.17 \\
+        & & & Business\_Comfort & 3.69 \\
+        & & & Envíos\_Uber & 1.49 \\
+        & & & Black & 0.82 \\
+        & & & Uber\_Planet & 0.80 \\
+        & & & Uber\_Pet & 0.10 \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Decision and Product Mix Census (Total Offers $N \approx 4,765$).}
+    \label{tab:decision_census}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \small
+        \begin{tabularx}{\textwidth}{l r r}
+            \toprule
+            \textbf{Primary Target Label} & \textbf{Count} & \textbf{Rate (\%)} \\
+            \midrule
+            dropoff\_non\_operational & 2,366 & 49.65 \\
+            low\_profitability & 838 & 17.59 \\
+            long\_pickup\_time & 366 & 7.68 \\
+            \textbf{ACCEPTED (Implicit/NaN)} & \textbf{346} & \textbf{7.26} \\
+            expected\_value\_gamble & 330 & 6.93 \\
+            dropoff\_strategic\_mismatch & 275 & 5.77 \\
+            dropoff\_proxy & 239 & 5.02 \\
+            system\_logic\_failure & 5 & 0.10 \\
+            \midrule
+            \textbf{Total Observations} & \textbf{4,765} & \textbf{100.00} \\
+            \bottomrule
+        \end{tabularx}
+        \caption{Distribution of the Primary Target Variable.}
+        \label{tab:rejection_distribution}
+    \end{subfigure}
+    \hfill % Este comando añade el espacio horizontal necesario
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \small
+        \begin{tabularx}{\textwidth}{l r r}
+            \toprule
+            \textbf{Mission Outcome} & \textbf{Count} & \textbf{Rate (\%)} \\
+            \midrule
+            Completed & 250 & 72.0\% \\
+            System Failure & 43 & 12.4\% \\
+            Rider Canceled & 24 & 8.1\% \\ % Ajusté el número para que la suma sea correcta con 347 (8.1% of 347 is 28)
+            Driver Canceled & 26 & 7.5\% \\
+            \midrule
+            \textbf{Total Accepted Missions} & \textbf{347} & \textbf{100.0\%} \\
+            \bottomrule
+        \end{tabularx}
+        \caption{Distribution of Mission Outcomes.}
+        \label{tab:mission_outcomes}
+    \end{subfigure}
+    \caption{Data Census: Structural imbalance of the decision target vs. the realized outcome of accepted missions.}
+    \label{fig:data_census_merged}
+\end{figure}
+
+
+\noindent \textit{Key Insight:} The census confirms a severe structural imbalance in the target variable, where nearly 50\% of all events are dedicated to filtering non-operational offers. This necessity justifies the subsequent development of a \textbf{Hierarchical Classification} model, explicitly designed to manage this class imbalance. Model validation will strictly utilize \textbf{Stratified K-Fold Cross-Validation} to ensure all classes are proportionally represented in each training fold.
+
+
+\subsection{The Profitability Funnel}
+To evaluate market viability, four sequential Earnings Per Hour (EPH) metrics were established. These metrics quantify the transition from the system's upfront quote to a holistic operational reality:
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{EPH Direct:} Derived from the \textit{Upfront Fare} and \textit{Estimated Trip Duration}.
+    \item \textbf{EPH Operational:} Incorporates the uncompensated \textit{Time to Pickup} (DTP).
+    \item \textbf{EPH Realized:} Accounts for the \textit{Realized Fare} post-adjustment.
+    \item \textbf{EPH Complete:}\footnote{For non-completed offers, values were imputed using session-specific rolling averages, adhering to a strict \textit{no-look-ahead} protocol to prevent temporal data leakage. Full formula implementations are available in the \texttt{code.gs} script: \href{https://github.com/your-repo-placeholder}{[GitHub Repository]}.} The final metric including \textit{Total Deadhead} (search time, pickup, and passenger wait times). 
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_profitability_funnel.png} 
+    \caption{Phase III: Yield metrics from initial quote to holistic outcome. Median values drop from a quoted \textbf{\$274/hr} to a realized \textbf{\$116/hr}.}
+    \label{fig:profit_funnel}
+\end{figure}
+
+Applying a \textbf{\$200/hr North Star} threshold to the \texttt{EPH\_Complete} metric reveals that 83.45\% of total offers fall below the sustainability baseline, while only 13.48\% exceed the target. This result indicates that viable market opportunities constitute a specific minority of the environment, confirming that high-precision filtering is required to isolate these profitable events from general market noise.
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+
+\subsection{Traffic Index and Yield Segmentation}
+The final objective of the causal audit was to quantify the non-linear relationship between traffic friction and potential yield. The analysis engineered a \textbf{Time-to-Distance Index} based on the expected ratio relative to a fluid market baseline (2 min/km). This index serves to segment the operational environment into distinct states (\textit{Fluid} to \textit{Gridlock}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_median_yield_by_friction.png} 
+    \caption{Phase III: Yield Performance Across the Friction Spectrum. The plot illustrates the distribution of Median \textbf{Upfront EPH} across defined traffic states, establishing the precise financial compensation presented relative to increasing logistical complexity.}
+    \label{fig:median_yield_by_friction}
+\end{figure}
+
+While the segmentation confirms the structural relationship between market friction and quoted yield. The analysis shows that the EPH performance exhibits a plateau at high friction levels, confirming that the system's compensation mechanism accounts for expected time overruns, but places a hard cap on maximum session return.
+
+\noindent However, there is a key limitation to this observation, Traffic Index only captures \textbf{Expected Friction}. The actual financial impact is driven by the unpredictable component of duration. High-friction states ($\text{Index} > 2.0$) introduce significant non-linearity, where the difference between expected and realized travel time can result in an uncompensated cost that does not scale linearly with the quoted fare. This discovery will be quantified in "THIS IS A PLACEHOLDER SENTENCE".
+
+
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
+
+
+
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\subsection{Phase 3B: The Physics of Selection (Causal Inference)}
+
+Following the relational stabilization of the dataset in Phase 2, the analytical focus shifts to the deconstruction of the Agent's decision boundary. This section details the analytical frameworks developed to quantify the \textbf{Excess Return Coefficient} and establish the \textbf{Optimal Stopping} boundaries defined in the project’s core objective.
+
+\subsection{The Physics of Selection: Analytical Frameworks}
+The following investigations move beyond descriptive statistics to model the underlying "physics" of the marketplace and the agent’s response to volatility.
+
+\subsection{The Market Quality Index}
+The fundamental challenge in modeling the Gig Economy is the \textbf{Mixture Problem}. Raw performance metrics are often contaminated by unproductive market regimes where even an optimal policy cannot reach the global revenue baseline. A model trained on raw revenue would fail to distinguish between a strategic error and a stochastically poor opportunity set.
+
+While the current research is centered on a single agent ($N=1$), the underlying framework is architected to be \textbf{scale-invariant}. By establishing a standardized normalization protocol, the project provides a methodology for quantifying skill and isolating performance across any number of agents within any market infrastructure. This approach dissociates the quality of a selection from the absolute value of the currency to reveal the underlying decision boundary.
+
+\subsubsection{The Normalization Cascade (The Quality Index)}
+To render heterogeneous product tiers comparable and ensure the framework scales across diverse environments, a \textbf{Global Anchor} ($\mu$) was established for each product category (\textit{Economy, Mid-Tier, Premium}) based on the historical median EPH of the entire operational history. By dividing the specific EPH of an offer by its category anchor, the absolute currency was transformed into a dimensionless \textbf{Quality Index ($QI$)}:
+
+\begin{equation}
+    QI = \frac{EPH_{offer}}{EPH_{anchor}}
+\end{equation}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_transmutation.png} 
+    \caption{Transmutation from Absolute Currency to Value Metric. Plot A illustrates the structural variance between product tiers. Plot B shows the normalized distribution where all tiers are anchored at 1.0, enabling the objective identification of outliers regardless of category.}
+    \label{fig:normalization}
+\end{figure}
+
+As illustrated in Figure \ref{fig:normalization}, an $QI$ of 1.0 represents market parity. An $QI$ of 1.5 identifies a "Super Gem" (50\% excess value relative to the specific asset class). This normalization allows the system to objectively compare the quality of a standard economy ride against a luxury offer, stripping away the structural price difference to reveal true economic efficiency.
+
+\subsubsection{Market Heterogeneity and Volatility}
+By monitoring the distribution of offer quality over the chronological progression of the campaign, the marketplace exhibits extreme variance across discrete work sessions.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_mqi_volatility.png} 
+    \caption{Market Quality Index (QI) Volatility by Session. The boxplots illustrate the distribution of offer quality for each session. The horizontal baseline at 1.0 represents the global market average. Color-coding (Red to Green) indicates the session-level mean quality ($MQI$).}
+    \label{fig:mqi_volatility}
+\end{figure}
+
+As shown in Figure \ref{fig:mqi_volatility}, the agent operates within a non-stationary environment. Certain sessions (indicated in green) represent high-quality market states, while others (in red) signify economic scarcity. A notable outlier is \textbf{Session 2}, where the $MQI$ was so severely depressed that the agent did not accept a single offer, effectively halting operations before deployment. While this demonstrates high threshold discipline, it also reveals a potential cognitive bias: the refusal of sub-optimal \textit{bridge trips} that could serve as strategic vectors to higher-quality zones. This visualization establishes the necessity of the \textbf{Market Quality Index ($MQI$)} as a dynamic baseline; evaluating agent performance without accounting for these session-level shifts would result in a biased assessment of skill.
+
+\noindent \textbf{Analytical Case Study:}
+For a granular, session-by-session audit of the agent's selection behavior relative to the $MQI$---including forensic analysis of high-performance events and sub-optimal sessions---readers are invited to explore the interactive case reports in the canonical Jupyter Notebook: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - Phase 3 EDA - MQI]}.
+
+
+\subsection{The Opportunity Oracle: Time as a Financial Derivative}
+While the MQI focuses on \textit{what} can be selected, the \textbf{Opportunity Oracle} framework quantifies \textit{when} to select it. In this model, "Search Time" is not categorized merely as operational friction (deadhead), but as the \textbf{Investment Capital} required to purchase a probabilistic option on future high-yield offers.
+
+\subsubsection{Search Stream Sanitization (The Behavioral Clock)}
+To accurately measure market velocity, the search stream underwent a strict temporal sanitization protocol. The analysis decoupled the physical duration of a trip from the decision intervals by \textbf{resetting the behavioral clock ($\Delta t = 0$)} immediately following every acceptance event. This isolation reveals the true "Heartbeat" of the marketplace—the frequency at which opportunities are presented—independent of the ride execution phase.
+
+
+\subsection{The Strategic Quadrant Matrix}
+To analyze how environmental variance dictates performance, the operational environment was mapped into a four-quadrant phase space (Figure \ref{fig:quadrant_analysis}). This framework cross-references \textbf{Market Quality} ($MQI$) on the y-axis against \textbf{Market Velocity} (Median inter-offer latency) on the x-axis. Although $MQI$ and velocity vary dynamically throughout a single shift, this model utilizes a \textit{static session-level aggregate} to categorize the dominant market regime for each period of activity.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_strategic_quadrants.png} 
+    \caption{Strategic Quadrant Analysis: Market Quality vs. Velocity. Each observation represents a discrete work session. Data labels indicate the realized session-level Average \texttt{eph\_operational}. The vertical boundary at 20s denotes the median market tempo observed during the campaign.}
+    \label{fig:quadrant_analysis}
+\end{figure}
+
+The performance metrics in Table \ref{tab:quadrant_yields} confirm that while sustainability is maintained in "Rich" regimes, "Poor" quadrants represent a state of mandatory yield erosion regardless of market velocity. This mapping serves as the basis for calculating the \textbf{Efficient Frontier} in the following section.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{0.6\textwidth}{l r}
+        \toprule
+        \textbf{Market Quadrant} & \textbf{Average Operational EPH} \\
+        \midrule
+        Rich / Fast & \$223.98 / hr \\
+        Rich / Slow & \$217.32 / hr \\
+        Poor / Slow & \$194.96 / hr \\
+        Poor / Fast & \$192.93 / hr \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Operational yield categorized by environmental quadrant.}
+    \label{tab:quadrant_yields}
+\end{table}
+
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
+
+
+\subsection{The Efficient Frontier (Optimal Stopping)}
+The final exploratory objective was the determination of the \textbf{Optimal Stopping} threshold. Using a vectorized look-ahead algorithm, the study calculated the \textbf{Net Expected Value (VEN)} of rejecting a baseline offer to wait for a superior target ($QI \ge 1.5$). This analysis transforms the abstract concept of "patience" into a deterministic, time-based rule.
+
+\subsubsection{Net Expected Value (VEN) Analysis}
+The decision to reject a viable offer is modeled as a probabilistic bet. The project calculates the \textbf{Net Expected Value (VEN)} by subtracting the deterministic search-time cost (\textit{Accumulated Deadhead}) from the weighted expected payoff of future offers.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig_playbook_ven_prob.png} 
+    \caption{The \$200 Strategy Playbook: VEN and Success Probability. Each cell displays the projected financial delta (MXN/hr) and, in parentheses, the empirical probability of encountering a mission $\ge \$200/hr$ within the search investment time. Green regions identify a rational search window; red regions signal yield erosion.}
+    \label{fig:ven_playbook}
+\end{figure}
+
+As illustrated in Figure \ref{fig:ven_playbook}, the ``Rationality Window'' for a \$200/hr target is strictly limited to search horizons of less than 5 minutes. A critical finding is the \textbf{Profitability Paradox}: beyond the 10-minute horizon, although the probability of encountering a target offer is extremely high ($>90\%$), the resulting VEN is negative across all regimes (e.g., $-\$31/hr$ in the \textit{Rich/Fast} quadrant). This confirms that in a high-friction stochastic market, excessive patience ensures yield degradation despite eventual mission success.
+
+
+
+\subsubsection{The Efficient Frontier: Search Budget Decay}
+By simulating the break-even point (VEN = 0) across a range of profitability targets, the project synthesized the \textbf{Efficient Frontier}---the curve representing the maximum rational search time for any given level of ambition.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig_efficient_frontier.png} 
+    \caption{The Efficient Frontier: Rational Search Time by Ambition. The plot illustrates the search budget for targets ranging from \$160/hr to \$230/hr across the four market quadrants.}
+    \label{fig:efficient_frontier}
+\end{figure}
+
+The analysis, detailed in Figure \ref{fig:efficient_frontier}, reveals three primary findings:
+\begin{enumerate}
+    \item \textbf{Search Budget Decay:} There is an inverse relationship between target EPH and rational search time. To capture a \$230/hr mission, the agent can justify a search window of only $\approx 2.1$ minutes.
+    \item \textbf{Market State Resilience:} The "Rich / Fast" quadrant consistently provides the widest search budget, allowing for higher selectivity compared to "Poor / Slow" regimes.
+    \item \textbf{The 9-Minute Absolute Cap:} Regardless of the target or market quadrant, the rational search budget effectively hits a ceiling at 9 minutes. Beyond this temporal horizon, the probability of yield improvement becomes statistically negligible.
+\end{enumerate}
+
+\noindent \textit{Outcome: This framework provides the hard constraints for the Agent's Digital Clone. By identifying the 9-minute search cap, the project ensures that the simulation engine in Phase 6 operates within the boundaries of mathematical rationality.}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
