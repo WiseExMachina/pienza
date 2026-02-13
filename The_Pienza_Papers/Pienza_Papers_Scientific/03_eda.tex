@@ -1,29 +1,7 @@
 \section{Phase 3: Diagnostic Audit \& Causal Inference (EDA)}
 
-Following the relational stabilization of the dataset in Phase 2, the project's analytical focus pivots toward inference and causal modeling. The Exploratory Data Analysis (EDA) phase is structured not merely as a descriptive step, but as a \textbf{Diagnostic Audit} to ensure the dataset is a precise digital twin of the agent's operational reality.
+Following the relational stabilization of the dataset in Phase 2, the project's analytical focus pivots toward inference and causal modeling. The Data Analysis phase is structured as a \textbf{Diagnostic Audit} to ensure the dataset is a precise digital twin of the agent's operational reality.
 
-The investigation was executed through two logical sub-phases:
-
-Phase 3A: The Full-Spectrum Diagnostic Audit
-\vspace{0.4cm}
-
-This initial sub-phase established the statistical foundations and hygiene of the data. The exhaustive analysis was conducted in three stages to manage \textit{outliers}, analyze distributions, and corroborate the inherent statistical properties of the variables:
-
-\begin{enumerate}
-    \item \textbf{Univariate Analysis:} Examination of each key variable's distribution in isolation to confirm data validity and establish the operational \textit{baseline} of each metric (e.g., average search time, max fare, etc.).
-    \item \textbf{Bivariate Temporal Analysis:} Operational friction was audited across four dimensions of time: \textit{Hour of Day} (circadian rhythm), \textit{Day of the Week} (social cycle), \textit{Volatibility} (long-term trends), and \textit{Interactions} (the combined effect of multiple temporal variables).
-    \item \textbf{Bivariate Financial Analysis:} Direct audit of the relationship between revenue, cost, and duration metrics (e.g., $EPH_{real}$ vs. $T_{trip}$), establishing the first-order correlations that explain overall profitability.
-\end{enumerate}
-\noindent The objective of this audit was to isolate the pure signal, preparing the groundwork for complex causal modeling.
-
-
-Phase 3B: The Physics of Selection (Causal Inference)
-\vspace{0.4cm}
-
-This sub-phase focuses on advanced frameworks that deconstruct the agent's micro-economy (Excess Return Coefficient, Optimal Stopping, and Algorithmic Deductible).
-
-
-\subsection{Phase 3A: The Full-Spectrum Diagnostic Audit}
 \subsection{Operational Baseline: Data Census}
 The primary objective of the univariate audit was to establish the numerical context of the $N \approx 4,765$ offers, defining the inherent market frequency and structural biases before feature analysis.
 
@@ -94,7 +72,6 @@ The primary objective of the univariate audit was to establish the numerical con
     \label{fig:data_census_merged}
 \end{figure}
 
-
 \noindent \textit{Key Insight:} The census confirms a severe structural imbalance in the target variable, where nearly 50\% of all events are dedicated to filtering non-operational offers. This necessity justifies the subsequent development of a \textbf{Hierarchical Classification} model, explicitly designed to manage this class imbalance. Model validation will strictly utilize \textbf{Stratified K-Fold Cross-Validation} to ensure all classes are proportionally represented in each training fold.
 
 
@@ -117,65 +94,24 @@ To evaluate market viability, four sequential Earnings Per Hour (EPH) metrics we
 
 Applying a \textbf{\$200/hr North Star} threshold to the \texttt{EPH\_Complete} metric reveals that 83.45\% of total offers fall below the sustainability baseline, while only 13.48\% exceed the target. This result indicates that viable market opportunities constitute a specific minority of the environment, confirming that high-precision filtering is required to isolate these profitable events from general market noise.
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-
-\subsection{Traffic Index and Yield Segmentation}
-The final objective of the causal audit was to quantify the non-linear relationship between traffic friction and potential yield. The analysis engineered a \textbf{Time-to-Distance Index} based on the expected ratio relative to a fluid market baseline (2 min/km). This index serves to segment the operational environment into distinct states (\textit{Fluid} to \textit{Gridlock}).
+\subsection{Traffic Index}
+To quantify the non-linear relationship between traffic friction and potential yield, the analysis engineered a \textbf{Time-to-Distance Index} based on the expected ratio relative to a fluid market baseline (2 min/km). This index serves to segment the operational environment into distinct states (\textit{Fluid} to \textit{Gridlock}).
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{fig_median_yield_by_friction.png} 
-    \caption{Phase III: Yield Performance Across the Friction Spectrum. The plot illustrates the distribution of Median \textbf{Upfront EPH} across defined traffic states, establishing the precise financial compensation presented relative to increasing logistical complexity.}
+    \caption{Phase III: Yield Performance Across the Friction Spectrum. The plot illustrates the distribution of Median \textbf{EPH Direct} across defined traffic states, establishing the precise financial compensation presented relative to increasing logistical complexity.}
     \label{fig:median_yield_by_friction}
 \end{figure}
 
-While the segmentation confirms the structural relationship between market friction and quoted yield. The analysis shows that the EPH performance exhibits a plateau at high friction levels, confirming that the system's compensation mechanism accounts for expected time overruns, but places a hard cap on maximum session return.
+While the segmentation confirms the structural relationship between market friction and quoted yield, the analysis shows that the EPH performance exhibits a plateau at high friction levels, confirming that the system's compensation mechanism accounts for expected time overruns, but places a hard cap on maximum session return.
 
 \noindent However, there is a key limitation to this observation, Traffic Index only captures \textbf{Expected Friction}. The actual financial impact is driven by the unpredictable component of duration. High-friction states ($\text{Index} > 2.0$) introduce significant non-linearity, where the difference between expected and realized travel time can result in an uncompensated cost that does not scale linearly with the quoted fare. This discovery will be quantified in "THIS IS A PLACEHOLDER SENTENCE".
 
 
+\subsection{The Physics of Selection}
 
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-
-
-
-
-
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\subsection{Phase 3B: The Physics of Selection (Causal Inference)}
-
-Following the relational stabilization of the dataset in Phase 2, the analytical focus shifts to the deconstruction of the Agent's decision boundary. This section details the analytical frameworks developed to quantify the \textbf{Excess Return Coefficient} and establish the \textbf{Optimal Stopping} boundaries defined in the project’s core objective.
-
-\subsection{The Physics of Selection: Analytical Frameworks}
-The following investigations move beyond descriptive statistics to model the underlying "physics" of the marketplace and the agent’s response to volatility.
+Following the relational stabilization of the dataset in Phase 2, the analytical focus shifts to the deconstruction of the Agent's decision boundary. The following investigations move beyond descriptive statistics to model the underlying "physics" of the marketplace and the agent’s response to volatility.
 
 \subsection{The Market Quality Index}
 The fundamental challenge in modeling the Gig Economy is the \textbf{Mixture Problem}. Raw performance metrics are often contaminated by unproductive market regimes where even an optimal policy cannot reach the global revenue baseline. A model trained on raw revenue would fail to distinguish between a strategic error and a stochastically poor opportunity set.
@@ -297,3 +233,126 @@ The analysis, detailed in Figure \ref{fig:efficient_frontier}, reveals three pri
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
 
+
+\subsection*{Causal Inference: Revisiting the Initial Hypothesis}
+
+Following the acquisition phase, the initial hypothesis regarding the Payout Spread was formally tested using the verified ground-truth of completed missions ($N = 249$, August 22 – October 1 window). The longitudinal data confirms that the "structural haircut" identified during the pilot study remains a consistent property of the marketplace architecture throughout the entire campaign.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Phase1_Stability_Audit.png}
+    \caption{Phase 1: Financial Stability and Policy Intervention Audit. The 5-mission moving average (red line) shows an anchored operational regime around the 0.84 baseline.}
+    \label{fig:stability_audit}
+\end{figure}
+
+The analysis reveals a highly stable financial equilibrium. As illustrated in Figure \ref{fig:stability_audit}, while individual mission yields exhibit significant dispersion, the 5-mission moving average remains tightly anchored at a global mean of \textbf{0.8361}. This confirms that the platform operates under a consistent payout target for the majority of the operational window.
+
+A critical exogenous event occurred on September 24, when the platform issued a formal "Policy Intervention" message promising an increase in earnings. The empirical data confirms the validity of this signal:
+\begin{itemize}
+    \item \textbf{Mean Spread (Pre-Intervention):} 0.8229
+    \item \textbf{Mean Spread (Post-Intervention):} 0.8798
+    \item \textbf{Realized Yield Lift:} 6.91\%
+\end{itemize}
+
+This finding proves that while the system is anchored, it is not static, and formal policy communications result in a measurable shift in the underlying financial physics of the marketplace.
+
+
+\subsubsection*{The Baseline Model: Financial Predictability}
+
+To transition from longitudinal monitoring to formal inference, a baseline Ordinary Least Squares (OLS) model was architected to quantify the structural relationship between the quoted fare and operational reality. The estimated regression equation is defined as:
+
+\begin{equation}
+    \widehat{\text{realized\_fare}} = 6.31 + 0.79 \cdot \text{upfront\_fare}
+\end{equation}
+
+The model results, summarized in Table \ref{tab:ols_baseline}, establish the global financial "physics" of the marketplace.
+
+\begin{table}[H]
+    \centering
+    \caption{Baseline OLS Metrics: Financial Predictability Audit}
+    \label{tab:ols_baseline}
+    \begin{tabularx}{\textwidth}{X r | X r}
+        \toprule
+        \textbf{Metric} & \textbf{Value} & \textbf{Diagnostic} & \textbf{Value} \\
+        \midrule
+        R-squared ($R^2$) & 0.930 & Prob (F-statistic) & $1.00 \times 10^{-144}$ \\
+        Intercept ($\beta_0$) & 6.3081 & Skewness & \textbf{2.638} \\
+        Slope ($\beta_1$) & \textbf{0.7906} & Kurtosis & \textbf{13.054} \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+The model exhibits a high coefficient of determination ($R^2 = 0.930$), confirming that 93\% of the variance in realized earnings is explained by the initial offer. This demonstrates a robust \textit{Predictive Synchrony} across the system. 
+
+However, the high explanatory power masks severe structural instability. The extreme \textbf{Kurtosis (13.05)} and \textbf{positive Skewness (2.64)} serve as immediate analytical red flags. These metrics indicate a highly non-normal error distribution with "heavy tails," suggesting that the model's predictability is not uniform. The presence of these outliers and the significant deviation from normality point toward a violation of the homoscedasticity assumption, necessitating a deeper forensic audit of the residuals.
+
+\subsubsection*{Forensic Diagnostic: The Cone of Uncertainty}
+
+To validate the stability of the baseline model, a forensic audit of the residuals was conducted. The objective was to determine if the prediction error remained constant across the financial spectrum or if it scaled with the magnitude of the transaction.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Heteroscedasticity_Audit.png}
+    \caption{Phase 2: Heteroscedasticity Audit. The fanning pattern of the residuals identifies a \textit{Cone of Uncertainty}, where prediction error expands proportionally with the quoted fare.}
+    \label{fig:heteroscedasticity_cone}
+\end{figure}
+
+The visual inspection in Figure \ref{fig:heteroscedasticity_cone} identifies a classic fanning pattern, or \textit{Cone of Uncertainty}. While the model is highly precise for low-value missions, the variance of the residuals expands significantly as the \textbf{Quoted Fare} increases. To confirm this observation with statistical rigor, a Breusch-Pagan test was executed, yielding a p-value of $0.0286$. This result formally rejects the null hypothesis of homoscedasticity, confirming that the model's error variance is non-constant ($p < 0.05$).
+
+The 15\% Risk Expansion Band confirms that absolute financial uncertainty scales proportionally with the \textbf{Quoted Fare}. While this diagnostic provided a clear measure of historical variance, the causal inquiry was temporarily paused as the model's limitations in explaining the \textit{why} of this uncertainty became apparent. It was only during subsequent multivariate interaction analysis on the completed missions cohort that a superior predictive signal was identified: the \textbf{Temporal Variance} (or \textit{Time Spread}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Reality_Check_Matrix.png}
+    \caption{The Reality Check Matrix. A significant disparity exists between the high financial synchrony ($r=0.961$) and the lower operational precision ($r=0.813$).}
+    \label{fig:reality_check}
+\end{figure}
+
+The correlation matrix reveals a systemic \textbf{Hierarchy of Predictability} that prioritizes price stability over operational variance. While the correlation between the Upfront Fare and Realized Fare is nearly perfect ($r = 0.961$), the Operational Synchrony for trip duration is significantly lower ($r = 0.813$). The most critical evidence of this decoupling is the correlation between Realized Fare and Actual Trip Time, which stands at only \textbf{0.621}. In an unbuffered marketplace, the final price would be highly sensitive to the actual time spent on the road ($r > 0.90$); however, the observed 0.621 correlation proves that the platform deliberately insulates the financial outcome from temporal fluctuations. The system isn't merely predicting the fare; it is enforcing it.
+
+This decoupling suggests a \textit{Fraud Prevention Mechanism} in action. By maintaining a 0.961 financial synchrony while allowing for a 0.813 temporal variance, the algorithm acts as a \textbf{Strategic Buffer} that suppresses the marginal financial gain for additional minutes. This might be specifically designed to neutralize moral hazard by ensuring that the financial incentive for a driver to \textbf{intentionally take additional minutes for their own profit} is effectively eliminated. Within this window, moderate operational noise or deliberate padding is filtered out of the final transaction rather than being passed on to the passenger. To quantify the exact boundaries of this buffer and identify the threshold where the platform's response shifts from inelasticity to legitimate compensation for exogenous shocks, a \textbf{Fraud Prevention Response Curve} has been architected.
+
+
+\subsubsection*{The Response Curve: Quantifying Inelasticity}
+
+To visualize the strategic buffer in action, the relationship between temporal variance and financial outcome was modeled using a Locally Weighted Scatterplot Smoothing (LOWESS) regression. The resulting \textbf{Fraud Prevention Response Curve} (Figure \ref{fig:response_curve}) identifies the empirical boundaries of the platform’s risk-sharing architecture.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Response_Curve_Audit.png}
+    \caption{Phase 3: The Fraud Prevention Mechanism Audit. The response curve remains inelastic within the \textit{Integrity Buffer} (1.0x -- 1.35x), decoupling moderate temporal variance from financial compensation.}
+    \label{fig:response_curve}
+\end{figure}
+
+The visualization identifies two distinct operational regimes. Within the \textbf{Integrity Buffer} (indicated by the shaded region between 1.0x and 1.35x), the response curve exhibits near-total inelasticity. In this window, an increase in trip duration does not result in a proportional increase in realized fare. By maintaining a flat payout profile during moderate delays, the mechanism ensures that the financial burden of standard operational noise is absorbed by the operational margin, effectively removing the incentive for intentional duration padding.
+
+Beyond the \textbf{1.35x threshold}, the curve reaches an inflection point and shifts to a sharp positive slope. This transition indicates that the algorithm distinguishes between driver-induced inefficiency and exogenous systemic shocks (e.g., major accidents or extreme rush-hour volatility). Once the delay is clearly beyond the driver's control envelope, the platform triggers a compensatory adjustment, realigning the financial outcome with the actual labor performed. This non-linear architecture confirms that the system is expertly calibrated to prioritize price integrity and fraud prevention while maintaining a safety net for legitimate market disruptions.
+
+
+\subsubsection*{Mathematical Formalization: The Inelasticity Threshold}
+
+To provide a precise mathematical anchor for the observed response curve, a quadratic polynomial regression was fitted to the dataset ($N=236$). This model quantifies the exact point where the platform's \textit{Fraud Prevention Mechanism} reaches its maximum inelasticity before transitioning into compensatory adjustment. The estimated quadratic equation is defined as:
+
+\begin{equation}
+    \widehat{Yield} = 0.9915 - 0.3645(\Delta T) + 0.1945(\Delta T^2)
+\end{equation}
+
+Where $\Delta T$ represents the \textbf{Temporal Variance} (Actual/Estimated Time). The model is statistically robust, with an F-statistic of 46.80 and a highly significant p-value ($8.22 \times 10^{-18}$), confirming that the non-linear architecture is a structural property of the system rather than a stochastic artifact.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Quadratic_Risk_Model.png}
+    \caption{The Mathematical Threshold of Operational Inelasticity. The lowest point of the parabola identifies the \textit{Tipping Point} at 0.94x, marking the structural floor of the compensation model.}
+    \label{fig:quadratic_model}
+\end{figure}
+
+The analysis identifies the Inelasticity Threshold at 0.94x, as illustrated in Figure \ref{fig:quadratic_model}. This finding is strategically significant: it proves that the "floor" of financial yield is reached even before the trip is officially categorized as delayed ($1.0x$). 
+
+The system exhibits total indifference to temporal fluctuations within the 0.90x to 1.30x range. By anchoring the payout at this 0.94x floor, the algorithm effectively decouples marginal labor time from marginal compensation. This architectural choice ensures that price integrity is maintained for the passenger while guaranteeing that the Agent is fully paid even if the mission is completed faster than expected. The sharp upward trajectory beyond 1.4x confirms that the system incorporates a high-threshold safety net for catastrophic prediction errors, further reinforcing the platform's focus on mitigating moral hazard through strategic inelasticity.
+
+
+\subsection*{Phase 3 Conclusion: From Inference to Predictive Intelligence}
+
+The progression from the initial pilot study back in August to the formal causal audit in late November represents more than a chronological evolution; it marks the total resolution of the project's foundational inquiry. The analytical depth achieved during this phase has provided answers to structural questions that were not even apparent at the project's inception. Through a rigorous diagnostic audit of the total offer stream, the research has established the \textbf{Market Quality Index (MQI)}, defined the \textbf{Efficient Frontier} of labor selection, and mapped the \textbf{Strategic Quadrant Matrix}.
+
+The final causal deconstruction of the \textit{Fraud Prevention Mechanism} serves as the definitive empirical anchor for the Agent’s decision policy. Following the principle of parsimony, this research has utilized classical statistics to address every possible business question within its reach. Having exhausted the explanatory power of inferential models, Project Pienza is now uniquely positioned to transition into the domain of high-dimensional Machine Learning. The subsequent phases will employ Unsupervised Clustering for market segmentation and Supervised Imitation Learning for behavioral cloning—tasks that require the non-linear complexity of algorithmic modeling to solve what classical statistics has so effectively identified.
