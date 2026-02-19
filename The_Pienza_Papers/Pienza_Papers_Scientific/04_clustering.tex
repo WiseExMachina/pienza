@@ -151,19 +151,16 @@ The projection of the feature space onto the primary principal components identi
 -
 
 
-\subsection*{The Strategic Pivot: Rejecting the Black Box}
+\subsection*{K-Means Operational Clustering: Rejecting the Black Box}
 
 An exploratory K-Means clustering algorithm was executed on the latent dimensions ($PC_1, PC_2, PC_3$). While the algorithm successfully partitioned the data across multiple tested $k$-universes ($k=2, 3, 4, 6$), the cluster profiles proved fundamentally uninterpretable for practical business strategy. Because each Principal Component is a linear combination of all 19 underlying features, the resulting clusters became opaque ``mixtures of mixtures.'' Ultimately, clustering on latent dimensions created a ``black box,'' making it impossible to reverse-engineer clear behavioral policies or business rules from abstract eigenvectors. \footnote{The evaluation of PCA-based clustering performance and the subsequent methodological pivot are documented in the Phase 4.1 notebook: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - K-Means Trials]}.}
 
 To resolve this interpretability barrier, a deliberate methodological pivot was executed to embrace a ``Crystal Box'' approach. PCA was formally abandoned as the input matrix for the clustering phase, with the methodology shifting to execute K-Means directly on the scaled raw features. 
 
-
-\subsubsection{Incremental Clustering: The "Naked Physics" Baseline}
-Following the rejection of PCA-based clustering, an initial execution on the full 19-variable set identified a secondary interpretability barrier. While individual variables were transparent, defining mission archetypes based on 19 simultaneous dimensions resulted in a "black box" outcome where high-level strategic signals were masked by marginal fluctuations in state and demand variables.
+An initial execution on the full 19-variable set identified a secondary interpretability barrier. While individual variables were transparent, defining mission archetypes based on 19 simultaneous dimensions resulted in a second "black box" outcome where high-level strategic signals were masked by marginal fluctuations in state and demand variables.
 
 To resolve this, an \textbf{Incremental Clustering} strategy was adopted. The model was initially constrained to the "Naked Physics" of the transaction: \texttt{upfront\_fare}, \texttt{est\_trip\_time\_sec}, and \texttt{est\_trip\_dist\_km}, excluding all algorithmic incentives or agent-state features. Applying the principle of \textbf{Occam's Razor}, the project identified that the market's fundamental structure is almost entirely dictated by these spatio-temporal magnitudes.
 
-\subsubsection{Hyperparameter Selection: Mathematical vs. Operational Optima}
 A comparative analysis between the \textbf{Elbow Method} and \textbf{Silhouette Score} was conducted to determine the optimal cluster count ($k$) for the CDMX marketplace (Figure \ref{fig:k_selection}).
 
 \begin{figure}[H]
@@ -175,7 +172,73 @@ A comparative analysis between the \textbf{Elbow Method} and \textbf{Silhouette 
 
 \begin{itemize}
     \item \textbf{Mathematical Baseline ($k=2$):} The Silhouette Score indicated a peak at $k=2$. While geometrically optimal, this trivial binary split (Short vs. Long missions) was rejected for its failure to capture the nuanced operational regimes that dictate profitability.
-    \item \textbf{Expert-Led Resolution ($k=6$):} A visual inspection of the Elbow Plot identified a significant reduction in inertia occurring at $k=6$. This higher-resolution setting was ratified as the optimal choice, as it provided sufficient granularity to decode the transition between distinct psychological and strategic states in the agent’s policy.
+    \item \textbf{Expert-Led Resolution ($k=6$):} A visual inspection of the Elbow Plot identified a significant reduction in inertia occurring at $k=6$. This higher-resolution setting was ratified as the optimal choice, as it provided sufficient granularity to decode the transition between distinct states in the agent’s policy.
 \end{itemize}
 
-\noindent \textit{Outcome: The selection of $k=6$ establishes the definitive taxonomy for mission archetypes, transforming the dataset from a flat list of offers into a structured set of strategically actionable clusters.}
+The analysis revealed that the marketplace fractures into six distinct physical tiers based on temporal magnitude and logistical scale (Table \ref{tab:mission_tiers}). 
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{l l}
+        \toprule
+        \textbf{Designation} & \textbf{Median Duration}\footnotemark \\
+        \midrule
+        \texttt{Tier 1} & 12 minutes \\
+        \texttt{Tier 2} & 25 minutes \\
+        \texttt{Tier 3} & 40 minutes \\
+        \texttt{Tier 4} & 56 minutes \\
+        \texttt{Tier 5} & 80 minutes \\
+        \texttt{Tier 6} & 224+ minutes \\
+        \bottomrule
+    \end{tabular}
+    \caption{CDMX market archetypes based on $K=6$ clustering.} 
+    \label{tab:mission_tiers} 
+\end{table}
+\footnotetext{Median duration is derived from multi-dimensional $K$-Means centroids rather than deterministic binning. Consequently, observations with identical durations may be assigned to different tiers based on the specific variance in fare magnitude and trip distance.}
+
+Cross-referencing the Agent's historical rejections against these six tiers provides empirical evidence of a \textbf{non-stationary decision policy}. The primary decision driver shifts dynamically as the physical scale of the offer increases:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Low-Magnitude Missions (Tiers 1--3):} Rejections are primarily governed by the \textbf{Economic Layer}. For "Sprints" (Tier 1), the dominant friction point is \texttt{low\_profitability} ($\approx 44\%$ of rejections). The Agent's priority is yield-per-minute efficiency. \footnote{Although Tier 1 missions exhibit the highest quoted EPH, the agent utilized historical operational knowledge identifying these as low-yield events once uncompensated search and pickup overheads are factored in.}
+    \item \textbf{High-Magnitude Missions (Tiers 4--6):} Rejections are governed strictly by the \textbf{Geospatial Layer}. As trip duration approaches the one-hour threshold, economic metrics are ignored. For "Marathons" (Tier 5), \texttt{dropoff\_non\_operational} accounts for $>98\%$ of rejections, reflecting a pure destination-based strategy.
+\end{itemize}
+
+A review of the base fare structure across these tiers reveals two distinct algorithmic laws governing the market (Figure \ref{fig:pricing_physics}). \footnote{Base fare is isolated by removing all incentives from the upfront quote to ensure a normalized comparison of structural pricing.}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_pricing_physics.png} 
+    \caption{The Physics of Pricing: Mean yield per minute and kilometer across mission tiers. The dual-axis plot illustrates the systematic decay of distance-based rewards and the U-curve of temporal compensation.}
+    \label{fig:pricing_physics}
+\end{figure}
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{The Distance Tax (Marginal Decay):} The compensation per kilometer exhibits an inverse relationship with mission scale. Yield begins at \textbf{\$17.4 MXN/km} for Tier 1 and collapses to \textbf{\$6.5 MXN/km} for Tier 6. 
+    \item \textbf{The Time Paradox (U-Curve Architecture):} Compensation per minute follows a non-linear "U" structure. Rates are high for Sprints (\textbf{\$5.2 MXN/min}) to offset fixed search costs, reach a minimum for mid-range urban missions (\$4.1/min), and increase again for Tier 5 and Tier 6.
+\end{enumerate}
+
+
+\subsubsection{Yield Analysis Across Operational Tiers}
+To evaluate the economic viability of the discovered archetypes, the analysis measured the performance of each tier against the \textbf{\$200/hr North Star} benchmark. As shown in Figure \ref{fig:yield_tiers}, the transition from quoted potential to holistic outcome identifies how trip duration dictates final efficiency.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig_yield_tiers.png} 
+    \caption{Yield Variance by Mission Tier. Bars represent the percentage deviation relative to the \$200/hr target. Negative values indicate a yield below the North Star threshold rather than a net financial loss.}
+    \label{fig:yield_tiers}
+\end{figure}
+
+The result identifies the \textbf{Amortization of Deadhead} as the primary driver of mission efficiency:
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Search-Intensive Sprints (Tier 1):} Although quoted at $+75.7\%$ above the target, the realized yield collapses to $-49.9\%$. In these short-duration missions, the uncompensated temporal investment (searching and pickup) outweighs the revenue-generating phase.
+    \item \textbf{Scale Resilience (Tiers 4-6):} Long-duration missions demonstrate the highest capacity to meet the sustainability benchmark, successfully diluting fixed search costs across a larger revenue base. However, the yield for Tier 6 represents rare interstate statistical anomalies. This specific metric excludes the massive time required to return back the city, which would halve the realized yield in a full-cycle context.
+\end{itemize}
+
+
+ \noindent Having established the fundamental economic archetypes, the study proceeds to the discovery of the geospatial dimension to identify the organic operational zones of the city.
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
