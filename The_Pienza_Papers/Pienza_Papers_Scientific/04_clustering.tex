@@ -326,6 +326,58 @@ To rescue the dataset, a two-stage \textbf{Human-in-the-Loop (HITL)} reconciliat
 \rule{\linewidth}{0.4pt}
 
 
+
+\subsection{The Strategic Map}
+To resolve the systemic geocoding inconsistencies, the project implemented a \textbf{Human-in-the-Loop} protocol to establish a definitive spatial ground truth. The agent manually architected 72 custom heuristic polygons to serve as the project's internal geographic boundaries. As shown in Figure \ref{fig:pienza_map}, these polygons act as a countermeasure against model overfitting, requiring the supervised pipeline to learn the economic "personality" of a neighborhood rather than memorizing individual coordinate noise.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{pienza_strategic_map.png} 
+    \caption{The Pienza Strategic Map. A network of 72 hand-crafted heuristic polygons defining the project's operational theatre. This layer serves as the primary geospatial categorical feature (\texttt{polygon\_id}).}
+    \label{fig:pienza_map}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \fontsize{7}{8}\selectfont % Ultra-lean font size to ensure single-page fit
+    \begin{tabular}{rl | rl | rl | rl}
+        \toprule
+        \textbf{ID} & \textbf{Zone Name} & \textbf{ID} & \textbf{Zone Name} & \textbf{ID} & \textbf{Zone Name} & \textbf{ID} & \textbf{Zone Name} \\
+        \midrule
+        1 & agwa\_bezares & 19 & cruce\_echanove & 37 & lomas\_fc\_cuernavaca & 55 & roma\_condesa\_1 \\
+        2 & ahuehuetes\_norte & 20 & de\_las\_fuentes & 38 & lomas\_olimpo & 56 & roma\_condesa\_2 \\
+        3 & ahuehuetes\_sur & 21 & de\_los\_bosques & 39 & lomas\_prado\_norte & 57 & santa\_fe\_bosques\_de \\
+        4 & anahuac\_1 & 22 & el\_olivo & 40 & lomas\_trastevere & 58 & sf\_centro\_comercial \\
+        5 & anzures & 23 & frontera\_polanco & 41 & lomas\_virreyes & 59 & santa\_fe\_colegios \\
+        6 & club\_de\_golf\_lomas & 24 & fuentes\_casino & 42 & nodo\_monte\_libano & 60 & santa\_fe\_cumbres \\
+        7 & bahias & 25 & herradura & 43 & nodo\_reforma\_palmas & 61 & santa\_fe\_ibero \\
+        8 & blvrd\_anahuac & 26 & interlomas\_hac & 44 & palmas\_jp\_morgan & 62 & santa\_fe\_quintana \\
+        9 & bondojito\_asf & 27 & interlomas\_mag & 45 & polanco\_5 & 63 & santa\_fe\_tec \\
+        10 & bosque\_1 & 28 & irrigacion & 46 & polanco\_gandhi & 64 & sante\_fe\_patio \\
+        11 & bosque\_2 & 29 & jesus\_del\_monte & 47 & polanco\_g\_mexico & 65 & sedena \\
+        12 & bosque\_3 & 30 & juarez\_rosa & 48 & polanco\_palacio & 66 & sotelo \\
+        13 & bosque\_real & 31 & juarez\_soho & 49 & polanco\_p\_lincoln & 67 & tamarindos \\
+        14 & bosques\_pabellon & 32 & lagos & 50 & polanco\_parroquia & 68 & tecamachalco\_1 \\
+        15 & campo\_marte & 33 & loma\_de\_la\_palma & 51 & polanco\_uber\_hq & 69 & tecamachalco\_2 \\
+        16 & carretera\_olivo & 34 & lomas\_altas & 52 & reforma\_bnp & 70 & univ\_anahuac \\
+        17 & carretera\_libre & 35 & lomas\_barrilaco & 53 & reforma\_regina & 71 & vialidad\_barranca \\
+        18 & carso\_antara & 36 & lomas\_country & 54 & rios & 72 & vistahermosa \\
+        \bottomrule
+    \end{tabular}
+    \caption{Geospatial Dictionary: Registry of the 72 operational polygons.}
+    \label{tab:zone_dictionary}
+\end{table}
+
+\noindent \textit{Outcome: The integration of the \texttt{polygon\_id} feature transforms the raw coordinates into a semantically dense intelligence layer. This provides the supervised modeling campaign in Phase 5 with the high-fidelity geographic signal required to recognize strategic mission intent.}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
+
+Begin PEnding Update
+
+
 \subsection{Gold Palette Synthesis}
 Following coordinate remediation, the project finalized the \textbf{Gold Palette}—the highest tier of geospatial intelligence. This layer provides the supervised models with a dual-perspective of the city, combining machine-learned density with human-curated strategic boundaries.
 
@@ -336,7 +388,7 @@ The resulting geospatial features serve distinct roles within the predictive pip
     \item \textbf{Structural Discovery (\texttt{hdbscan\_id}):} As illustrated in Figure \ref{fig:geospatial_intelligence}(a), the HDBSCAN algorithm identified 45 organic operational hubs. These micro-zones represent an unbiased discovery of where market activity actually concentrates.
     \item \textbf{Strategic Guardrails (\texttt{polygon\_id}):} As shown in Figure \ref{fig:geospatial_intelligence}(b), these clusters were formalized into 73 hand-crafted polygons. By enforcing crisp geometric boundaries, these polygons act as a countermeasure against overfitting, requiring the model to learn the economic attributes of a neighborhood rather than memorizing coordinate noise.
 \end{enumerate}
-
+The following two figures are placeholders PienzaClustering Agent will kindly guide me throguh Kepler.gl to update them.
 \begin{figure}[H]
      \centering
      \begin{subfigure}[b]{0.48\textwidth}
@@ -361,3 +413,5 @@ The realized yield heatmap identifies specific regions of high profitability. Cl
 
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
+
+End Pending Update
