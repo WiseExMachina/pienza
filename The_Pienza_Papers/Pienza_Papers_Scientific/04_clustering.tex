@@ -39,7 +39,7 @@ To isolate pure signal, the 67-dimensional vector space was distilled to 54 vari
 \subsection{Feature Selection: L1 Regularized Selection}
 To identify the primary drivers of the agent's decision boundary, a \textbf{Lasso Regression (L1 Penalty)} was deployed across the 54-feature set. The selection identified \texttt{upfront\_fare}, \texttt{time\_to\_pickup\_sec}, and \texttt{home\_vector\_alignment\_score} as the dominant predictors.
 
-A \textbf{Domain Override} was applied to align the machine with the operational reality of of driving an Electric Vehicle. \textit{Distance} metrics were de-prioritized in favor of \textit{Time} metrics (e.g., \texttt{est\_trip\_time\_sec}), as time represents the definitive cost basis for the agent. 
+A \textbf{Domain Override} was applied to align the machine with the operational reality of driving an Electric Vehicle. \textit{Distance} metrics were de-prioritized in favor of \textit{Time} metrics (e.g., \texttt{est\_trip\_time\_sec}), as time represents the definitive cost basis for the agent. 
 
 Additionally, product category labels (\textit{Economy, Premium}) were intentionally excluded. This forces the model to identify the underlying economic and logistical causes of a decision rather than relying on categorical proxies. Features containing future outcome information were also purged to maintain a strictly predictive environment.
 
@@ -85,7 +85,7 @@ Dimensionality reduction was modest, requiring 13 components to preserve 90\% of
 
 
 \subsubsection{Decoding the Market DNA (Principal Components)}
-The first three components, explaining $\approx 40\%$ of the variance, define the universal mathematical structure of the opportunities presented to the agent, regardless of the final decision.
+The first three components, explaining $\approx 40\%$ of the variance, define the universal mathematical structure of the total offer stream:
 
 \begin{itemize}[noitemsep]
     \item \textbf{PC1: Time in Session:} Weighted by \texttt{session\_progress}, \texttt{deadhead}, and \texttt{cumulative\_earnings}. It separates early-session, low-friction states from high-search-accumulation segments toward the conclusion of a shift.
@@ -143,7 +143,7 @@ The projection of the feature space onto the primary principal components identi
 -
 -
 -
-- CLUSTERING -
+- Start of K-Means -
 -
 -
 -
@@ -201,7 +201,7 @@ Cross-referencing the Agent's historical rejections against these six tiers prov
 
 \begin{itemize}[noitemsep, topsep=3pt]
     \item \textbf{Low-Magnitude Missions (Tiers 1--3):} Rejections are primarily governed by the \textbf{Economic Layer}. For "Sprints" (Tier 1), the dominant friction point is \texttt{low\_profitability} ($\approx 44\%$ of rejections). The Agent's priority is yield-per-minute efficiency. \footnote{Although Tier 1 missions exhibit the highest quoted EPH, the agent utilized historical operational knowledge identifying these as low-yield events once uncompensated search and pickup overheads are factored in.}
-    \item \textbf{High-Magnitude Missions (Tiers 4--6):} Rejections are governed strictly by the \textbf{Geospatial Layer}. As trip duration approaches the one-hour threshold, economic metrics are ignored. For "Marathons" (Tier 5), \texttt{dropoff\_non\_operational} accounts for $>98\%$ of rejections, reflecting a pure destination-based strategy.
+    \item \textbf{High-Magnitude Missions (Tiers 4--6):} Rejections are governed strictly by the \textbf{Geospatial Layer}. As trip duration approaches the one-hour threshold, economic metrics are ignored. For Tier 5 missions, \texttt{dropoff\_non\_operational} accounts for $>98\%$ of rejections, reflecting a pure destination-based strategy.
 \end{itemize}
 
 A review of the base fare structure across these tiers reveals two distinct algorithmic laws governing the market (Figure \ref{fig:pricing_physics}). \footnote{Base fare is isolated by removing all incentives from the upfront quote to ensure a normalized comparison of structural pricing.}
@@ -214,8 +214,8 @@ A review of the base fare structure across these tiers reveals two distinct algo
 \end{figure}
 
 \begin{enumerate}[noitemsep]
-    \item \textbf{The Distance Tax (Marginal Decay):} The compensation per kilometer exhibits an inverse relationship with mission scale. Yield begins at \textbf{\$17.4 MXN/km} for Tier 1 and collapses to \textbf{\$6.5 MXN/km} for Tier 6. 
-    \item \textbf{The Time Paradox (U-Curve Architecture):} Compensation per minute follows a non-linear "U" structure. Rates are high for Sprints (\textbf{\$5.2 MXN/min}) to offset fixed search costs, reach a minimum for mid-range urban missions (\$4.1/min), and increase again for Tier 5 and Tier 6.
+    \item \textbf{Compensation per kilometer:} exhibits an inverse relationship with mission scale. Yield begins at \textbf{\$17.4 MXN/km} for Tier 1 and collapses to \textbf{\$6.5 MXN/km} for Tier 6. 
+    \item \textbf{Compensation per minute:} follows a non-linear "U" structure. Rates are high for Sprints (\textbf{\$5.2 MXN/min}) to offset fixed search costs, reach a minimum for mid-range urban missions (\$4.1/min), and increase again for Tier 5 and Tier 6.
 \end{enumerate}
 
 
@@ -242,3 +242,122 @@ The result identifies the \textbf{Amortization of Deadhead} as the primary drive
 \rule{\linewidth}{0.4pt}
 
 
+
+-
+-
+-
+-
+- END of K-Means -
+-
+-
+-
+-
+-
+
+--
+
+-
+-
+-
+-
+HDBSCAN
+----
+-
+-
+-
+-
+-
+-
+
+
+\subsection{Unsupervised Topology: Organic Zone Discovery}
+The geospatial objective was to transform $\approx 4,700$ dropoff coordinates into a \textbf{Topological Operational Model}. This strategic mapping converts raw spatial distributions into a high-value categorical feature (\texttt{zone\_id}) to enable the predictive pipeline to recognize geographic intent.
+
+While \textbf{DBSCAN} was chosen initially, it resulted in data fragmentation that made no business logic. Therefore, the architecture was upgraded to \textbf{HDBSCAN} (Hierarchical DBSCAN), which dynamically extracts clusters across multiple density scales. HDBSCAN naturally capturared Mexico's City complex operational reality by identifying 45 granular high-resolution micro-clusters. 
+
+
+In an attempt to achieve 100\% feature coverage a \textbf{K-Nearest Neighbors (KNN)} classifier was deployed to re-assign unclustered points to their nearest cluster. This algorithmic fallback was identified as a functional failure. By forcing these points into the nearest core based strictly on Euclidean distance, the resulting topology lost all operational relevance. 
+
+While the HDBSCAN model was mathematically sound and aligned with the operational reality, a deep validation audit was conducted to verify semantic alignment. The coordinate-based clusters were cross-referenced against the raw \texttt{dropoff\_address} text strings. This audit identified a systemic data integrity failure. Inspection of the \textit{AICM} (Airport) cluster revealed addresses belonging to distant parts of the city, such as Cuajimalpa. While the algorithm had correctly identified density clusters, the underlying geocoded coordinates had become decoupled from their true textual addresses during the upstream ingestion phase. This "Garbage In, Garbage Out" (GIGO) corruption invalidated the unsupervised topology and necessitated a major remediation campaign.
+
+To restore geospatial integrity, a Human-in-the-Loop (HITL) approach was adopted. The Agent manually architected 73 custom heuristic polygons to serve as the ultimate spatial ground truth. This manual intervention solved both pipeline crises simultaneously. First, it guaranteed that every coordinate within the operational radius would be deterministically mapped to a valid zoneid, effectively eliminating the orphaned data problem. Second, it provided a rigid spatial framework that drastically accelerated the data auditing process. By cross-referencing the raw dropoffaddress strings contained within each newly drawn HITL polygon, anomalous and corrupted coordinates were instantly isolated and rectified. Consequently, this initiated a deep remediation campaign to reconcile and purify the entire geospatial dataset.
+
+
+\subsection{Geospatial Remediation: Root Cause Analysis}
+Validation of the initial clustering results identified a systemic integrity failure. This discovery triggered a deep \textbf{Root Cause Analysis (RCA)} that identified three compounding failure vectors:
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{Validation Gap:} The initial Phase 1 acquisition utilized forward geocoding without a reverse-validation step, allowing API hallucinations to persist in the dataset.
+    \item \textbf{Semantic Entropy:} Contradictory neighborhood labels in the platform's raw address strings (e.g., \textit{``Calle Insurgentes Tacubaya, Condesa/Roma''}) caused the black-box API to default coordinates to incorrect municipalities.
+    \item \textbf{Propagation Error:} A logical bug during the Phase 2B jittering stage caused hundreds of distinct textual addresses to collapse into a single, identical coordinate point.
+\end{enumerate}
+
+\subsubsection{Diagnostic Engineering}
+To isolate the corrupted records, a diagnostic SQL query was engineered based on a strict relational rule: \textbf{Fixed Coordinates + Changing Text = Error}. By grouping identical coordinates and counting distinct address strings, the project isolated the specific records requiring intervention without compromising the healthy data.
+
+\begin{lstlisting}[language=SQL, caption={Diagnostic Query: Isolating Jitter Propagation Errors}]
+-- Logic: If one exact coordinate belongs to multiple distinct text addresses, it is corrupted.
+SELECT offer_id,
+    CASE WHEN c.num_pickups > 1 THEN 'PICKUP_ERROR'
+         WHEN c.num_dropoffs > 1 THEN 'DROPOFF_ERROR'
+    END as diagnostic_flag
+FROM offers o
+JOIN (
+    SELECT pickup_lat, pickup_lon, dropoff_lat, dropoff_lon,
+        COUNT(DISTINCT pickup_address) as num_pickups,
+        COUNT(DISTINCT dropoff_address) as num_dropoffs
+    FROM offers
+    GROUP BY pickup_lat, pickup_lon, dropoff_lat, dropoff_lon
+    HAVING COUNT(DISTINCT pickup_address) > 1 OR COUNT(DISTINCT dropoff_address) > 1
+) c ON o.pickup_lat = c.pickup_lat AND o.dropoff_lat = c.dropoff_lat;
+\end{lstlisting}
+
+\subsubsection{Remediation Architecture: The Delta Check Pipeline}
+To rescue the dataset, a two-stage \textbf{Human-in-the-Loop (HITL)} reconciliation pipeline was executed across all 9,530 coordinate pairs:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Geospatial Delta Check:} A secondary baseline was established by re-geocoding the dataset in a dedicated cloud environment. A \textbf{Delta Check} was implemented to calculate the distance (in meters) between original and new coordinates. Only records exceeding a severe geographic threshold were flagged for manual review.
+    \item \textbf{Deterministic Overwrite:} A bespoke ETL tool managed the manual corrections. The system staged flagged conflicts alongside verified context, enabling the agent to surgically overwrite corrupted coordinate pairs in the source tables while preventing manual entry errors.
+\end{enumerate}
+
+\noindent \textit{Outcome: This intervention successfully corrected over 1,500 corrupted rows—nearly one-third of the operational history. The canonical Source of Truth was updated with this purified dataset, allowing the clustering pipeline to be re-executed with high-fidelity results.}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
+\subsection{Gold Palette Synthesis}
+Following coordinate remediation, the project finalized the \textbf{Gold Palette}—the highest tier of geospatial intelligence. This layer provides the supervised models with a dual-perspective of the city, combining machine-learned density with human-curated strategic boundaries.
+
+\subsubsection{Topological vs. Strategic Mapping}
+The resulting geospatial features serve distinct roles within the predictive pipeline:
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{Structural Discovery (\texttt{hdbscan\_id}):} As illustrated in Figure \ref{fig:geospatial_intelligence}(a), the HDBSCAN algorithm identified 45 organic operational hubs. These micro-zones represent an unbiased discovery of where market activity actually concentrates.
+    \item \textbf{Strategic Guardrails (\texttt{polygon\_id}):} As shown in Figure \ref{fig:geospatial_intelligence}(b), these clusters were formalized into 73 hand-crafted polygons. By enforcing crisp geometric boundaries, these polygons act as a countermeasure against overfitting, requiring the model to learn the economic attributes of a neighborhood rather than memorizing coordinate noise.
+\end{enumerate}
+
+\begin{figure}[H]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig_hdbscan.png}
+         \caption{HDBSCAN clusters assigned operational names.}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{fig_polygons.png}
+         \caption{Realized yield variance by polygon (\$200/hr baseline).}
+     \end{subfigure}
+     \caption{Geospatial Intelligence Layer. The synthesis of machine-learned clusters and human-curated strategic polygons defines the ``Gold Palette.''}
+     \label{fig:geospatial_intelligence}
+\end{figure}
+
+\subsubsection{Economic Geography Findings}
+The realized yield heatmap identifies specific regions of high profitability. Clusters within \textit{Interlomas}, the \textit{Santa Fe Core}, and the \textit{Polanco-Lomas} axis exhibit consistent performance exceeding the \$200/hr benchmark, while peripheral and unassigned zones identify areas of systemic yield erosion. 
+
+\noindent \textit{Outcome: The integration of \texttt{hdbscan\_id} and \texttt{polygon\_id} provides the high-purity geospatial signal required for the supervised modeling campaign in Phase 5.}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}

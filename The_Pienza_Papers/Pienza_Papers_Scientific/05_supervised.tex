@@ -1,1 +1,13 @@
 \section{Phase 5: PENDING}
+
+\begin{tikzpicture}[node distance=2cm]
+    % Define styles
+    \tikzstyle{box} = [rectangle, draw, fill=blue!10, text width=5em, text centered, minimum height=4em]
+    
+    % Draw Nodes
+    \node (teacher) [box] {XGBoost (Teacher)};
+    \node (student) [box, below of=teacher] {LSTM (Student)};
+    
+    % Draw Arrow
+    \draw [->, thick] (teacher) -- node[anchor=west] {Distill 1M Rows} (student);
+\end{tikzpicture}
