@@ -325,93 +325,124 @@ To rescue the dataset, a two-stage \textbf{Human-in-the-Loop (HITL)} reconciliat
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
 
+\subsection{Structural Discovery: Topological Analysis}
 
+Following the coordinate remediation, the project executed a multi-stage unsupervised learning campaign to discover the city's organic operational zones. This process was not purely exploratory; it served to validate the Agent’s tacit spatial heuristics against a data-driven model.
 
-\subsection{The Strategic Map}
-To resolve the systemic geocoding inconsistencies, the project implemented a \textbf{Human-in-the-Loop} protocol to establish a definitive spatial ground truth. The agent manually architected 72 custom heuristic polygons to serve as the project's internal geographic boundaries. As shown in Figure \ref{fig:pienza_map}, these polygons act as a countermeasure against model overfitting, requiring the supervised pipeline to learn the economic "personality" of a neighborhood rather than memorizing individual coordinate noise.
+\subsubsection{Geospatial Constraints and Selection Logic}
+A fundamental architectural decision was the **exclusive focus on dropoff coordinates** for clustering. Pickup locations were intentionally omitted from the feature engineering phase for two reasons:
+\begin{enumerate}
+    \item \textbf{Data Integrity:} Over 90\% of raw pickup address strings exhibited extreme ambiguity, introducing high-risk noise into the dataset.
+    \item \textbf{Decision Theory:} Analysis confirms that the Agent is geographically indifferent to pickups. The decision to accept an offer is driven by \textit{Time-to-Pickup} (TTP) rather than the specific neighborhood of origin. Conversely, the destination (dropoff) is the primary determinant of subsequent operational risk and return.
+\end{enumerate}
+\textit{Note: While pickups remain excluded from Phase 5 Supervised Learning, they are preserved for Phase 6 Graph-Neural Network (GNN) analysis and GAN-based manifold generation.}
+
+\subsubsection{The Mapping Workflow: Iterative Convergence}
+The discovery of the operational map followed a non-linear loop of discovery and correction:
+\begin{itemize}[noitemsep]
+    \item \textbf{Initial HDBSCAN:} Identified density clusters but exposed the systemic geocoding corruption described in Phase 2B.
+    \item \textbf{Polygon Synthesis:} 72 heuristic polygons were manually architected to represent "Indifference Zones"---geographic areas where spatial variance is irrelevant to the Agent's strategy.
+    \item \textbf{Delta Remediation:} The dataset was purified by calculating coordinate deltas against these polygons.
+    \item \textbf{Canonical HDBSCAN:} The final unsupervised model was executed on the purified dataset, yielding the definitive topological backbone of the project.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{pienza_strategic_map.png} 
-    \caption{The Pienza Strategic Map. A network of 72 hand-crafted heuristic polygons defining the project's operational theatre. This layer serves as the primary geospatial categorical feature (\texttt{polygon\_id}).}
-    \label{fig:pienza_map}
+    \includegraphics[width=0.92\textwidth]{pienza_strategic_map.png} 
+    \caption{Strategic Ground Truth: 72 hand-crafted heuristic polygons defining the Agent's operational indifference zones.}
+    \label{fig:pienza_map_v2}
 \end{figure}
+
 
 \begin{table}[H]
     \centering
-    \fontsize{7}{8}\selectfont % Ultra-lean font size to ensure single-page fit
+    \fontsize{6.5}{7.5}\selectfont % Scaled for maximum legibility and fit
+    \setlength{\tabcolsep}{3pt}    % Tighten horizontal spacing
     \begin{tabular}{rl | rl | rl | rl}
         \toprule
         \textbf{ID} & \textbf{Zone Name} & \textbf{ID} & \textbf{Zone Name} & \textbf{ID} & \textbf{Zone Name} & \textbf{ID} & \textbf{Zone Name} \\
         \midrule
-        1 & agwa\_bezares & 19 & cruce\_echanove & 37 & lomas\_fc\_cuernavaca & 55 & roma\_condesa\_1 \\
-        2 & ahuehuetes\_norte & 20 & de\_las\_fuentes & 38 & lomas\_olimpo & 56 & roma\_condesa\_2 \\
-        3 & ahuehuetes\_sur & 21 & de\_los\_bosques & 39 & lomas\_prado\_norte & 57 & santa\_fe\_bosques\_de \\
-        4 & anahuac\_1 & 22 & el\_olivo & 40 & lomas\_trastevere & 58 & sf\_centro\_comercial \\
-        5 & anzures & 23 & frontera\_polanco & 41 & lomas\_virreyes & 59 & santa\_fe\_colegios \\
-        6 & club\_de\_golf\_lomas & 24 & fuentes\_casino & 42 & nodo\_monte\_libano & 60 & santa\_fe\_cumbres \\
-        7 & bahias & 25 & herradura & 43 & nodo\_reforma\_palmas & 61 & santa\_fe\_ibero \\
-        8 & blvrd\_anahuac & 26 & interlomas\_hac & 44 & palmas\_jp\_morgan & 62 & santa\_fe\_quintana \\
-        9 & bondojito\_asf & 27 & interlomas\_mag & 45 & polanco\_5 & 63 & santa\_fe\_tec \\
-        10 & bosque\_1 & 28 & irrigacion & 46 & polanco\_gandhi & 64 & sante\_fe\_patio \\
-        11 & bosque\_2 & 29 & jesus\_del\_monte & 47 & polanco\_g\_mexico & 65 & sedena \\
-        12 & bosque\_3 & 30 & juarez\_rosa & 48 & polanco\_palacio & 66 & sotelo \\
-        13 & bosque\_real & 31 & juarez\_soho & 49 & polanco\_p\_lincoln & 67 & tamarindos \\
-        14 & bosques\_pabellon & 32 & lagos & 50 & polanco\_parroquia & 68 & tecamachalco\_1 \\
-        15 & campo\_marte & 33 & loma\_de\_la\_palma & 51 & polanco\_uber\_hq & 69 & tecamachalco\_2 \\
-        16 & carretera\_olivo & 34 & lomas\_altas & 52 & reforma\_bnp & 70 & univ\_anahuac \\
-        17 & carretera\_libre & 35 & lomas\_barrilaco & 53 & reforma\_regina & 71 & vialidad\_barranca \\
-        18 & carso\_antara & 36 & lomas\_country & 54 & rios & 72 & vistahermosa \\
+        1 & anzures & 19 & polanco\_grupo\_mexico & 37 & nodo\_monte\_libano & 55 & santa\_fe\_centro\_comercial \\
+        2 & anahuac\_1 & 20 & polanco\_uber\_hq & 38 & tecamachalco & 56 & cruce\_echanove \\
+        3 & bahias & 21 & irrigacion & 39 & de\_las\_fuentes & 57 & carretera\_libre \\
+        4 & rios & 22 & sotelo & 40 & herradura\_conscripto & 58 & vistahermosa \\
+        5 & juarez\_rosa & 23 & sedena & 41 & de\_los\_bosques & 59 & tamarindos \\
+        6 & juarez\_soho\_house & 24 & reforma\_social & 42 & ahuehuetes\_norte & 60 & bosques\_pabellon \\
+        7 & roma\_condesa\_2 & 25 & fuentes\_casino & 43 & ahuehuetes\_sur & 61 & loma\_de\_la\_palma \\
+        8 & roma\_condesa\_1 & 26 & lomas\_barrilaco & 44 & reforma\_regina & 62 & carretera\_al\_olivo \\
+        9 & bosque\_1 & 27 & lomas\_olimpo & 45 & lomas\_altas & 63 & vialidad\_de\_la\_barranca \\
+        10 & campo\_marte & 28 & lomas\_prado\_norte & 46 & reforma\_bnp & 64 & el\_olivo \\
+        11 & polanco\_parque\_lincoln & 29 & palmas\_jp\_morgan & 47 & agwa\_bezares & 65 & blvrd\_anahuac \\
+        12 & polanco\_gandhi & 30 & lomas\_fc\_cuernavaca & 48 & sante\_fe\_patio & 66 & universidad\_anahuac \\
+        13 & polanco\_5 & 31 & lomas\_virreyes & 49 & santa\_fe\_quintana & 67 & interlomas\_magnocentro \\
+        14 & polanco\_parroquia & 32 & bosque\_2 & 50 & santa\_fe\_tec & 68 & ave\_club\_de\_golf\_lomas \\
+        15 & lagos & 33 & bondojito\_asf & 51 & santa\_fe\_cumbres\_de & 69 & interlomas\_haciendas \\
+        16 & frontera\_polanco & 34 & bosque\_3 & 52 & santa\_fe\_bosques\_de & 70 & jesus\_del\_monte \\
+        17 & carso\_antara\_miyana & 35 & lomas\_trastevere & 53 & santa\_fe\_colegios & 71 & lomas\_country\_club \\
+        18 & polanco\_palacio & 36 & nodo\_reforma\_palmas & 54 & santa\_fe\_ibero & 72 & bosque\_real \\
         \bottomrule
     \end{tabular}
     \caption{Geospatial Dictionary: Registry of the 72 operational polygons.}
     \label{tab:zone_dictionary}
 \end{table}
 
-\noindent \textit{Outcome: The integration of the \texttt{polygon\_id} feature transforms the raw coordinates into a semantically dense intelligence layer. This provides the supervised modeling campaign in Phase 5 with the high-fidelity geographic signal required to recognize strategic mission intent.}
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+\subsubsection{Emergent Urban Topologies}
+The final HDBSCAN output (Figure \ref{fig:hdbscan_observatory_v2}) produced several key discoveries that were invisible to standard geocoding:
+\begin{itemize}
+    \item \textbf{The Tacubaya Emergence:} A distinct operational hub was discovered in \textit{Tacubaya} only after the coordinate surgery. Prior to remediation, these offers were incorrectly misallocated to the \textit{Juárez} sector.
+    \item \textbf{Operational vs. Geometric Proximity:} The algorithm successfully identified the \textit{Haciendas / San Fernando} anomaly. While these zones are geographically adjacent, they are operationally distant due to terrain constraints. This confirmed that high-resolution fragmentation is a feature of the market's friction rather than a defect of the algorithm.
+\end{itemize}
 
-
-
-Begin PEnding Update
-
-
-\subsection{Gold Palette Synthesis}
-Following coordinate remediation, the project finalized the \textbf{Gold Palette}—the highest tier of geospatial intelligence. This layer provides the supervised models with a dual-perspective of the city, combining machine-learned density with human-curated strategic boundaries.
-
-\subsubsection{Topological vs. Strategic Mapping}
-The resulting geospatial features serve distinct roles within the predictive pipeline:
-
-\begin{enumerate}[noitemsep, topsep=3pt]
-    \item \textbf{Structural Discovery (\texttt{hdbscan\_id}):} As illustrated in Figure \ref{fig:geospatial_intelligence}(a), the HDBSCAN algorithm identified 45 organic operational hubs. These micro-zones represent an unbiased discovery of where market activity actually concentrates.
-    \item \textbf{Strategic Guardrails (\texttt{polygon\_id}):} As shown in Figure \ref{fig:geospatial_intelligence}(b), these clusters were formalized into 73 hand-crafted polygons. By enforcing crisp geometric boundaries, these polygons act as a countermeasure against overfitting, requiring the model to learn the economic attributes of a neighborhood rather than memorizing coordinate noise.
-\end{enumerate}
-The following two figures are placeholders PienzaClustering Agent will kindly guide me throguh Kepler.gl to update them.
 \begin{figure}[H]
-     \centering
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{fig_hdbscan.png}
-         \caption{HDBSCAN clusters assigned operational names.}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.48\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{fig_polygons.png}
-         \caption{Realized yield variance by polygon (\$200/hr baseline).}
-     \end{subfigure}
-     \caption{Geospatial Intelligence Layer. The synthesis of machine-learned clusters and human-curated strategic polygons defines the ``Gold Palette.''}
-     \label{fig:geospatial_intelligence}
+    \centering
+    \includegraphics[width=0.92\textwidth]{pienza_hdbscan_h3_map.png} 
+    \caption{Topological Machine Truth: HDBSCAN clusters aggregated via H3 hexagons, revealing the organic "Gravity Wells" of the marketplace.}
+    \label{fig:hdbscan_observatory_v2}
 \end{figure}
 
-\subsubsection{Economic Geography Findings}
-The realized yield heatmap identifies specific regions of high profitability. Clusters within \textit{Interlomas}, the \textit{Santa Fe Core}, and the \textit{Polanco-Lomas} axis exhibit consistent performance exceeding the \$200/hr benchmark, while peripheral and unassigned zones identify areas of systemic yield erosion. 
+\begin{table}[H]
+    \centering
+    \fontsize{6.5}{7.5}\selectfont % Compact sizing for single-page consolidation
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{rl | rl | rl | rl}
+        \toprule
+        \textbf{ID} & \textbf{Hub Name} & \textbf{ID} & \textbf{Hub Name} & \textbf{ID} & \textbf{Hub Name} & \textbf{ID} & \textbf{Hub Name} \\
+        \midrule
+        1 & lomas\_verdes & 12 & la\_diana & 23 & cofre\_de\_perote & 34 & chamizal \\
+        2 & plaza\_satélite\_mundo\_e & 13 & col\_juárez & 24 & duraznos & 35 & lomas\_anáhuac \\
+        3 & central\_del\_norte & 14 & roma\_norte & 25 & tamarindos & 36 & vialidad\_de\_la\_barranca \\
+        4 & terminal\_1\_aicm & 15 & condesa & 26 & nodo\_const\_ref & 37 & interlomas\_magnocentro \\
+        5 & terminal\_2\_aicm & 16 & nápoles\_wtc & 27 & santa\_fe\_patio & 38 & haciendas\_san\_fernando \\
+        6 & centro\_historico & 17 & san\_miguel\_chapultepec & 28 & santa\_fe\_core & 39 & felix\_cuevas \\
+        7 & sotelo\_san\_esteban & 18 & tacubaya & 29 & santa\_fe\_itesm & 40 & barranca\_del\_muerto \\
+        8 & carso\_antara\_miyana & 19 & observatorio & 30 & cruce\_echánove & 41 & san_ángel\_altavista \\
+        9 & campos\_elíseos & 20 & fc\_cuernavaca & 31 & santa\_fe\_abc & 42 & san\_jerónimo \\
+        10 & polanco\_trebol & 21 & virreyes & 32 & cuajimalpa\_centro & 43 & pedregal \\
+        11 & anzures\_reforma & 22 & el\_semáforo\_de\_palmas & 33 & pabellón\_bosques & 44 & viaducto\_tlalpan \\
+        \bottomrule
+    \end{tabular}
+    \caption{Registry of the 44 machine-discovered operational hubs.}
+    \label{tab:hdbscan_dictionary}
+\end{table}
 
-\noindent \textit{Outcome: The integration of \texttt{hdbscan\_id} and \texttt{polygon\_id} provides the high-purity geospatial signal required for the supervised modeling campaign in Phase 5.}
+\subsubsection{Ecological Validity and Overfitting Guardrails}
+The resulting map does not attempt to model the total ride-hailing universe of Mexico City. It is a strictly constrained mirror of the \textbf{Agent's Operational Reality}. To maintain policy fidelity, the Agent never altered his heuristics to capture more data; consequently, the map reflects only the specific times and zones of expert-level deployment. 
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+The use of 72 granular polygons on a boutique dataset ($N \approx 4,700$) introduced a high risk of model overfitting. This was strategically managed during the supervised training phase through \textit{Feature Coalescence} and algorithmic regularization to ensure the model learned strategic principles rather than specific coordinate points.
 
-End Pending Update
+
+-----
+-
+-
+-
+--
+
+END OF HDBSCAN
+
+----
+-
+-
+-
+
+
