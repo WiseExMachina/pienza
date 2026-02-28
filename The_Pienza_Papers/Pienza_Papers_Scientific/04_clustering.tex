@@ -15,49 +15,35 @@ The Clustering Phase of Project Pienza followed a four-stage progression:
     \item \textbf{Final Feature Synthesis:} The formalization of the Silver Palette, integrating the topological intelligence layer together with the final round of stateful features.
 \end{itemize}
 
-
 \subsection{Market Manifold Discovery: PCA}
-To isolate pure signal, the 67-dimensional vector space was distilled to 54 variables through a three-stage filtration protocol:
+To isolate the pure operational signal, the initial 67-dimensional vector space underwent a rigorous filtration protocol, distilling it down to 54 candidate variables. This preparatory phase enforced several strict constraints:
 
 \begin{enumerate}[noitemsep, topsep=3pt]
     \item \textbf{Variance Purge:} Quasi-constant features ($>99\%$ identical values), such as \texttt{is\_teens} and \texttt{is\_imputed}, were removed to eliminate computational dead weight.
     
-    \item \textbf{Redundancy Resolution:} High-redundancy pairs ($r > 0.90$) were resolved through strategic selection. The project prioritized \textbf{Scale-Invariant Indexes} over raw currency and \textbf{Accumulated Earnings} over absolute clock time, identifying the former as a stronger behavioral driver. Geospatial coordinates were retained as indispensable geometric inputs.
+    \item \textbf{Redundancy Resolution:} High-redundancy pairs ($r > 0.90$) were resolved through strategic selection. The pipeline prioritized \textbf{Scale-Invariant Indexes} over raw currency and \textbf{Accumulated Earnings} over absolute clock time, identifying the former as stronger behavioral drivers. Geospatial coordinates were retained as indispensable geometric inputs.
     
-    \item \textbf{Leakage Prevention:} Eight features with the \texttt{\_EDA} suffix were removed to prevent \textbf{Temporal Data Leakage} from post-facto mission outcomes.
+    \item \textbf{Categorical Exclusion:} Product category labels were intentionally omitted. This forced the model to identify the underlying economic and logistical causes of a decision rather than relying on superficial categorical proxies.
+    
+    \item \textbf{Leakage Prevention:} All features containing post-offer statuses, mission outcomes, or the \texttt{\_EDA} suffix were purged to maintain a strictly predictive, forward-looking environment.
 \end{enumerate}
 
-\noindent This 54-feature matrix serves as the foundation for Lasso-based selection and the subsequent principal component analysis. 
+To ensure model stability and prevent the curse of dimensionality, the 54-feature matrix was distilled through a competitive selection tournament using \textbf{Lasso Regression (L1 Penalty)}. The L1 regularization acted as a strict mathematical filter, aggressively forcing the coefficients of irrelevant or noisy features to exactly zero.
 
-To identify the primary drivers of the agent's decision boundary, a \textbf{Lasso Regression (L1 Penalty)} was deployed across the 54-feature set. The selection identified \texttt{upfront\_fare}, \texttt{time\_to\_pickup\_sec}, and \texttt{home\_vector\_alignment\_score} as the dominant predictors.
+While the algorithm efficiently identified primary predictors, a critical \textbf{Human-in-the-Loop Domain Override} was applied to the surviving features to align the machine with the Agent's operational reality. For instance, while the model temporarily selected distance as a strong predictor, the Agent explicitly overrode this in favor of \textit{Time} metrics (e.g., \texttt{est\_trip\_time\_sec}). For an Electric Vehicle (EV) operator navigating heavy urban gridlock, time is the absolute operational constraint, whereas distance is merely a flawed proxy. 
 
-A \textbf{Domain Override} was applied to align the machine with the operational reality of driving an Electric Vehicle. \textit{Distance} metrics were de-prioritized in favor of \textit{Time} metrics (e.g., \texttt{est\_trip\_time\_sec}), as time represents the definitive cost basis for the agent. 
+Finally, before establishing the final matrix, physics-based variables (\textit{fare, time, density, friction}) underwent \textbf{Log-Normal Transformations}. This corrected for distributional skewness, compressing extreme outliers to ensure that subsequent distance-based algorithms were not biased.
 
-Additionally, product category labels (\textit{Economy, Premium}) were intentionally excluded. This forces the model to identify the underlying economic and logistical causes of a decision rather than relying on categorical proxies. Features containing future outcome information were also purged to maintain a strictly predictive environment.
-
-The dataset was distilled to a \textbf{19-feature whitelist}. Before Principal Component Analysis (PCA), variables such as fare, time, and density underwent \textbf{Log-Normal Transformations} to correct for distributional skewness, ensuring subsequent distance-based algorithms are not biased by outliers.
-
-\begin{table}[H]
+\begin{figure}[H]
     \centering
-    \scriptsize
-    \begin{tabularx}{\textwidth}{X X X}
-        \toprule
-        \multicolumn{3}{c}{\textbf{The 19 Master Dimensions}} \\
-        \midrule
-        \texttt{consecutive\_rejects} & \texttt{eph\_complete\_index\_ML} & \texttt{log\_offer\_density\_10sec} \\
-        \texttt{cycle\_avg\_dtp\_km} & \texttt{eph\_operational\_index} & \texttt{log\_time\_to\_pickup\_sec} \\
-        \texttt{cycle\_cumulative\_net\_earnings} & \texttt{est\_trip\_time\_sec} & \texttt{log\_traffic\_index\_base\_120} \\
-        \texttt{dispatch\_lead\_time\_sec} & \texttt{home\_vector\_alignment\_score} & \texttt{log\_upfront\_fare} \\
-        \texttt{driver\_state\_at\_request\_fk} & \texttt{is\_long\_trip} & \texttt{session\_progress\_ratio} \\
-        \texttt{time\_since\_last\_offer} & \texttt{is\_surge} & \texttt{total\_accumulated\_deadhead\_sec} \\
-        \texttt{is\_turbo\_plus} & & \\
-        \bottomrule
-    \end{tabularx}
-    \caption{Final high-signal feature set following L1 selection and expert-led pruning.}
-    \label{tab:final_features}
-\end{table}
+    \includegraphics[width=0.85\textwidth]{fig_feature_importance_l1.png} 
+    \caption{Feature Importance on the 19 Master Dimensions (L1 Regularization). The plot illustrates the absolute magnitude of the coefficients surviving the Lasso penalty. The clear dominance of \texttt{log\_time\_to\_pickup\_sec} and \texttt{log\_upfront\_fare} confirms the Agent's primary sensitivity to immediate operational cost and financial reward.}
+    \label{fig:l1_importance}
+\end{figure}
 
-Following feature curation, the 19-dimensional vector space was processed using \textbf{Principal Component Analysis (PCA)}. While subsequent clustering may utilize raw features for interpretability, PCA serves a critical methodological function: it ensures an \textbf{orthogonal} feature space where every dimension exerts an independent gravitational pull, removing the warping effect of correlated variables.
+As evidenced in Figure \ref{fig:l1_importance}, the selection and intervention protocol resulted in a \textbf{19-feature whitelist} that perfectly captures the interplay between market physics and agent psychology. The hierarchy establishes \textit{Logistical Friction} and \textit{Magnitude} as the primary anchors of the decision boundary, while state-dependent features like \texttt{home\_vector\_alignment\_score} and \texttt{session\_progress\_ratio} provide the necessary strategic context for shift-termination modeling.
+
+Following feature curation, this purified 19-dimensional vector space was processed using \textbf{Principal Component Analysis (PCA)}. While subsequent clustering phases utilize the raw, scaled features to maintain direct interpretability, PCA serves a critical methodological function at this stage: it maps the system into an \textbf{orthogonal} feature space where every dimension exerts an independent gravitational pull, removing the warping effect of correlated variables and revealing the true latent structure of the market.
 
 The PCA engine leverages the properties of the \textbf{Symmetric Covariance Matrix} ($C$). By applying the \textbf{Spectral Theorem}, the matrix is diagonalized ($C = Q \Lambda Q^T$), where $\Lambda$ is a diagonal matrix of \textbf{eigenvalues} and $Q$ is an orthogonal matrix of \textbf{eigenvectors}. This ensures that the resulting Principal Components are perfectly perpendicular (uncorrelated), and the market's total variance is cleanly sorted along the diagonal.
 
@@ -209,7 +195,7 @@ A fundamental architectural decision in this topology was the \textbf{exclusive 
     \item \textbf{Decision Theory:} Since the Agent is geographically indifferent to pickups; the decision to accept an offer is driven by \textit{Time-to-Pickup} (TTP) rather than the specific neighborhood of origin. Conversely, the destination (dropoff) dictates the Agent's future geographic position, making it the primary determinant of subsequent operational risk and return.
 \end{enumerate}
 
-While pickups remain excluded from Phase 5 Supervised Learning, they are preserved for Phase 6 Graph-Neural Network (GNN) analysis and GAN-based manifold generation.
+While pickups remain excluded from Phase 5 Supervised Learning, they are preserved for Phase 6 GAN-based manifold generation and Graph-Neural Network (GNN) analysis.
 
 \subsubsection{The Initial Clustering Attempt \& The Coordinate Crisis}
 To discover these organic dropoff zones, \textbf{DBSCAN} was initially deployed. However, it resulted in data fragmentation that lacked operational business logic. The architecture was subsequently upgraded to \textbf{HDBSCAN} (Hierarchical DBSCAN), which dynamically extracts clusters across multiple density scales, proving much more capable of capturing Mexico City's complex operational reality. 
@@ -365,13 +351,12 @@ The causal analysis in Phase 3 identified a critical informational gap: the syst
 \footnotetext{While localized congestion is the dominant driver of duration variance, the prediction error also incorporates secondary operational factors such as trip-profile modifications or early drop-off requests. These edge cases were preserved within the analytical set to ensure the model captures the full spectrum of real-world operational volatility.}
 
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{Realized Traffic Index (\texttt{realized\_traffic\_index}):} The post-facto ground truth of mission friction. It is calculated as the ratio of realized duration to the algorithmic expectation. This metric is strictly reserved for mission-completion audits.
+    \item \textbf{Realized Traffic Index (\texttt{realized\_traffic\_index}):} The post-facto ground truth of mission friction. It is calculated as the ratio of realized duration to the quoted expectation. This metric is strictly reserved for mission-completion audits.
     \item \textbf{Historical Traffic Context (\texttt{hist\_avg\_traffic\_index}):} A session-level rolling average of previously realized indices. This feature serves as the technical proxy for the Agent's ``contextual memory'' of recent urban congestion at the moment of the request.
     \item \textbf{Traffic Volatility ML (\texttt{traffic\_volatility\_index\_ML}):} The primary predictive signal, calculated as the \textit{Historical Traffic Context} minus the \textit{Current Offer’s Expected Index}. 
     \item \textbf{Traffic Volatility EDA (\texttt{traffic\_volatility\_index\_EDA}):} Measures the absolute deviation between the realized duration and the expected quote; only for completed missions.
 \end{itemize}
 
-\footnotetext{To maintain a strictly predictive environment, the \texttt{hist\_avg\_traffic\_index} and \texttt{traffic\_volatility\_index\_ML} were calculated using a \textit{No Look-Ahead Protocol}: only missions with a \texttt{completed\_timestamp} strictly earlier than the current \texttt{offer\_timestamp} were included in the rolling averages.}
 
 \begin{table}[H]
     \centering
@@ -380,12 +365,12 @@ The causal analysis in Phase 3 identified a critical informational gap: the syst
         \toprule
         \textbf{cid} & \textbf{Feature Name} & \textbf{Data Type} \\
         \midrule
-        10 & \texttt{pickup\_polygon\_id} & INTEGER \\
-        12 & \texttt{pickup\_h3\_hex\_id} & TEXT \\
+        1 & \texttt{pickup\_polygon\_id} & INTEGER \\
+        2 & \texttt{pickup\_h3\_hex\_id} & TEXT \\
         \midrule
-        1 & \texttt{dropoff\_polygon\_id} & INTEGER \\
-        3 & \texttt{dropoff\_h3\_hex\_id} & TEXT \\
-        4 & \texttt{dropoff\_hdbscan\_id} & INTEGER \\
+        3 & \texttt{dropoff\_polygon\_id} & INTEGER \\
+        4 & \texttt{dropoff\_h3\_hex\_id} & TEXT \\
+        5 & \texttt{dropoff\_hdbscan\_id} & INTEGER \\
         \midrule
         6 & \texttt{realized\_traffic\_index} & REAL \\
         7 & \texttt{hist\_avg\_traffic\_index} & REAL \\
@@ -402,8 +387,3 @@ The completion of the \textit{Silver Palette} marks the conclusion of the founda
 
 The project’s governing philosophy throughout these stages was to engineer an expansive \textbf{universe of all possibilities}—capturing the total dimensionality of the Agent's reality. Recognizing that not all features are created equal, this high-resolution foundation was built specifically to afford the luxury of rigorous curation. By generating a dense field of 65+ potential signals, the project ensured that subsequent selection protocols could ruthlessly isolate only those variables with the highest predictive value. With the intelligence layer fully forged, the study now transitions to \textbf{Phase 5: Supervised Learning}, where this distilled signal is used to clone the Agent's decision boundary.
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
