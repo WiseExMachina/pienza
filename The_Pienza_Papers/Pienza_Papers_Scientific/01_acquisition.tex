@@ -87,7 +87,7 @@ To maintain data integrity and preserve the agent's decision context, a rigorous
 \begin{enumerate}
     \item \textbf{Telemetry Consolidation (GTS):} The raw, long-format event logs from the webapp were processed into a wide-format session ledger. This involved pruning duplicate entries and cancelled events, enabling the immediate calculation of session-level KPIs such as \textit{Net Spread} and \textit{Accumulated Deadhead}, metrics which would become engineered features in later stages.
     
-    \item \textbf{High-Fidelity Cognitive Backtagging:} The Agent manually reviewed and tagged every rejected offer from that session to populate the target variable (\texttt{reason\_primary}) which would be explained in the following section. Executing this task same-day was imperative to capture the specific, contextual nuance of the decision before operational memory decay occurred.
+    \item \textbf{High-Fidelity Cognitive Backtagging:} The Agent manually reviewed and tagged every rejected offer from that session to populate the multiclass target variable (\texttt{reason\_primary}). Executing this task same-day was imperative to capture the specific, contextual nuance of the decision before operational memory decay occurred.
 \end{enumerate}
 
 % --- PARTE 1B ---
@@ -130,7 +130,7 @@ The ingestion pipeline consolidated OCR outputs into a primary staging table. Th
 
 
 \subsection{Target Engineering: \texttt{reason\_primary}}
-The target variable, \texttt{reason\_primary}, is a hierarchical filtration system formalized as the \textbf{Cognitive Cascade}. To ensure a clean signal for supervised learning, each offer is assigned a single, mutually exclusive label representing the entry-point failure across a three-tiered triage: geospatial feasibility (Tier 1), economic viability (Tier 2), and strategic alignment (Tier 3). This prevents label contamination by focusing the model on the primary decision driver. The definitive taxonomy is outlined in Table \ref{tab:target_lexicon}.
+The multiclass target variable, \texttt{reason\_primary}, is a hierarchical filtration system formalized as the \textbf{Cognitive Cascade}. To ensure a clean signal for supervised learning, each offer is assigned a single, mutually exclusive label representing the entry-point failure across a three-tiered triage: geospatial feasibility (Tier 1), economic viability (Tier 2), and strategic alignment (Tier 3). This prevents label contamination by focusing the model on the primary decision driver. The definitive taxonomy is outlined in Table \ref{tab:target_lexicon}.
 
 \begin{table}[H]
     \centering
@@ -185,7 +185,7 @@ The following table defines the categorical flags engineered to capture qualitat
         & \texttt{friday\_gridlock} & Friday-specific regime; prioritizes egress from high-friction density sectors (\textit{Polanco}). \\
         \midrule
         \multirow{3}{*}{\textbf{System/Market}} 
-        & \texttt{trap} & Physically impossible platform time-estimates (e.g., 20 min predicted time from Vistahermosa to Polanco during morning traffic). \\
+        & \texttt{system\_error} & Physically impossible platform time-estimates (e.g., 20 min predicted time from Vistahermosa to Polanco during morning traffic). \\
         & \texttt{market\_anomaly} & Non-standard offer physics (e.g., operational outliers near National Holidays). \\
         & \texttt{protest\_anomaly} & External socio-political shocks (marches, road closures) disrupting standard market flow. \\
         \bottomrule
@@ -215,7 +215,7 @@ To differentiate between agent intent and realized performance, the schema imple
         \toprule
         \textbf{Target} & \textbf{Class Label} & \textbf{Strategic Context} \\
         \midrule
-        \textbf{Intent} & \texttt{Accept / Reject} & Primary binary target for supervised imitation learning. \\
+        \textbf{Intent} & \texttt{Accept / Reject} & Alternative binary target for supervised imitation learning. \\
         \midrule
         \textbf{Outcome} & \texttt{completed} & Transaction successfully finalized. \\
         & \texttt{rider\_canceled} & External termination by passenger post-acceptance. \\
@@ -288,7 +288,7 @@ By the conclusion of the acquisition campaign, the raw OCR stream had been enric
         \midrule
         \texttt{offer\_action} & Binary & \textit{Accept, Reject}. \\
         \texttt{reason\_primary} & Categorical & \textit{dropoff\_non\_operational, low\_profitability, long\_pickup, strategic\_mismatch, expected\_value\_gamble}. \\
-        \texttt{heuristic\_flag} & Categorical & \textit{deadhead\_risk, friday\_gridlock, obj\_end\_session, market\_anomaly, trap}. \\
+        \texttt{heuristic\_flag} & Categorical & \textit{deadhead\_risk, long\_ride\_risk, dropoff\_uncertain, obj\_end\_session, friday\_gridlock, system\_error, market\_anomaly, protest\_anomaly}. \\
         \texttt{driver\_state} & Categorical & \textit{Idle} (Open), \textit{On-Trip} (Chained). \\
         \texttt{outcome} & Categorical & \textit{Completed, Rider\_Cancel, Driver\_Cancel, System\_Failure}. \\
         

@@ -52,10 +52,10 @@ The engine was designed to isolate binary flags and extract continuous numerical
 
 
 % In 02_engineering.tex -> Section 3.6.2
-\subsubsection{Generative Variability and Forensic Remediation}
+\subsubsection{Generative Variability and Remediation}
 During a subsequent EDA phase, a systemic inconsistency was identified regarding incentive classification. While the ingestion script was strictly sequential, the \textbf{generative extraction layer} exhibited non-deterministic behavior. Varying levels of model ``creativity'' across processing batches led to the conflation of \textit{Surge} and \textit{Turbo+} labels.
 
-For instance, the model occasionally produced compounded, hallucinated strings such as: \textit{``Turbo+ of \$16.00 and Turbo+ of \$14.07 are included...''} These unstructured artifacts rendered standard Regex parsing insufficient. Because these discrepancies threatened the integrity of downstream profitability analysis, a second iteration of \textbf{Manual Forensic Remediation} was executed. The Agent performed a line-by-line audit, cross-referencing corrupted records against the original image assets to ensure 100\% data purity for the final training set.
+For instance, the model occasionally produced compounded, hallucinated strings such as: \textit{``Turbo+ of \$16.00 and Turbo+ of \$14.07 are included...''} These unstructured artifacts rendered standard Regex parsing insufficient. Because these discrepancies threatened the integrity of downstream profitability analysis, a second iteration of \textbf{Manual Remediation} was executed. The Agent performed a line-by-line audit, cross-referencing corrupted records against the original image assets to ensure 100\% data purity for the final training set.
 
 \subsubsection{Technical Retrospective}
 This cleaning phase yielded critical engineering insights regarding the extraction of structured data from visual UI elements via LLMs:
@@ -70,11 +70,7 @@ This cleaning phase yielded critical engineering insights regarding the extracti
 To capture the impact of endgame decision-making, features were engineered to model an offer’s position within a discrete work session.
 
 \subsubsection{The Offer Window Constraint}
-For analytical consistency, a work session is defined by its \textbf{Offer Window}—the duration between the inaugural offer and the terminal offer of a shift—rather than total physical operational time. To prevent \textbf{Label Contamination}, the window is programmatically truncated 15 minutes prior to the Agent’s arrival at the base in \textit{Anzures}. 
-
-This heuristic ensures that the dataset minimizes "Terminal Rejections"---offers rejected solely due to shift termination rather than intrinsic trip quality. By isolating these events, the model is trained on \textbf{Active Economic Heuristics}, ensuring that the "Reject" labels in the primary training set remain a pure signal of low profitability or high operational risk, rather than a reflection of session closure.
-
-Two primary features were calculated to quantify temporal positioning:
+For analytical consistency, a work session is defined by its \textbf{Offer Window}—the duration between the inaugural offer and the terminal offer of a shift—rather than total physical operational time. To prevent \textbf{Label Contamination}, the window was programmatically truncated 15 minutes prior to the Agent’s arrival its home base. This ensures that the dataset minimizes "terminal rejections" where the agent had no real intent of accepting any ride whatsoever. Two primary features were calculated to quantify temporal positioning:
 \begin{itemize}
     \item \textbf{\texttt{time\_in\_session\_sec}:} The elapsed time between the current offer and the session's first recorded offer.
     \item \textbf{\texttt{session\_progress\_ratio}:} A normalized metric ranging from 0.0 (first offer) to 1.0 (final offer). This feature is the primary proxy for the agent's psychological state during the "Endgame" phase. It allows the model to learn the collapsing acceptance threshold for non-homecoming vectors as the ratio approaches 1.0.
@@ -97,7 +93,7 @@ While the \texttt{offers} table successfully captured the coordinates for pickup
 To ensure physical plausibility, the interpolation logic (\texttt{pandas.merge\_asof}) was re-architected with a strict \texttt{by='session\_id'} constraint. This mathematically guaranteed that the "before" and "after" anchors for any given offer were selected exclusively from within the same operational session, permanently eliminating the teleportation error.
 
 \subsubsection{Trial 4: Home Vector Alignment (Strategic Extension)}
-\textbf{Status: Final Champion (Post-Phase 2).} This methodology involved calculating the \textbf{Cosine Similarity} between the \textit{Movement Vector} (Agent $\to$ Dropoff) and a fixed \textit{Home Vector} (Agent $\to$ \textit{Anzures}). While this feature eventually became the dominant spatial predictor in the \textit{Gold Palette} enrichment stage, the project relied on the Trial 3 Interpolation baseline for the duration of the Phase 2 structural engineering. This feature successfully quantified the Agent’s session-termination behavior.
+\textbf{Status: Final Champion (Post-Phase 2).} This methodology involved calculating the \textbf{Cosine Similarity} between the \textit{Movement Vector} (Agent $\to$ Dropoff) and a fixed \textit{Home Vector} (Agent $\to$ \textit{Anzures}). While this feature eventually became the dominant spatial predictor, the project relied on the Trial 3 Interpolation baseline for the duration of the Phase 2 structural engineering. This feature successfully quantified the Agent’s session-termination behavior.
 
 
 
@@ -110,7 +106,7 @@ This timing capability was identified during the localization trials, as the inv
     event\_id = \text{SHA-256}(\text{image\_content\_hash} + \text{high\_precision\_timestamp})
 \end{equation}
 
-This transformed the unstructured file repository into an audited relational ledger. The resulting high-fidelity temporal baseline unlocked the engineering of velocity-based features from Phase 2D, Silver Palette.
+This transformed the unstructured file repository into an audited relational ledger. The resulting high-fidelity temporal baseline unlocked the engineering of velocity-based features from Phase 2D.
 
 
 

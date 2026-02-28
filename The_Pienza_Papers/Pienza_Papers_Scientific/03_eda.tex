@@ -106,19 +106,15 @@ To quantify the non-linear relationship between traffic friction and potential y
 
 While the segmentation confirms the structural relationship between market friction and quoted yield, the analysis shows that the EPH performance exhibits a plateau at high friction levels, confirming that the system's compensation mechanism accounts for expected time overruns, but places a hard cap on maximum session return.
 
-\noindent However, there is a key limitation to this observation, Traffic Index only captures \textbf{Expected Friction}. The actual financial impact is driven by the unpredictable component of duration. High-friction states ($\text{Index} > 2.0$) introduce significant non-linearity, where the difference between expected and realized travel time can result in an uncompensated cost that does not scale linearly with the quoted fare. This discovery will be quantified in "THIS IS A PLACEHOLDER SENTENCE".
-
+\noindent However, there is a key limitation to this observation, Traffic Index only captures \textbf{Expected Friction}. The actual financial impact is driven by realized time duration. High-friction states ($\text{Index} > 2.0$) introduce significant non-linearity, where the difference between expected and realized travel time can result in an uncompensated cost that does not scale linearly with the quoted fare. This discovery will be quantified in during the causal inference study, where the initial hypothesis is revisited.
 
 \subsection{The Physics of Selection}
 
 Following the relational stabilization of the dataset in Phase 2, the analytical focus shifts to the deconstruction of the Agent's decision boundary. The following investigations move beyond descriptive statistics to model the underlying "physics" of the marketplace and the agent’s response to volatility.
 
 \subsection{The Market Quality Index}
-The fundamental challenge in modeling the Gig Economy is the \textbf{Mixture Problem}. Raw performance metrics are often contaminated by unproductive market regimes where even an optimal policy cannot reach the global revenue baseline. A model trained on raw revenue would fail to distinguish between a strategic error and a stochastically poor opportunity set.
+The fundamental challenge in modeling the Gig Economy is the \textbf{Mixture Problem}. Raw performance metrics are often contaminated by unproductive market regimes where even an optimal policy cannot reach the global revenue baseline. A model trained on raw revenue would fail to distinguish between a strategic error and a stochastically poor opportunity set. This approach dissociates the quality of a selection from the absolute value of the currency to reveal the underlying decision boundary.
 
-While the current research is centered on a single agent ($N=1$), the underlying framework is architected to be \textbf{scale-invariant}. By establishing a standardized normalization protocol, the project provides a methodology for quantifying skill and isolating performance across any number of agents within any market infrastructure. This approach dissociates the quality of a selection from the absolute value of the currency to reveal the underlying decision boundary.
-
-\subsubsection{The Normalization Cascade (The Quality Index)}
 To render heterogeneous product tiers comparable and ensure the framework scales across diverse environments, a \textbf{Global Anchor} ($\mu$) was established for each product category (\textit{Economy, Mid-Tier, Premium}) based on the historical median EPH of the entire operational history. By dividing the specific EPH of an offer by its category anchor, the absolute currency was transformed into a dimensionless \textbf{Quality Index ($QI$)}:
 
 \begin{equation}
@@ -132,7 +128,7 @@ To render heterogeneous product tiers comparable and ensure the framework scales
     \label{fig:normalization}
 \end{figure}
 
-As illustrated in Figure \ref{fig:normalization}, an $QI$ of 1.0 represents market parity. An $QI$ of 1.5 identifies a "Super Gem" (50\% excess value relative to the specific asset class). This normalization allows the system to objectively compare the quality of a standard economy ride against a luxury offer, stripping away the structural price difference to reveal true economic efficiency.
+As illustrated in Figure \ref{fig:normalization}, an $QI$ of 1.0 represents market parity. An $QI$ of 1.5 identifies a 50\% excess value relative to the specific asset class.
 
 \subsubsection{Market Heterogeneity and Volatility}
 By monitoring the distribution of offer quality over the chronological progression of the campaign, the marketplace exhibits extreme variance across discrete work sessions.
@@ -144,10 +140,7 @@ By monitoring the distribution of offer quality over the chronological progressi
     \label{fig:mqi_volatility}
 \end{figure}
 
-As shown in Figure \ref{fig:mqi_volatility}, the agent operates within a non-stationary environment. Certain sessions (indicated in green) represent high-quality market states, while others (in red) signify economic scarcity. A notable outlier is \textbf{Session 2}, where the $MQI$ was so severely depressed that the agent did not accept a single offer, effectively halting operations before deployment. While this demonstrates high threshold discipline, it also reveals a potential cognitive bias: the refusal of sub-optimal \textit{bridge trips} that could serve as strategic vectors to higher-quality zones. This visualization establishes the necessity of the \textbf{Market Quality Index ($MQI$)} as a dynamic baseline; evaluating agent performance without accounting for these session-level shifts would result in a biased assessment of skill.
-
-\noindent \textbf{Analytical Case Study:}
-For a granular, session-by-session audit of the agent's selection behavior relative to the $MQI$---including forensic analysis of high-performance events and sub-optimal sessions---readers are invited to explore the interactive case reports in the canonical Jupyter Notebook: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - Phase 3 EDA - MQI]}.
+As shown in Figure \ref{fig:mqi_volatility}, the agent operates within a non-stationary environment. Certain sessions (indicated in green) represent high-quality market states, while others (in red) signify economic scarcity. \footnote{\textbf{Analytical Case Study:} For a granular, session-by-session audit of the agent's selection behavior relative to the $MQI$---including forensic analysis of high-performance events and sub-optimal sessions---readers are invited to explore the interactive case reports in the canonical Jupyter Notebook: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - Phase 3 EDA - MQI]}.}
 
 
 \subsection{The Opportunity Oracle: Time as a Financial Derivative}
@@ -158,7 +151,7 @@ To accurately measure market velocity, the search stream underwent a strict temp
 
 
 \subsection{The Strategic Quadrant Matrix}
-To analyze how environmental variance dictates performance, the operational environment was mapped into a four-quadrant phase space (Figure \ref{fig:quadrant_analysis}). This framework cross-references \textbf{Market Quality} ($MQI$) on the y-axis against \textbf{Market Velocity} (Median inter-offer latency) on the x-axis. Although $MQI$ and velocity vary dynamically throughout a single shift, this model utilizes a \textit{static session-level aggregate} to categorize the dominant market regime for each period of activity.
+To analyze how environmental variance dictates performance, the operational environment was mapped into a four-quadrant phase space (Figure \ref{fig:quadrant_analysis}). This framework cross-references \textbf{Market Quality} ($MQI$) on the y-axis against \textbf{Market Velocity} (Median inter-offer latency) on the x-axis. Although $MQI$ and velocity can vary throughout a single shift, this model utilizes a \textit{static session-level aggregate} to categorize the dominant market regime for each period of activity.
 
 \begin{figure}[H]
     \centering
@@ -228,7 +221,7 @@ The analysis, detailed in Figure \ref{fig:efficient_frontier}, reveals three pri
     \item \textbf{The 9-Minute Absolute Cap:} Regardless of the target or market quadrant, the rational search budget effectively hits a ceiling at 9 minutes. Beyond this temporal horizon, the probability of yield improvement becomes statistically negligible.
 \end{enumerate}
 
-\noindent \textit{Outcome: This framework provides the hard constraints for the Agent's Digital Clone. By identifying the 9-minute search cap, the project ensures that the simulation engine in Phase 6 operates within the boundaries of mathematical rationality.}
+\noindent \textit{Outcome: This framework provides the hard constraints for the Agent's Digital Clone. By identifying the 9-minute search cap, the project ensures that the simulation engine operates within the boundaries of mathematical rationality.}
 
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
@@ -284,11 +277,11 @@ The model results, summarized in Table \ref{tab:ols_baseline}, establish the glo
 
 The model exhibits a high coefficient of determination ($R^2 = 0.930$), confirming that 93\% of the variance in realized earnings is explained by the initial offer. This demonstrates a robust \textit{Predictive Synchrony} across the system. 
 
-However, the high explanatory power masks severe structural instability. The extreme \textbf{Kurtosis (13.05)} and \textbf{positive Skewness (2.64)} serve as immediate analytical red flags. These metrics indicate a highly non-normal error distribution with "heavy tails," suggesting that the model's predictability is not uniform. The presence of these outliers and the significant deviation from normality point toward a violation of the homoscedasticity assumption, necessitating a deeper forensic audit of the residuals.
+However, the high explanatory power masks severe structural instability. The extreme \textbf{Kurtosis (13.05)} and \textbf{positive Skewness (2.64)} serve as immediate analytical red flags. These metrics indicate a highly non-normal error distribution with "heavy tails," suggesting that the model's predictability is not uniform. The presence of these outliers and the significant deviation from normality point toward a violation of the homoscedasticity assumption, necessitating a deeper investigation: residual analysis.
 
-\subsubsection*{Forensic Diagnostic: The Cone of Uncertainty}
+\subsubsection*{Heteroscedasticity: The Cone of Uncertainty}
 
-To validate the stability of the baseline model, a forensic audit of the residuals was conducted. The objective was to determine if the prediction error remained constant across the financial spectrum or if it scaled with the magnitude of the transaction.
+To validate the stability of the baseline model, an analysis on residuals was conducted. The objective was to determine if the prediction error remained constant across the financial spectrum or if it scaled with the magnitude of the transaction.
 
 \begin{figure}[H]
     \centering
@@ -299,7 +292,7 @@ To validate the stability of the baseline model, a forensic audit of the residua
 
 The visual inspection in Figure \ref{fig:heteroscedasticity_cone} identifies a classic fanning pattern, or \textit{Cone of Uncertainty}. While the model is highly precise for low-value missions, the variance of the residuals expands significantly as the \textbf{Quoted Fare} increases. To confirm this observation with statistical rigor, a Breusch-Pagan test was executed, yielding a p-value of $0.0286$. This result formally rejects the null hypothesis of homoscedasticity, confirming that the model's error variance is non-constant ($p < 0.05$).
 
-The 15\% Risk Expansion Band confirms that absolute financial uncertainty scales proportionally with the \textbf{Quoted Fare}. While this diagnostic provided a clear measure of historical variance, the causal inquiry was temporarily paused as the model's limitations in explaining the \textit{why} of this uncertainty became apparent. It was only during subsequent multivariate interaction analysis on the completed missions cohort that a superior predictive signal was identified: the \textbf{Temporal Variance} (or \textit{Time Spread}).
+The 15\% Risk Expansion Band confirms that absolute financial uncertainty scales proportionally with the \textbf{Quoted Fare}. While this diagnostic provided a clear measure of historical variance, the causal inquiry was temporarily paused once it became evident that the model lacked the explanatory power to determine \textit{why} this uncertainty existed. It was only during subsequent multivariate interaction analysis on the completed missions cohort that a superior predictive signal was identified: the \textbf{Temporal Variance} (or \textit{Time Spread}).
 
 \begin{figure}[H]
     \centering

@@ -1,13 +1,24 @@
 \section{Phase 5: PENDING}
 
-\begin{tikzpicture}[node distance=2cm]
-    % Define styles
-    \tikzstyle{box} = [rectangle, draw, fill=blue!10, text width=5em, text centered, minimum height=4em]
-    
-    % Draw Nodes
-    \node (teacher) [box] {XGBoost (Teacher)};
-    \node (student) [box, below of=teacher] {LSTM (Student)};
-    
-    % Draw Arrow
-    \draw [->, thick] (teacher) -- node[anchor=west] {Distill 1M Rows} (student);
-\end{tikzpicture}
+\section{Phase 5: Supervised Learning \& Behavioral Cloning}
+
+\noindent \textbf{Timeline: January 3 -- January 12, 2026}
+
+The objective of Phase 5 was to synthesize a predictive model capable of replicating the Agent’s decision policy with high fidelity. Having finalized the feature store, the project moved from structural discovery to a comparative algorithmic tournament.
+
+\subsection{Experimental Design: The Three Data Regimes}
+Before selecting the optimal algorithm, the project executed a final dimensionality audit to determine the most effective data representation for the model. A second iteration of Principal Component Analysis (PCA) was performed to incorporate the Silver Palette. This audit confirmed that the system's dimensionality remained stable, with 12 components continuing to explain 90\% of the total variance.
+
+To isolate the highest-performing input strategy, the model tournament was executed across three distinct \textbf{Data Regimes}:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{League A (Unfiltered):} The complete set of 65 raw features to test the algorithm's innate noise-filtering capability.
+    \item \textbf{League B (Curated Raw):} The 20-feature ``Praetorian Guard'' set, utilizing raw, scaled variables to prioritize \textbf{Interpretability}.
+    \item \textbf{League C (Abstracted PCA):} The orthogonalized 12-component set to test performance within a denoised, independent feature space.
+\end{itemize}
+
+\subsubsection{The Interpretability Mandate}
+While League C (PCA) provided the most mathematically elegant input, the Agent issued a \textbf{Strategic Veto} against its use for the final champion model. In the context of a decision-support system, the ability to perform \textit{Feature-Level Forensics} (e.g., deconstructing why an offer was rejected based on a specific traffic index) outweighs the marginal benefits of dimensionality reduction. Consequently, \textbf{League B (Curated Raw)} was ratified as the definitive training matrix for the tournament.
+
+\subsection{The Tournament: Algorithmic Evaluation}
+The performance baseline was established through a competitive evaluation of four distinct algorithmic families...

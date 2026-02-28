@@ -1,29 +1,22 @@
-\section{Phase 4: PCA and Clustering}
+\section{Phase 4: Unsupervised Machine Learning}
 
 \noindent \textbf{Timeline: December 4, 2025 -- January 2, 2026}
 
 Following the causal audits of Phase 3, the project shifted from analyzing individual variables to discovering the \textbf{latent structures} that govern the Mexico City marketplace. This phase represents the critical convergence of the Agent's tacit domain knowledge and unsupervised machine learning, moving beyond standard administrative boundaries to identify organic "Neighborhoods of Profit." 
 
-The mission of Phase 4 was twofold: first, to deconstruct the economic and topological archetypes of the market; and second, to execute a high-stakes forensic remediation of the coordinate data. This period was characterized by intense "Human-in-the-Loop" intervention, where automated discovery was audited against operational reality. The campaign culminated in a month-long data surgery—spanning the terminal days of 2025—to reconcile systemic semantic drift and geocoding entropy.
+The mission of Phase 4 was twofold: first, to deconstruct the economic and topological archetypes of the market; and second, to execute a high-stakes remediation of the coordinate data. This period was characterized by intense "Human-in-the-Loop" intervention, where automated discovery was audited against operational reality. The campaign culminated in a month-long data surgery—spanning the terminal days of 2025—to reconcile systemic semantic drift and geocoding entropy.
 
-The structural investigation followed a five-stage progression:
+The Clustering Phase of Project Pienza followed a four-stage progression:
 
 \begin{itemize}[noitemsep, topsep=3pt]
     \item \textbf{Market Manifold Discovery:} Utilizing PCA to interrogate the high-dimensional feature space and identify the principal axes of market variance.
     \item \textbf{Economic Archetypes:} Deployment of K-Means to categorize the "DNA" of mission types based on yield and operational effort.
-    \item \textbf{Topological Clustering:} Application of HDBSCAN to discover the organic density-based zones of the city.
-    \item \textbf{Forensic Remediation:} A surgical strike to resolve the "Coordinate Crisis," correcting the systemic misalignment between address strings and geospatial points.
-    \item \textbf{The Gold Palette Synthesis:} The formalization of the final geospatial intelligence layer, integrating machine-discovered clusters with human-curated strategic polygons.
+    \item \textbf{Geo-Spatial Clustering:} Application of HDBSCAN to discover the organic density-based zones of the city.
+    \item \textbf{Final Feature Synthesis:} The formalization of the Silver Palette, integrating the topological intelligence layer together with the final round of stateful features.
 \end{itemize}
 
------
------
-PCA
------
------
 
-
-\subsection{Feature Filtration: Redundancy and Signal Preparation}
+\subsection{Market Manifold Discovery: PCA}
 To isolate pure signal, the 67-dimensional vector space was distilled to 54 variables through a three-stage filtration protocol:
 
 \begin{enumerate}[noitemsep, topsep=3pt]
@@ -36,14 +29,12 @@ To isolate pure signal, the 67-dimensional vector space was distilled to 54 vari
 
 \noindent This 54-feature matrix serves as the foundation for Lasso-based selection and the subsequent principal component analysis. 
 
-\subsection{Feature Selection: L1 Regularized Selection}
 To identify the primary drivers of the agent's decision boundary, a \textbf{Lasso Regression (L1 Penalty)} was deployed across the 54-feature set. The selection identified \texttt{upfront\_fare}, \texttt{time\_to\_pickup\_sec}, and \texttt{home\_vector\_alignment\_score} as the dominant predictors.
 
 A \textbf{Domain Override} was applied to align the machine with the operational reality of driving an Electric Vehicle. \textit{Distance} metrics were de-prioritized in favor of \textit{Time} metrics (e.g., \texttt{est\_trip\_time\_sec}), as time represents the definitive cost basis for the agent. 
 
 Additionally, product category labels (\textit{Economy, Premium}) were intentionally excluded. This forces the model to identify the underlying economic and logistical causes of a decision rather than relying on categorical proxies. Features containing future outcome information were also purged to maintain a strictly predictive environment.
 
-\subsubsection{Final Matrix and Normalization}
 The dataset was distilled to a \textbf{19-feature whitelist}. Before Principal Component Analysis (PCA), variables such as fare, time, and density underwent \textbf{Log-Normal Transformations} to correct for distributional skewness, ensuring subsequent distance-based algorithms are not biased by outliers.
 
 \begin{table}[H]
@@ -66,15 +57,11 @@ The dataset was distilled to a \textbf{19-feature whitelist}. Before Principal C
     \label{tab:final_features}
 \end{table}
 
-
-\subsection{Market Manifold Analysis: Dimensionality Reduction via PCA}
 Following feature curation, the 19-dimensional vector space was processed using \textbf{Principal Component Analysis (PCA)}. While subsequent clustering may utilize raw features for interpretability, PCA serves a critical methodological function: it ensures an \textbf{orthogonal} feature space where every dimension exerts an independent gravitational pull, removing the warping effect of correlated variables.
 
-\subsubsection{Mathematical Foundation: The Spectral Theorem}
 The PCA engine leverages the properties of the \textbf{Symmetric Covariance Matrix} ($C$). By applying the \textbf{Spectral Theorem}, the matrix is diagonalized ($C = Q \Lambda Q^T$), where $\Lambda$ is a diagonal matrix of \textbf{eigenvalues} and $Q$ is an orthogonal matrix of \textbf{eigenvectors}. This ensures that the resulting Principal Components are perfectly perpendicular (uncorrelated), and the market's total variance is cleanly sorted along the diagonal.
 
-\subsubsection{Variance Allocation and Dimensional Cost}
-Dimensionality reduction was modest, requiring 13 components to preserve 90\% of the variance from the original 19-feature set (Figure \ref{fig:scree_plot}). While standard PCA applications often exhibit heavy dominance in the first two components, the CDMX ecosystem reveals a \textbf{distributed eigenvalue structure}. The absence of a dominant principal component confirms the system's high dimensionality; the agent's decision logic is driven by the interplay of multiple orthogonal factors rather than a single primary variable.
+Dimensionality reduction was modest, requiring 13 components to preserve 90\% of the variance from the original 19-feature set (Figure \ref{fig:scree_plot}). While standard PCA applications often exhibit heavy dominance in the first two components, Mexico City's ecosystem reveals a \textbf{distributed eigenvalue structure}. The absence of a dominant principal component confirms the system's high dimensionality; the agent's decision logic is driven by the interplay of multiple orthogonal factors rather than a single primary variable.
 
 \begin{figure}[H]
     \centering
@@ -83,8 +70,6 @@ Dimensionality reduction was modest, requiring 13 components to preserve 90\% of
     \label{fig:scree_plot}
 \end{figure}
 
-
-\subsubsection{Decoding the Market DNA (Principal Components)}
 The first three components, explaining $\approx 40\%$ of the variance, define the universal mathematical structure of the total offer stream:
 
 \begin{itemize}[noitemsep]
@@ -127,31 +112,7 @@ The projection of the feature space onto the primary principal components identi
 \noindent This structural analysis confirms that peak performance is not uniformly distributed but occupies a specific coordinate space within the market manifold. These findings provide the objective boundaries for the \textbf{K-Means Strategic Archetypes} in the subsequent stage.
 
 
--
--
--
--
--END OF PCA -
--
--
--
--
-
-
-
--
--
--
--
-- Start of K-Means -
--
--
--
--
--
-
-
-\subsection*{K-Means Operational Clustering: Rejecting the Black Box}
+\subsection*{Economic Archetypes: K-Means}
 
 An exploratory K-Means clustering algorithm was executed on the latent dimensions ($PC_1, PC_2, PC_3$). While the algorithm successfully partitioned the data across multiple tested $k$-universes ($k=2, 3, 4, 6$), the cluster profiles proved fundamentally uninterpretable for practical business strategy. Because each Principal Component is a linear combination of all 19 underlying features, the resulting clusters became opaque ``mixtures of mixtures.'' Ultimately, clustering on latent dimensions created a ``black box,'' making it impossible to reverse-engineer clear behavioral policies or business rules from abstract eigenvectors. \footnote{The evaluation of PCA-based clustering performance and the subsequent methodological pivot are documented in the Phase 4.1 notebook: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - K-Means Trials]}.}
 
@@ -161,7 +122,7 @@ An initial execution on the full 19-variable set identified a secondary interpre
 
 To resolve this, an \textbf{Incremental Clustering} strategy was adopted. The model was initially constrained to the "Naked Physics" of the transaction: \texttt{upfront\_fare}, \texttt{est\_trip\_time\_sec}, and \texttt{est\_trip\_dist\_km}, excluding all algorithmic incentives or agent-state features. Applying the principle of \textbf{Occam's Razor}, the project identified that the market's fundamental structure is almost entirely dictated by these spatio-temporal magnitudes.
 
-A comparative analysis between the \textbf{Elbow Method} and \textbf{Silhouette Score} was conducted to determine the optimal cluster count ($k$) for the CDMX marketplace (Figure \ref{fig:k_selection}).
+A comparative analysis between the \textbf{Elbow Method} and \textbf{Silhouette Score} was conducted to determine the optimal cluster count ($k$) for Mexico City's marketplace (Figure \ref{fig:k_selection}).
 
 \begin{figure}[H]
     \centering
@@ -192,7 +153,7 @@ The analysis revealed that the marketplace fractures into six distinct physical 
         \texttt{Tier 6} & 224+ minutes \\
         \bottomrule
     \end{tabular}
-    \caption{CDMX market archetypes based on $K=6$ clustering.} 
+    \caption{Mexico City market archetypes based on $K=6$ clustering.} 
     \label{tab:mission_tiers} 
 \end{table}
 \footnotetext{Median duration is derived from multi-dimensional $K$-Means centroids rather than deterministic binning. Consequently, observations with identical durations may be assigned to different tiers based on the specific variance in fare magnitude and trip distance.}
@@ -232,68 +193,45 @@ To evaluate the economic viability of the discovered archetypes, the analysis me
 The result identifies the \textbf{Amortization of Deadhead} as the primary driver of mission efficiency:
 \begin{itemize}[noitemsep, topsep=3pt]
     \item \textbf{Search-Intensive Sprints (Tier 1):} Although quoted at $+75.7\%$ above the target, the realized yield collapses to $-49.9\%$. In these short-duration missions, the uncompensated temporal investment (searching and pickup) outweighs the revenue-generating phase.
-    \item \textbf{Scale Resilience (Tiers 4-6):} Long-duration missions demonstrate the highest capacity to meet the sustainability benchmark, successfully diluting fixed search costs across a larger revenue base. However, the yield for Tier 6 represents rare interstate statistical anomalies. This specific metric excludes the massive time required to return back the city, which would halve the realized yield in a full-cycle context.
+    \item \textbf{Scale Resilience (Tiers 4-6):} Long-duration missions demonstrate the highest capacity to meet the sustainability benchmark, successfully diluting fixed search costs across a larger revenue base. However, the yield for Tier 6 represents rare interstate statistical anomalies. This specific metric excludes the massive time required to return back to the city, which would halve the realized yield in a full-cycle context.
 \end{itemize}
 
 
  \noindent Having established the fundamental economic archetypes, the study proceeds to the discovery of the geospatial dimension to identify the organic operational zones of the city.
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+\subsection{Geo-spatial Clustering: HDBSCAN}
+The geospatial objective of this phase was to transform $\approx 4,700$ raw coordinates into a \textbf{Topological Operational Model}. This mapping converts raw spatial distributions into a high-value categorical feature (\texttt{zone\_id}), enabling the downstream predictive pipeline to recognize geographic intent and operational risk.
 
+\subsubsection{Geospatial Constraints: The Dropoff Imperative}
+A fundamental architectural decision in this topology was the \textbf{exclusive focus on dropoff coordinates}. Pickup locations were intentionally omitted from the feature engineering phase for two primary reasons:
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{Data Integrity:} Over 90\% of raw pickup address strings exhibited extreme ambiguity, introducing high-risk noise into the dataset.
+    \item \textbf{Decision Theory:} Since the Agent is geographically indifferent to pickups; the decision to accept an offer is driven by \textit{Time-to-Pickup} (TTP) rather than the specific neighborhood of origin. Conversely, the destination (dropoff) dictates the Agent's future geographic position, making it the primary determinant of subsequent operational risk and return.
+\end{enumerate}
 
+While pickups remain excluded from Phase 5 Supervised Learning, they are preserved for Phase 6 Graph-Neural Network (GNN) analysis and GAN-based manifold generation.
 
--
--
--
--
-- END of K-Means -
--
--
--
--
--
+\subsubsection{The Initial Clustering Attempt \& The Coordinate Crisis}
+To discover these organic dropoff zones, \textbf{DBSCAN} was initially deployed. However, it resulted in data fragmentation that lacked operational business logic. The architecture was subsequently upgraded to \textbf{HDBSCAN} (Hierarchical DBSCAN), which dynamically extracts clusters across multiple density scales, proving much more capable of capturing Mexico City's complex operational reality. 
 
---
+In an attempt to achieve 100\% feature coverage, a \textbf{K-Nearest Neighbors (KNN)} classifier was deployed alongside HDBSCAN to re-assign unclustered noise points to their nearest cluster. This algorithmic fallback was quickly identified as a functional failure: by forcing orphaned points into the nearest core based strictly on Euclidean distance, the resulting map lost all operational relevance. 
 
--
--
--
--
-HDBSCAN
-----
--
--
--
--
--
--
+More critically, while the HDBSCAN model was mathematically sound, a deep validation audit cross-referencing the coordinate clusters against the raw \texttt{dropoff\_address} text strings revealed a systemic data integrity failure. Inspection of the \textit{AICM} (Airport) cluster, for example, revealed textual addresses belonging to distant parts of the city, such as Cuajimalpa. 
 
-
-\subsection{Unsupervised Topology: Organic Zone Discovery}
-The geospatial objective was to transform $\approx 4,700$ dropoff coordinates into a \textbf{Topological Operational Model}. This strategic mapping converts raw spatial distributions into a high-value categorical feature (\texttt{zone\_id}) to enable the predictive pipeline to recognize geographic intent.
-
-While \textbf{DBSCAN} was chosen initially, it resulted in data fragmentation that made no business logic. Therefore, the architecture was upgraded to \textbf{HDBSCAN} (Hierarchical DBSCAN), which dynamically extracts clusters across multiple density scales. HDBSCAN naturally capturared Mexico's City complex operational reality by identifying 45 granular high-resolution micro-clusters. 
-
-
-In an attempt to achieve 100\% feature coverage a \textbf{K-Nearest Neighbors (KNN)} classifier was deployed to re-assign unclustered points to their nearest cluster. This algorithmic fallback was identified as a functional failure. By forcing these points into the nearest core based strictly on Euclidean distance, the resulting topology lost all operational relevance. 
-
-While the HDBSCAN model was mathematically sound and aligned with the operational reality, a deep validation audit was conducted to verify semantic alignment. The coordinate-based clusters were cross-referenced against the raw \texttt{dropoff\_address} text strings. This audit identified a systemic data integrity failure. Inspection of the \textit{AICM} (Airport) cluster revealed addresses belonging to distant parts of the city, such as Cuajimalpa. While the algorithm had correctly identified density clusters, the underlying geocoded coordinates had become decoupled from their true textual addresses during the upstream ingestion phase. This "Garbage In, Garbage Out" (GIGO) corruption invalidated the unsupervised topology and necessitated a major remediation campaign.
-
-To restore geospatial integrity, a Human-in-the-Loop (HITL) approach was adopted. The Agent manually architected 73 custom heuristic polygons to serve as the ultimate spatial ground truth. This manual intervention solved both pipeline crises simultaneously. First, it guaranteed that every coordinate within the operational radius would be deterministically mapped to a valid zoneid, effectively eliminating the orphaned data problem. Second, it provided a rigid spatial framework that drastically accelerated the data auditing process. By cross-referencing the raw dropoffaddress strings contained within each newly drawn HITL polygon, anomalous and corrupted coordinates were instantly isolated and rectified. Consequently, this initiated a deep remediation campaign to reconcile and purify the entire geospatial dataset.
+While the algorithm had correctly identified density clusters, the underlying geocoded coordinates had become completely decoupled from their true textual addresses during the upstream ingestion phase. This ``Garbage In, Garbage Out'' (GIGO) corruption entirely invalidated the initial unsupervised topology and necessitated a major remediation campaign before any machine learning could proceed.
 
 
 \subsection{Geospatial Remediation: Root Cause Analysis}
-Validation of the initial clustering results identified a systemic integrity failure. This discovery triggered a deep \textbf{Root Cause Analysis (RCA)} that identified three compounding failure vectors:
+The discovery of decoupled coordinates within the initial clustering results triggered a deep \textbf{Root Cause Analysis (RCA)}. The investigation identified three compounding failure vectors responsible for the data corruption:
 
 \begin{enumerate}[noitemsep, topsep=3pt]
-    \item \textbf{Validation Gap:} The initial Phase 1 acquisition utilized forward geocoding without a reverse-validation step, allowing API hallucinations to persist in the dataset.
-    \item \textbf{Semantic Entropy:} Contradictory neighborhood labels in the platform's raw address strings (e.g., \textit{``Calle Insurgentes Tacubaya, Condesa/Roma''}) caused the black-box API to default coordinates to incorrect municipalities.
-    \item \textbf{Propagation Error:} A logical bug during the Phase 2B jittering stage caused hundreds of distinct textual addresses to collapse into a single, identical coordinate point.
+    \item \textbf{Validation Gap:} The initial Phase 1 data acquisition utilized forward geocoding without a reverse-validation step, allowing API hallucinations to persist undetected in the dataset.
+    \item \textbf{Semantic Entropy:} Contradictory neighborhood labels within the platform's raw address strings (e.g., \textit{``Calle Insurgentes Tacubaya, Condesa/Roma''}) caused the black-box routing API to default coordinates to entirely incorrect boroughs.
+    \item \textbf{Propagation Error:} A logical bug during the Phase 2B jittering stage caused hundreds of distinct textual addresses to mistakenly collapse into a single, identical coordinate point.
 \end{enumerate}
 
 \subsubsection{Diagnostic Engineering}
-To isolate the corrupted records, a diagnostic SQL query was engineered based on a strict relational rule: \textbf{Fixed Coordinates + Changing Text = Error}. By grouping identical coordinates and counting distinct address strings, the project isolated the specific records requiring intervention without compromising the healthy data.
+Before the dataset could be repaired, the corrupted records needed to be isolated without compromising the healthy data. To achieve this, a diagnostic SQL query was engineered based on a strict relational rule: \textbf{Fixed Coordinates + Changing Text = Error}. By grouping identical coordinates and counting distinct address strings, the pipeline successfully flagged the specific anomalies requiring intervention.
 
 \begin{lstlisting}[language=SQL, caption={Diagnostic Query: Isolating Jitter Propagation Errors}]
 -- Logic: If one exact coordinate belongs to multiple distinct text addresses, it is corrupted.
@@ -312,47 +250,29 @@ JOIN (
 ) c ON o.pickup_lat = c.pickup_lat AND o.dropoff_lat = c.dropoff_lat;
 \end{lstlisting}
 
-\subsubsection{Remediation Architecture: The Delta Check Pipeline}
-To rescue the dataset, a two-stage \textbf{Human-in-the-Loop (HITL)} reconciliation pipeline was executed across all 9,530 coordinate pairs:
+In addition to the Jitter Propagation Errors,  a six-stage \textbf{Human-in-the-Loop (HITL)} reconciliation pipeline was executed across all 9,530 coordinate pairs:
 
-\begin{enumerate}[noitemsep]
-    \item \textbf{Geospatial Delta Check:} A secondary baseline was established by re-geocoding the dataset in a dedicated cloud environment. A \textbf{Delta Check} was implemented to calculate the distance (in meters) between original and new coordinates. Only records exceeding a severe geographic threshold were flagged for manual review.
-    \item \textbf{Deterministic Overwrite:} A bespoke ETL tool managed the manual corrections. The system staged flagged conflicts alongside verified context, enabling the agent to surgically overwrite corrupted coordinate pairs in the source tables while preventing manual entry errors.
-\end{enumerate}
-
-\noindent \textit{Outcome: This intervention successfully corrected over 1,500 corrupted rows—nearly one-third of the operational history. The canonical Source of Truth was updated with this purified dataset, allowing the clustering pipeline to be re-executed with high-fidelity results.}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\subsection{Structural Discovery: Topological Analysis}
-
-Following the coordinate remediation, the project executed a multi-stage unsupervised learning campaign to discover the city's organic operational zones. This process was not purely exploratory; it served to validate the Agent’s tacit spatial heuristics against a data-driven model.
-
-\subsubsection{Geospatial Constraints and Selection Logic}
-A fundamental architectural decision was the **exclusive focus on dropoff coordinates** for clustering. Pickup locations were intentionally omitted from the feature engineering phase for two reasons:
 \begin{enumerate}
-    \item \textbf{Data Integrity:} Over 90\% of raw pickup address strings exhibited extreme ambiguity, introducing high-risk noise into the dataset.
-    \item \textbf{Decision Theory:} Analysis confirms that the Agent is geographically indifferent to pickups. The decision to accept an offer is driven by \textit{Time-to-Pickup} (TTP) rather than the specific neighborhood of origin. Conversely, the destination (dropoff) is the primary determinant of subsequent operational risk and return.
+    \item \textbf{Topological Audit:} The initial HDBSCAN output was cross-referenced against raw address strings to identify first-layer corruption, flagging offers where the semantic text contradicted the assigned geospatial cluster.
+    \item \textbf{Polygon Synthesis:} The agent manually architected 72 custom heuristic polygons (Figure \ref{fig:pienza_map_v2}) to serve as operational ``Indifference Zones''---geographic areas defining the operational reality.
+    \item \textbf{Heuristic Audit (Polygons):} A secondary manual audit verified point-in-polygon alignment, flagging offers whose string addresseses did not belong to the polygon zone.
+    \item \textbf{Cloud Re-geocoding:} In order to clean flagged offers and to detect anomalies invisible to visual inspection, the entire dataset was re-geocoded, both forward and reverse.
+    \item \textbf{Geospatial Delta Check:} By calculating the spatial variance (in meters) between the original coordinates and the secondary baseline, records exceeding a severe geographic deviation threshold were isolated for intervention.
+    \item \textbf{Deterministic Overwrite:} A bespoke ETL tool was engineered to manage the final manual corrections. The system staged flagged conflicts alongside verified API context, enabling the Agent to surgically overwrite corrupted coordinate pairs in the source tables while preventing manual entry errors.
 \end{enumerate}
-\textit{Note: While pickups remain excluded from Phase 5 Supervised Learning, they are preserved for Phase 6 Graph-Neural Network (GNN) analysis and GAN-based manifold generation.}
 
-\subsubsection{The Mapping Workflow: Iterative Convergence}
-The discovery of the operational map followed a non-linear loop of discovery and correction:
-\begin{itemize}[noitemsep]
-    \item \textbf{Initial HDBSCAN:} Identified density clusters but exposed the systemic geocoding corruption described in Phase 2B.
-    \item \textbf{Polygon Synthesis:} 72 heuristic polygons were manually architected to represent "Indifference Zones"---geographic areas where spatial variance is irrelevant to the Agent's strategy.
-    \item \textbf{Delta Remediation:} The dataset was purified by calculating coordinate deltas against these polygons.
-    \item \textbf{Canonical HDBSCAN:} The final unsupervised model was executed on the purified dataset, yielding the definitive topological backbone of the project.
-\end{itemize}
+\noindent \textit{Outcome: This intervention successfully corrected over 1,500 corrupted rows---nearly one-third of the operational history. The canonical Source of Truth was updated with this purified dataset, enabling the re-execution of the clustering pipeline with high-fidelity results.}
+
+
+------- PLACEHOLDER TO INTRODUCE THE MAP ------
+
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{pienza_strategic_map.png} 
-    \caption{Strategic Ground Truth: 72 hand-crafted heuristic polygons defining the Agent's operational indifference zones.}
+    \caption{Strategic Ground Truth: 72 hand-crafted heuristic polygons defining the Agent's operational zones.}
     \label{fig:pienza_map_v2}
 \end{figure}
-
 
 \begin{table}[H]
     \centering
@@ -387,12 +307,9 @@ The discovery of the operational map followed a non-linear loop of discovery and
 \end{table}
 
 
-\subsubsection{Emergent Urban Topologies}
-The final HDBSCAN output (Figure \ref{fig:hdbscan_observatory_v2}) produced several key discoveries that were invisible to standard geocoding:
-\begin{itemize}
-    \item \textbf{The Tacubaya Emergence:} A distinct operational hub was discovered in \textit{Tacubaya} only after the coordinate surgery. Prior to remediation, these offers were incorrectly misallocated to the \textit{Juárez} sector.
-    \item \textbf{Operational vs. Geometric Proximity:} The algorithm successfully identified the \textit{Haciendas / San Fernando} anomaly. While these zones are geographically adjacent, they are operationally distant due to terrain constraints. This confirmed that high-resolution fragmentation is a feature of the market's friction rather than a defect of the algorithm.
-\end{itemize}
+\subsection{Emergent Topologies}
+
+By running HDBSCAN on the rectified dataset, the algorithm identified 44 granular, high-resolution micro-clusters (Figure \ref{fig:hdbscan_observatory_v2}). 
 
 \begin{figure}[H]
     \centering
@@ -412,13 +329,13 @@ The final HDBSCAN output (Figure \ref{fig:hdbscan_observatory_v2}) produced seve
         1 & lomas\_verdes & 12 & la\_diana & 23 & cofre\_de\_perote & 34 & chamizal \\
         2 & plaza\_satélite\_mundo\_e & 13 & col\_juárez & 24 & duraznos & 35 & lomas\_anáhuac \\
         3 & central\_del\_norte & 14 & roma\_norte & 25 & tamarindos & 36 & vialidad\_de\_la\_barranca \\
-        4 & terminal\_1\_aicm & 15 & condesa & 26 & nodo\_const\_ref & 37 & interlomas\_magnocentro \\
+        4 & terminal\_1\_aicm & 15 & condesa & 26 & nodo\_constituyentes\_reforma & 37 & interlomas\_magnocentro \\
         5 & terminal\_2\_aicm & 16 & nápoles\_wtc & 27 & santa\_fe\_patio & 38 & haciendas\_san\_fernando \\
-        6 & centro\_historico & 17 & san\_miguel\_chapultepec & 28 & santa\_fe\_core & 39 & felix\_cuevas \\
+        6 & centro\_histórico & 17 & san\_miguel\_chapultepec & 28 & santa\_fe\_core & 39 & felix\_cuevas \\
         7 & sotelo\_san\_esteban & 18 & tacubaya & 29 & santa\_fe\_itesm & 40 & barranca\_del\_muerto \\
         8 & carso\_antara\_miyana & 19 & observatorio & 30 & cruce\_echánove & 41 & san_ángel\_altavista \\
-        9 & campos\_elíseos & 20 & fc\_cuernavaca & 31 & santa\_fe\_abc & 42 & san\_jerónimo \\
-        10 & polanco\_trebol & 21 & virreyes & 32 & cuajimalpa\_centro & 43 & pedregal \\
+        9 & campos\_elíseos & 20 & fc\_cuernavaca & 31 & santa\_fe\_abc & 42 & pedregal \\
+        10 & polanco\_trebol & 21 & virreyes & 32 & cuajimalpa\_centro & 43 & san\_jerónimo \\
         11 & anzures\_reforma & 22 & el\_semáforo\_de\_palmas & 33 & pabellón\_bosques & 44 & viaducto\_tlalpan \\
         \bottomrule
     \end{tabular}
@@ -426,23 +343,67 @@ The final HDBSCAN output (Figure \ref{fig:hdbscan_observatory_v2}) produced seve
     \label{tab:hdbscan_dictionary}
 \end{table}
 
-\subsubsection{Ecological Validity and Overfitting Guardrails}
-The resulting map does not attempt to model the total ride-hailing universe of Mexico City. It is a strictly constrained mirror of the \textbf{Agent's Operational Reality}. To maintain policy fidelity, the Agent never altered his heuristics to capture more data; consequently, the map reflects only the specific times and zones of expert-level deployment. 
 
-The use of 72 granular polygons on a boutique dataset ($N \approx 4,700$) introduced a high risk of model overfitting. This was strategically managed during the supervised training phase through \textit{Feature Coalescence} and algorithmic regularization to ensure the model learned strategic principles rather than specific coordinate points.
-
-
------
--
--
--
---
-
-END OF HDBSCAN
-
-----
--
--
--
+This output produced several key operational discoveries that were entirely invisible to standard geocoding APIs:
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{The Tacubaya Emergence:} A distinct, high-volume operational hub was discovered in \textit{Tacubaya} only after the coordinate surgery. Prior to remediation, these offers were being incorrectly misallocated to the \textit{Juárez} neighborhood.
+    \item \textbf{Geometric Density vs. Operational Reality:} Relying purely on spatial density, the algorithm merged the \textit{Haciendas} and \textit{San Fernando} zones into a single cluster. While geographically adjacent on a map, these areas are operationally divided due to severe terrain and infrastructure constraints. This limitation confirmed that unsupervised models inherently lack operational context, underscoring the absolute necessity of Human-in-the-Loop (HITL) heuristics. Nevertheless, this specific algorithmic merger was intentionally preserved in the final output to respect the organic, data-driven integrity of the unsupervised model.
+\end{itemize}
 
 
+It is critical to note that the resulting map does not attempt to model the total ride-hailing universe of Mexico City. It is a strictly constrained mirror of the \textbf{Agent's Operational Reality}. To maintain policy fidelity, the Agent never altered his heuristics simply to capture more data; consequently, reflecting only the specific times and zones of operations. 
+
+Deploying 72 granular polygons to classify a boutique dataset ($N \approx 4,700$) inherently introduced a high risk of model overfitting. To mitigate this risk, structural constraints were placed on the downstream predictive models; techniques such as \textit{Feature Coalescence} and algorithmic regularization were implemented to ensure the model learned broad strategic principles rather than memorizing highly specific operational zones.
+
+
+\subsection{Final Feature Synthesis: The Silver Palette}
+To maintain the project’s directive of ensuring all analytical notebooks ingest data exclusively from a centralized SQL engine—a final feature table was materialized within \texttt{pienza.db} prior to the supervised learning phase. Unlike the primary schema established in Phase 2, this table was programmatically injected into the terminal stage of the ETL pipeline to consolidate the topological discoveries and stateful market signals.
+
+\subsubsection{Stateful Intelligence: The Volatility Suite}
+The causal analysis in Phase 3 identified a critical informational gap: the system's \textit{ex-ante} traffic index is a poor proxy for operational risk. The true determinant of yield is the \textbf{Prediction Error}\footnotemark---the stochastic delta between estimated and realized durations. To quantify this uncertainty, a suite of four stateful features was engineered using a 2 min/km market baseline:
+
+\footnotetext{While localized congestion is the dominant driver of duration variance, the prediction error also incorporates secondary operational factors such as trip-profile modifications or early drop-off requests. These edge cases were preserved within the analytical set to ensure the model captures the full spectrum of real-world operational volatility.}
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Realized Traffic Index (\texttt{realized\_traffic\_index}):} The post-facto ground truth of mission friction. It is calculated as the ratio of realized duration to the algorithmic expectation. This metric is strictly reserved for mission-completion audits.
+    \item \textbf{Historical Traffic Context (\texttt{hist\_avg\_traffic\_index}):} A session-level rolling average of previously realized indices. This feature serves as the technical proxy for the Agent's ``contextual memory'' of recent urban congestion at the moment of the request.
+    \item \textbf{Traffic Volatility ML (\texttt{traffic\_volatility\_index\_ML}):} The primary predictive signal, calculated as the \textit{Historical Traffic Context} minus the \textit{Current Offer’s Expected Index}. 
+    \item \textbf{Traffic Volatility EDA (\texttt{traffic\_volatility\_index\_EDA}):} Measures the absolute deviation between the realized duration and the expected quote; only for completed missions.
+\end{itemize}
+
+\footnotetext{To maintain a strictly predictive environment, the \texttt{hist\_avg\_traffic\_index} and \texttt{traffic\_volatility\_index\_ML} were calculated using a \textit{No Look-Ahead Protocol}: only missions with a \texttt{completed\_timestamp} strictly earlier than the current \texttt{offer\_timestamp} were included in the rolling averages.}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{rl l}
+        \toprule
+        \textbf{cid} & \textbf{Feature Name} & \textbf{Data Type} \\
+        \midrule
+        10 & \texttt{pickup\_polygon\_id} & INTEGER \\
+        12 & \texttt{pickup\_h3\_hex\_id} & TEXT \\
+        \midrule
+        1 & \texttt{dropoff\_polygon\_id} & INTEGER \\
+        3 & \texttt{dropoff\_h3\_hex\_id} & TEXT \\
+        4 & \texttt{dropoff\_hdbscan\_id} & INTEGER \\
+        \midrule
+        6 & \texttt{realized\_traffic\_index} & REAL \\
+        7 & \texttt{hist\_avg\_traffic\_index} & REAL \\
+        8 & \texttt{traffic\_volatility\_index\_ML} & REAL \\
+        9 & \texttt{traffic\_volatility\_index\_EDA} & REAL \\
+        \bottomrule
+    \end{tabular}
+    \caption{Structure of the \texttt{silver\_palette} table: the final layer of features for Phase 5.}
+    \label{tab:silver_palette}
+\end{table}
+
+\vspace{0.4cm}
+The completion of the \textit{Silver Palette} marks the conclusion of the foundational data lifecycle. This journey progressed from high-fidelity acquisition (Phase 1) and structural normalization (Phase 2) to causal discovery (Phase 3) and the final topological mapping of the environment (Phase 4). 
+
+The project’s governing philosophy throughout these stages was to engineer an expansive \textbf{universe of all possibilities}—capturing the total dimensionality of the Agent's reality. Recognizing that not all features are created equal, this high-resolution foundation was built specifically to afford the luxury of rigorous curation. By generating a dense field of 65+ potential signals, the project ensured that subsequent selection protocols could ruthlessly isolate only those variables with the highest predictive value. With the intelligence layer fully forged, the study now transitions to \textbf{Phase 5: Supervised Learning}, where this distilled signal is used to clone the Agent's decision boundary.
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
