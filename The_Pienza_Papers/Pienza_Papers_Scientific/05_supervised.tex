@@ -1,5 +1,276 @@
 \section{Phase 5: Supervised Learning \& Behavioral Cloning}
--
+
+
+\noindent \textbf{Timeline: January 3 -- January 12, 2026}
+
+The objective of Phase 5 was to synthesize a predictive model capable of replicating the Agent’s decision policy with high fidelity. This phase documents the transition from descriptive discovery to the engineering of a predictive inference engine via a comparative algorithmic tournament.
+
+1. Experimental Design: The Tri-League Architecture
+2. Categorical Features Selection
+3. Model Tournament
+
+
+
+\subsection{Experimental Design: The Tri-League Architecture}
+To evaluate the interaction between data representation and model performance, the project utilized three distinct feature sets designated as ``Leagues.'' This framework isolates the impact of expert-led curation versus automated abstraction across different algorithmic families.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l r X}
+        \toprule
+        \textbf{League} & \textbf{Basis} & \textbf{Dims.} & \textbf{Technical Objective \& Alignment} \\
+        \midrule
+        \textbf{League A} & Wide Set (PCA) & 19 PCs & \textbf{Control Group:} Retains 90\% variance of the original 41-feature set to validate that L1-Lasso pruning did not destroy latent signals. \\
+        \addlinespace
+        \textbf{League B} & Curated (Raw) & 20 Feat. & \textbf{Interpretability Mandate:} Utilizes raw scaled variables to enable SHAP-based forensics and non-linear geometric splits for tree-based models. \\
+        \addlinespace
+        \textbf{League C} & Curated (PCA) & 12 PCs & \textbf{Mathematical Purity:} Eliminates multicollinearity via orthogonal components to provide a frictionless environment for linear and Bayesian estimators. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Tri-League data representations for the algorithmic tournament ($N \approx 4,760$).}
+    \label{tab:league_alignment}
+\end{table}
+
+
+\subsection{Geospatial Feature Coalescence}
+To minimize cardinality and prevent signal fragmentation, the 73 manual polygons and 45 HDBSCAN clusters were consolidated into a unified spatial taxonomy. Micro-polygons were semantically concatenated into \textbf{42 Macro-Zones} to ensure sufficient observation density ($N$) per category. Final feature assignment (\texttt{final\_zone\_id}) followed a deterministic three-tier cascade:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Tier 1 (Manual Priority):} Human-defined Macro-Zone boundaries override density clusters to enforce strategic intent.
+    \item \textbf{Tier 2 (Machine Fallback):} HDBSCAN clusters capture hyper-dense infrastructural nodes (\textit{e.g., airport terminals}) located outside manual zones.
+    \item \textbf{Tier 3 (Unassigned):} Residual coordinates are explicitly categorized as noise.
+\end{itemize}
+
+\subsection{Categorical Feature Selection}
+To finalize the feature matrix for supervised learning, a statistical audit was conducted to measure the predictive utility of all candidate categorical variables. The project utilized \textbf{Mutual Information (MI)} to identify non-linear dependencies and the \textbf{Chi-Squared ($\chi^{2}$)} statistic to evaluate independence between features and the decision target.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_categorical_audit.png} 
+    \caption{Categorical Feature Importance Audit: Mutual Information (Left) and Chi-Squared (Right) scores. The audit exposes the dominance of geospatial topology and the failure of several human-engineered abstractions.}
+    \label{fig:categorical_audit}
+\end{figure}
+
+The audit identifies \texttt{final\_zone\_id} (MI: 0.671) as the optimal spatial predictor. While high-cardinality grids like H3 with resolution 9 (MI: 0.967) achieve higher raw scores, they risk memorizing the training set. Consolidating 73 polygons into 42 Macro-Zones successfully filtered geometric noise while preserving the variable's predictive power.
+
+The results confirm that raw clock resolution significantly outperforms semantic abstractions. High-resolution features such as \texttt{hour\_of\_day} (MI: 0.071) and \texttt{day\_of\_week} (MI: 0.025) were retained as dominant drivers. Conversely, human-engineered features like \texttt{time\_of\_day\_block} were purged, as their rigid definitions masked critical market variance.
+
+The engineered \texttt{heuristic\_flag\_context} emerged as the primary non-spatial signal (MI: 0.302), validating the "Human-in-the-Loop" extraction phase. In contrast, the Agent's immediate operational state (\textit{Idle vs. On-Trip}) was identified as statistical noise (MI: 0.002) and removed to optimize model focus.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l r X}
+        \toprule
+        \textbf{Domain} & \textbf{Feature} & \textbf{MI Score} & \textbf{Technical Verdict} \\
+        \midrule
+        \textbf{Spatial} & \texttt{final\_zone\_id} & 0.6709 & \textbf{Keep:} High-resolution zones derived from macro-polygon coalescence. \\
+        \midrule
+        \multirow{2}{*}{\textbf{Temporal}} 
+        & \texttt{hour\_of\_day} & 0.0707 & \textbf{Keep:} Captures critical high-frequency demand cycles. \\
+        & \texttt{day\_of\_week} & 0.0250 & \textbf{Keep:} Preserves unique daily market physics. \\
+        \midrule
+        \multirow{2}{*}{\textbf{Contextual}} 
+        & \texttt{heuristic\_flag\_context} & 0.3020 & \textbf{Keep:} Primary driver; encapsulates strategic intent. \\
+        & \texttt{product\_category\_fk} & 0.0327 & \textbf{Keep:} Retained to model service-tier behavioral shifts. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Final Categorical Feature Set advanced to Supervised Learning ($N \approx 4,760$).}
+    \label{tab:cfs_final_set}
+\end{table}
+
+\vspace{0.2cm}
+\noindent \textit{The high-signal categorical features identified in this audit were integrated into each of the three experimental Data Leagues. This finalized feature space provides the standardized foundation for the subsequent \textbf{Algorithmic Tournament}, where various model architectures are evaluated across these refined data regimes.}
+
+
+\subsection{The Algorithmic Tournament: Performance Evolution}
+To identify the optimal architecture for behavioral cloning, a competitive tournament was executed across seven developmental trials. Models were evaluated using the \textbf{F1-Macro} score to ensure predictive balance across the 92\% class imbalance.
+
+\begin{table}[H]
+    \centering
+    \scriptsize
+    \begin{tabularx}{\textwidth}{l l l c c c X}
+        \toprule
+        \textbf{Trial} & \textbf{Algorithm} & \textbf{Validation} & \textbf{LIGA A} & \textbf{LIGA B} & \textbf{LIGA C} & \textbf{Technical Verdict} \\
+        \midrule
+        1. Baseline & Gaussian NB & Strat. K-Fold & 0.288 & 0.286 & 0.293 & Establishing the statistical floor. \\
+        2. Reality Check & Gaussian NB & Chronological & 0.265 & 0.155 & 0.252 & \textbf{Drift Collapse:} Signal loss under strict time. \\
+        3. Context Fix & Gaussian NB & Chronological & 0.257 & 0.257 & 0.256 & Stabilization via categorical features. \\
+        \midrule
+        4. Linear Upgrade & Log. Reg. & Time-Split & 0.482 & 0.514 & 0.490 & \textbf{New Baseline:} Linear separability confirmed. \\
+        5. State Illusion & Log. Reg. & Strat. K-Fold & 0.687 & 0.716 & 0.691 & \textbf{Theoretical Peak:} Max linear efficiency. \\
+        \midrule
+        6. Non-Linear Scout & Decision Tree & Time-Split & 0.336 & 0.474 & 0.373 & Proof of non-linear rule dominance. \\
+        \textbf{7. Champion} & \textbf{XGBoost} & \textbf{Strat. K-Fold} & \textbf{0.760} & \textbf{0.761} & \textit{Retired} & \textbf{Absolute Champion:} Captured strategic nuance. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Comparative performance ledger across algorithmic families and data representations.}
+    \label{tab:tournament_ledger}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \scriptsize
+    \begin{tabularx}{\textwidth}{l l l c c c X}
+        \toprule
+        \textbf{Era} & \textbf{Algorithm} & \textbf{Validation} & \textbf{LIGA A} & \textbf{LIGA B} & \textbf{LIGA C} & \textbf{Technical Verdict} \\
+        \midrule
+        1. Baseline & Gaussian NB & K-Fold (Shuffle) & 0.288 & 0.286 & 0.293 & Initial statistical signal detected. \\
+        2. Reality Check & Gaussian NB & Chronological & 0.265 & 0.155 & 0.252 & \textbf{Drift Collapse:} Vulnerable to market shifts. \\
+        3. Context Fix & Gaussian NB & Chronological & 0.257 & 0.257 & 0.256 & Stabilization via categorical features. \\
+        \midrule
+        4. Linear & Log. Reg. & Time-Split & 0.482 & 0.514 & 0.490 & Linear boundaries identified. \\
+        5. State Illusion & Log. Reg. & K-Fold (Shuffle) & 0.687 & \textit{0.716} & 0.691 & \textbf{Leakage Peak:} Over-optimistic via shuffling. \\
+        \midrule
+        6. Scout & Decision Tree & Time-Split & 0.336 & 0.474 & 0.373 & Proof of non-linear rule dominance. \\
+        \textbf{7. Champion} & \textbf{XGBoost} & \textbf{K-Fold (Shuffle)} & \textbf{0.760} & \textbf{0.761} & \textit{Retired} & \textbf{Absolute Champion:} Captured strategic intent. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{The Algorithmic Tournament Ledger ($N \approx 4,760$). Scores represent F1-Macro averages.}
+    \label{tab:tournament_ledger}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            width=0.85\textwidth,
+            height=6cm,
+            bar width=20pt,
+            symbolic x coords={NB_Base, NB_Drift, LogReg, D-Tree, XGBoost},
+            xtick=data,
+            xticklabels={NB (Baseline), NB (Drift), LogReg, D-Tree, \textbf{XGBoost}},
+            ylabel={F1-Macro Score (LIGA B)},
+            ymin=0, ymax=0.9,
+            nodes near coords,
+            nodes near coords style={font=\tiny, /pgf/number format/fixed, /pgf/number format/precision=3},
+            axis lines*=left,
+            ymajorgrids=true,
+            grid style={dashed,gray!30},
+            title={\small \textbf{The Intelligence Lift: From Statistical Floor to Champion}}
+        ]
+            % Trial 1 & 2: Naive Bayes Era (Grey - Failure/Baseline)
+            \addplot[fill=gray!30, draw=gray!60] coordinates {(NB_Base, 0.286) (NB_Drift, 0.155)};
+            
+            % Trial 4 & 6: Intermediate Eras (Blue - Improvement)
+            \addplot[fill=blue!30, draw=blue!60] coordinates {(LogReg, 0.514) (D-Tree, 0.474)};
+            
+            % Trial 7: The Apex (Teal - Champion)
+            \addplot[fill=teal!50, draw=teal!80] coordinates {(XGBoost, 0.761)};
+            
+            % Annotated Threshold for North Star
+            \draw [red, thick, dashed] (axis cs:NB_Base,0.70) -- (axis cs:XGBoost,0.70) node[right, font=\tiny] {Target Performance};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Behavioral Cloning Performance Lift. The transition to Gradient Boosting (XGBoost) provided an absolute improvement of $+0.475$ in F1-Macro over the time-sensitive Bayesian baseline.}
+    \label{fig:lift_chart}
+\end{figure}
+
+
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
 
 -
 --
