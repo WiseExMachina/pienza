@@ -1,24 +1,109 @@
-\section{Phase 5: PENDING}
-
 \section{Phase 5: Supervised Learning \& Behavioral Cloning}
+-
+
+-
+--
+-
+--
+S T A R T  O F W O R K F L O W -
+-
+--
+--
 
 \noindent \textbf{Timeline: January 3 -- January 12, 2026}
 
-The objective of Phase 5 was to synthesize a predictive model capable of replicating the Agent’s decision policy with high fidelity. Having finalized the feature store, the project moved from structural discovery to a comparative algorithmic tournament.
+The primary objective of Phase 5 was to synthesize a predictive model capable of replicating the \textbf{WiseX Agent's} decision policy with high fidelity. This phase documents the technical transition from a descriptive understanding of the Mexico City marketplace to the engineering of a "Predictive Brain" via a comparative algorithmic tournament.
 
-\subsection{Experimental Design: The Three Data Regimes}
-Before selecting the optimal algorithm, the project executed a final dimensionality audit to determine the most effective data representation for the model. A second iteration of Principal Component Analysis (PCA) was performed to incorporate the Silver Palette. This audit confirmed that the system's dimensionality remained stable, with 12 components continuing to explain 90\% of the total variance.
+\subsection{Feature Selection \& Data Regimes}
+Prior to modeling, a dimensionality audit was conducted. While Principal Component Analysis (PCA) was utilized in the structural discovery phase, it served here to establish three distinct \textbf{Data Leagues} used to benchmark all contenders across varying levels of information density.
 
-To isolate the highest-performing input strategy, the model tournament was executed across three distinct \textbf{Data Regimes}:
+\subsubsection{The Tri-League Data Architecture}
+Every algorithm in the tournament was evaluated across three specific data representations to isolate the impact of feature curation versus algorithmic power:
 
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{League} & \textbf{Description} & \textbf{Technical Purpose} \\
+        \midrule
+        \textbf{League A} & Unfiltered Set & Complete set of 65 raw features to test innate noise-filtration. \\
+        \addlinespace
+        \textbf{League B} & Curated Raw & The 20-feature "Praetorian Guard" set, utilizing raw scaled variables to satisfy the \textbf{Interpretability Mandate} (SHAP diagnostics). \\
+        \addlinespace
+        \textbf{League C} & Abstracted PCA & Orthogonalized 13-component set representing 90\% of system variance. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Experimental Design: Data League definitions for the algorithmic tournament.}
+    \label{tab:leagues}
+\end{table}
+
+\subsubsection{Categorical Feature Selection (CFS)}
+High-value categorical features were engineered through three specific coalescence protocols to reduce cardinality while preserving strategic signal:
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{League A (Unfiltered):} The complete set of 65 raw features to test the algorithm's innate noise-filtering capability.
-    \item \textbf{League B (Curated Raw):} The 20-feature ``Praetorian Guard'' set, utilizing raw, scaled variables to prioritize \textbf{Interpretability}.
-    \item \textbf{League C (Abstracted PCA):} The orthogonalized 12-component set to test performance within a denoised, independent feature space.
+    \item \textbf{CFS1 (Geospatial Coalescence):} Merging hand-crafted heuristic polygons (Strategic Ground Truth) with HDBSCAN clusters (Machine Truth) to form a unified \texttt{zone\_id}.
+    \item \textbf{CFS2 (Temporal Discretization):} Decomposition of timestamps into cyclic Hour/Day features and semantic "Day Blocks" (\textit{e.g., Morning Rush, Friday Gridlock}).
+    \item \textbf{CFS3 (Contextual State):} Integration of product category, driver state, and the \texttt{heuristic\_flag} suite.
 \end{itemize}
 
-\subsubsection{The Interpretability Mandate}
-While League C (PCA) provided the most mathematically elegant input, the Agent issued a \textbf{Strategic Veto} against its use for the final champion model. In the context of a decision-support system, the ability to perform \textit{Feature-Level Forensics} (e.g., deconstructing why an offer was rejected based on a specific traffic index) outweighs the marginal benefits of dimensionality reduction. Consequently, \textbf{League B (Curated Raw)} was ratified as the definitive training matrix for the tournament.
+\subsection{The Algorithmic Tournament}
+The tournament was executed across \textbf{17 discrete Jupyter Notebooks}, each representing a unique model architecture and environment trial.
 
-\subsection{The Tournament: Algorithmic Evaluation}
-The performance baseline was established through a competitive evaluation of four distinct algorithmic families...
+\subsubsection{Contender Benchmarking}
+Models were evaluated using \textbf{F1-Macro} scores to ensure performance was not inflated by the majority "Reject" class (which constitutes $\approx 92$\% of the observations). The tournament included:
+\begin{itemize}[noitemsep]
+    \item \textbf{Naive Bayes:} Evaluated in both Numerical (NB-Num) and Hybrid (NB-Cat) configurations.
+    \item \textbf{Logistic Regression:} Benchmarked using \textit{Temporal Splits} to test chronological resilience and \textit{Stratified K-Fold} to ensure class representation.
+    \item \textbf{Ensemble Methods:} Competitive evaluation of \textit{Random Forest} and \textit{XGBoost}.
+\end{itemize}
+
+\subsubsection{Hyperparameter Standardization}
+To ensure valid comparative results, hyperparameters were held constant across "Leagues" within the same model family. This \textbf{Frozen Architecture} approach isolated the impact of the data representation, allowing for an empirical assessment of whether curated raw features or abstracted PCA components provided superior predictive signal.
+
+\subsection{Champion Forensic: XGBoost \& The Gravitational Well}
+\textbf{XGBoost} was identified as the tournament champion. However, a deep diagnostic audit of the initial monolithic confusion matrix revealed a critical failure mode: \textbf{The Gravitational Well}.
+
+\medskip
+\noindent \textbf{The Problem.} The model exhibited a "Lazy Attraction" toward the \texttt{dropoff\_non\_operational} majority class. Because geospatial rejections represent nearly 50\% of the dataset and follow deterministic boundaries, the model used them as a default attractor, effectively drowning out the strategic signals of nuanced classes such as the \textit{Expected Value Gamble} (EEUM).
+
+\subsection{The Final Architecture: The Cognitive Cascade}
+To neutralize the Gravitational Well effect, the project pivoted from a monolithic classifier to a \textbf{Hierarchical Cognitive Cascade}. This architecture decomposes the multi-class problem into a sequence of specialized inference layers:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Layer 1 (The Bouncer):} A binary filter isolating orthogonal, deterministic classes (Geospatial and Economic Exclusions).
+    \item \textbf{Layer 2 (The Strategist):} A model operating exclusively on the high-yield subset. By removing majority-class noise, this layer is forced to learn the subtle distinctions between \textbf{Acceptance} and \textbf{Strategic Gambles} (EEUM).
+\end{itemize}
+
+\subsection{Technical Conclusion: The Temporal Wall}
+The implementation of the Cognitive Cascade successfully isolated the strategic drivers but revealed a fundamental limit of classical Machine Learning in this domain: \textbf{Static Indifference}.
+
+\subsubsection{The Snapshot Paradox (Statics vs. Dynamics)}
+\textbf{The Constraint.} Classical ML architectures are inherently "Snapshot" engines. Even when enriched with stateful features (\textit{e.g., consecutive\_rejects}), the model treats each decision event as an isolated point in a vacuum.
+
+\noindent \textbf{The Finding.} Analysis proved that \textit{Accepted} trips and \textit{EEUM} rejections occupy the same geometric space within a static tabular context. This occurs because the Agent’s decision to gamble is based on a **dynamic expectation of the stream's future yield**. While the Agent uses the "flow" to inform the bet, the model only sees the "row."
+
+\subsubsection{The Deep Learning Pivot}
+This finding provides the technical justification for the transition to \textbf{Phase 6}:
+\begin{itemize}[noitemsep]
+    \item \textbf{Sparsity Mitigation:} GANs are required to synthesize $1\text{M}+$ rows of market physics to overcome the $N=1$ data bottleneck.
+    \item \textbf{Sequential Learning:} The synthetic manifold will be used to train \textbf{Recurrent Neural Networks (RNNs)} to learn the "flow" of the stream.
+\end{itemize}
+
+\subsubsection{Fleet-Scale Thesis}
+For scalability, the project proposes an abstracted 3-category decision map: (1) \textbf{Accepted}, (2) \textbf{Rejected (EEUM)}, and (3) \textbf{Rejected (Other)}. This orthogonalization allows for high-frequency trading-style algorithms where the "Gamble" is treated as a formal financial derivative of search time.
+
+\subsection*{Appendix: Binary Strategy Fallback}
+Prior to the finalization of the multi-class cascade, a parallel \textbf{Binary Tournament (Accept vs. Reject)} was executed using NB, LogReg, and SVM. While achieving high global accuracy, these models were deprecated in favor of the Cognitive Cascade's ability to capture the nuance of strategic intent.
+
+
+
+-
+
+-
+--
+-
+--
+EE NN DD OOFF   O F W O R K F L O W -
+-
+--
+--
