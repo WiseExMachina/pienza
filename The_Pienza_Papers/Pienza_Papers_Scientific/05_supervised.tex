@@ -42,6 +42,8 @@ To minimize cardinality and prevent signal fragmentation, the 73 manual polygons
     \item \textbf{Tier 3 (Unassigned):} Residual coordinates are explicitly categorized as noise.
 \end{itemize}
 
+///// agregar que esto resuelve el problema del hdbscan, al forzar poligonos como el del itesm o el de haciendas que no incluyan zonas próximas (las aguilas; san fernando) que fueron incluidas en hdbscan porque excluidas por el coalesce ////7
+
 \subsection{Categorical Feature Selection}
 To finalize the feature matrix for supervised learning, a statistical audit was conducted to measure the predictive utility of all candidate categorical variables. The project utilized \textbf{Mutual Information (MI)} to identify non-linear dependencies and the \textbf{Chi-Squared ($\chi^{2}$)} statistic to evaluate independence between features and the decision target.
 
@@ -84,266 +86,161 @@ The engineered \texttt{heuristic\_flag\_context} emerged as the primary non-spat
 \noindent \textit{The high-signal categorical features identified in this audit were integrated into each of the three experimental Data Leagues. This finalized feature space provides the standardized foundation for the subsequent \textbf{Algorithmic Tournament}, where various model architectures are evaluated across these refined data regimes.}
 
 
-\subsection{The Algorithmic Tournament: Performance Evolution}
-To identify the optimal architecture for behavioral cloning, a competitive tournament was executed across seven developmental trials. Models were evaluated using the \textbf{F1-Macro} score to ensure predictive balance across the 92\% class imbalance.
+\subsection{Algorithmic Justification: From First Principles to Ensemble Apex}
+To identify the optimal architecture for behavioral cloning, a competitive tournament was executed across five developmental trials. Models were evaluated using the \textbf{F1-Macro} score to ensure predictive balance across the 92\% class imbalance.
+
+A priori selection of high-complexity models was rejected in favor of an iterative tournament designed to establish the statistical performance floor and quantify the non-linear complexity of the Agent’s decision policy. This sequence serves as the formal justification for the eventual deployment of gradient-boosted ensembles.
+
+\begin{itemize}[leftmargin=0.5cm, labelsep=0.3cm]
+    \item \textbf{Trial 1: Establishing the Statistical Floor (Naive Bayes).} Gaussian Naïve Bayes was deployed to measure performance under the assumption of feature independence. This trial established the baseline "failure rate" for probabilistic models in a high-imbalance, stateful environment.
+    
+    \item \textbf{Trial 2: Quantifying the Linear Ceiling (Logistic Regression).} By testing linear decision boundaries across both chronological and stratified splits, the project measured the "Linear Limit" of the dataset. 
+    
+    \item \textbf{Trial 3: The State-Time Tension (LR Stratified).} This controlled test compared chronological purity against stratified data efficiency. It exposed the "shuffling illusion" common in boutique datasets, where over-optimistic scores can mask a failure to generalize to future market regimes.
+    
+    \item \textbf{Trial 4: Auditing Non-Linear Logic (Decision Tree).} A single tree was utilized as a "Scout" to audit hard logic splits. This trial provided the empirical proof that raw, uncompressed variables (\textit{LIGA B}) significantly outperformed PCA-abstracted features (\textit{LIGA C}) when navigating non-linear decision rules.
+    
+    \item \textbf{Trial 5: Architectural Apex (XGBoost).} Armed with the quantified proof of non-linearity and the superiority of raw features, the project deployed a gradient-boosted forest on a consolidated five-week "training gym." This finalized the champion architecture required to capture the nuanced interaction between market physics and agent heuristics.
+\end{itemize}
 
 \begin{table}[H]
     \centering
     \scriptsize
-    \begin{tabularx}{\textwidth}{l l l c c c X}
+    \begin{tabularx}{0.9\textwidth}{l l l c c c}
         \toprule
-        \textbf{Trial} & \textbf{Algorithm} & \textbf{Validation} & \textbf{LIGA A} & \textbf{LIGA B} & \textbf{LIGA C} & \textbf{Technical Verdict} \\
+        \textbf{Trial} & \textbf{Algorithm} & \textbf{Validation Method} & \textbf{LIGA A} & \textbf{LIGA B} & \textbf{LIGA C} \\
         \midrule
-        1. Baseline & Gaussian NB & Strat. K-Fold & 0.288 & 0.286 & 0.293 & Establishing the statistical floor. \\
-        2. Reality Check & Gaussian NB & Chronological & 0.265 & 0.155 & 0.252 & \textbf{Drift Collapse:} Signal loss under strict time. \\
-        3. Context Fix & Gaussian NB & Chronological & 0.257 & 0.257 & 0.256 & Stabilization via categorical features. \\
-        \midrule
-        4. Linear Upgrade & Log. Reg. & Time-Split & 0.482 & 0.514 & 0.490 & \textbf{New Baseline:} Linear separability confirmed. \\
-        5. State Illusion & Log. Reg. & Strat. K-Fold & 0.687 & 0.716 & 0.691 & \textbf{Theoretical Peak:} Max linear efficiency. \\
-        \midrule
-        6. Non-Linear Scout & Decision Tree & Time-Split & 0.336 & 0.474 & 0.373 & Proof of non-linear rule dominance. \\
-        \textbf{7. Champion} & \textbf{XGBoost} & \textbf{Strat. K-Fold} & \textbf{0.760} & \textbf{0.761} & \textit{Retired} & \textbf{Absolute Champion:} Captured strategic nuance. \\
+        1. Floor & Gaussian NB (Hybrid) & Chronological (Custom) & 0.257 & 0.257 & 0.256 \\
+        \addlinespace
+        2. Linear & Logistic Regression & Time-Series Split & 0.482 & 0.514 & 0.490 \\
+        \addlinespace
+        3. Theoretical & Logistic Regression & Stratified K-Fold & 0.687 & 0.716 & 0.691 \\
+        \addlinespace
+        4. Scout & Decision Tree (d=7) & Time-Series Split & 0.336 & 0.474 & 0.373 \\
+        \addlinespace
+        \textbf{5. Champion} & \textbf{XGBoost Classifier} & \textbf{Stratified K-Fold} & \textbf{0.760} & \textbf{0.761} & \textit{Retired} \\
         \bottomrule
     \end{tabularx}
-    \caption{Comparative performance ledger across algorithmic families and data representations.}
+    \caption{Performance Ledger: F1-Macro averages across the five developmental trials ($N \approx 4,760$).}
     \label{tab:tournament_ledger}
 \end{table}
 
-\begin{table}[H]
-    \centering
-    \scriptsize
-    \begin{tabularx}{\textwidth}{l l l c c c X}
-        \toprule
-        \textbf{Era} & \textbf{Algorithm} & \textbf{Validation} & \textbf{LIGA A} & \textbf{LIGA B} & \textbf{LIGA C} & \textbf{Technical Verdict} \\
-        \midrule
-        1. Baseline & Gaussian NB & K-Fold (Shuffle) & 0.288 & 0.286 & 0.293 & Initial statistical signal detected. \\
-        2. Reality Check & Gaussian NB & Chronological & 0.265 & 0.155 & 0.252 & \textbf{Drift Collapse:} Vulnerable to market shifts. \\
-        3. Context Fix & Gaussian NB & Chronological & 0.257 & 0.257 & 0.256 & Stabilization via categorical features. \\
-        \midrule
-        4. Linear & Log. Reg. & Time-Split & 0.482 & 0.514 & 0.490 & Linear boundaries identified. \\
-        5. State Illusion & Log. Reg. & K-Fold (Shuffle) & 0.687 & \textit{0.716} & 0.691 & \textbf{Leakage Peak:} Over-optimistic via shuffling. \\
-        \midrule
-        6. Scout & Decision Tree & Time-Split & 0.336 & 0.474 & 0.373 & Proof of non-linear rule dominance. \\
-        \textbf{7. Champion} & \textbf{XGBoost} & \textbf{K-Fold (Shuffle)} & \textbf{0.760} & \textbf{0.761} & \textit{Retired} & \textbf{Absolute Champion:} Captured strategic intent. \\
-        \bottomrule
-    \end{tabularx}
-    \caption{The Algorithmic Tournament Ledger ($N \approx 4,760$). Scores represent F1-Macro averages.}
-    \label{tab:tournament_ledger}
-\end{table}
+
+\subsection{Champion Selection: Mr. XG-fucking-Boost}
+
+\subsection{Hyperparameter Calibration: The Down-Tuning Strategy}
+Following the identification of \texttt{XGBoost} as the champion architecture, a calibration phase was executed to optimize the model for generalization. The initial \textbf{RandomizedSearchCV} search identified a performance peak at \texttt{max\_depth = 5}, as illustrated in the tuning radiography (Figure \ref{fig:tuning_radiography}). However, subsequent learning curve audits revealed a high-variance gap, suggesting that the model was beginning to overfit the noise of the five-week training window.
+
+To ensure robustness against the unseen Week 6 holdout set, a deliberate \textbf{Down-Tuning} strategy was implemented. By restricting the tree depth and increasing stochasticity, the algorithm was forced to prioritize broad, high-signal features over local data clusters. This increased regularization pressure traded a marginal percentage of training accuracy for a significant improvement in the model's ability to generalize to novel market regimes.
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            ybar,
-            width=0.85\textwidth,
-            height=6cm,
-            bar width=20pt,
-            symbolic x coords={NB_Base, NB_Drift, LogReg, D-Tree, XGBoost},
-            xtick=data,
-            xticklabels={NB (Baseline), NB (Drift), LogReg, D-Tree, \textbf{XGBoost}},
-            ylabel={F1-Macro Score (LIGA B)},
-            ymin=0, ymax=0.9,
-            nodes near coords,
-            nodes near coords style={font=\tiny, /pgf/number format/fixed, /pgf/number format/precision=3},
-            axis lines*=left,
-            ymajorgrids=true,
-            grid style={dashed,gray!30},
-            title={\small \textbf{The Intelligence Lift: From Statistical Floor to Champion}}
-        ]
-            % Trial 1 & 2: Naive Bayes Era (Grey - Failure/Baseline)
-            \addplot[fill=gray!30, draw=gray!60] coordinates {(NB_Base, 0.286) (NB_Drift, 0.155)};
-            
-            % Trial 4 & 6: Intermediate Eras (Blue - Improvement)
-            \addplot[fill=blue!30, draw=blue!60] coordinates {(LogReg, 0.514) (D-Tree, 0.474)};
-            
-            % Trial 7: The Apex (Teal - Champion)
-            \addplot[fill=teal!50, draw=teal!80] coordinates {(XGBoost, 0.761)};
-            
-            % Annotated Threshold for North Star
-            \draw [red, thick, dashed] (axis cs:NB_Base,0.70) -- (axis cs:XGBoost,0.70) node[right, font=\tiny] {Target Performance};
-        \end{axis}
-    \end{tikzpicture}
-    \caption{Behavioral Cloning Performance Lift. The transition to Gradient Boosting (XGBoost) provided an absolute improvement of $+0.475$ in F1-Macro over the time-sensitive Bayesian baseline.}
-    \label{fig:lift_chart}
+    \includegraphics[width=0.9\textwidth]{fig_tuning_radiography.png} 
+    \caption{Tuning Radiography: Impact of \texttt{max\_depth} on F1-Macro performance. While the statistical peak occurs at 5, the model was finalized at 4 to ensure defensive generalization.}
+    \label{fig:tuning_radiography}
 \end{figure}
-
-
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
-\rule{\linewidth}{0.4pt}
-
--
---
--
---
-S T A R T  O F W O R K F L O W -
--
---
---
-
-\noindent \textbf{Timeline: January 3 -- January 12, 2026}
-
-The primary objective of Phase 5 was to synthesize a predictive model capable of replicating the \textbf{WiseX Agent's} decision policy with high fidelity. This phase documents the technical transition from a descriptive understanding of the Mexico City marketplace to the engineering of a "Predictive Brain" via a comparative algorithmic tournament.
-
-\subsection{Feature Selection \& Data Regimes}
-Prior to modeling, a dimensionality audit was conducted. While Principal Component Analysis (PCA) was utilized in the structural discovery phase, it served here to establish three distinct \textbf{Data Leagues} used to benchmark all contenders across varying levels of information density.
-
-\subsubsection{The Tri-League Data Architecture}
-Every algorithm in the tournament was evaluated across three specific data representations to isolate the impact of feature curation versus algorithmic power:
 
 \begin{table}[H]
     \centering
     \small
     \begin{tabularx}{\textwidth}{l l X}
         \toprule
-        \textbf{League} & \textbf{Description} & \textbf{Technical Purpose} \\
+        \textbf{Hyperparameter} & \textbf{Final Value} & \textbf{Engineering Rationale} \\
         \midrule
-        \textbf{League A} & Unfiltered Set & Complete set of 65 raw features to test innate noise-filtration. \\
+        \texttt{n\_estimators} & 200 & Balanced to allow sufficient iterations for convergence at a lower depth limit. \\
         \addlinespace
-        \textbf{League B} & Curated Raw & The 20-feature "Praetorian Guard" set, utilizing raw scaled variables to satisfy the \textbf{Interpretability Mandate} (SHAP diagnostics). \\
+        \texttt{max\_depth} & 4 & \textbf{Down-Tuned} from 5 to increase regularization and prevent overfitting on small-N zones. \\
         \addlinespace
-        \textbf{League C} & Abstracted PCA & Orthogonalized 13-component set representing 90\% of system variance. \\
+        \texttt{learning\_rate} & 0.1 & Adjusted to accelerate the learning process within the shallower tree structure. \\
+        \addlinespace
+        \texttt{subsample} & 0.7 & \textbf{Down-Tuned} from 0.9 to introduce more randomness per tree, forcing reliance on stable global signals. \\
+        \addlinespace
+        \texttt{min\_child\_weight} & 3 & Enforced to ensure each split is supported by a minimum volume of evidence. \\
+        \addlinespace
+        \texttt{gamma} & 0.5 & Applied to penalize split complexity and reduce model variance. \\
         \bottomrule
     \end{tabularx}
-    \caption{Experimental Design: Data League definitions for the algorithmic tournament.}
-    \label{tab:leagues}
+    \caption{Final \texttt{XGBoost} configuration following the robustness calibration.}
+    \label{tab:final_hyperparams}
 \end{table}
 
-\subsubsection{Categorical Feature Selection (CFS)}
-High-value categorical features were engineered through three specific coalescence protocols to reduce cardinality while preserving strategic signal:
+\subsection{The ``State vs. Time'' Dilemma}
+The ``State vs. Time'' dilemma presented a significant architectural trade-off when modeling on a restricted, short-horizon dataset. Enforcing strict chronological purity---such as sequential walk-forward splits across a mere five-week training window---severely restricts the data volume and the number of learning iterations available to the algorithm. The primary limitation encountered was not an uneven distribution of target classes over time, but rather the data starvation inherent to temporal splits on small datasets, which prevents the model from iteratively refining its logic. 
+
+Fortunately, this structural bottleneck was mitigated by the project's pre-existing feature architecture. Because the Agent's temporal context (e.g., \texttt{hour_of_day}, \texttt{day_of_week}) and behavioral memory (e.g., \texttt{consecutive_rejects}, \texttt{accumulated_deadhead}, \texttt{cumulative_earnings}) had already been explicitly engineered into the feature space, the operative "state" and exact temporal positioning of the agent were intrinsically captured within each independent observation; hence, the algorithm does not require sequential chronological ordering to accurately interpret the context of a decision. Consequently, utilizing Stratified K-Fold cross-validation to shuffle the observations within the training pool does not constitute true data leakage. Instead, it serves as a vital architectural mechanism to maximize data efficiency and iterative learning volume, allowing the model to robustly map the stateful logic before facing an untouched, out-of-time evaluation in Week 6.
+
+\subsection{Model Performance: Bimodal Learning}
+An audit of the normalized confusion matrix (Figure \ref{fig:monolithic_matrix}) reveals that the monolithic \texttt{XGBoost} champion operates across two distinct performance regimes. These regimes are defined by the degree of feature orthogonality and the presence of deterministic boundaries.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig_confusion_matrix.png} 
+    \caption{Normalized Confusion Matrix for the Monolithic \texttt{XGBoost} Champion. High-accuracy clusters (top-left) identify deterministic operational constraints, while the lower-right quadrant reveals the strategic signal decay in nuanced decision classes.}
+    \label{fig:monolithic_matrix}
+\end{figure}
+
+\subsubsection{Regime 1: Deterministic Operational Constraints}
+The model achieves high accuracy ($>85$\%) when evaluating physical, geographical, and hard-economic constraints: \texttt{proxy\_zone} (90.2\%), \texttt{low\_profitability} (90.6\%), \texttt{non\_operational} (88.7\%), and \texttt{long\_pickup} (85.7\%). These classes are effectively orthogonal; their boundaries are dictated by rigid geospatial coordinates or absolute time-and-fare thresholds. The gradient boosting trees isolate these patterns with minimal entropy, representing the model's "Triage" layer.
+
+\subsubsection{Regime 2: Conditional Strategic Nuance}
+Performance degrades significantly ($41\% \dots 68\%$) when the decision boundary shifts to higher-order behavioral states: \texttt{accepted} (68.7\%), \texttt{strategic\_mismatch} (57.1\%), and \texttt{expected\_value\_gamble} (41.5\%). These decisions are not functions of isolated coordinates but involve dynamic calculations of opportunity cost and market velocity. The resulting "fuzzy" boundaries lead to increased entropy and predictive uncertainty.
+
+\subsubsection{The Gravitational Well Effect}
+The audit identifies a critical failure mode: the interaction between the majority and minority classes. Because \texttt{non\_operational} constitutes $\approx 50$\% of the dataset, it creates a statistical \textbf{Gravitational Well}. When the algorithm encounters a nuanced observation with high strategic uncertainty---such as an \texttt{expected\_value\_gamble}---it yields to the Bayesian prior of the majority class. This is proven by the fact that \textbf{34.1\% of true strategic gambles are incorrectly swallowed by the non-operational prediction.}
+
+
+
+
+\subsubsection{Decision DNA: SHAP Interpretability Analysis}
+To identify the features driving the identified performance regimes, a SHAP (SHapley Additive exPlanations) analysis was executed to isolate the "Decision DNA" of each class (Figure \ref{fig:shap_dna}). This assessment identifies which features increase the probability of a specific prediction (Teal/Right) versus which features suppress it (Gray/Left).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig_shap_dna.png} 
+    \caption{Decision DNA Matrix: Per-class SHAP contribution analysis. Teal bars indicate a positive correlation between feature value and class probability; Gray bars indicate a negative correlation.}
+    \label{fig:shap_dna}
+\end{figure}
+
+The analysis reveals three primary behavioral drivers that validate the project's core hypotheses:
+
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{CFS1 (Geospatial Coalescence):} Merging hand-crafted heuristic polygons (Strategic Ground Truth) with HDBSCAN clusters (Machine Truth) to form a unified \texttt{zone\_id}.
-    \item \textbf{CFS2 (Temporal Discretization):} Decomposition of timestamps into cyclic Hour/Day features and semantic "Day Blocks" (\textit{e.g., Morning Rush, Friday Gridlock}).
-    \item \textbf{CFS3 (Contextual State):} Integration of product category, driver state, and the \texttt{heuristic\_flag} suite.
+    \item \textbf{The Fatigue Factor (Accepted):} A high positive weight for \texttt{total\_accumulated\_deadhead\_sec} indicates that as uncompensated search time increases, the probability of \textit{Acceptance} rises. This confirms a "Sunk Cost" effect, where the Agent's selectivity threshold decays as the session's uncompensated time-burden grows.
+    
+    \item \textbf{Abundance Elasticity (Gamble):} The \texttt{expected\_value\_gamble} class is primarily driven by \texttt{offer\_density\_10sec}. This provides empirical evidence that the model learned the Agent's "Optimal Stopping" heuristic: high market velocity is the primary trigger for rejecting viable offers to wait for statistical outliers.
+    
+    \item \textbf{Vector Alignment (Strategic Mismatch):} The influence of the \texttt{obj\_end\_session} flag and the \texttt{home\_vector\_alignment\_score} confirms that the Agent's "Endgame" logic is correctly mapped. The model identifies that rejections in this class are not driven by low earnings, but by spatial misalignment during the terminal phase of the shift.
 \end{itemize}
 
-\subsection{The Algorithmic Tournament}
-The tournament was executed across \textbf{17 discrete Jupyter Notebooks}, each representing a unique model architecture and environment trial.
+Despite these distinct signals, the monolithic architecture remains unable to prioritize them effectively against the massive statistical weight of the non-operational class.
 
-\subsubsection{Contender Benchmarking}
-Models were evaluated using \textbf{F1-Macro} scores to ensure performance was not inflated by the majority "Reject" class (which constitutes $\approx 92$\% of the observations). The tournament included:
-\begin{itemize}[noitemsep]
-    \item \textbf{Naive Bayes:} Evaluated in both Numerical (NB-Num) and Hybrid (NB-Cat) configurations.
-    \item \textbf{Logistic Regression:} Benchmarked using \textit{Temporal Splits} to test chronological resilience and \textit{Stratified K-Fold} to ensure class representation.
-    \item \textbf{Ensemble Methods:} Competitive evaluation of \textit{Random Forest} and \textit{XGBoost}.
+
+
+
+\subsection{Architectural Pivot: The Cognitive Cascade}
+The audit confirms that "cheap" triage logic (geospatial/economic filters) cannibalizes "expensive" strategic logic. To eliminate this interference, the project implemented the \textbf{Hierarchical Cognitive Cascade}. This architecture decomposes the multi-class problem into a sequence of specialized inference layers:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Layer 1 (The Filter):} A binary classifier designed to remove the "Regime 1" noise (\textit{Non-Op, Proxy, Long Pickup}).
+    \item \textbf{Layer 2 (The Strategist):} A secondary model operating strictly on the high-yield, surviving observations.
 \end{itemize}
 
-\subsubsection{Hyperparameter Standardization}
-To ensure valid comparative results, hyperparameters were held constant across "Leagues" within the same model family. This \textbf{Frozen Architecture} approach isolated the impact of the data representation, allowing for an empirical assessment of whether curated raw features or abstracted PCA components provided superior predictive signal.
+By removing the gravitational pull of the non-operational class in Layer 1, the Strategist model can dedicate its full capacity to resolving the subtle economic differences between strategic rejections and acceptances, effectively breaking the performance ceiling identified in the flat architecture.
 
-\subsection{Champion Forensic: XGBoost \& The Gravitational Well}
-\textbf{XGBoost} was identified as the tournament champion. However, a deep diagnostic audit of the initial monolithic confusion matrix revealed a critical failure mode: \textbf{The Gravitational Well}.
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\rule{\linewidth}{0.4pt}
+\
 
-\medskip
-\noindent \textbf{The Problem.} The model exhibited a "Lazy Attraction" toward the \texttt{dropoff\_non\_operational} majority class. Because geospatial rejections represent nearly 50\% of the dataset and follow deterministic boundaries, the model used them as a default attractor, effectively drowning out the strategic signals of nuanced classes such as the \textit{Expected Value Gamble} (EEUM).
+--->>>>>>HOY 01 marzo: hasta aqui llegue en el paper. mañana sigo escribiendo el resto<<<<<<<..---
+-
+--
+S T A R T  O F Pending W O R K F L O W -
+-
+--
+--
 
-\subsection{The Final Architecture: The Cognitive Cascade}
-To neutralize the Gravitational Well effect, the project pivoted from a monolithic classifier to a \textbf{Hierarchical Cognitive Cascade}. This architecture decomposes the multi-class problem into a sequence of specialized inference layers:
 
-\begin{itemize}[noitemsep]
-    \item \textbf{Layer 1 (The Bouncer):} A binary filter isolating orthogonal, deterministic classes (Geospatial and Economic Exclusions).
-    \item \textbf{Layer 2 (The Strategist):} A model operating exclusively on the high-yield subset. By removing majority-class noise, this layer is forced to learn the subtle distinctions between \textbf{Acceptance} and \textbf{Strategic Gambles} (EEUM).
-\end{itemize}
 
 \subsection{Technical Conclusion: The Temporal Wall}
 The implementation of the Cognitive Cascade successfully isolated the strategic drivers but revealed a fundamental limit of classical Machine Learning in this domain: \textbf{Static Indifference}.
@@ -374,7 +271,7 @@ Prior to the finalization of the multi-class cascade, a parallel \textbf{Binary 
 --
 -
 --
-EE NN DD OOFF   O F W O R K F L O W -
+EE NN DD OOFF   O F  pending W O R K F L O W -
 -
 --
 --
