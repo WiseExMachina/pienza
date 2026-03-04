@@ -1,4 +1,4 @@
-\section{Phase 1: Data Acquisition}
+\section{Phase 1: Data Aquisition (Wait... Whaaat?)}
 
 Project Pienza captures the behavior of an expert agent rather than a system in a learning phase. Prior to data collection, the agent had completed 24 months of field operations, effectively concluding the \textit{Exploration} stage of the Reinforcement Learning cycle.
 
@@ -254,8 +254,6 @@ The inference process followed an evolutionary path from manual verification to 
 
 \subsection{Geospatial Enrichment}
 To enable spatial clustering, the raw address strings required conversion to numerical coordinates. A serverless pipeline was architected using the \textbf{Google Geocoding API} within the Google Apps Script environment.
-
-To overcome the strict 6-minute execution limit of the Google Apps Script runtime, a \textit{Stateful Batch Processor} was engineered. The system utilized \texttt{PropertiesService} to persist the cursor position (last processed row) and deployed \textit{Time-Based Triggers} to autonomously resume execution every 10 minutes. This allowed the pipeline to process the entire dataset in background bursts without manual intervention.
 
 While the pipeline successfully populated the coordinate columns, a critical validation step was omitted: \textbf{Reverse Geocoding Verification}. The system naively accepted the API's top result as ground truth without auditing for semantic drift or "centroid defaults" (e.g., the API returning the center of a city for an ambiguous street name). This assumption of validity would later necessitate a massive "Deep Remediation" campaign during Phase 4, underscoring the risk of trusting black-box APIs without a human-in-the-loop audit.
 

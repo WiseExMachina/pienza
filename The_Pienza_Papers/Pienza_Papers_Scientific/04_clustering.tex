@@ -1,4 +1,4 @@
-\section{Phase 4: Unsupervised Machine Learning}
+\section{Phase 4: The Geometry of Chaos}
 
 \noindent \textbf{Timeline: December 4, 2025 -- January 2, 2026}
 
@@ -194,8 +194,6 @@ A fundamental architectural decision in this topology was the \textbf{exclusive 
     \item \textbf{Data Integrity:} Over 90\% of raw pickup address strings exhibited extreme ambiguity, introducing high-risk noise into the dataset.
     \item \textbf{Decision Theory:} Since the Agent is geographically indifferent to pickups; the decision to accept an offer is driven by \textit{Time-to-Pickup} (TTP) rather than the specific neighborhood of origin. Conversely, the destination (dropoff) dictates the Agent's future geographic position, making it the primary determinant of subsequent operational risk and return.
 \end{enumerate}
-
-While pickups remain excluded from Phase 5 Supervised Learning, they are preserved for Phase 6 GAN-based manifold generation and Graph-Neural Network (GNN) analysis.
 
 \subsubsection{The Initial Clustering Attempt \& The Coordinate Crisis}
 To discover these organic dropoff zones, \textbf{DBSCAN} was initially deployed. However, it resulted in data fragmentation that lacked operational business logic. The architecture was subsequently upgraded to \textbf{HDBSCAN} (Hierarchical DBSCAN), which dynamically extracts clusters across multiple density scales, proving much more capable of capturing Mexico City's complex operational reality. 
