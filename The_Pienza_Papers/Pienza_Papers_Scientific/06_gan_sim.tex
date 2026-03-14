@@ -1,16 +1,23 @@
-\section{Phase 6: Generative Moonshots for Scaling}
+\section{Phase 6: Generative Moonshots \& Scaling Architecture}
 
-The objective of Phase 6 is to transition the Pienza framework from a single-agent behavioral study into a scale-invariant Digital Twin of Mexico City Marketplace. While the previous phases successfully cloned the agent's policy, the ground-truth volume ($N \approx 4,700$) represents a data-sparsity constraint for high-fidelity market simulation. This phase documents the architectural blueprint for overcoming this bottleneck through generative synthesis and sequential deep learning.
+With the Agent's policy successfully cloned, the objective of Phase 6 is to transition the Pienza framework from a single-agent study into a scale-invariant \textbf{Digital Twin} of Mexico City's ride-hailing marketplace. To achieve this, the project pursues three experimental deep-learning objectives designed to overcome the administrative and logistical bottlenecks of the physical world:
 
-The scaling architecture is structured across four primary technical pillars:
+\begin{enumerate}
+    \item \textbf{Zero-Latency Inference (NLP Transformers):} Real-time deployment of the \texttt{XGBoost} model is limited by the network latency and cost of external geocoding APIs. To bypass this, a locally-hosted \textit{Text-to-Zone Transformer} was architected to classify raw address strings directly into strategic macro-zones, enabling sub-10ms inference.
+    
+    \item \textbf{Generative Synthesis (Conditional GANs):} The limited ground-truth volume ($N \approx 4,700$) creates a data-sparsity constraint for robust market simulation. To resolve this, a \textbf{Conditional Generative Adversarial Network (cGAN)} was deployed to synthesize a 1,000,000-row manifold, effectively transforming the static dataset into an infinite \textit{Keras} generator.
+    
+    \item \textbf{Topological Routing (Graph-Network Analysis):} The synthesized manifold is utilized to execute Graph-Network analysis, mapping the economic connectivity between urban hubs and identifying the "path dependency" of high-yield mission sequences.
+\end{enumerate}
 
-\begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{Generative Synthesis:} Implementation of GANs to synthesize a 1,000,000-row market manifold, preserving the statistical correlations of the original ground truth.
-   \item \textbf{Network Topology:} Mapping the operational environment as a non-Euclidean graph (nodes and edges) to enable future Graph Neural Network (GNN) positioning models.
-    \item \textbf{Sequential Deep Learning:} Training Recurrent Neural Networks (RNNs) on distilled synthetic sequences to move from isolated events to "Market Momentum" modeling.
-    \item \textbf{Stochastic Simulation:} Utilizing the manifold to execute \textit{Markov Chain Monte Carlo} (MCMC) simulations, identifying global optimal strategies across millions of potential session iterations.
+\noindent \textit{Note: While this generative foundation sets the stage for advanced methodologies---including Recurrent Neural Networks (RNNs), Graph Neural Networks (GNNs), and Markov Chain Monte Carlo (MCMC) simulations---these specific applications are designated as future research and are formally proposed for the \textbf{Pienza 2.0} roadmap.}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
  
-\end{itemize}
+
 
 \subsection{Generative Synthesis: The Pienza Manifold}
 To overcome the constraints of data sparsity ($N \approx 4,700$), the project deployed a \textbf{Conditional Generative Adversarial Network (cGAN)} to synthesize a 1,000,000-row data manifold. Unlike standard generative models that learn a broad distribution, the \textbf{conditional architecture} allows the system to synthesize offers targeted at specific market states. By conditioning the model on attributes—such as \texttt{hour\_of\_day}, \texttt{product\_tier}, and \texttt{zone\_id}—the system can programmatically request synthetic trips for any desired operational scenario.
@@ -20,6 +27,8 @@ This implementation effectively transforms the model into an \textbf{Infinite Ke
 Reaching convergence required seven iterations of feature selection and spatial tuning. To prevent \textbf{Mode Collapse} (a state where the model outputs repetitive, low-variance data), the trip architecture was partitioned into two orthogonal vectors: \textit{Context} and \textit{Physics}.
 
 Initial attempts utilized Uber's H3 hexagonal grid at Resolution 6 ($\approx 36$ km\textsuperscript{2}) for pickup origins. This coarse resolution proved insufficient, conflating distinct strategic sectors. Conversely, shifting to a hyper-granular Resolution 9 was a recipe for overfitting, forcing the model to memorize specific coordinates rather than learning urban distributions. 
+
+This was resolved by executing a \textbf{Point-in-Polygon (PiP)} spatial join. By mapping raw GPS pickups directly to the 42 semantic macro-zones developed in Phase 4, the system unified the spatial axis. This allowed the GAN to learn origin-destination economics without the noise of an abstract grid.
 
 \begin{figure}[H]
      \centering
@@ -40,11 +49,11 @@ Initial attempts utilized Uber's H3 hexagonal grid at Resolution 6 ($\approx 36$
          \includegraphics[width=\textwidth]{pickup_heatmap.png}
          \caption{Ground Truth Heatmap.}
      \end{subfigure}
-        \caption{Geospatial Discovery: Identifying the resolution trap between algorithmic hexagonal grids and strategic operational boundaries.}
+        \caption{Geospatial Discovery: Identifying the resolution trade-off between hexagonal grids.}
         \label{fig:geo_discovery}
 \end{figure}
 
-This was resolved by executing a \textbf{Point-in-Polygon (PiP)} spatial join. By mapping raw GPS pickups directly to the 42 semantic macro-zones developed in Phase 4, the system unified the spatial axis. This allowed the GAN to learn origin-destination economics without the noise of an abstract grid.
+
 
 While the ideal model would replicate transient incentives (\textit{e.g., Surge, Turbo+}), these high-variance signals derailed the learning of baseline prices, as these features collapsed to zero after training. To prevent mode collapse and stabilize the Generator, incentives were excised from the feature space; the remaining variables were split into two tensors:
 
@@ -73,10 +82,9 @@ The Generator is architected as a conditional dense network designed to transfor
     \label{fig:generator_arch}
 \end{figure}
 
-\subsubsection{Neural Architecture: The Generator Pipeline}
 The Pienza Generator (v7) utilizes an embedding-concatenation strategy to map market constraints to physical outcomes. The six categorical variables at the input stage (\textit{e.g., temporal blocks, product tier, geospatial zones}) act as \textbf{conditional switches} rather than synthesized outputs. When the system is prompted with a specific market context---such as an 8:00 AM mission on a Monday from Zone A to Zone B---the model's 2.7 million parameters synthesize the exact continuous physics (fare, durations, and distances) that correspond to those specific constraints.
 
-To ensure stochastic variety and prevent repetitive outputs, 100 dimensions of Gaussian noise are fused with the embedded context vectors. This 133-dimensional input is then expanded through a series of three progressive \textbf{Dense Blocks} (ranging from 512 to 2048 neurons). Each block utilizes \textit{Batch Normalization} and \textit{LeakyReLU} activations to maintain mathematical stability during the adversarial training process. The architecture terminates in a five-neuron \textbf{\textit{tanh} output layer}, which generates the normalized values for the core physics metrics. These are subsequently mapped back to real-world units via the inverse transformation of the data refinery's scaling protocol.
+To ensure stochastic variety and prevent repetitive outputs, 100 dimensions of Gaussian noise are fused with the embedded context vectors. This 133-dimensional input is then expanded through a series of three progressive \textbf{Dense Blocks} (ranging from 512 to 2048 neurons). Each block utilizes \textit{Batch Normalization} and \textit{LeakyReLU} activations to maintain mathematical stability during the adversarial training process. The architecture terminates in a five-neuron \textbf{\textit{tanh} output layer}, which generates the normalized values for the core physics metrics. These are subsequently mapped back to real-world units via the inverse transformation of the data scaling protocol.
 
 \noindent \textit{Outcome: This architecture allows for the on-demand generation of an infinite stream of statistically valid ride offers, providing the high-volume data manifold required for the subsequent simulation and deep learning phases.}
 
@@ -93,7 +101,7 @@ The Discriminator (v7) serves as the adversarial validator within the cGAN frame
 The architecture utilizes a three-stage validation logic to render its verdict:
 
 \begin{enumerate}
-    \item \textbf{Contextual Fusion:} The network ingests the six strategic switches (\textit{e.g., temporal blocks, zone IDs}) through embedding layers. These categorical vectors are flattened and concatenated with the 5-dimensional physics input. This creates a unified 38-dimensional feature vector, ensuring the model evaluates the validity of the fare and duration \textbf{conditional} upon the specific market state.
+    \item \textbf{Contextual Fusion:} The network ingests the six switches (\textit{e.g., temporal blocks, zone IDs}) through embedding layers. These categorical vectors are flattened and concatenated with the 5-dimensional physics input. This creates a unified 38-dimensional feature vector, ensuring the model evaluates the validity of the fare and duration \textbf{conditional} upon the specific market state.
     
     \item \textbf{Regularized Funnel:} The concatenated signal is processed through a descending dense stack of 1024, 512, and 256 neurons. To prevent the Discriminator from reaching premature convergence---which would stall the Generator's learning---the architecture implements aggressive \textbf{Dropout} layers ($p=0.2$) following each \textit{LeakyReLU} activation. This forces the model to prioritize robust statistical patterns over specific coordinate memorization.
     
@@ -132,7 +140,7 @@ The final performance metrics (Table \ref{tab:gan_results}) demonstrate high tra
     \label{tab:gan_results}
 \end{table}
 
-\noindent \textit{Outcome: The V5 model provides a statistically reliable foundation for the simulation environment. By prioritizing the stability of physical variables over high-variance incentives, the framework ensures a high degree of fidelity for the subsequent strategy testing phases.}
+\noindent \textit{Outcome: The model provides a statistically reliable foundation for future simulation environments. By prioritizing the stability of physical variables over high-variance incentives, the framework ensures a high degree of fidelity for training advanced RNNs and GNNs.}
 
 
 \subsection{Statistical Parity Assessment: Manifold Integrity}
@@ -159,8 +167,6 @@ Beyond pricing, the manifold must adhere to the physical constraints of the urba
     \caption{Logistical Integrity and Weekly Value Pulse. The scatter plot (bottom-left) demonstrates that the GAN captured the \textit{Approach Velocity} (Time vs. Distance to Pickup) with regression slopes identical to the ground truth. The bar chart (bottom-right) confirms the model internalized the weekly revenue cycles.}
     \label{fig:manifold_logistics}
 \end{figure}
-
-The logistical assessment (Figure \ref{fig:manifold_logistics}) verifies that the distributions of Time-to-Pickup (TTP) and Distance-to-Pickup (DTP) remain operationally valid. Furthermore, the model correctly identified Friday as the peak-revenue node in the weekly cycle, confirming the internalization of macroeconomic rhythms.
 
 \subsubsection{The Circadian Pulse: Temporal High-Fidelity}
 The final validation gate involved the replication of the \textbf{Circadian Value Pulse}---the sharp fluctuations in average fare across a 24-hour window.
