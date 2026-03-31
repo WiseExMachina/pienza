@@ -427,11 +427,165 @@ With this infrastructure established, the local \texttt{pienza.db} was transitio
 
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\subsection{Network Graph Analysis: The Bridge to Markov}
+The final technical module of the Pienza framework transitions from row-wise analysis to graph-based intelligence. By deconstructing the city as a network rather than a collection of points, the study identifies the latent connectivity and economic gravity that govern high-yield mission sequences. This analysis is executed across two primary representations:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{The Topological Undirected Graph:} This model defines the physical playing field. It transforms the 72 operational polygons into mathematically precise schematic nodes. By utilizing Sigma and Omega coefficients, the study proves the "Small-World" nature of the project's operational zone, identifying critical super-nodes (\textit{e.g., nodo\_reforma\_palmas}) and single-point-of-failure cut-vertices.
+    
+    \item \textbf{The Mobility Tensor:} This directed graph integrates the 1,000,000-row synthetic manifold to map the flow of capital across the city. Connections represent profitability rather than physical distance, with edges weighted by a composite of mission volume and realized EPH. This reveals an autocentric core with a diameter of 2, proving that the Agent is never more than two transitions away from a high-value operational node.
+\end{itemize}
+
+The network analysis concludes by establishing the \textbf{Bridge to Markov}. By applying the \textit{Bellman Equation} to the mobility tensor, the framework calculates the \textbf{Future Value} ($V(s)$) of every urban zone. This enables the transition from reactive decision-making to a proactive, prescriptive policy ($Q$-Matrix) designed to maximize long-term yield through optimized five-jump mission sequences.
+
+\subsection{Base Topology: Structural Connectivity Graph}
+To define the physical constraints of the operational environment, a custom undirected graph was architected using \texttt{networkX}. This model transforms the geographic polygons into discrete schematic nodes, where an edge exists strictly if at least one viable road connects the two areas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{fig_base_topology.png} 
+    \caption{Base Topology: Undirected Graph with "Bubble Effect" Visualization. Nodes represent atomic operational units; edges indicate verified road connectivity. The graph highlights the non-Euclidean nature of the city, where geographic proximity does not guarantee topological access.}
+    \label{fig:base_topology}
+\end{figure}
+
+The graph was manually crafted based on the Agent’s ground-truth street exploration rather than official cadastral maps. The connectivity logic follows two primary mandates:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Labyrinthine Topology:} While the grid-based layout of \textit{Polanco} facilitates simple navigation, sectors such as \textit{Interlomas, Lomas,} and \textit{Santa Fe} exhibit high topological complexity. In these zones, geographic proximity is often misleading; adjacent polygons may share a border but have no viable road connection, creating "labyrinth-like" detours that impact search efficiency.
+    
+    \item \textbf{Operational Routing Constraints:} The graph explicitly excludes restricted-access connectors (resident-only gates), reflecting the actual routing limitations encountered via \textit{Waze} or \textit{Google Maps}. Specific gaps were modeled where road access is denied to ride-hailing agents, such as the boundaries between \textit{Jesús del Monte -- Lomas Country Club} and \textit{Blvrd Anáhuac -- Vialidad de la Barranca}. 
+\end{itemize}
+
+By design, each node in the graph represents an independent organic-economic unit. Within these boundaries, the Agent is effectively indifferent toward specific coordinates, as any point within the node provides identical access to the surrounding network edges. This abstraction allows the framework to move beyond noisy coordinate data and focus on the \textbf{Topological Premium} of each urban hub.
+
+It is critical to note that the undirected graph described here represents a \textbf{pure topological skeleton} modeled as a \textbf{closed system}; it contains no transactional data, mission volumes, or financial weights. The objective of this assessment is to establish the physical baseline of the operational environment, strictly bounded by the 72 polygons before projecting the economic forces of the tensor mobility manifold.
+
+\subsubsection{Morphological Analysis: Small-World Dynamics}
+To assess the structural efficiency of the network, the study utilized the \textbf{Watts-Strogatz} framework to evaluate the balance between local redundancy (cluster density) and global reachability (long-range shortcuts). The results, consolidated in Table \ref{tab:structural_metrics}, mathematically certify the Pienza operational environment as a high-efficiency \textbf{Small-World Network}\footnote{Efficiency is defined here strictly by topological connectivity. While the network structure facilitates rapid navigation under fluid conditions, systemic gridlock effectively neutralizes these advantages, transforming the connected graph into a static, high-friction state.}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l c X}
+        \toprule
+        \textbf{Metric} & \textbf{Value} & \textbf{Operational Interpretation} \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Macro-Dimensions}} \\
+        \midrule
+        \textbf{Network Density} & 0.053 & \textbf{Arterial Infrastructure:} Connectivity is concentrated on primary transit veins rather than a uniform grid, reflecting urban geographic constraints. \\
+        \addlinespace
+        \textbf{Network Diameter} & 11 Jumps & \textbf{Maximum Friction:} The longest shortest path across the theatre, representing the travel limit between extreme poles. \\
+        \addlinespace
+        \textbf{Network Radius} & 7 Jumps & \textbf{Reachability Limit:} The maximum distance from the topological center to the farthest peripheral node. \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Watts-Strogatz Small-World Coefficients}} \\
+        \midrule
+        \textbf{Transitivity ($C$)} & 0.2677 & \textbf{Local Redundancy:} High for an urban network; indicates a 27\% probability of triangular connectivity between adjacent nodes for alternate routing. \\
+        \addlinespace
+        \textbf{Avg. Path Length ($L$)} & 4.8052 & \textbf{Global Efficiency:} High theoretical reachability; any zone is accessible within a median of 4.8 topological transitions. \\
+        \addlinespace
+        \textbf{Sigma ($\sigma$)} & 4.1137 & \textbf{Small-World Proof:} Since $\sigma > 1$, the network is mathematically certified. It exhibits local clustering significantly superior to a random graph. \\
+        \addlinespace
+        \textbf{Omega ($\omega$)} & -0.2740 & \textbf{Structural Balance:} A value near zero indicates an optimized topology supported by ``shortcuts'' (\textit{e.g., bridges}) that bypass local impediments. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Consolidated structural and morphological metrics of the Pienza undirected graph.}
+    \label{tab:structural_metrics}
+\end{table}
+
+The \textbf{Sigma ($\sigma = 4.11$)} result confirms that while the western sector of Mexico City appears fragmented by complex terrain, it is topologically optimized for rapid traversal via strategic shortcuts. This structural baseline ensures high system liquidity, provided that traffic conditions do not collapse into a zero-velocity state.
+
+
+\subsubsection{Centrality Assessment: The Operational Hierarchy}
+Identifying the nodes that govern network flow and structural vulnerability establishes a formal hierarchy of the operational environment. The diagnostic review identifies an absolute \textbf{Super-Node}: \texttt{nodo\_reforma\_palmas}. It is the only zone to rank in the top five across all centrality categories, serving as the primary distributive hub, the system's center of gravity, and its critical transit axis.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l l X}
+        \toprule
+        \textbf{Zone Name} & \textbf{Metric Type} & \textbf{Hierarchy Role} & \textbf{Operational Significance} \\
+        \midrule
+        \texttt{reforma\_palmas} & All (Leader) & \textbf{Super-Node} & Controls 20.5\% of all optimal routing paths; the absolute distributive hub. \\
+        \addlinespace
+        \texttt{lomas\_barrilaco} & Eigenvector & \textbf{Elite Influence} & Maximum influence through proximity to high-power neighbors (\textit{The Power Mesh}). \\
+        \addlinespace
+        \texttt{ahuehuetes\_norte} & Closeness & \textbf{System Center} & Containing the "Glorieta de los Ahuehuetes" (roundabout), this  is the most central node; minimizes transitions to all other zones. \\
+        \addlinespace
+        \texttt{herradura\_conscripto} & Betweenness & \textbf{Critical Bridge} & High-vulnerability bottleneck; lacks redundant routing for peripheral access. \\
+        \addlinespace
+        \texttt{fuentes\_casino} & Degree & \textbf{Tactical Hub} & Maximum local permeability; provides the highest volume of immediate routing options. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Topological Hierarchy Summary: Primary actors within the structural network.}
+    \label{tab:centrality_summary}
+\end{table}
+
+The interaction of these metrics reveals two distinct regimes:
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{The Power Mesh (Redundancy):} A high-influence cluster defined by \texttt{barrilaco}, \texttt{prado\_norte}, and \texttt{trastevere}. These nodes form a highly interconnected "elite mesh" with the Super-Node, providing with high navigational resilience and multiple low-friction routing alternatives.
+    
+    \item \textbf{Strategic Bottlenecks (Vulnerability):} Nodes such as \texttt{herradura\_conscripto} and \texttt{bosque\_3} (Constituyentes) exhibit high \textit{Betweenness} but low \textit{Eigenvector} influence. These act as "operational pipelines"; they are essential for connecting the core to the periphery but lack redundant alternatives. Increased friction at these specific nodes presents the highest risk of systemic operational paralysis.
+\end{itemize}
+
+
+\subsubsection{Vulnerability Analysis: Choke Points}
+The diagnostic review identified \textbf{7 Critical Bridges} within the undirected graph; these represent single-points-of-failure where a zone’s access to the wider marketplace is entirely dependent on a single transit axis. As detailed in Table \ref{tab:topological_bridges}, the zones on the right are topologically isolated ``islands'' that require traversal through a specific hub to access the global network.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l c l X}
+        \toprule
+        \textbf{Access Hub (Left)} & $\longleftrightarrow$ & \textbf{Dependent Zone (Right)} & \textbf{Operational Risk} \\
+        \midrule
+        \texttt{interlomas\_magnocentro} & --- & \texttt{bosque\_real} & \textbf{Isolated Enclave:} High-yield node with zero redundant egress. \\
+        \addlinespace
+        \texttt{vialidad\_de\_la\_barranca} & --- & \texttt{ave\_club\_de\_golf\_lomas} & \textbf{Sequential Dependency:} Forms a chain that terminates at \textit{Lomas Country Club}. \\
+        \addlinespace
+        \texttt{santa\_fe\_centro\_comercial} & --- & \texttt{santa\_fe\_bosques\_de} & \textbf{Enclave Access:} Isolated residential sector with single-point entry logic via the commercial hub. \\
+        \addlinespace
+        \texttt{bosque\_3 (Constituyentes)} & --- & \texttt{bondojito\_asf} & \textbf{Arterial Constraint:} Primary connection for the western depth. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Topological Bridges: Identifying critical dependencies and mission isolation points.}
+    \label{tab:topological_bridges}
+\end{table}
 
 
 
-Pending to include: Graph Analysis: Its a small world network, after all. 
 
+
+
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
 Sources of Inspiration:
 
 - Nexus, by Harari
