@@ -548,7 +548,7 @@ The diagnostic review identified \textbf{7 Critical Bridges} within the undirect
         \addlinespace
         \texttt{vialidad\_de\_la\_barranca} & --- & \texttt{ave\_club\_de\_golf\_lomas} & \textbf{Sequential Dependency:} Forms a chain that terminates at \textit{Lomas Country Club}. \\
         \addlinespace
-        \texttt{santa\_fe\_centro\_comercial} & --- & \texttt{santa\_fe\_bosques\_de} & \textbf{Enclave Access:} Isolated residential sector with single-point entry logic via the commercial hub. \\
+        \texttt{santa\_fe\_centro\_comercial} & --- & \texttt{santa\_fe\_bosques\_de} & \textbf{Enclave Access:} Isolated residential sector with single-point entry logic via Parque La Mexicana. \\
         \addlinespace
         \texttt{bosque\_3 (Constituyentes)} & --- & \texttt{bondojito\_asf} & \textbf{Arterial Constraint:} Primary connection for the western depth. \\
         \bottomrule
@@ -558,7 +558,160 @@ The diagnostic review identified \textbf{7 Critical Bridges} within the undirect
 \end{table}
 
 
+\subsection{The Mobility Tensor: Directed Flow and State Space}
 
+
+While the undirected graph established the physical road-connectivity skeleton, the ride-hailing marketplace operates as an \textbf{open system} driven by asymmetric capital and agent flows. To model this dynamic reality, the project transitions to a \textbf{Directed Graph} $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ powered by the $N = 1,010,001$ synthetic manifold. This forms the basis of a high-dimensional \textbf{Mobility Tensor}, which serves as the project's economic engine by mapping every potential market transition:
+
+\begin{equation*}
+    \Large \mathcal{T} \in \mathbb{R}^{Z \times Z \times H \times D \times P \times C}
+\end{equation*}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l X}
+        \toprule
+        \textbf{Dimension} & \textbf{Operational Mapping} \\
+        \midrule
+        Spatial Axis ($Z \times Z$) & A $73 \times 73$ origin-destination matrix capturing all directed mission vectors. \\
+        \addlinespace
+        Temporal Axis ($H \times D$) & 18 hourly blocks over a 7-day cycle, tracking circadian and weekly demand shifts. \\
+        \addlinespace
+        Economic Axis ($P$) & Three discrete product tiers (Economy, Mid-Tier, Premium). \\
+        \addlinespace
+        Dual-Channel Signal ($C$) & A 2-element output vector recording \textbf{Volume} (capture frequency) and \textbf{Value} (mean EPH). \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Multi-Dimensional Architecture of the Mobility Tensor.}
+    \label{tab:tensor_axes}
+\end{table}
+
+
+Unlike the topological skeleton, the Mobility Tensor maps actual mission vectors ($A \to B$). To accurately capture the "open" nature of the market, the 72 sovereign operational polygons are augmented with a 73rd state: the \textbf{Exile Node} (\texttt{unassigned\_area}). This statistical absorber collapses all non-operational urban sprawl.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{@{} l r r X @{}}
+        \toprule
+        \textbf{Flow Classification} & \textbf{Observations} & \textbf{Rate} & \textbf{Strategic Role} \\
+        \midrule
+        Out-of-Theatre (Exile) & 548,998 & 54.4\% & Collapsed \texttt{unassigned\_area} capturing non-operational exit vectors. \\
+        Internal Pienza Flow & 461,003 & 45.6\% & High-fidelity directed transitions within the 72 mapped zones. \\
+        \bottomrule
+    \end{tabularx}
+    \vspace{0.5em}
+    \caption{Distribution of directed transitions within the synthetic manifold.}
+    \label{tab:manifold_distribution}
+\end{table}
+
+To transition from a multi-dimensional state space to a functional routing network, the high-dimensional Mobility Tensor is collapsed into a flat $73 \times 73$ weighted adjacency matrix. This is achieved by calculating the \textbf{Volume-Weighted Average EPH} for every directed origin-destination pair ($i \to j$):
+
+\begin{equation}
+    \text{Weight}_{i,j} = \frac{\sum (\text{Volume} \times \text{EPH})}{\sum \text{Volume}}
+\end{equation}
+
+This formulation ensures that the resulting matrix identifies where capital flows reliably, naturally diluting low-volume statistical anomalies and penalizing unprofitable high-traffic corridors. 
+
+While the final Markov Decision Process (MDP) utilize this 2-dimensional projection, the construction of the full high-dimensional tensor remains a foundational requirement. The full tensor serves as an in-memory \textbf{OLAP cube}, permitting $\mathcal{O}(1)$ dynamic slicing for context-aware simulations. This architecture enables the system to isolate specific network topologies---such as the unique market physics of a Friday evening peak---via interactive dashboard interfaces without recalculating the underlying distributions.
+
+The contraction represents the extraction of the network's \textbf{Steady-State}, providing the baseline environment for the stationary Markov Decision Process (MDP) evaluated in this phase.
+
+\section{Morphology of Value: From Small-World to Random Mesh}
+
+By contrasting the physical road network with the \textbf{Functional Graph} derived from the Mobility Tensor, a structural mutation is revealed: while the physical infrastructure operates under the constraints of a \textit{Small-World Network}, the flow of capital behaves as a \textbf{Random Mesh}.
+
+\subsection{Functional Network Metrics (73-Node System)}
+The following metrics quantify the operational reality of the 1,010,001 synthetic missions within the 73-state Markov space. These metrics are calculated from the raw tensor before applying any probability thresholds.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l l X}
+        \toprule
+        \textbf{Metric} & \textbf{Value} & \textbf{Operational Interpretation} \\
+        \midrule
+        \textbf{Density ($p$)} & \textbf{0.7021} & \textbf{System Saturation:} 70.2\% of all possible origin-destination pairs are active. The marketplace functions as a hyper-connected critical mass rather than a collection of isolated neighborhoods. \\
+        \addlinespace
+        \textbf{Clustering ($C$)} & \textbf{0.7616} & \textbf{Economic Reciprocity:} There is a 76\% probability that the "economic neighbors" of a zone also transact with each other, effectively eroding local geographic boundaries. \\
+        \addlinespace
+        \textbf{Friction ($L$)} & \textbf{1.3170} & \textbf{Instant Liquidity:} Capital flow transitions from origin to destination in only 1.3 jumps on average, significantly lower than the 4.8 physical jumps required by the asphalt road network. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Functional metrics of the complete Mobility Tensor graph.}
+    \label{tab:functional_metrics}
+\end{table}
+
+\subsubsection{Structural Verdict: The Watts-Strogatz Test}
+To determine if the functional network retains the "Small-World" properties of the physical skeleton, the tensor was benchmarked against a randomly generated parallel universe (Erdős–Rényi model). The resulting \textbf{Sigma Coefficient ($\sigma$)} is defined as:
+
+\begin{equation}
+    \sigma = \frac{C_{real} / C_{rand}}{L_{real} / L_{rand}} = 1.0681
+\end{equation}
+
+\noindent \textbf{Diagnostic Result:} In graph theory, a value of $\sigma \approx 1.0$ indicates that the system is statistically indistinguishable from a \textbf{Random Network}. The hyper-flow of missions within the marketplace has effectively "deleted" the distance-based constraints of the Mexico City urban landscape.
+
+\subsubsection{Architectural Insights}
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{The Exile Shortcut:} The inclusion of the \texttt{unassigned\_area} (Node 69) acts as a topological shortcut. By serving as both a primary source and sink for over 54\% of the manifold, it creates a "wormhole" effect that collapses the average path length ($L$) across the entire system.
+    \item \textbf{Zone Indifference:} The high clustering coefficient ($0.76$) combined with the low path length ($1.3$) proves that the marketplace is in a state of permanent liquidity. For the agent, this confirms that almost any "jump" provides immediate access to the broader economic network, validating a strategy that prioritizes EPH-yield over physical proximity to the \textit{Anzures} home base.
+\end{itemize}
+
+
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\subsection{System Boundaries: Geofenced Autonomous Fleet Simulation}
+
+In analyzing historical ride-hailing datasets, the network naturally behaves as an open system, with a significant volume of trips exiting the core urban cluster toward the broader metropolitan sprawl (the \texttt{unassigned\_area}). However, the primary objective of Project Pienza is not to replicate the human-driven inefficiencies and spatial leakage of the past, but rather to simulate the prescriptive routing dynamics of a future-state mobility network.
+
+\subsubsection{The Operational Design Domain (ODD)}
+To align the mathematical model with the operational realities of Level 4 Autonomous Vehicle (AV) fleets (e.g., Waymo), the framework implements a strict \textbf{Geofence Constraint}. AV ride-hailing networks are inherently bounded by a pre-defined Operational Design Domain (ODD). Transitions that terminate outside this geofence are not merely undesirable; they are deterministically restricted by the dispatch algorithm. 
+
+Consequently, the 73rd aggregate state (\texttt{unassigned\_area}) is entirely pruned from the tensor. The generative simulation isolates the 45.6\% of the synthetic manifold that represents strictly internal, high-fidelity transitions ($A \to B$ where $\{A, B\} \in \mathcal{V}_{72}$).
+
+\subsubsection{The Closed-System MDP}
+By filtering out the external environment, the resulting Mobility Tensor ($\mathcal{T} \in \mathbb{R}^{72 \times 72 \times H \times D \times P \times C}$) represents a fully closed, thermodynamic market. While enterprise AV fleets optimize for global system utility (fleet-wide balancing), this phase of Pienza models the optimization of a localized prototype unit. Under this closed-system assumption, the Markov Decision Process (MDP) and the subsequent Bellman Equation evaluate the optimal generative routing policy ($\pi^*$) for an agent constrained exclusively within the sovereign boundaries of the high-value 72-node network.
+
+
+
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+\vspace{0.4cm}
+\rule{\linewidth}{0.4pt}
+
+
+\subsubsection{Methodological Constraint: Spurious Connectivity}
+A critical distinction is made between the total state space and the calculation of network metrics (e.g., eccentricity, diameter). In these specific instances, the \texttt{unassigned\_area} is programmatically excluded. 
+
+Because the unassigned node represents $>70\%$ of the total urban sprawl, its inclusion would create a topological shortcut where any two points appear connected via a single jump (\textit{Zone A $\to$ Unassigned $\to$ Zone B}). This result is analytically spurious as it masks the true economic friction and time-cost of navigating between specific hubs like \textit{Santa Fe} and \textit{Polanco}. By isolating the 42 sovereign nodes, the tensor accurately identifies the "Economic Hardship" of being pushed toward the network periphery.
+
+\subsubsection{Topology of Value: Sources and Sinks}
+The directed graph weights each edge by the composite variable \textit{Volume $\times$ EPH}. This identifies the asymmetric nature of the marketplace:
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Value Sources (Exporters):} Nodes with high out-degree weights (e.g., \textit{Polanco, Lomas}), which consistently push agents toward diverse, high-yield opportunities.
+    \item \textbf{Value Sinks (Traps):} Nodes with high in-degree weights but low transition probabilities back to the autocentric core. Entering these sinks results in "Yield Decay," where the agent must perform multiple sub-optimal jumps to return to the target EPH baseline ($>\$200/hr$).
+\end{itemize}
 
 
 
