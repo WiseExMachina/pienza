@@ -431,38 +431,39 @@ With this infrastructure established, the local \texttt{pienza.db} was transitio
 \rule{\linewidth}{0.4pt}\vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
 
-\subsection{Network Graph Analysis: The Bridge to Markov}
-The final technical module of the Pienza framework transitions from row-wise analysis to graph-based intelligence. By deconstructing the city as a network rather than a collection of points, the study identifies the latent connectivity and economic gravity that govern high-yield mission sequences. This analysis is executed across two primary representations:
+
+\subsection{Network Graph Analysis: A Sandbox for Autonomous Vehicles}
+The final technical module of the Pienza framework transitions from retrospective row-wise analysis to forward-looking graph-based intelligence. In this stage, the network is no longer conceptualized as a record of human labor, but as a \textbf{high-fidelity sandbox for Autonomous Vehicle (AV) fleet prototyping}. By treating Pienza as a strictly \textbf{geofenced sovereign ecosystem}, the study evaluates the viability of autonomous agents operating within a closed-loop urban environment.
+
+To ensure the stability of the stochastic optimization, both models are architected as \textbf{Closed Systems}:
 
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{The Topological Undirected Graph:} This model defines the physical playing field. It transforms the 72 operational polygons into mathematically precise schematic nodes. By utilizing Sigma and Omega coefficients, the study proves the "Small-World" nature of the project's operational zone, identifying critical super-nodes (\textit{e.g., nodo\_reforma\_palmas}) and single-point-of-failure cut-vertices.
+    \item \textbf{The Topological Geofence Blueprint (Undirected):} This model defines the physical constraints of the AV operation. It transforms the 72 polygons into a schematic grid where edges represent the only allowed traversal paths for a self-governed fleet. By utilizing Sigma and Omega coefficients, the study identifies the "Small-World" efficiency of the geofence, marking critical infrastructure bottlenecks (\textit{e.g., node\_reforma\_palmas}) and identifying single-point-of-failure cut-vertices that would compromise fleet connectivity.
     
-    \item \textbf{The Mobility Tensor:} This directed graph integrates the 1,000,000-row synthetic manifold to map the flow of capital across the city. Connections represent profitability rather than physical distance, with edges weighted by a composite of mission volume and realized EPH. This reveals an autocentric core with a diameter of 2, proving that the Agent is never more than two transitions away from a high-value operational node.
+    \item \textbf{The Mobility Tensor (Directed/Steady-State):} To model the thermodynamics of capital, the study performs a \textbf{Topological Pruning} of the 1,000,000-row synthetic manifold. All offers originating from or destined for the "exterior" (the Exilio) are dropped, isolating the \textbf{Internal Pienza Flow (IPF)}. This results in a refined dataset of \textbf{461,003 observations (45.6\% of the manifold)}, representing a pure, high-density mobility state. This directed graph maps the flow of value, revealing an autocentric core with a diameter of 2, proving that within the geofence, the AV agent is always within two economic transitions of a peak-performance node.
 \end{itemize}
 
-The network analysis concludes by establishing the \textbf{Bridge to Markov}. By applying the \textit{Bellman Equation} to the mobility tensor, the framework calculates the \textbf{Future Value} ($V(s)$) of every urban zone. This enables the transition from reactive decision-making to a proactive, prescriptive policy ($Q$-Matrix) designed to maximize long-term yield through optimized five-jump mission sequences.
+The network analysis establishes the \textbf{Bridge to Markov} for autonomous navigation by applying the \textit{Bellman Equation} to the internal mobility tensor. By calculating the \textbf{State-Value Function} ($V(s)$), the framework transforms the geofenced urban grid into a series of interconnected decision nodes. This enables the derivation of a prescriptive $Q$-Matrix policy, allowing a prototype autonomous fleet to execute optimized five-jump mission sequences that prioritize long-term economic sovereignty over myopic fare-chasing. 
 
-\subsection{Base Topology: Structural Connectivity Graph}
-To define the physical constraints of the operational environment, a custom undirected graph was architected using \texttt{networkX}. This model transforms the geographic polygons into discrete schematic nodes, where an edge exists strictly if at least one viable road connects the two areas.
+However, it must be explicitly noted that a \textbf{Stationary MDP} is a static approximation of a non-linear, time-variant system. While this model provides a robust steady-state baseline for strategic positioning, it remains a necessary oversimplification of the high-frequency volatility that a full-scale \textbf{Markov Chain Monte Carlo (MCMC)} simulation or a dynamic \textbf{Reinforcement Learning (RL)} agent would encounter. Consequently, the \textbf{Generative Moonshot} phase concludes here: it does not attempt to execute dynamic learning or stochastic sampling. Instead, it successfully delivers the \textbf{functional scaffolding}---mathematically defining the state space ($\mathcal{S}$), transition probabilities ($\mathcal{P}$), and reward manifolds ($\mathcal{R}$)---required to transition from descriptive science to autonomous execution in Pienza 2.0: The Knowledge.
 
+
+\subsection{Base Topology: The Geofence Blueprint}
+To define the physical boundaries and navigational constraints of the \textbf{Autonomous Sovereign Zone}, a custom undirected graph was architected using \texttt{networkX}. This model serves as the \textbf{Geofence Blueprint}, transforming the 72 geographic polygons into discrete schematic nodes where an edge exists strictly if a verified, viable road path connects the two areas.
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\textwidth]{fig_base_topology.png} 
-    \caption{Base Topology: Undirected Graph with "Bubble Effect" Visualization. Nodes represent atomic operational units; edges indicate verified road connectivity. The graph highlights the non-Euclidean nature of the city, where geographic proximity does not guarantee topological access.}
-    \label{fig:base_topology}
+\centering
+\includegraphics[width=0.95\textwidth]{fig_base_topology.png}
+\caption{Base Topology: Undirected Graph with "Bubble Effect" Visualization. Nodes represent atomic operational units; edges indicate the \textbf{allowed traversal paths} for a prototype autonomous fleet. The graph highlights the non-Euclidean nature of the city, where geographic proximity does not guarantee topological access.}
+\label{fig:base_topology}
 \end{figure}
-
-The graph was manually crafted based on the Agent’s ground-truth street exploration rather than official cadastral maps. The connectivity logic follows two primary mandates:
-
+The graph was manually crafted based on the Agent’s ground-truth street exploration, prioritizing real-world traversal over official cadastral data. The connectivity logic follows two primary mandates essential for autonomous fleet logic:
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{Labyrinthine Topology:} While the grid-based layout of \textit{Polanco} facilitates simple navigation, sectors such as \textit{Interlomas, Lomas,} and \textit{Santa Fe} exhibit high topological complexity. In these zones, geographic proximity is often misleading; adjacent polygons may share a border but have no viable road connection, creating "labyrinth-like" detours that impact search efficiency.
-    
-    \item \textbf{Operational Routing Constraints:} The graph explicitly excludes restricted-access connectors (resident-only gates), reflecting the actual routing limitations encountered via \textit{Waze} or \textit{Google Maps}. Specific gaps were modeled where road access is denied to ride-hailing agents, such as the boundaries between \textit{Jesús del Monte -- Lomas Country Club} and \textit{Blvrd Anáhuac -- Vialidad de la Barranca}. 
+\item \textbf{Topological Friction and Labyrinths:} While the grid-based layout of \textit{Polanco} facilitates linear navigation, sectors such as \textit{Interlomas, Lomas,} and \textit{Santa Fe} exhibit high topological complexity. In these zones, geographic proximity is a misleading metric; adjacent polygons often lack viable road connections due to topographic barriers (ravines), creating "labyrinth-like" detours. This model forces the AV agent to account for \textbf{Topological Distance} rather than Euclidean radius, directly impacting search and positioning efficiency.
+\item \textbf{Boundary Integrity and Access Constraints:} The geofence blueprint explicitly excludes restricted-access connectors (resident-only gates), reflecting the \textbf{logical barriers} encountered in the field. By modeling specific gaps where road access is denied to third-party agents---such as the boundaries between \textit{Jesús del Monte -- Lomas Country Club} and \textit{Blvrd Anáhuac -- Vialidad de la Barranca}---the graph ensures that the autonomous simulation respects the actual sovereignty of the urban terrain.
 \end{itemize}
 
-By design, each node in the graph represents an independent organic-economic unit. Within these boundaries, the Agent is effectively indifferent toward specific coordinates, as any point within the node provides identical access to the surrounding network edges. This abstraction allows the framework to move beyond noisy coordinate data and focus on the \textbf{Topological Premium} of each urban hub.
+This undirected graph represents a \textbf{pure topological skeleton} modeled as a \textbf{strictly closed system}. It contains no transactional data, mission volumes, or financial weights. The objective is to establish the \textbf{Hardware Layer} of the ecosystem---the physical baseline of the 72 polygons---before projecting the \textbf{Software Layer}: the economic forces and stochastic pressures of the internal mobility tensor.
 
-It is critical to note that the undirected graph described here represents a \textbf{pure topological skeleton} modeled as a \textbf{closed system}; it contains no transactional data, mission volumes, or financial weights. The objective of this assessment is to establish the physical baseline of the operational environment, strictly bounded by the 72 polygons before projecting the economic forces of the tensor mobility manifold.
 
 \subsubsection{Morphological Analysis: Small-World Dynamics}
 To assess the structural efficiency of the network, the study utilized the \textbf{Watts-Strogatz} framework to evaluate the balance between local redundancy (cluster density) and global reachability (long-range shortcuts). The results, consolidated in Table \ref{tab:structural_metrics}, mathematically certify the Pienza operational environment as a high-efficiency \textbf{Small-World Network}\footnote{Efficiency is defined here strictly by topological connectivity. While the network structure facilitates rapid navigation under fluid conditions, systemic gridlock effectively neutralizes these advantages, transforming the connected graph into a static, high-friction state.}.
@@ -558,10 +559,11 @@ The diagnostic review identified \textbf{7 Critical Bridges} within the undirect
 \end{table}
 
 
+
+
 \subsection{The Mobility Tensor: Directed Flow and State Space}
 
-
-While the undirected graph established the physical road-connectivity skeleton, the ride-hailing marketplace operates as an \textbf{open system} driven by asymmetric capital and agent flows. To model this dynamic reality, the project transitions to a \textbf{Directed Graph} $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ powered by the $N = 1,010,001$ synthetic manifold. This forms the basis of a high-dimensional \textbf{Mobility Tensor}, which serves as the project's economic engine by mapping every potential market transition:
+While the undirected graph established the physical road-connectivity skeleton, the economic layer of the marketplace is governed by directed, asymmetric capital flows. This is operationalized through a \textbf{Directed Graph} $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ powered by the \textbf{Internal Pienza Flow (IPF)}: a refined subset of $N = 461,003$ synthetic observations (45.6\% of the generative manifold) where both origin and destination remain strictly within the geofence. This refined dataset forms the basis of a high-dimensional \textbf{Mobility Tensor}, which serves as the framework's economic engine by mapping every potential internal state transition:
 
 \begin{equation*}
     \Large \mathcal{T} \in \mathbb{R}^{Z \times Z \times H \times D \times P \times C}
@@ -574,112 +576,296 @@ While the undirected graph established the physical road-connectivity skeleton, 
         \toprule
         \textbf{Dimension} & \textbf{Operational Mapping} \\
         \midrule
-        Spatial Axis ($Z \times Z$) & A $73 \times 73$ origin-destination matrix capturing all directed mission vectors. \\
+        Spatial Axis ($Z \times Z$) & A $72 \times 72$ origin-destination matrix capturing all directed internal mission vectors. \\
         \addlinespace
-        Temporal Axis ($H \times D$) & 18 hourly blocks over a 7-day cycle, tracking circadian and weekly demand shifts. \\
+        Temporal Axis ($H \times D$) & 18 hourly blocks over a 7-day cycle, tracking circadian and weekly demand shifts within the geofence. \\
         \addlinespace
-        Economic Axis ($P$) & Three discrete product tiers (Economy, Mid-Tier, Premium). \\
+        Economic Axis ($P$) &  Three discrete product tiers (Economy, Mid-Tier, Premium)\footnotemark \ available for the autonomous fleet. \\
         \addlinespace
-        Dual-Channel Signal ($C$) & A 2-element output vector recording \textbf{Volume} (capture frequency) and \textbf{Value} (mean EPH). \\
+        Dual-Channel Signal ($C$) & A 2-element output vector recording \textbf{Volume} (transactional frequency) and \textbf{Value} (weighted average realized EPH). \\
         \bottomrule
     \end{tabularx}
-    \caption{Multi-Dimensional Architecture of the Mobility Tensor.}
+    \caption{Multi-Dimensional Architecture of the Internal Mobility Tensor.}
     \label{tab:tensor_axes}
 \end{table}
 
+\footnotetext{While an AV fleet would typically constitute a distinct product tier, this project retains the standard market categories to simulate the deployment of autonomous vehicles across the entire service spectrum.}
 
-Unlike the topological skeleton, the Mobility Tensor maps actual mission vectors ($A \to B$). To accurately capture the "open" nature of the market, the 72 sovereign operational polygons are augmented with a 73rd state: the \textbf{Exile Node} (\texttt{unassigned\_area}). This statistical absorber collapses all non-operational urban sprawl.
-
-\begin{table}[H]
-    \centering
-    \small
-    \begin{tabularx}{\textwidth}{@{} l r r X @{}}
-        \toprule
-        \textbf{Flow Classification} & \textbf{Observations} & \textbf{Rate} & \textbf{Strategic Role} \\
-        \midrule
-        Out-of-Theatre (Exile) & 548,998 & 54.4\% & Collapsed \texttt{unassigned\_area} capturing non-operational exit vectors. \\
-        Internal Pienza Flow & 461,003 & 45.6\% & High-fidelity directed transitions within the 72 mapped zones. \\
-        \bottomrule
-    \end{tabularx}
-    \vspace{0.5em}
-    \caption{Distribution of directed transitions within the synthetic manifold.}
-    \label{tab:manifold_distribution}
-\end{table}
-
-To transition from a multi-dimensional state space to a functional routing network, the high-dimensional Mobility Tensor is collapsed into a flat $73 \times 73$ weighted adjacency matrix. This is achieved by calculating the \textbf{Volume-Weighted Average EPH} for every directed origin-destination pair ($i \to j$):
+To transition from a multi-dimensional state space to a functional routing network, the high-dimensional Mobility Tensor is collapsed into a flat $72 \times 72$ weighted adjacency matrix. This is achieved by calculating the \textbf{Volume-Weighted Average EPH} for every directed origin-destination pair ($i \to j$):
 
 \begin{equation}
     \text{Weight}_{i,j} = \frac{\sum (\text{Volume} \times \text{EPH})}{\sum \text{Volume}}
 \end{equation}
 
-This formulation ensures that the resulting matrix identifies where capital flows reliably, naturally diluting low-volume statistical anomalies and penalizing unprofitable high-traffic corridors. 
+This formulation ensures that the resulting matrix identifies where capital flows reliably, naturally diluting low-volume statistical anomalies and penalizing unprofitable high-traffic corridors. The contraction represents the extraction of the network's \textbf{Steady-State}, providing the baseline environment for the stationary Markov Decision Process (MDP) evaluated in this phase.
 
-While the final Markov Decision Process (MDP) utilize this 2-dimensional projection, the construction of the full high-dimensional tensor remains a foundational requirement. The full tensor serves as an in-memory \textbf{OLAP cube}, permitting $\mathcal{O}(1)$ dynamic slicing for context-aware simulations. This architecture enables the system to isolate specific network topologies---such as the unique market physics of a Friday evening peak---via interactive dashboard interfaces without recalculating the underlying distributions.
 
-The contraction represents the extraction of the network's \textbf{Steady-State}, providing the baseline environment for the stationary Markov Decision Process (MDP) evaluated in this phase.
+\subsubsection{Market Capture and the Decoupling Index}
 
-\section{Morphology of Value: From Small-World to Random Mesh}
+To identify the structural discrepancies between urban infrastructure and capital flow, the framework introduces the \textbf{Decoupling Index ($DI$)}. This metric quantifies the divergence between \textbf{Structural Centrality} (normalized Betweenness Centrality, $BC$) and \textbf{Value Centrality} (normalized PageRank on the Mobility Tensor, $PR$):
 
-By contrasting the physical road network with the \textbf{Functional Graph} derived from the Mobility Tensor, a structural mutation is revealed: while the physical infrastructure operates under the constraints of a \textit{Small-World Network}, the flow of capital behaves as a \textbf{Random Mesh}.
+\begin{equation}
+    DI = PR_{norm} - BC_{norm}
+\end{equation}
 
-\subsection{Functional Network Metrics (73-Node System)}
-The following metrics quantify the operational reality of the 1,010,001 synthetic missions within the 73-state Markov space. These metrics are calculated from the raw tensor before applying any probability thresholds.
+By contrasting these two dimensions, the study isolates "High-Yield Attractors" from "Structural Efficiency Traps" within the operational domain. Table \ref{tab:capture_highlights} summarizes the most significant deviations observed in the 72-node ecosystem (see Appendix for the comprehensive censo).
 
 \begin{table}[H]
     \centering
     \small
-    \begin{tabularx}{\textwidth}{l l X}
+    \begin{tabularx}{\textwidth}{l c c c X}
+        \toprule
+        \textbf{Urban Zone} & \textbf{BC (Struct)} & \textbf{PR (Value)} & \textbf{DI (Delta)} & \textbf{Operational Profile} \\
+        \midrule
+        Santa Fe Centro Comercial & 0.257 & 1.000 & \textbf{+0.743} & Primary Value Attractor \\
+        Santa Fe Quintana & 0.000 & 0.648 & \textbf{+0.648} & High-Capture Terminal \\
+        Roma Condesa 2 & 0.250 & 0.708 & +0.458 & Stable Market Core \\
+        Bosque 3 (Constituyentes) & 0.953 & 0.579 & \textbf{-0.374} & Transit-Only Infrastructure \\
+        Bosque 2 (Constituyentes) & 0.828 & 0.578 & \textbf{-0.250} & Transit-Only Infrastructure \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Market Capture Audit: Identifying Value Attractors and Structural Traps.}
+    \label{tab:capture_highlights}
+\end{table}
+
+The audit identifies three critical insights for autonomous fleet deployment:
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{The Primary Attractor:} \textit{Santa Fe Centro Comercial} represents the peak value node ($PR=1.0$). Its high positive $DI$ (+0.74) identifies it as the dominant capital sink in the network. For an autonomous agent, this node represents the highest-priority target for proactive relocation, regardless of its moderate structural connectivity.
+    
+    \item \textbf{High-Capture Terminals:} Zones such as \textit{Santa Fe Quintana} and \textit{Bondojito ASF} exhibit a $BC$ of 0.0, indicating they are terminal "dead-ends" in the road network. However, their high PageRank scores prove they are critical receptors of high-yield missions. These \textbf{Retention Hubs} are vital for fleet positioning but would be overlooked by routing algorithms relying solely on road topology.
+    
+    \item \textbf{Transit-Only Infrastructure:} The Constituyentes corridor dominates the physical infrastructure with a $BC$ of 0.95, yet fails to translate this pass-through frequency into significant market capture ($DI = -0.37$). 
+\end{enumerate}
+
+
+
+\subsubsection{Functional Morphology and Topological Classification}
+
+The functional graph—representing the 72-node closed ecosystem—reveals an environment of extreme saturation and high liquidity. By contrasting structural road constraints with the functional connectivity of the mobility tensor, the study identifies a transition from a "Small-World" physical topology to a \textbf{Random Mesh} economic regime. Table \ref{tab:functional_metrics} details the core metrics and the results of the Watts-Strogatz classification test.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l c X}
         \toprule
         \textbf{Metric} & \textbf{Value} & \textbf{Operational Interpretation} \\
         \midrule
-        \textbf{Density ($p$)} & \textbf{0.7021} & \textbf{System Saturation:} 70.2\% of all possible origin-destination pairs are active. The marketplace functions as a hyper-connected critical mass rather than a collection of isolated neighborhoods. \\
+        Density ($p$) & 0.6933 & \textbf{System Saturation:} 69.3\% of all possible internal connections are active and profitable. \\
         \addlinespace
-        \textbf{Clustering ($C$)} & \textbf{0.7616} & \textbf{Economic Reciprocity:} There is a 76\% probability that the "economic neighbors" of a zone also transact with each other, effectively eroding local geographic boundaries. \\
+        Clustering ($C$) & 0.7525 & \textbf{Transactional Cohesion:} A 75.2\% probability that "economic neighbors" also transact with each other. \\
         \addlinespace
-        \textbf{Friction ($L$)} & \textbf{1.3170} & \textbf{Instant Liquidity:} Capital flow transitions from origin to destination in only 1.3 jumps on average, significantly lower than the 4.8 physical jumps required by the asphalt road network. \\
+        Path Length ($L$) & 1.3259 & \textbf{Logistical Liquidity:} Average traversal of 1.32 jumps, a significant reduction from the 4.8 jumps required by road topology. \\
+        \addlinespace
+        \textbf{Sigma ($\sigma$)} & \textbf{1.0545} & \textbf{Topological Verdict:} A result of $\sigma \approx 1.0$ classifies the network as a \textbf{Random Mesh}, statistically indistinguishable from an \textit{Erdős-Rényi} model. \\
         \bottomrule
     \end{tabularx}
-    \caption{Functional metrics of the complete Mobility Tensor graph.}
+    \caption{Functional Metrics and Watts-Strogatz Test Results (72-Node Ecosystem).}
     \label{tab:functional_metrics}
 \end{table}
 
-\subsubsection{Structural Verdict: The Watts-Strogatz Test}
-To determine if the functional network retains the "Small-World" properties of the physical skeleton, the tensor was benchmarked against a randomly generated parallel universe (Erdős–Rényi model). The resulting \textbf{Sigma Coefficient ($\sigma$)} is defined as:
+This finding demonstrates that economic demand has effectively "melted" the geographic barriers of the city. Within the geofence, the optimization problem for an autonomous fleet controller shifts from complex pathfinding to \textbf{probabilistic positioning} within a near-complete graph.
 
-\begin{equation}
-    \sigma = \frac{C_{real} / C_{rand}}{L_{real} / L_{rand}} = 1.0681
-\end{equation}
 
-\noindent \textbf{Diagnostic Result:} In graph theory, a value of $\sigma \approx 1.0$ indicates that the system is statistically indistinguishable from a \textbf{Random Network}. The hyper-flow of missions within the marketplace has effectively "deleted" the distance-based constraints of the Mexico City urban landscape.
+\subsection{Micro-Dynamics of Capital: Edge Centrality and Vector Analysis}
 
-\subsubsection{Architectural Insights}
+To move beyond the static evaluation of zones, the framework executes an \textbf{Edge-Level Audit} using a Dual Graph representation (Line Graph $L(\mathcal{G})$). By transforming the 2,441 active trajectories into nodes, the study identifies the "Economic Arteries" of the city. This analysis reveals a clear hierarchy where immediate yield and long-term transactional prestige are often decoupled.
+
+\subsubsection{Hierarchical Trajectory Audit}
+
+The following tables summarize the leading trajectories according to four distinct operational dimensions: \textbf{Yield Intensity} (Weight), \textbf{Network Dominance} (Betweenness), \textbf{Operational Liquidity} (Closeness), and \textbf{Flow Prestige} (PageRank).
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l c c X}
+        \toprule
+        \textbf{Trajectory (Vector)} & \textbf{Metric} & \textbf{Value} & \textbf{Operational Profile} \\
+        \midrule
+        \textit{Peak Yield (Weight)} & & & \\
+        Tamarindos $\rightarrow$ Santa Fe CC & Expected EPH & Max & \textbf{High-Intensity Corridor} \\
+        Lincoln $\rightarrow$ Irrigación & Expected EPH & High & Corporate Surge Vector \\
+        \addlinespace
+        \textit{Flow Dominance (Betweenness)} & & & \\
+        Tamarindos $\rightarrow$ Santa Fe CC & Betweenness & 1.000 & \textbf{Critical Economic Bridge} \\
+        Vialidad de la Barranca $\rightarrow$ Tamarindos & Betweenness & 0.330 & Supply Chain Inflow \\
+        \addlinespace
+        \textit{Operational Liquidity (Closeness)} & & & \\
+        Roma Condesa 2 $\rightarrow$ Bosque 1 & Closeness & 1.000 & \textbf{Strategic Pivot Point} \\
+        Santa Fe CC $\rightarrow$ Bosque 1 & Closeness & 0.988 & High-Availability Exit \\
+        \addlinespace
+        \textit{Transactional Prestige (PageRank)} & & & \\
+        Lomas FC Cuernavaca $\rightarrow$ Reforma Regina & PageRank & 1.000 & \textbf{Elite Market Hub} \\
+        Sotelo $\rightarrow$ Polanco Uber HQ & PageRank & 0.700 & High-Capture Transition \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Edge Centrality Audit: Leading Trajectories by Operational Dimension.}
+    \label{tab:edge_audit}
+\end{table}
+
+\subsubsection{Analysis of Vector Forces}
+
+The audit identifies three primary behavioral mechanics that define the "Thermodynamics of Value" within the geofence:
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{The Golden Bottleneck (Tamarindos Corridor):} The trajectory \textit{Tamarindos $\rightarrow$ Santa Fe Centro Comercial} emerges as the most vital artery in the ecosystem. It ranks \textbf{\#1 in both Yield Intensity and Network Dominance}. This vector represents the primary conduit through which capital from elite residential clusters is injected into the commercial core. For an autonomous fleet, maintaining a presence in this vector is equivalent to capturing the highest-density revenue stream in the network.
+    
+    \item \textbf{Prestige Monopolies (Lomas FC Cuernavaca):} A significant finding is the dominance of \textit{Lomas FC Cuernavaca} as an originating hub. Eight of the top-ranking prestige trajectories originate from this node. While these trips may not always represent the absolute peak in raw currency, they provide the highest \textbf{Market Stability}. Entering these vectors ensures the agent remains within a high-value "closed loop" of elite zones (\textit{e.g., Reforma, Polanco, Lomas}), minimizing exposure to low-yield peripheral zones.
+    
+    \item \textbf{Liquidity Refuges and Buffers (Bosque 1):} The \textit{Closeness} metric identifies \textit{Bosque 1} as the supreme "Safe Harbor" of the network. Trajectories terminating in this zone provide the agent with the shortest possible economic distance to any other point in the graph. These are not necessarily the most profitable destinations in a single jump, but they are the most \textbf{tactically advantageous positionings} for minimizing idle time when market demand is uncertain.
+\end{enumerate}
+
+
+
+\subsection{Structural Resilience and Functional Robustness}
+
+To evaluate the operational stability of the geofenced ecosystem, the framework executes a comparative resilience audit between the \textbf{Physical Infrastructure} (road connectivity) and the \textbf{Economic Manifold} (capital flow). Resilience is quantified by identifying single points of failure (cut-vertices and bridges) and calculating the structural $k$-connectivity of the network core.
+
+\subsubsection{Comparative Vulnerability Audit}
+
+The audit reveals a profound discrepancy between the fragility of the asphalt and the robustness of the market. While the physical network is susceptible to fragmentation, the economic tensor functions as a hyper-resilient mesh.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l c c X}
+        \toprule
+        \textbf{Network Layer} & \textbf{Cut-Vertices} & \textbf{Bridges} & \textbf{Operational Veredict} \\
+        \midrule
+        Physical Infrastructure & 7 & 7 & \textbf{Structurally Fragile:} Local closures or blockages trigger immediate network fragmentation. \\
+        \addlinespace
+        Economic Tensor (IPF) & 0 & 0 & \textbf{Highly Resilient:} Capital flow persists regardless of any single node or edge failure. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Resilience Comparison: Physical Fragility vs. Economic Redundancy.}
+    \label{tab:resilience_audit}
+\end{table}
+
+\subsubsection{Topological Robustness: The K-Connectivity Metric}
+
+Beyond simple connectivity, the study evaluates the \textbf{Structural Robustness} of the Economic core using the \textit{Menger Theorem} ($k$-node connectivity). The analysis identifies a connectivity value of \textbf{$k=21$}.
+
+Mathematically, this implies that a minimum of \textbf{21 nodes must fail simultaneously} to disconnect the economic core of Pienza. The \textit{Minimum Node Cut} set includes primary attractors and hubs such as \textit{Tamarindos, Anzures, Santa Fe Centro Comercial,} and \textit{Vialidad de la Barranca}. This high degree of redundancy ensures that the autonomous fleet can maintain transactional continuity even under extreme operational disruption; if one profitable corridor is blocked, the high density of the tensor provides 20 alternative high-yield paths.
+
+\subsubsection{Macro-Morphology and the Autocentric Singularity}
+
+The removal of external noise (pruning the Exilio) reveals the internal morphology of the 72-node sovereign ecosystem. The resulting graph exhibits a rare topological state known as \textbf{Autocentricity}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l c X}
+        \toprule
+        \textbf{Morphological Metric} & \textbf{Value} & \textbf{Strategic Interpretation} \\
+        \midrule
+        Economic Density ($p$) & 0.4775 & Nearly 50\% of all internal origin-destination pairs are active and yield-positive. \\
+        \addlinespace
+        Economic Diameter ($D$) & 2 jumps & The maximum distance between any two points in the network is only two transitions. \\
+        \addlinespace
+        Economic Radius ($R$) & 2 jumps & The center is equidistant from every point in the sovereign domain. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Macro-Morphological Report of the 72-Node Sovereign Ecosystem.}
+    \label{tab:morphology_report}
+\end{table}
+
+This \textbf{Diameter of 2} represents an economic collapse of space. In the physical world, moving from the periphery to the core requires traversing multiple layers of traffic and intersections ($L=4.8$). However, within the Economic Tensor, the network is so saturated that the agent is never more than two transitions away from any other point of value. In an autocentric graph, the distinction between "center" and "periphery" evaporates; the entire geofence functions as a singular, high-liquidity economic unit.
+
+It is imperative to clarify that the observed Autocentricity is a property of the system's \textbf{Steady-State Equilibrium}. By aggregating the longitudinal flow into a singular manifold, the temporal gaps of the marketplace are bridged, revealing the \textbf{Potential Connectivity} of the geofence. While instantaneous snapshots of the network (e.g., off-peak hours) may exhibit higher eccentricity and fragmentation, the aggregate steady-state proves that the underlying economic structure of the city is designed for maximum liquidity, effectively collapsing the distance between the geographical periphery and the functional core.
+
+\subsection{Market Asymmetry: The Topological Trade Balance}
+
+By transitioning from a bidirectional road view to a \textbf{Net Economic Flow} evaluation, the Mobility Tensor reveals that the ecosystem operates under a regime of high asymmetry. The city functions as a system of \textbf{Flow Valves}, where certain nodes act as capital originators while others function as terminal receptors. 
+
+This thermodynamic behavior is quantified by the \textbf{Asymmetry Index ($A_i$)}, which ranges from -1.0 (pure receptor) to +1.0 (pure originator). Table \ref{tab:trade_balance} summarizes the top five originators and receptors within the 72-node domain.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{0.6\textwidth}{X c}
+        \toprule
+        \textbf{Urban Zone} & \textbf{Asymmetry Index ($A_i$)} \\
+        \midrule
+        \textit{Top 5 Capital Originators} & \\
+        Polanco Parque Lincoln & +0.78 \\
+        Anzures & +0.77 \\
+        Tamarindos & +0.73 \\
+        Vialidad de la Barranca & +0.39 \\
+        Lomas Virreyes & +0.33 \\
+        \addlinespace
+        \midrule
+        \addlinespace
+        \textit{Top 5 Capital Receptors} & \\
+        Polanco Uber HQ & -0.92 \\
+        Irrigación & -0.85 \\
+        Cruce Echanove & -0.75 \\
+        Santa Fe Centro Comercial & -0.67 \\
+        Roma Condesa 2 & -0.40 \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Topological Trade Balance: Identifying Originators and Retention Nodes.}
+    \label{tab:trade_balance}
+\end{table}
+
+\subsubsection{Operational Implications of Flow Asymmetry}
+
+The analysis reveals a profound structural divide that dictates autonomous agent performance:
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{Retention Vortices (Structural Sinks):} \textit{Santa Fe Centro Comercial} and \textit{Polanco Uber HQ} function as the primary sinks of the network. While these zones are high-value targets for incoming missions, their extreme negative asymmetry ($A_i < -0.60$) creates an \textbf{Operational Entrapment Risk}. Entering these nodes provides high immediate yield but significantly reduces the probability of a profitable exit mission.
+    
+    \item \textbf{Value Engines (Structural Sources):} \textit{Tamarindos} and \textit{Polanco Parque Lincoln} act as the primary radiators of capital. These zones exhibit high positive asymmetry, meaning they consistently generate more value through outgoing missions than they absorb through incoming ones. 
+\end{enumerate}
+
+
+\subsection{Stochastic Scaffolding: The Bridge to Markov}
+
+To transition from market observation to autonomous optimization, the Mobility Tensor must be converted into a mathematical environment compatible with \textbf{Dynamic Programming}. This stage establishes the \textbf{Markov Decision Process (MDP)} scaffolding, enabling an agent to evaluate not just the immediate value of a mission, but the long-term potential of the resulting urban positioning.
+
+The transition is operationalized by extracting two fundamental matrices from the Internal Pienza Flow (IPF) manifold: the \textbf{Transition Matrix ($\mathcal{P}$)} and the \textbf{Reward Matrix ($\mathcal{R}$)}.
+
+\begin{enumerate}[noitemsep, topsep=3pt]
+    \item \textbf{Transition Matrix ($P_{ij}$):} This matrix represents the "behavioral gravity" of the marketplace. For every zone $i$, the model calculates the empirical probability that the next assigned mission will terminate in zone $j$. This captures the stochastic nature of the algorithm: if an agent is in \textit{Anzures}, what is the statistical likelihood that the market will "propel" them toward \textit{Santa Fe} versus \textit{Polanco}?
+    
+    \item \textbf{Reward Matrix ($R_{ij}$):} This defines the expected instantaneous payoff for each jump. It records the weighted average EPH (Earnings Per Hour) for a mission starting in $i$ and ending in $j$. This matrix acts as the economic fuel of the system, quantifying the immediate return of any specific movement.
+\end{enumerate}
+
+\subsubsection{Structural Stability: Absorbing States and Total Retention}
+
+A critical requirement for Markovian stability is that the transition matrix must be \textbf{row-stochastic}---meaning the probabilities for every origin node must sum exactly to 1.0 to ensure that no "probability mass" is lost during the simulation. During the construction phase, the framework identified four \textbf{Absorbing States} within the 72-node geofence: \textit{bosque\_1, campo\_marte, lomas\_olimpo,} and \textit{santa\_fe\_bosques\_de}.
+
+In stochastic modeling, an absorbing state is a node with zero recorded outgoing trajectories---a "dead-end" for capital flow within the current dataset. To preserve mathematical integrity and prevent the simulation from collapsing into a null state, these nodes are assigned a self-loop probability of $P_{ii} = 1.0$. 
+
+Strategically, these are identified as \textbf{Terminal Retention Nodes}. They represent zones where the agent captures high-value arrivals but finds zero market liquidity to exit the area. Identifying these "economic sinks" is a prerequisite for the next phase; it allows the agent to calculate the true cost of entering a zone from which there is no statistical escape, mathematically justifying the rejection of high-upfront offers that lead to terminal absorption.\footnote{While in operational reality an autonomous vehicle could capture offers from adjacent nodes or simply execute a relocation traversal to a nearby hub, this simulation strictly enforces these boundaries to isolate and evaluate the structural risks of the existing demand manifold.}
+
+
+
+\subsection{Strategic Valuation: The State-Value Function $V(s)$}
+
+To determine the long-term potential of each urban zone, the framework applies the \textbf{Bellman Equation} to the mobility tensor. This process shifts the analytical focus from immediate profitability (\textit{Expected EPH}) to the \textbf{State-Value Function ($V(s)$)}, which represents the total cumulative value an agent can expect to capture starting from a specific node, accounting for all future transitions.
+
+The function was solved using the \textbf{Value Iteration} algorithm with a discount factor of $\gamma = 0.85$ and a convergence threshold of $\theta = 10^{-7}$. The resulting hierarchy identifies the "True Value" of urban positioning within a closed-loop ecosystem.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{fig_bellman_valuation.png} 
+    \caption{The Real Value of Pienza: Comparing Immediate EPH ($R_s$) vs. Total State-Value ($V_s$). The red dashed line indicates the "Myopic Horizon"---the maximum value visible to an agent relying solely on instantaneous signals.}
+    \label{fig:bellman_valuation}
+\end{figure}
+
+\subsubsection{Equilibrium and the Topological Premium}
+
+The results reveal a state of \textbf{Dynamic Equilibrium}. While immediate rewards ($R_s$) vary significantly across the city, the total state-values ($V_s$) exhibit a high degree of uniformity, converging near a system-wide capacity limit. This homogeneity is a mathematical property of the \textbf{Autocentric Steady-State}: in a high-liquidity mesh with an economic diameter of 2, value is distributed ergodically across the core.
+
+However, the critical differentiator is the \textbf{Future Value Ratio}. The audit identifies two distinct node profiles:
+
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{The Exile Shortcut:} The inclusion of the \texttt{unassigned\_area} (Node 69) acts as a topological shortcut. By serving as both a primary source and sink for over 54\% of the manifold, it creates a "wormhole" effect that collapses the average path length ($L$) across the entire system.
-    \item \textbf{Zone Indifference:} The high clustering coefficient ($0.76$) combined with the low path length ($1.3$) proves that the marketplace is in a state of permanent liquidity. For the agent, this confirms that almost any "jump" provides immediate access to the broader economic network, validating a strategy that prioritizes EPH-yield over physical proximity to the \textit{Anzures} home base.
+    \item \textbf{Extraction Nodes:} Zones like \textit{Polanco Parque Lincoln} exhibit high immediate yield but a low future-value ratio (+60\%). These are "Harvesting" zones where the agent captures peak currency but has limited upward topological potential.
+    
+    \item \textbf{Gateway Hubs:} Zones such as \textit{Anzures} (+813\%) or \textit{Roma Condesa 1} (+888\%) show low immediate EPH but massive topological premiums. These nodes act as \textbf{Economic Trampolines}; while the current mission might be suboptimal, the node's connectivity ensures a near-certain transition into high-yield corridors.
 \end{itemize}
 
-
-
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\subsection{System Boundaries: Geofenced Autonomous Fleet Simulation}
-
-In analyzing historical ride-hailing datasets, the network naturally behaves as an open system, with a significant volume of trips exiting the core urban cluster toward the broader metropolitan sprawl (the \texttt{unassigned\_area}). However, the primary objective of Project Pienza is not to replicate the human-driven inefficiencies and spatial leakage of the past, but rather to simulate the prescriptive routing dynamics of a future-state mobility network.
-
-\subsubsection{The Operational Design Domain (ODD)}
-To align the mathematical model with the operational realities of Level 4 Autonomous Vehicle (AV) fleets (e.g., Waymo), the framework implements a strict \textbf{Geofence Constraint}. AV ride-hailing networks are inherently bounded by a pre-defined Operational Design Domain (ODD). Transitions that terminate outside this geofence are not merely undesirable; they are deterministically restricted by the dispatch algorithm. 
-
-Consequently, the 73rd aggregate state (\texttt{unassigned\_area}) is entirely pruned from the tensor. The generative simulation isolates the 45.6\% of the synthetic manifold that represents strictly internal, high-fidelity transitions ($A \to B$ where $\{A, B\} \in \mathcal{V}_{72}$).
-
-\subsubsection{The Closed-System MDP}
-By filtering out the external environment, the resulting Mobility Tensor ($\mathcal{T} \in \mathbb{R}^{72 \times 72 \times H \times D \times P \times C}$) represents a fully closed, thermodynamic market. While enterprise AV fleets optimize for global system utility (fleet-wide balancing), this phase of Pienza models the optimization of a localized prototype unit. Under this closed-system assumption, the Markov Decision Process (MDP) and the subsequent Bellman Equation evaluate the optimal generative routing policy ($\pi^*$) for an agent constrained exclusively within the sovereign boundaries of the high-value 72-node network.
-
-
+By internalizing these premiums, the autonomous fleet can justify the acceptance of low-upfront "positioning missions" that place the vehicle in a Gateway Hub, effectively utilizing the city's topology as a \textbf{Strategic Insurance} against future inactivity.
 
 
 \vspace{0.4cm}
@@ -688,43 +874,7 @@ By filtering out the external environment, the resulting Mobility Tensor ($\math
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-
-\subsubsection{Methodological Constraint: Spurious Connectivity}
-A critical distinction is made between the total state space and the calculation of network metrics (e.g., eccentricity, diameter). In these specific instances, the \texttt{unassigned\_area} is programmatically excluded. 
-
-Because the unassigned node represents $>70\%$ of the total urban sprawl, its inclusion would create a topological shortcut where any two points appear connected via a single jump (\textit{Zone A $\to$ Unassigned $\to$ Zone B}). This result is analytically spurious as it masks the true economic friction and time-cost of navigating between specific hubs like \textit{Santa Fe} and \textit{Polanco}. By isolating the 42 sovereign nodes, the tensor accurately identifies the "Economic Hardship" of being pushed toward the network periphery.
-
-\subsubsection{Topology of Value: Sources and Sinks}
-The directed graph weights each edge by the composite variable \textit{Volume $\times$ EPH}. This identifies the asymmetric nature of the marketplace:
-\begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{Value Sources (Exporters):} Nodes with high out-degree weights (e.g., \textit{Polanco, Lomas}), which consistently push agents toward diverse, high-yield opportunities.
-    \item \textbf{Value Sinks (Traps):} Nodes with high in-degree weights but low transition probabilities back to the autocentric core. Entering these sinks results in "Yield Decay," where the agent must perform multiple sub-optimal jumps to return to the target EPH baseline ($>\$200/hr$).
-\end{itemize}
-
-
-
-
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+\
 
 \vspace{0.4cm}
 \rule{\linewidth}{0.4pt}
