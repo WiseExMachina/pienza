@@ -867,31 +867,66 @@ However, the critical differentiator is the \textbf{Future Value Ratio}. The aud
 
 By internalizing these premiums, the autonomous fleet can justify the acceptance of low-upfront "positioning missions" that place the vehicle in a Gateway Hub, effectively utilizing the city's topology as a \textbf{Strategic Insurance} against future inactivity.
 
+\subsubsection{Operational Command: The Action-Value Matrix $Q(s,a)$}
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+To move from the passive valuation of states to an active decision-making framework, the system derives the \textbf{Action-Value Matrix ($Q$-Matrix)}. This manifold represents the definitive command layer for the autonomous fleet, where each potential mission is evaluated not by its isolated payout, but as a vector for strategic re-positioning. 
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+The value of taking action $a$ (accepting a specific destination) in state $s$ (current origin zone) is defined by the expected sum of the immediate reward and the discounted future potential of the resulting state $s'$:
 
-\
+\begin{equation}
+    Q(s, a) = R(s, a) + \gamma V(s')
+\end{equation}
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+By operationalizing this equation, the framework forces the agent to internalize the \textbf{Opportunity Cost} inherent in every market offer. Within the Pienza geofence, an action is deemed optimal if it maximizes the agent's long-term \textbf{Economic Inertia}, effectively prioritizing transitions that terminate in high-prestige hubs over myopic, high-upfront "Trap Offers" that lead to terminal economic sinks.
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
+\subsubsection{Multi-Agent Coordination: The Fleet Orchestrator}
+
+To move from a single-agent theory to a scalable operational model, the framework introduces the \textbf{Fleet Orchestrator}. This module simulates the coordinated deployment of an autonomous fleet originating from three strategic urban hubs: \textit{Carso Antara, Santa Fe Centro Comercial,} and \textit{Interlomas Magnocentro}. The orchestrator utilizes a \textbf{Depth-First Search (DFS)} algorithm to project optimized five-jump mission sequences for multiple concurrent units.
+
+\subsubsection{Demand Depletion and Swarm Neutralization}
+
+The primary challenge in fleet management is the \textbf{Swarm Effect}: a phenomenon where multiple independent agents cluster in a single high-value zone, leading to oversaturation and individual yield decay. To neutralize this, the framework implements a \textbf{Demand Depletion Mechanic}. 
+
+As each agent selects an optimal trajectory, the corresponding edges in the $Q$-Matrix undergo a \textbf{90\% Value Attrition} ($Q_{u,v} \leftarrow Q_{u,v} \times 0.10$). This mathematical penalty simulates the "consumption" of market demand by the preceding vehicle. By treating the city’s liquidity as a finite resource, the orchestrator forces subsequent agents to seek spatially diverse "second-best" paths that are structurally more profitable for the collective fleet. This transformation shifts the objective from individual greed to \textbf{Distributed Network Capture}, ensuring maximum coverage of the mobility mesh while maintaining systemic stability.
+
+\subsubsection{Tactical Deployment: The Five-Jump Mission Manifold}
+
+The simulation concludes with the generation of optimized flight plans for nine concurrent autonomous units, deployed from three primary logistical warehouses. By enforcing the \textbf{Demand Depletion} mechanic, the orchestrator prevents unit clustering and ensures maximum spatial coverage. Table \ref{tab:fleet_deployment} presents the resulting mission sequences, where each jump represents a transition designed to maximize the collective $Q$-value of the fleet.
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{l l l l l l l r}
+        \toprule
+        \textbf{Warehouse Origin} & \textbf{ID} & \textbf{Jump 1} & \textbf{Jump 2} & \textbf{Jump 3} & \textbf{Jump 4} & \textbf{Jump 5} & \textbf{Score} \\
+        \midrule
+        \textbf{Carso Antara Miyana} & AV1 & Tamarindos & Santa Fe Centro Comercial & Tamarindos & Santa Fe Centro Comercial & Tamarindos & 27,304 \\
+        & AV2 & Irrigación & Tamarindos & Cruce Echanove & Anzures & Tamarindos & 11,447 \\
+        & AV3 & Polanco Uber HQ & Tamarindos & Vistahermosa & Interlomas Haciendas & Tamarindos & 11,399 \\
+        \addlinespace
+        \textbf{Santa Fe Centro Comercial} & AV4 & Sedena & Vialidad de la Barranca & Tamarindos & Jesús del Monte & Tamarindos & 11,817 \\
+        & AV5 & Reforma Social & Interlomas Magnocentro & Tamarindos & Interlomas Haciendas & Santa Fe Centro Comercial & 11,513 \\
+        & AV6 & Fuentes Casino & Vialidad de la Barranca & Lomas Virreyes & Tamarindos & Carretera Libre & 11,481 \\
+        \addlinespace
+        \textbf{Interlomas Magnocentro} & AV7 & Ave Club de Golf Lomas & Tamarindos & Lagos & Roma Condesa 1 & Tamarindos & 11,443 \\
+        & AV8 & Santa Fe Quintana & Tamarindos & Carretera al Olivo & Jesús del Monte & Santa Fe Centro Comercial & 10,972 \\
+        & AV9 & Anzures & Irrigación & Sante Fe Patio & Tamarindos & Lomas Virreyes & 10,668 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{Autonomous Fleet Deployment: Coordinated Mission Sequences with Full Nomenclatures.}
+    \label{tab:fleet_deployment}
+\end{table}
 
 
-\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}\vspace{0.4cm}
-\rule{\linewidth}{0.4pt}
-Sources of Inspiration:
 
-- Nexus, by Harari
-- Why Machines Learn, by Anil Anthaswamy
-- Grokking Algorithms, by quien sabe quien
-- Designing ML Systemss, by Chip Huyen
+
+The deployment data confirms the structural dominance of the \textbf{Economic Arteries} previously identified in the edge centrality audit. Notably, while the first unit (\textit{AV1}) captures the high-prestige circularity between \textit{Tamarindos} and \textit{Santa Fe Centro Comercial}, the depletion of demand in those edges forces the remaining fleet to branch into auxiliary hubs. 
+
+By the third unit of each warehouse, the orchestrator successfully pushes the fleet toward \textbf{Network Buffers} such as \textit{Anzures} and \textit{Lomas Virreyes}. This demonstrates that the Pienza framework does not merely identify "the best place to be," but rather identifies a \textbf{Systemic Distribution Strategy}. For an autonomous fleet, this transition from individual optimization to coordinated network capture represents the definitive shift from reactive labor to industrial-grade logistics, ensuring that the geofence remains saturated with value while minimizing internal competition.
+
+
+The \textbf{Generative Moonshot} represents the final structural evolution of Project Pienza, transitioning from the observation of individual human heuristics to the orchestration of a scalable economic engine. By synthesizing generative neural manifolds with the steady-state rationality of the \textit{Bellman Equation}, the framework effectively maps the "Economic Limit" of the urban environment. The resulting tactical flight plans prove that the city is not merely a physical grid to be traversed, but a \textbf{Tensor of Potentials} where value can be systematically captured through coordinated agent distribution and demand-aware positioning.
+
+This functional scaffolding marks the boundary of the current inquiry, delivering the mathematical architecture required for the next generation of autonomous intelligence. By defining the state space ($\mathcal{S}$), transition probabilities ($\mathcal{P}$), and reward manifolds ($\mathcal{R}$) within a strictly closed operational domain, the framework provides the necessary baseline for transition into \textbf{Pienza 2.0: The Knowledge}. In this future iteration, the static scaffolding established here will serve as the training environment for high-frequency Reinforcement Learning (RL) and complex \textit{Markov Chain Monte Carlo} (MCMC) simulations, moving beyond the steady-state and into the dynamic, real-time optimization of autonomous urban economies.
+
