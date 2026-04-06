@@ -49,7 +49,7 @@ centrality_data = {
     "Eigenvector": {"lomas_barrilaco": {"Rank": 1, "Score": 0.3424, "Info": "The most influential node; neighbor to power."}, "fuentes_casino": {"Rank": 2, "Score": 0.3367, "Info": "Positioned within the elite mesh."}, "nodo_reforma_palmas": {"Rank": 3, "Score": 0.3091, "Info": "Maintains elite influence status."}, "lomas_prado_norte": {"Rank": 4, "Score": 0.3038, "Info": "Lomas-Palmas cluster dominance."}, "lomas_trastevere": {"Rank": 5, "Score": 0.2728, "Info": "High neighbor interconnectivity."}}
 }
 
-# --- 4. GRAPH CONSTRUCTION ---
+# --- 4. GRAPH CONSTRUCTION & ON-THE-FLY METRICS ---
 gdf = get_topology_data()
 G = nx.Graph()
 for r in ROUTES: G.add_edges_from([(r[i], r[i+1]) for i in range(len(r)-1)])
@@ -57,6 +57,13 @@ gdf_active = gdf[gdf['name'].isin(G.nodes())].copy()
 
 giant_nodes = max(nx.connected_components(G), key=len)
 G_giant = G.subgraph(giant_nodes).copy()
+
+# Dynamic metrics for Overview
+deg_cent = nx.degree_centrality(G_giant)
+bet_cent = nx.betweenness_centrality(G_giant)
+clo_cent = nx.closeness_centrality(G_giant)
+eig_cent = nx.eigenvector_centrality(G_giant, max_iter=1000)
+eccentricity = nx.eccentricity(G_giant)
 
 # --- 5. SIDEBAR NAVIGATION ---
 with st.sidebar:
@@ -87,7 +94,11 @@ current_top_5, islands_map, community_map, active_path = [], {}, {}, []
 center_nodes = nx.center(G_giant)
 periphery_nodes = nx.periphery(G_giant)
 
-if tool_category == "Small World Theory":
+if tool_category == "Overview":
+    st.markdown("### 🗺️ Network Overview")
+    st.info("Hover over any node to view its complete topological profile.")
+
+elif tool_category == "Small World Theory":
     st.markdown("### 📊 Small-World Hypothesis Test")
     st.success("🏆 **VERDICT: The Pienza infrastructure IS A SMALL-WORLD.**")
     c1, c2, c3, c4 = st.columns(4)
@@ -95,9 +106,11 @@ if tool_category == "Small World Theory":
     c3.metric("Clustering (C)", "0.2677"); c4.metric("Path Length (L)", "4.8052")
 
 elif tool_category == "Centrality Metrics":
-    st.markdown("### 👑 The Indisputable Super-Node")
+    st.markdown(f"### 👑 Top Nodes: {metric_choice} Centrality")
     current_metrics = centrality_data[metric_choice]
     current_top_5 = list(current_metrics.keys())
+    df_display = pd.DataFrame.from_dict(current_metrics, orient='index').sort_values('Rank')
+    st.dataframe(df_display, use_container_width=True)
 
 elif tool_category == "Vulnerability Audit":
     G_sim = G.copy()
@@ -163,11 +176,27 @@ for _, row in gdf_active.iterrows():
     name = row['name']
     x, y = row.geometry.exterior.xy
     color, border_color, border_width = OPUS_BLUE_FILL, OPUS_BLUE_EDGE, 0.8
+    hover_text = f"<b>NODE: {name.upper()}</b>" 
     
-    if tool_category == "Vulnerability Audit":
+    # NEW: Overview Super-Hover
+    if tool_category == "Overview":
+        if name in G_giant.nodes():
+            hover_text += f"<br><br>Degree: {deg_cent[name]:.4f}"
+            hover_text += f"<br>Betweenness: {bet_cent[name]:.4f}"
+            hover_text += f"<br>Closeness: {clo_cent[name]:.4f}"
+            hover_text += f"<br>Eigenvector: {eig_cent[name]:.4f}"
+            hover_text += f"<br>Excentricity: {eccentricity[name]} Jumps"
+        else:
+            hover_text += "<br><br><i>Disconnected Node</i>"
+
+    elif tool_category == "Vulnerability Audit":
         if name == target_node: color, border_color, border_width = COLLAPSED_COLOR, '#E74C3C', 3
         elif name in islands_map: color, border_color = ISLAND_COLORS[islands_map[name] % len(ISLAND_COLORS)], 'white'
-    elif tool_category == "Centrality Metrics" and name in current_top_5: color, border_color, border_width = HIGHLIGHT_VIOLET, 'white', 2
+    
+    elif tool_category == "Centrality Metrics" and name in current_top_5:
+        color, border_color, border_width = HIGHLIGHT_VIOLET, 'white', 2
+        hover_text += f"<br><br>Rank: {current_metrics[name]['Rank']} | Score: {current_metrics[name]['Score']}<br>Info: {current_metrics[name]['Info']}"
+        
     elif tool_category == "Excentricity" or tool_category == "Geodesic Distance":
         if tool_category == "Excentricity":
             if excentricity_focus == "Nucleus" and name in center_nodes: color, border_color, border_width = CORE_BLUE, 'white', 2
@@ -178,7 +207,7 @@ for _, row in gdf_active.iterrows():
     elif tool_category == "Latent Structure" and name in community_map:
         color, border_color = COMMUNITY_COLORS[community_map[name] % len(COMMUNITY_COLORS)], 'white'
 
-    fig.add_trace(go.Scatter(x=list(x), y=list(y), fill="toself", mode='lines', fillcolor=color, line=dict(color=border_color, width=border_width), text=f"NODE: {name.upper()}", hoverinfo="text", showlegend=False))
+    fig.add_trace(go.Scatter(x=list(x), y=list(y), fill="toself", mode='lines', fillcolor=color, line=dict(color=border_color, width=border_width), text=hover_text, hoverinfo="text", showlegend=False))
 
 # Labels & Layout
 fig.add_trace(go.Scatter(x=gdf_active['centroid'].apply(lambda p: p.x), y=gdf_active['centroid'].apply(lambda p: p.y), mode='text', text=gdf_active['name'].str.replace('_', '<br>'), textfont=dict(size=7, color="#4B5563" if tool_category != "Vulnerability Audit" else "white", family="Arial Black"), hoverinfo='skip', showlegend=False))

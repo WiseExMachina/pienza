@@ -8,3 +8,9 @@ streamlit-pdf-viewer
 geopandas
 shapely
 networkx
+streamlit
+pandas
+geopandas
+scikit-learn>=1.3.0
+keplergl
+streamlit-keplergl

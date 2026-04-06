@@ -1,0 +1,16 @@
+# Seguridad: NUNCA subir estos archivos
+service-account.json
+observatory/service-account.json
+.env
+observatory/.env
+
+# Basura de sistema y Python
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+node_modules/
+
+# Datos pesados o locales (opcional)
+*.db
+*.db-journal
