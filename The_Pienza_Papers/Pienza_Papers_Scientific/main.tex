@@ -1,11 +1,29 @@
 \documentclass[10pt, letterpaper]{article}
 
-% --- CONFIGURACIÓN DE FUENTE: CRIMSON PRO LIGHT ---
+% --- CONSOLIDATED FONT ARCHITECTURE: CRIMSON PRO BODY / INTER HEADERS ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[light]{CrimsonPro} % Carga Crimson Pro con peso ligero
-\usepackage[defaultmono]{inconsolata} % Para que el código (listings) siga siendo legible
-\usepackage[bottom]{footmisc}
+
+% 1. Load Primary Families
+\usepackage[light]{CrimsonPro}        % Serif Body Text
+\usepackage[sfdefault]{inter}         % Sans-Serif (assigned to \sffamily)
+\usepackage[defaultmono]{inconsolata} % Monospace for Code
+
+% 2. Layout & Footnote Support
+\usepackage[bottom]{footmisc}         % Forces footnotes to stay at the page bottom
+\usepackage{titlesec}                 % Essential for header customization
+
+% 3. Header Styling: Mapping Section Levels to Inter (Sans-Serif)
+\titleformat*{\section}{\Large\bfseries\sffamily}
+\titleformat*{\subsection}{\large\bfseries\sffamily}
+\titleformat*{\subsubsection}{\normalsize\bfseries\sffamily}
+\titleformat*{\paragraph}{\small\bfseries\sffamily}
+
+% 4. Global Default: Ensure the body text remains Serif (Crimson Pro)
+\renewcommand{\familydefault}{\rmdefault}
+
+% Ensure the body text stays Serif
+\renewcommand{\familydefault}{\rmdefault}
 
 % --- MONOSPACE FONT (For Code) ---
 \usepackage{inconsolata} % A cleaner mono font for your listings
@@ -107,7 +125,7 @@
 % --- METADATOS ---
 \title{\textbf{10:10:01, A Decision Science and ML Framework to navigate the Ride-Hailing dynamics of Mexico City}\\ \large From Field Acquisition to Generative Simulation}
 \author{Bernardo Lozano Wise}
-\date{\today}
+\date{March 31, 2026}
 
 
 \begin{document}

@@ -1,88 +1,80 @@
 \section{Project Strategy \& Scope}
 
 \subsection{Mission Statement}
-The primary objective of \textbf{Project Pienza} is to deconstruct, model, and optimize the decision-making process of a rational agent within the ride-hailing ecosystem. The environment is formally defined as a \textit{sequential, non-cooperative game} governed by intrinsic information asymmetry.
+The primary objective of \textbf{Project Pienza} is to model and optimize the decision-making policy of an expert agent within the ride-hailing ecosystem. The environment is formally defined as a \textit{sequential, non-cooperative game} governed by intrinsic information asymmetry. 
 
 Unlike traditional "top-down" studies relying on aggregated data, Pienza employs a \textbf{"Bottom-Up"} methodology grounded in the operational reality of Mexico City. Through the longitudinal quantification of a single Expert Agent ($N=1$), this research models the micro-economic physics of the Gig Economy.
 
 \subsection{Scope \& Constraints}
-The project explicitly rejects the naive premise of reverse-engineering the proprietary pricing algorithms of ride-hailing platforms. Modeling a dynamic, global algorithm using a local boutique dataset is stochastically infeasible.
+The project explicitly rejects the premise of reverse-engineering the proprietary pricing algorithms of ride-hailing platforms. Modeling a dynamic, global algorithm using a local boutique dataset is statistically unfeasible. 
 
-Instead, Pienza reorients the analytical lens—shifting away from the fare prediction models common in public repositories—to focus on the sole variable under absolute control: \textbf{The Agent's Decision}. By pivoting to Behavioral Economics and Decision Science, the project transforms an intractable prediction problem into a solvable policy optimization endeavor.
-
+Instead, Pienza reorients the analytical lens—shifting away from the fare prediction models common in public repositories—to focus on the sole variable under absolute control: \textbf{The Agent's Decision}. By pivoting to Behavioral Economics and Decision Science, the project transforms a complex prediction task into a solvable policy optimization endeavor.
 
 \subsection{Core Framework}
-The project is structured across three interdependent modules covering the data science lifecycle:
+The project is architected across three strategic pillars that bridge the gap between tactical fieldwork and scalable autonomous intelligence:
 
 \begin{enumerate} 
-    \item \textbf{Data Ingestion \& Infrastructure:} 
-    A custom ingestion pipeline was built to transform unstructured operational data into a structured relational schema. This involved the deployment of OCR-based capture and geospatial triangulation logic to digitize the agent's real-time decision environment.
+    \item \textbf{High-Fidelity Environment Digitization (The Foundation):} 
+    To overcome the \textit{Survivorship Bias} inherent in ride-hailing data, a custom dual-engine ingestion pipeline was deployed to capture the \textbf{Total Offer Stream}. By utilizing OCR-based archival and geospatial triangulation, the system digitizes the "Negative Class" (rejected offers), providing the necessary ground truth to map the agent's exact decision boundary.
     
-\item \textbf{Decision Stream Analysis (The Negative Class):} 
-Traditional market analyses focus exclusively on completed transactions, resulting in \textit{Survivorship Bias}. Project Pienza captures the \textbf{Total Offer Stream}, recording thousands of rejected offers. This granular visibility into the decision boundary allows for the quantification of:
-\begin{itemize}
-    \item \textbf{Market Quality Index (MQI):} The normalization of market volatility used to isolate environmental quality from agent performance.
-    \item \textbf{Efficient Frontier:} Determination of the rational search-time horizon where the accumulated cost of search offsets the probabilistic gain of future offers.
-    \item \textbf{Fraud Prevention Mechanism:} An analysis of the structural logic regarding time-prediction variance and its role in mitigating moral hazard.
-\end{itemize}
+    \item \textbf{Hierarchical Policy Cloning (The Engine):} 
+    The core analytical breakthrough involves the transition from monolithic modeling to a \textbf{Cognitive Cascade}. This hierarchical inference architecture utilizes XGBoost to replicate the agent's multi-tiered decision logic—separating deterministic operational "triage" (geospatial/economic filters) from nuanced opportunity-cost "gambles". 
     
-    \item \textbf{Policy Cloning \& Simulation:}
-    The final analytical objective is the transition from descriptive analysis to predictive modeling. By training \textit{Imitation Learning} models using XGBoost, Pienza generates a digital clone of the agent's heuristics. This model enables high-fidelity market simulations and counterfactual testing using synthetic data generated via GAN architectures.
+\item \textbf{Generative Synthesis \& Topological Scaling (The Frontier):} 
+    The final pillar transforms the single-agent study into a scale-invariant simulation. Using \textbf{Conditional GANs (cGAN)}, the project synthesizes a 1,000,000-row data manifold that preserves the non-linear physics of the marketplace as encountered during the observation window.\footnote{The synthetic marketplace functions as an infinite Keras generator of the specific market regime and "lived experience" captured in the dataset, rather than a generalizable, dynamic model of total city-wide liquidity.} This environment serves as the sandbox for \textbf{Network Graph Analysis}, where the city is modeled as a \textit{Tensor of Potentials} to orchestrate autonomous fleet routing and maximize steady-state value.
+    
 \end{enumerate}
 
-
 \subsection{Initial Hypothesis: The Payout Spread}
-Research began with a longitudinal field observation regarding fare elasticity. The hypothesis stated that the system applied an implicit efficiency penalty, observed as a discrepancy between the promised fare and realized earnings. A preliminary pilot study ($N \approx 150$, July-August cohort) revealed a \textbf{Payout Rate (Spread)} between $75\%$ and $85\%$ of the Base Fare. The distribution was relatively uniform and followed \textit{session-based moving averages}, suggesting intra-block temporal stability driven by market conditions.
+Research began with a longitudinal field observation regarding fare elasticity. The hypothesis stated that the system applied an implicit efficiency penalty, observed as a discrepancy between the promised fare and realized earnings. A preliminary pilot study ($N \approx 150$, July-August 2025 cohort) revealed a \textbf{Payout Rate (Spread)} between $75\%$ and $85\%$ of the Base Fare. The distribution followed session-based moving averages, suggesting intra-block temporal stability driven by market conditions.
 
-\subsection{Model Performance and Data Scarcity}
 An initial model correlated this Spread with the \textbf{Time Delta} (the discrepancy between estimated and realized trip time). The goal was to validate whether time savings generated a fare penalty.
 
-\textbf{Key Finding:} A benchmark comparison showed that Simple Linear Regression outperformed base Machine Learning models. No significant non-linear relationship was identified; the correlation remained weak. While basic statistics resolved the regression problem for the pilot sample, scaling this to a robust ML model would require thousands of \textit{completed} trips, representing an infeasible operational time cost for marginal analytical return.
+\textbf{Key Finding:} A benchmark comparison showed that Simple Linear Regression outperformed base Machine Learning models. No significant non-linear relationship was identified; the correlation remained weak. While basic statistics resolved the regression problem for the pilot sample, scaling this to a robust ML model would require thousands of completed trips, representing an infeasible operational time cost for marginal analytical return.
 
 \subsection{Strategic Pivot to Classification}
 Based on logistical constraints and the low predictive value of the initial regression approach, the research objective was redefined:
-
 \begin{itemize}
     \item \textbf{From:} Price variance prediction (Regression), which required scarce completed trip data.
     \item \textbf{To:} Behavior modeling (Classification), which utilized the total offer stream.
 \end{itemize}
 
-This shift resolved the data scarcity issue by enabling the inclusion of the \textbf{Negative Class} (rejected offers). By modeling decision policy rather than price, the project could apply high-dimensional Machine Learning (XGBoost) to capture the agent's non-linear decision boundary.
+This shift resolved the data scarcity issue by enabling the inclusion of the \textbf{Negative Class} (rejected offers). By modeling decision policy rather than price, the project applies high-dimensional Machine Learning (XGBoost) to capture the agent's non-linear decision boundary.
 
 \subsection{Project Roadmap}
-The project followed a non-linear development lifecycle where feature engineering evolved organically in response to the analytical findings of each stage:
+The project followed an iterative development lifecycle where feature engineering evolved in response to the analytical findings of each stage:
 
 \begin{description}[style=nextline, leftmargin=0.5cm, font=\bfseries]
-    \item[\textcolor{red}{Phase 1: Acquisition \& Ground Truth (Aug 22 -- Oct 1, 2025)}]
-    \textcolor{red}{\textbf{[PENDING UPDATE]} High-fidelity manual capture of operational data via screenshots and the \textit{GTS Webapp}. Establishment of the target variable and the \textbf{Bronze Palette} (contextual ride attributes integrated directly into the core dataset).}
+    \item[Phase 1: Acquisition \& Ground Truth (Aug 22 -- Oct 1, 2025)]
+    High-fidelity manual capture of operational data via the bespoke \textit{GTS Webapp}. Establishment of the target variable and the primary contextual ride attributes.
 
-    \item[\textcolor{red}{Phase 2: Data Engineering \& Architecture (Oct 2 -- Nov 20, 2025)}]
-    \textcolor{red}{\textbf{[PENDING UPDATE]} Transition to a relational database system (\texttt{pienza.db}) and Star Schema design. Implementation of automated OCR pipelines and normalization protocols. Creation of the \textbf{Silver Palette} (\texttt{engineered\_features} table).}
+    \item[Phase 2: Data Engineering \& Architecture (Oct 2 -- Nov 20, 2025)]
+    Transition to a relational database (\texttt{pienza.db}) and Star Schema design. Implementation of automated OCR pipelines and normalization protocols. Creation of the statefull \texttt{engineered\_features} table.
 
-    \item[\textcolor{red}{Phase 3: Exploratory Analyses and Causal Inference (Nov 21 -- Dec 3, 2025)}]
-    \textcolor{red}{\textbf{[PENDING UPDATE]} Forensic audit of market friction and validation of the ``Risk Transfer Thesis.'' Execution of dimensionality reduction (Lasso, PCA) to identify primary predictive signals.}
+    \item[Phase 3: Exploratory Analysis \& Causal Inference (Nov 21 -- Dec 3, 2025)]
+    Diagnostic audit of marketplace physics and rational search time boundaries. Causal modeling of baseline heteroscedasticity and quantification of the platform's inelastic 'Integrity Buffer.'
 
-    \item[\textcolor{red}{Phase 4: Unsupervised Learning \& Geo-Remediation (Dec 4, 2025 -- Jan 2, 2026)}]
-    \textcolor{red}{\textbf{[PENDING UPDATE]} Application of K-Means and HDBSCAN for zone discovery, combined with surgical coordinate cleaning using hand-crafted heuristic polygons. Generation of the \textbf{Gold Palette} (geo-semantic attributes).}
+    \item[Phase 4: Unsupervised Learning \& Geo-Remediation (Dec 4, 2025 -- Jan 2, 2026)]
+    Application of HDBSCAN for zone discovery and surgical coordinate cleaning using hand-crafted heuristic polygons. Generation of the \textbf{Silver Palette} (geo-semantic attributes).
 
-    \item[\textcolor{red}{Phase 5: Supervised Learning (Jan 3 -- Jan 12, 2026)}]
-    \textcolor{red}{\textbf{[PENDING UPDATE]} Model evaluation tournament (Naive Bayes vs. LogReg vs. XGBoost). Implementation of the \textit{Cognitive Cascade} hierarchical architecture for the champion model.}
+    \item[Phase 5: Supervised Learning (Jan 3 -- Jan 12, 2026)]
+    Model evaluation tournament and implementation of the \textit{Cognitive Cascade} hierarchical architecture for the champion model.
 
-    \item[\textcolor{red}{Phase 6: Generative Simulation (Jan 13, 2026 -- Ongoing)}]
-    \textcolor{red}{\textbf{[PENDING UPDATE]} Infrastructure migration to Google BigQuery. Deployment of GANs for synthetic manifold generation and policy stress-testing under simulated market conditions.}
+    \item[Phase 6: Generative Moonshots (Jan 13, 2026 -- March 31, 2026)\footnote{The extended duration of this phase reflects a non-linear, iterative workflow; it was executed concurrently with the formal authoring of this manuscript, culminating in the simultaneous completion of Phase 6 and the first comprehensive draft of this paper.}] 
+    $O(1)$ neural spatial inference and cGAN manifold synthesis. Formulation of the internal Mobility Tensor to establish the Markov Decision Process (MDP) baseline for autonomous routing.
 \end{description}
 
-
 \subsection{A Note on System Architecture \& Evolution}
-The rigorous architecture of the data ecosystem was established as a foundational objective, carrying equal weight to the subsequent analytical and predictive modeling phases. The infrastructure was not static; it evolved through four distinct operational states to match the complexity of the inquiry:
+The rigorous architecture of the data ecosystem was established as a foundational objective. The infrastructure evolved through distinct operational states to match the complexity of the inquiry:
 
 \begin{itemize}
-    \item \textbf{Phase 1 (Acquisition Staging):} Data ingestion from Engines 1 \& 2 was routed into \textit{Google Sheets}, supported by ad-hoc Python and Google Apps Scripts for initial validation.
-    \item \textbf{Phase 2 (The Engineering Core):} The transition from flat spreadsheets to a relational architecture. Execution of the idempotent ETL pipeline to forge the definitive \textbf{SQLite} asset (\texttt{pienza.db}).
-    \item \textbf{Phases 3--5 (The Analytical Loop):} A file-based cloud architecture where Python Notebooks (EDA, Clustering, Supervised Learning) interacted with \texttt{pienza.db} as the immutable Single Source of Truth.
+    \item \textbf{Phase 1 (Acquisition Staging):} Data ingestion from Engines 1 \& 2 routed into \textit{Google Sheets} for initial validation.
+    \item \textbf{Phase 2 (The Engineering Core):} Transition to a relational architecture. Execution of the idempotent ETL pipeline to forge the definitive \textbf{SQLite} asset (\texttt{pienza.db}).
+    \item \textbf{Phases 3--5 (The Analytical Loop):} A file-based cloud architecture where Python Notebooks interacted with \texttt{pienza.db} as the immutable Single Source of Truth.
     \item \textbf{Phase 6 (Cloud Scaling):} Migration to \textbf{Google BigQuery} to support Generative AI workflows.
     \begin{itemize}
-        \item \textbf{\texttt{pienza\_mini}:} A high-fidelity cloud replica of the original ground-truth database, preserving the identical relational logic.
-        \item \textbf{\texttt{pienza\_big}:} A 1,000,000-row synthetic dataset generated via GANs. The Parquet artifacts are persisted on Google Drive and queried through BigQuery's external table interface to ensure zero-latency analysis.
+        \item \textbf{\texttt{pienza\_mini}:} A high-fidelity cloud replica of the ground-truth database, preserving the identical relational logic.
+        \item \textbf{\texttt{pienza\_big}:} A 1,000,000-row synthetic dataset generated via GANs, persisted as Parquet artifacts and queried through BigQuery's external table interface.
     \end{itemize}
+    \item \textbf{Interactive Deployment (Current State):} The project concludes with the transition from notebook-based exploration to an \textbf{Interactive White Paper} hosted on Streamlit. Leveraging \textit{GitHub Codespaces} and an \textit{orphan branch architecture}, this layer decouples the core research codebase from the operational interface, allowing for real-time model interrogation in a production-ready environment.
 \end{itemize}

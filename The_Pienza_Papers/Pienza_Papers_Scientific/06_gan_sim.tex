@@ -416,6 +416,8 @@ To enable high-volume simulation without exponential cost scaling, the project i
     \item \textbf{Processing (Distributed Enrichment):} To denormalize the synthetic manifold without encountering Out-of-Memory (OOM) bottlenecks, the pipeline utilizes an \textbf{Apache Spark (PySpark)} framework. To optimize performance, the system employs \textbf{Broadcast Joins}: by caching small dimensional dictionaries across every worker node, the system bypasses heavy network shuffles and executes joins against the million-row manifold almost instantaneously.
 \end{itemize}
 
+ PLACEHOLDER : FALTA INCLUIR DOWNSCALING BACK to 72 polygons. 
+ 
 With this infrastructure established, the local \texttt{pienza.db} was transitioned into an immutable archival artifact. The project's \textbf{Single Source of Truth (SSoT)} was formally transferred to two cloud-native datasets within BigQuery:
 
 \begin{enumerate}
