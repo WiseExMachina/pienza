@@ -22,6 +22,11 @@
 % 4. Global Default: Ensure the body text remains Serif (Crimson Pro)
 \renewcommand{\familydefault}{\rmdefault}
 
+
+% --- BIBLIOGRAPHY CONFIGURATION ---
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\addbibresource{references.bib}
+
 % Ensure the body text stays Serif
 \renewcommand{\familydefault}{\rmdefault}
 
@@ -92,6 +97,50 @@
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, shadows}
 
 
+\usepackage[most]{tcolorbox}
+
+
+% --- FULL-WIDTH SYMMETRICAL PHASE PORTADA (V5 - Hybrid Typography) ---
+\newcommand{\phaseportada}[6]{
+    \newpage
+    \thispagestyle{empty}
+    \newgeometry{left=0cm, right=0cm, top=0cm, bottom=0cm}
+    
+    \begin{tcolorbox}[
+        enhanced, sharp corners, boxrule=0pt,
+        colframe=white, colback=white,
+        width=\paperwidth, height=\paperheight,
+        valign=center, left=3.5cm, right=3.5cm
+    ]
+        % Top Bold Line
+        {\color{gray!80}\hrule height 2pt}
+        
+        \vspace{1.2cm}
+        \begin{center}
+            {\sffamily\fontsize{25}{30}\selectfont \textbf{#1}} \\ % Arg 1: Phase ID
+            \vspace{0.6cm}
+            {\sffamily\fontsize{25}{30}\selectfont #2}           % Arg 2: Phase Title
+        \end{center}
+        \vspace{1.2cm}
+        
+        % Bottom Bold Line
+        {\color{gray!80}\hrule height 2pt}
+        
+        \vspace{2.5cm}
+        
+        % Vertical Summary Block (Hybrid Fonts)
+        \noindent
+        \begin{tabularx}{\linewidth}{@{} >{\sffamily\bfseries}l >{\rmfamily}X @{}}
+            Tech Stack: & #3 \\ \addlinespace[15pt]
+            Core Challenge: & #4 \\ \addlinespace[15pt]
+            Key Insight: & #5 \\ \addlinespace[15pt]
+            Operational Outcome: & #6 \\
+        \end{tabularx}
+    \end{tcolorbox}
+    
+    \restoregeometry
+    \newpage
+}
 
 
 
@@ -196,6 +245,8 @@
 \appendix % Este comando cambia la numeración de 1, 2, 3 a A, B, C
 \input{99_appendix}
 
+\newpage
+\printbibliography[title={References}, heading=bibintoc]
 
 \end{document}
 

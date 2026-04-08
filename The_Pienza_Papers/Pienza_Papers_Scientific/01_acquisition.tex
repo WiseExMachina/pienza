@@ -1,43 +1,52 @@
+\phaseportada{PHASE 1}{Acquisition and Ground Truth}{
+    % Tech Stack
+    iOS Assistive Touch, PWA (JS/Netlify), Google Apps Script, Gemini Pro Vision.
+}{
+    % Core Challenge
+    Market opacity and pervasive survivorship bias in standard platform exports.
+}{
+    % Key Insight
+    Rejection data (the negative class) contains more predictive signal for policy modeling than acceptance data alone.
+}{
+    % Operational Outcome
+    The successful deployment of a dual-engine telemetry system, yielding a consolidated ground-truth ledger of roughly 4,700 total market interactions.
+}
+
 \section{Phase 1: Acquisition and Ground Truth}
 
-Project Pienza captures the behavior of an expert agent rather than a system in a learning phase. Prior to data collection, the agent had completed 24 months of field operations, effectively concluding the \textit{Exploration} stage of the Reinforcement Learning cycle.
+Project Pienza models the decision policy of an expert agent rather than a system in a learning phase. Prior to data collection, the subject had completed 24 months of field operations, concluding the \textit{Exploration} stage of the Reinforcement Learning cycle. 
 
-Applying the framework of Hopfield Networks, the agent’s decision policy is modeled as a "cooled" system settled into a stable local minimum (an attractor state). This equilibrium reflects an optimization specific to the agent's constraints, including geographic preferences, risk tolerance, and physical endurance. While a theoretical global optimum for city-wide revenue may exist in the state space, the captured dataset represents a phase of pure exploitation. By prioritizing established, low-variance heuristics over high-energy experimental maneuvers, the resulting dataset provides a high-fidelity record of a converged policy.
+Utilizing the framework of Hopfield Networks as explored by Anil Ananthaswamy in \textit{Why Machines Learn},\cite{ananthaswamy2024} the agent’s decision policy is modeled as a ``cooled'' system settled into a stable local minimum (\textit{an attractor state}). This equilibrium represents an optimization contingent on the agent’s specific constraints: geographic preferences, risk tolerance, and physical endurance. While a theoretical global optimum for city-wide revenue may exist in the state space, the captured dataset represents a phase of pure \textit{exploitation}. By prioritizing established, low-variance heuristics over high-energy experimental maneuvers, the resulting dataset provides a high-fidelity record of a converged policy.
 
 \subsection*{Phase 1A: The 2-Engine Ingestion Infrastructure}
-The cornerstone of Project Pienza is its proprietary, high-fidelity data acquisition ecosystem. To overcome the inherent data sparsity of third-party exports, a dual-engine architecture was deployed to capture the full spectrum of the agent's operational reality. The primary acquisition campaign was executed over a strict 6-week observation window, spanning from August 22 to October 1, 2025 (inclusive).
-
+Project Pienza utilizes a proprietary, dual-engine acquisition ecosystem to overcome the data sparsity inherent in third-party platform exports. The primary acquisition campaign was executed over a strict 6-week observation window (August 22 -- October 1, 2025), digitizing the agent's operational reality in real-time.
 
 \subsection*{Engine 1: The Operational Telemetry (GTS Webapp)}
-
-To capture the ``Ground Truth'' of completed missions, a bespoke, lightweight Progressive Web Application (PWA) designated as the \textb{Geotimestamps (GTS)} Webapp was architected and deployed. The interface was intentionally designed for minimum cognitive load, functioning as a ``One-Touch Timestamping'' instrument while maintaining resilience through a production-grade stack (Netlify Frontend, Google Sheets Backend).
+To establish the ground truth of completed missions, a bespoke Progressive Web Application (PWA) designated as the \textbf{Geotimestamps (GTS) Webapp} was deployed. The interface was optimized for low-cognitive-load fieldwork, functioning as a ``One-Touch Timestamping'' instrument while maintaining resilience through a production-grade stack (Netlify Frontend, Google Sheets Backend).
 
 \medskip
 \noindent \textbf{Lifecycle Mapping Protocol (T0--T4).} The system logs the five critical state transitions of a gig economy mission with geospatial precision:
 \begin{itemize}[noitemsep, topsep=3pt]
-  \item \textbf{T0:} Idle, searching for offers.
-    \item \textbf{T1:} Offer accepted; en route to pickup. \textit{(Text field for upfront fare)}.
-    \item \textbf{T2:} At pickup location; waiting for passenger.
-    \item \textbf{T3:} Ride started.
-    \item \textbf{T4:} Ride completed, transaction finalized. \textit{(Text field for realized fare)}.
+    \item \textbf{T0 (Search):} Idle state; actively seeking offers.
+    \item \textbf{T1 (Acceptance):} Offer accepted; en route to pickup. \textit{(Captures quoted upfront fare)}.
+    \item \textbf{T2 (Arrival):} At pickup location; waiting for passenger.
+    \item \textbf{T3 (In-Progress):} Mission started.
+    \item \textbf{T4 (Completion):} Mission finalized. \textit{(Captures realized net fare)}.
 \end{itemize}
 
 \medskip
-\noindent \textbf{Technical Stack \& Evolution.} The system was engineered through an iterative development lifecycle to solve critical operational failures identified during field testing:
+\noindent \textbf{Technical Stack \& Evolution.} The system was engineered to maintain 100\% capture fidelity through two critical iterations:
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{Persistence Layer (v4.0):} Early iterations suffered from critical data loss during network intermittency. The architecture was upgraded to include a Stateful LocalStorage Manager, ensuring session continuity, and an Offline-First Queue System, guaranteeing 100\% data capture fidelity even in connectivity-denied environments.
-    \item \textbf{Geospatial Context Integration:} To overcome the geographic blindness of simple timestamps, a client-side asynchronous pipeline was implemented. This module orchestrates the browser's \texttt{navigator.geolocation} API with reverse-geocoding services, enriching every event with high-precision coordinates before persistence.
+    \item \textbf{Stateful Persistence (v4.0):} To prevent data loss during network intermittency, the app implements a \textit{Stateful LocalStorage Manager} and an \textit{Offline-First Queue System}. 
+    \item \textbf{Asynchronous Geospatial Enrichment:} To overcome the geographic blindness of simple timestamps, a client-side pipeline orchestrates the \texttt{navigator.geolocation} API with reverse-geocoding services, enriching every state transition with high-precision coordinates prior to persistence.
 \end{itemize}
 
-\vspace{0.3cm}
-\noindent Engine 1 Output (trip\_events): This stream represents the verified timeline of physical state transitions and realized financial outcomes ($N \approx 350$ completed trips).
+\noindent \textbf{Output (\texttt{trip\_events}):} A verified timeline of physical state transitions and realized financial outcomes ($N \approx 350$ completed trips).
 
+\subsection{Engine 2: The ``Total Offer'' Stream (OCR Pipeline)}
+To neutralize \textbf{Survivorship Bias}, the system must capture the decision boundary—specifically the Rejected Offers (\textit{The Negative Class}). As market infrastructure provides no native access to historical offer logs, a custom ``Optical State Archival'' architecture was deployed.
 
-\subsection{Engine 2: The "Total Offer" Stream (OCR Pipeline)}
-To overcome Survivorship Bias, it was imperative to capture the decision boundary of the agent—specifically the Rejected Offers (The Negative Class). Since the market infrastructure provides no native access to historical offer logs, a custom "Optical State Archival" architecture was deployed.
-
-\subsubsection{Logging Interface}
-The acquisition interface was an iOS device configured with an \textbf{Assistive Touch Macro}. This allowed for a single-gesture capture protocol (The "Manual Cookie") that simultaneously acknowledged the offer cognitively and secured the data digitally.
+The acquisition interface utilized an iOS device configured with an \textbf{Assistive Touch Macro}. This enabled a single-gesture capture protocol (The ``Manual Cookie'') that simultaneously acknowledged the offer cognitively and secured the raw visual data digitally. 
 
 To ensure statistical representativeness, three operational mandates were enforced:
 \begin{enumerate}
@@ -46,40 +55,11 @@ To ensure statistical representativeness, three operational mandates were enforc
     \item \textbf{The "Driver-First" Learning Curve:} The dataset acknowledges a specific "Warm-Up" period (Week 1) where operational cadence took precedence over data capture, resulting in a small cluster of "Ghost Offers" (Completed missions without source image artifacts). These were programmatically handled in the Engineering Phase.
 \end{enumerate}
 
-\subsubsection{Digital Ingestion Pipeline}
-The ingestion pipeline utilizes the \textbf{Google Gemini Pro Vision API} to transform visual assets into structured data. A primary engineering challenge involved isolating the "Foreground Signal" (the new offer card) from "Background Noise" (the active navigation map and status bar of the current trip).
-
-\vspace{0.2cm}
-\textbf{Exclusionary Prompt Logic:}
-To ensure data integrity and prevent hallucination, the system prompt enforces strict scope limitations. The model is instructed to ignore all metadata in the status bar and navigation instructions, focusing exclusively on the central offer card.
-
-\begin{lstlisting}[language=Python, caption={Exclusionary Parsing Logic}]
-def generate_prompt(filename: str) -> str:
-    """Constructs the prompt to isolate new offers from active trip noise."""
-    return f"""
-    **Objective:** Extract data ONLY from the central pop-up card.
-    **Exclusion Rule:** IGNORE address info in the status bar. 
-    This belongs to the CURRENT ride, NOT the new offer.
-    **Output:** Respond ONLY with a markdown table.
-    """
-\end{lstlisting}
-
-\subsubsection{Pipeline Architecture}
-The Python orchestrator (v4.1) executes a three-stage transformation process:
-\begin{itemize}
-    \item \textbf{Sequential Ingest:} Processes image files in chronological sequence to preserve session continuity.
-    \item \textbf{Feature Extraction:} Captures 10-dimensional vectors, including \texttt{upfront\_fare}, \texttt{product\_tier}, and unstructured incentive tags (\textit{Surge/Turbo}).
-    \item \textbf{Robustness Layer:} Implements exponential backoff and rate-limiting to manage API quotas during high-volume batch processing.
-\end{itemize}
+The pipeline utilizes the \textbf{Google Gemini Pro Vision API} to transform visual assets into structured data. The primary challenge involved isolating the \textit{Foreground Signal} (the offer card) from \textit{Background Noise} (active navigation and status bar metadata). To ensure data integrity, the system prompt enforces strict scope limitations, instructing the model to ignore metadata outside the central offer card.
 
 \noindent \textbf{Engine 2 Output (\texttt{offers}):} This high-fidelity dataset captures the total universe of opportunities, including the critical Negative Class ($N \approx 4,700$ total offers).
 
-\vspace{0.4cm}
-\noindent At this stage, both engines exist as separate, unlinked entities. In the subsequent engineering phase, these disparate records were unified into a SQL-queryable relational schema.
-
-
-
-
+\noindent At this stage, both engines exist as separate, unlinked entities. In the subsequent engineering phase, these disparate records were unified into a SQL-queryable relational schema. 
 
 \subsubsection{The Post-Session Reconciliation Protocol}
 To maintain data integrity and preserve the agent's decision context, a rigorous post-session protocol was enforced immediately upon the completion of each fieldwork shift:
@@ -90,11 +70,6 @@ To maintain data integrity and preserve the agent's decision context, a rigorous
     \item \textbf{High-Fidelity Cognitive Backtagging:} The Agent manually reviewed and tagged every rejected offer from that session to populate the multiclass target variable (\texttt{reason\_primary}). Executing this task same-day was imperative to capture the specific, contextual nuance of the decision before operational memory decay occurred.
 \end{enumerate}
 
-% --- PARTE 1B ---
-% --- PARTE 1B ---
-% --- PARTE 1B ---
-% --- PARTE 1B ---
-% --- PARTE 1B ---
 
 \subsection{Phase 1B: Data Staging and First Round of Feature Engineering}
 Executed concurrently within the strict acquisition window, Phase 1B focuses on the immediate semantic structuring and target definition of the incoming datastream. 
