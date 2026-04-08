@@ -54,7 +54,7 @@ st.markdown("""
 # ==========================================
 # HEADER & INTRODUCTION
 # ==========================================
-st.title("Phase 5 - Supervised Imitation Learning: From Sky to Psyche")
+st.title("Supervised Imitation Learning: From Sky to Psyche")
 st.caption("**Timeline: January 3 — January 12, 2026**")
 
 st.markdown("""
