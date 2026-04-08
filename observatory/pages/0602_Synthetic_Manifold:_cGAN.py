@@ -79,6 +79,12 @@ Reaching convergence required eight iterations of feature selection and spatial 
 * **Physics Vector:** Captures the mechanics of the offer (Distance, Duration, Fare).
 """)
 
+st.markdown("""
+The Pienza Manifold represents a structural shift from static data analysis to dynamic generative simulation. By anchoring the feature space to semantic macro-zones and training a Conditional GAN via adversarial validation, the system successfully learned the continuous physics of the urban marketplace. This generated 1,000,000-row ecosystem was cleared for production through a rigorous multi-tier audit—confirming distributional parity (JS/KS Tests), structural covariance fidelity, and 88.11% predictive parity (TRTR vs. TSTR). Ultimately, by migrating this validated synthetic asset into a serverless PySpark and BigQuery architecture, the project established a scale-invariant, production-ready foundation for continuous strategy testing.
+
+**👇 Explore the neural architecture, rigorous statistical audits, and cloud infrastructure in the sections below, or jump directly to the Pienza Manifold Interactive Dashboard to command the generative flow.**
+""")
+
 
 
 
@@ -444,7 +450,7 @@ with st.expander("8. Functional Validation: Predictive Parity (TRTR vs. TSTR)", 
     # ==========================================
 # 09. DATA ENGINEERING 2.0: CLOUD MIGRATION
 # ==========================================
-with st.expander("09. Data Engineering 2.0: Cloud Infrastructure Migration", expanded=False):
+with st.expander("9. Data Engineering 2.0: Cloud Infrastructure Migration", expanded=False):
 
     st.markdown("""
     The transition to generative simulation necessitated a shift from local, file-based computation to a cloud-native warehouse environment. While the `SQLite` architecture served as an efficient engine for the initial research phases, the requirement to process a 1,000,000-row synthetic manifold triggered the need for a scale-invariant infrastructure.
