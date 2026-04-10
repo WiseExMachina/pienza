@@ -309,8 +309,6 @@ with tab_2:
 
 
 
-
-
 import streamlit as st
 import os
 
@@ -347,7 +345,7 @@ import os
 
 # Note: Assuming IMAGE_DIR and tabs were defined previously
 # IMAGE_DIR = "/workspaces/pienza/observatory/assets/overleaf_images"
-# tab_1, tab_2, tab_3 = st.tabs(["🧠 PCA", "📊 K-Means", "🚀 Remediation"])
+
 
 # ==========================================
 # TAB 2: K-MEANS (Continued)
@@ -382,6 +380,141 @@ with tab_2:
 
 
 
+
+
+
+import streamlit as st
+
+# Note: Assuming tab_1, tab_2, tab_3 were defined previously via:
+# tab_1, tab_2, tab_3 = st.tabs(["🧠 PCA", "📊 K-Means", "🚀 Geo-Remediation"])
+
+# ==========================================
+# TAB 3: GEO-REMEDIATION / HDBSCAN
+# ==========================================
+with tab_3:
+    
+    with st.expander("Topological Operational Model: The Dropoff Imperative", expanded=False):
+
+        st.markdown("""
+        The geospatial objective of this phase was to transform $\\approx 4,700$ raw coordinates into a **Topological Operational Model**. This mapping converts raw spatial distributions into a high-value categorical feature (`zone_id`), enabling the downstream predictive pipeline to recognize geographic intent and operational risk.
+        
+        ---
+        ### Geospatial Constraints: The Dropoff Imperative
+        
+        A fundamental architectural decision in this topology was the **exclusive focus on dropoff coordinates**. Pickup locations were intentionally omitted from the feature engineering phase for two primary reasons:
+        
+        1. **Data Integrity:** Over 90% of raw pickup address strings exhibited extreme ambiguity, introducing high-risk noise into the dataset.
+        2. **Decision Theory:** Since the Agent is geographically indifferent to pickups, the decision to accept an offer is driven by *Time-to-Pickup* (TTP) rather than the specific neighborhood of origin. Conversely, the destination (dropoff) dictates the Agent's future geographic position, making it the primary determinant of subsequent operational risk and return.
+        """)
+
+
+
+
+import streamlit as st
+
+# Note: Assuming tab_1, tab_2, tab_3 were defined previously via:
+# tab_1, tab_2, tab_3 = st.tabs(["🧠 PCA", "📊 K-Means", "🚀 Geo-Remediation"])
+
+# ==========================================
+# TAB 3: GEO-REMEDIATION / HDBSCAN (Continued)
+# ==========================================
+with tab_3:
+    
+    with st.expander("The Initial Clustering Attempt & The Coordinate Crisis", expanded=False):
+
+        st.markdown("""
+        To discover these organic dropoff zones, **DBSCAN** was initially deployed. However, it resulted in data fragmentation that lacked operational business logic. The architecture was subsequently upgraded to **HDBSCAN** (Hierarchical DBSCAN), which dynamically extracts clusters across multiple density scales, proving much more capable of capturing Mexico City's complex operational reality. 
+
+        In an attempt to achieve 100% feature coverage, a **K-Nearest Neighbors (KNN)** classifier was deployed alongside HDBSCAN to re-assign unclustered noise points to their nearest cluster. This algorithmic fallback was quickly identified as a functional failure: by forcing orphaned points into the nearest core based strictly on Euclidean distance, the resulting map lost all operational relevance. 
+
+        ---
+        ### The Coordinate Crisis
+
+        More critically, while the HDBSCAN model was mathematically sound, a deep validation audit cross-referencing the coordinate clusters against the raw `dropoff_address` text strings revealed a systemic data integrity failure. Inspection of the *AICM* (Airport) cluster, for example, revealed textual addresses belonging to distant parts of the city, such as Cuajimalpa. 
+
+        > **Architectural Failure (GIGO):** While the algorithm had correctly identified density clusters, the underlying geocoded coordinates had become completely decoupled from their true textual addresses during the upstream ingestion phase. This "Garbage In, Garbage Out" corruption entirely invalidated the initial unsupervised topology and necessitated a major remediation campaign before any machine learning could proceed.
+        """)
+
+
+
+import streamlit as st
+
+# Note: Assuming tab_1, tab_2, tab_3 were defined previously via:
+# tab_1, tab_2, tab_3 = st.tabs(["🧠 PCA", "📊 K-Means", "🚀 Geo-Remediation"])
+
+# ==========================================
+# TAB 3: GEO-REMEDIATION / HDBSCAN (Continued)
+# ==========================================
+with tab_3:
+    
+    with st.expander("Geospatial Remediation: Root Cause Analysis & Diagnostic Engineering", expanded=False):
+
+        st.markdown("""
+        The discovery of decoupled coordinates within the initial clustering results triggered a deep **Root Cause Analysis (RCA)**. The investigation identified three compounding failure vectors responsible for the data corruption:
+
+        1. **Validation Gap:** The initial Phase 1 data acquisition utilized forward geocoding without a reverse-validation step, allowing API hallucinations to persist undetected in the dataset.
+        2. **Semantic Entropy:** Contradictory neighborhood labels within the platform's raw address strings (e.g., *"Calle Insurgentes Tacubaya, Condesa/Roma"*) caused the black-box routing API to default coordinates to entirely incorrect boroughs.
+        3. **Propagation Error:** A logical bug during the Phase 2B jittering stage caused hundreds of distinct textual addresses to mistakenly collapse into a single, identical coordinate point.
+
+        ---
+        ### Diagnostic Engineering
+
+        Before the dataset could be repaired, the corrupted records needed to be isolated without compromising the healthy data. To achieve this, a diagnostic SQL query was engineered based on a strict relational rule: **Fixed Coordinates + Changing Text = Error**. By grouping identical coordinates and counting distinct address strings, the pipeline successfully flagged the specific anomalies requiring intervention.
+        """)
+
+        st.caption("**SQL Listing:** Diagnostic Query: Isolating Jitter Propagation Errors")
+        st.code("""
+-- Logic: If one exact coordinate belongs to multiple distinct text addresses, it is corrupted.
+SELECT offer_id,
+       CASE WHEN c.num_pickups > 1 THEN 'PICKUP_ERROR'
+            WHEN c.num_dropoffs > 1 THEN 'DROPOFF_ERROR'
+       END as diagnostic_flag
+FROM offers o
+JOIN (
+    SELECT pickup_lat, pickup_lon, dropoff_lat, dropoff_lon,
+           COUNT(DISTINCT pickup_address) as num_pickups,
+           COUNT(DISTINCT dropoff_address) as num_dropoffs
+    FROM offers
+    GROUP BY pickup_lat, pickup_lon, dropoff_lat, dropoff_lon
+    HAVING COUNT(DISTINCT pickup_address) > 1 OR COUNT(DISTINCT dropoff_address) > 1
+) c ON o.pickup_lat = c.pickup_lat AND o.dropoff_lat = c.dropoff_lat;
+        """, language="sql")
+
+
+
+import streamlit as st
+
+# Note: Assuming tab_1, tab_2, tab_3 were defined previously
+
+# ==========================================
+# TAB 3: GEO-REMEDIATION / HDBSCAN (Continued)
+# ==========================================
+with tab_3:
+    
+    with st.expander("Human-in-the-Loop (HITL) Reconciliation Pipeline", expanded=False):
+
+        st.markdown("""
+        In addition to the Jitter Propagation Errors, a six-stage **Human-in-the-Loop (HITL)** reconciliation pipeline was executed across all 9,530 coordinate pairs:
+
+        1. **Topological Audit:** The initial HDBSCAN output was cross-referenced against raw address strings to identify first-layer corruption, flagging offers where the semantic text contradicted the assigned geospatial cluster.
+        2. **Polygon Synthesis:** The agent manually architected 72 custom heuristic polygons to serve as operational "Indifference Zones"—geographic areas defining the operational reality.
+        3. **Heuristic Audit (Polygons):** A secondary manual audit verified point-in-polygon alignment, flagging offers whose string addresses did not belong to the polygon zone.
+        4. **Cloud Re-geocoding:** In order to clean flagged offers and to detect anomalies invisible to visual inspection, the entire dataset was re-geocoded, both forward and reverse.
+        5. **Geospatial Delta Check:** By calculating the spatial variance (in meters) between the original coordinates and the secondary baseline, records exceeding a severe geographic deviation threshold were isolated for intervention.
+        6. **Deterministic Overwrite:** A bespoke ETL tool was engineered to manage the final manual corrections. The system staged flagged conflicts alongside verified API context, enabling the Agent to surgically overwrite corrupted coordinate pairs in the source tables while preventing manual entry errors.
+        """)
+
+        # Figure: Heuristic Polygons (Referenced in Step 2)
+        try:
+            st.image("/workspaces/pienza/observatory/assets/overleaf_images/pienza_strategic_map.png")
+            st.caption("**Figure:** Polygon Synthesis. The 72 custom heuristic polygons manually architected to serve as operational 'Indifference Zones.'")
+        except Exception as e:
+            st.error("Image not found: pienza_strategic_map.png")
+
+        st.markdown("""
+        ---
+        > *Outcome: This intervention successfully corrected over 1,500 corrupted rows—nearly one-third of the operational history. The canonical Source of Truth was updated with this purified dataset, enabling the re-execution of the clustering pipeline with high-fidelity results.*
+        """)
 
 
 # ==============================================================================
