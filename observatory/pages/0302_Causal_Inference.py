@@ -30,7 +30,9 @@ plt.rcParams.update({
     'axes.titleweight': 'bold'
 })
 
-st.title("📊 Phase 1: Financial Stability & Policy Intervention Audit")
+# 3. CONFIGURACIÓN DE LA PÁGINA
+st.title("Causal Inference & The Policy Intervention")
+st.markdown(f"**<span style='color:{OPUS_TEAL}; font-size:1.2rem;'>Motion to Explore! ...Proceed</span>**", unsafe_allow_html=True)
 
 # --- 3. DATA INGESTION (BIGQUERY VERSION) ---
 @st.cache_data

@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 # --- 1. CONFIGURACIÓN CANÓNICA ---
-st.set_page_config(layout="wide", page_title="VEN Playbook | Pienza")
+st.set_page_config(layout="wide", page_title="Optimal Stopping & The Efficient Frontier")
 
 # Opus Lab Visual Canon
 OPUS_PURPLE = '#440154'
@@ -23,8 +23,8 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. THE EXECUTIVE SUMMARY ---
-st.title("♟️ Phase 4: The VEN Playbook")
-st.markdown(f"**<span style='color:{OPUS_TEAL}; font-size:1.2rem;'>Value Exchange Network & Behavioral Elasticity</span>**", unsafe_allow_html=True)
+st.title("Optimal Stopping & The Efficient Frontier")
+st.markdown(f"**<span style='color:{OPUS_TEAL}; font-size:1.2rem;'>A Data-Driven Playbook for Driver Patience</span>**", unsafe_allow_html=True)
 
 st.markdown("""
 > **The Dilemma:** Is it worth rejecting a mediocre $170/hr offer to wait for a $200/hr gem? 

@@ -55,7 +55,7 @@ import streamlit as st
 # ==========================================
 # PHASE 2: FEATURE FACTORY (Non-Collapsible Intro Placeholder)
 # ==========================================
-st.header("Feature Factory: Engineering the State Space")
+st.header("Target and Feature Engineering")
 
 st.info("""
 **[CONTENT PLACEHOLDER: Introduction]** *The theoretical foundation and strategic overview for the Feature Factory phase will be inserted here. This non-collapsible section will define the transition from raw telemetry to the engineered state space before diving into the specific technical modules below.*
@@ -301,6 +301,47 @@ with st.expander("Acquisition Artifact: The Enriched `offers` Dataset", expanded
     st.caption("Final Schema State of the Acquisition Phase (N ≈ 4,700).")
 
 
+
+
+
+
+import streamlit as st
+
+# ==========================================
+# PHASE 2: TEMPORAL RECOVERY (Collapsible Section)
+# ==========================================
+with st.expander("High-Precision Temporal Recovery & Identity", expanded=False):
+
+    st.markdown("""
+    Standard minute-level timestamps (HH:MM) proved insufficient for analyzing high-frequency market dynamics. To recover seconds-level precision, a custom Python pipeline was developed to extract internal metadata from the non-standard PNG chunks of the source assets. 
+    
+    This timing capability was identified during localization trials. While initially seeking GPS metadata, the discovery of second-level markers enabled a higher analytical resolution. 
+    
+    **Architectural Risks Addressed:**
+    Two primary risks necessitated this precision:
+    * **iOS Filename Recycling:** Ambiguity in native file naming conventions.
+    * **System-Level Offer Repetition:** The platform often resends identical offers, creating visually congruent artifacts. As these repetitions can occur within a single minute but at distinct second intervals, standard HH:MM granularity would result in data loss through erroneous duplicate detection.
+    """)
+
+    st.divider()
+
+    st.markdown("### Cryptographic Primary Key Generation")
+    st.markdown("To ensure absolute uniqueness, a primary key (`event_id`) was generated via a SHA-256 hash of a combined event signature:")
+
+    # Render LaTeX Equation natively in Streamlit
+    st.latex(r"event\_id = \text{SHA-256}(\text{image\_content\_hash} + \text{high\_precision\_timestamp})")
+
+    st.markdown("""
+    This transformation converted the unstructured file repository into an audited relational ledger. The resulting high-fidelity temporal baseline directly unlocked the engineering of velocity-based features (e.g., *Offer Density*) required for stateful intelligence.
+    """)
+
+
+
+
+
+
+
+
 import streamlit as st
 import pandas as pd
 
@@ -520,3 +561,144 @@ with st.expander("The Canonical Stateful Features", expanded=False):
 
 
 
+st.info("PLACEHOLDER: RECREATE SESSION WITH OBFUSCATED DATA")
+
+
+
+import streamlit as st
+import time
+import pandas as pd
+import numpy as np
+
+# ==========================================
+# PHASE 3: THE EXPERT COCKPIT (Session Playback)
+# ==========================================
+st.divider()
+st.header("🎮 Session Playback: Inference in Motion")
+st.markdown("""
+To understand how **Contextual** and **Stateful** features drive behavior, we must view them in sequence. 
+Average sessions contain **60–90 offers** with only **4–6 acceptances**. 
+
+**Select a session and hit 'Start Timelapse' to see the Agent's decision logic evolve as fatigue, traffic, and sunk costs accumulate.**
+""")
+
+# --- Sidebar Controls for the Simulation ---
+with st.sidebar:
+    st.markdown("---")
+    st.subheader("🕹️ Simulation Controls")
+    sim_session = st.selectbox("Select Field Session", ["Shift_042 (Friday PM)", "Shift_089 (Rainy Monday)"])
+    play_speed = st.select_slider("Playback Speed", options=[0.1, 0.5, 1.0, 2.0], value=0.5, help="Seconds per offer")
+    run_sim = st.button("🚀 START TIMELAPSE", use_container_width=True)
+
+# --- The HUD (Heads-Up Display) ---
+# We use st.empty() so we can update these values in a loop
+col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+with col_m1:
+    m_fatigue = st.empty()
+with col_m2:
+    m_deadhead = st.empty()
+with col_m3:
+    m_earnings = st.empty()
+with col_m4:
+    m_traffic = st.empty()
+
+st.markdown("---")
+
+# --- The Cockpit View ---
+col_offer, col_brain = st.columns([1, 1])
+
+with col_offer:
+    st.subheader("📲 The 'Naked Physics'")
+    st.caption("What the Platform Presents")
+    naked_card = st.empty()
+
+with col_brain:
+    st.subheader("🧠 The 'Expert Brain'")
+    st.caption("Contextual & Stateful Reality")
+    brain_card = st.empty()
+
+# --- The Big Verdict Banner ---
+verdict_banner = st.empty()
+
+# ==========================================
+# SIMULATION ENGINE (Logic)
+# ==========================================
+if run_sim:
+    # Creating a mock session based on your parameters (60 offers, 4-6 acceptances)
+    total_offers = 60
+    accept_indices = [12, 28, 45, 58]
+    
+    for i in range(total_offers):
+        # 1. Update State Variables
+        progress = (i / total_offers)
+        deadhead_accum = i * 42 # seconds
+        pocket_money = len([idx for idx in accept_indices if idx < i]) * 165
+        current_traffic = 1.1 + (np.sin(i/10) * 0.4) # Varying traffic
+        
+        # 2. Update HUD Metrics
+        m_fatigue.metric("Shift Progress (Fatigue)", f"{int(progress*100)}%", delta=f"{i}/60")
+        m_deadhead.metric("Sunk Cost (Deadhead)", f"{deadhead_accum}s", delta="Accumulating")
+        m_earnings.metric("Net Earnings", f"${pocket_money} MXN")
+        m_traffic.metric("Market Friction", f"{current_traffic:.2}x", delta="Gridlock" if current_traffic > 1.3 else "Fluid")
+
+        # 3. Generate Random Offer Physics
+        is_premium = i % 7 == 0
+        fare = np.random.randint(85, 380)
+        dest_zone = np.random.randint(1, 42)
+        
+        # 4. Determine Decision Logic
+        if i in accept_indices:
+            decision = "ACCEPT"
+            reason = "Optimal Yield / Home Vector Fit"
+            bg_color = "#1db954" # Success Green
+        else:
+            decision = "REJECT"
+            # Switch reasons based on session progress
+            if progress < 0.3: reason = "Low Profitability"
+            elif current_traffic > 1.3: reason = "Gridlock: Traffic Index Violation"
+            elif progress > 0.8: reason = "Strategic Mismatch (Non-Homecoming)"
+            else: reason = "Expected Value Gamble"
+            bg_color = "#e91e63" # Reject Pink/Red
+
+        # 5. Render "Naked Physics" Card
+        with naked_card.container(border=True):
+            st.markdown(f"### {'💎' if is_premium else '🚗'} { 'Uber Black' if is_premium else 'UberX'}")
+            st.write(f"**Upfront Fare:** ${fare} MXN")
+            st.write(f"**Trip Duration:** {np.random.randint(12, 45)} mins")
+            st.write(f"**Distance:** {np.random.randint(4, 18)} km")
+
+        # 6. Render "Expert Brain" Card
+        with brain_card.container(border=True):
+            st.write(f"🚦 **Traffic Index:** {current_traffic:.2} (120s/km baseline)")
+            st.write(f"🏠 **Home Alignment:** {0.1 + progress:.2} (Anzures Vector)")
+            st.write("---")
+            st.write("**Active Heuristic Flags:**")
+            if progress > 0.8: st.warning("⚠️ `obj_end_session` ACTIVE")
+            if current_traffic > 1.4: st.error("🛑 `friday_gridlock` TRIGGERED")
+            if i % 4 == 0: st.info("📉 `deadhead_risk` DETECTED")
+
+        # 7. Render Verdict Banner
+        verdict_banner.markdown(f"""
+            <div style="background-color: {bg_color}; padding: 30px; border-radius: 15px; text-align: center; border: 2px solid white;">
+                <h1 style="color: white; font-family: 'Inter'; font-weight: 700; margin: 0; letter-spacing: 2px;">{decision}</h1>
+                <p style="color: white; font-family: 'Crimson Pro'; font-size: 20px; margin: 10px 0 0 0;">{reason}</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Control Playback Timing
+        time.sleep(play_speed)
+
+    st.balloons()
+    st.success("🏁 Session Complete. Summary: 60 Offers Filtered | 4 Missions Authorized.")
+
+else:
+    # State before simulation starts
+    m_fatigue.metric("Shift Progress", "--")
+    m_deadhead.metric("Sunk Cost", "--")
+    m_earnings.metric("Net Earnings", "--")
+    m_traffic.metric("Market Friction", "--")
+    
+    with naked_card.container(border=True):
+        st.write("Waiting for telemetry stream...")
+    with brain_card.container(border=True):
+        st.write("Initializing state machine...")
