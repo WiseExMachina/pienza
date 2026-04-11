@@ -3,6 +3,10 @@ service-account.json
 observatory/service-account.json
 .env
 observatory/.env
+basic_commands.md
+/workspaces/pienza/basic_commands.md
+cloudflared
+/workspaces/pienza/cloudflared
 
 # Basura de sistema y Python
 __pycache__/
