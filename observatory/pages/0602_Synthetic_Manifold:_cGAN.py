@@ -5,7 +5,7 @@ import pandas as pd
 # PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(
-    page_title="Phase 5: Supervised Imitation Learning",
+    page_title="conditional Generative Adversarial Networks (cGAN) for Synthetic Manifold Generation",
     page_icon="🧠",
     layout="wide"
 )
