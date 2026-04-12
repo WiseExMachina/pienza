@@ -376,15 +376,18 @@ with st.expander("The Reality of Field Data Collection", expanded=True):
     st.markdown("""
     *   **Atomic Persistence (Offline-First):** Data is not "dumped" in a single batch at the end of a session. Every state transition (T0–T4) is captured as an atomic event and queued immediately for backend synchronization. This ensures that even if a session is never formally "Ended," every captured data point is preserved.
 
-    *   **State Machine Non-Linearity:** Unlike theoretical models, a real shift does not follow a clean T1 $\\rightarrow$ T4 path. While operational shifts typically conclude at **T0 (Searching)** after the final drop-off, for consistency in the final dataset, this trailing deadhead period was pruned. The final engineered record always terminates with a **T4 (Completed Ride)**.
+    *    Operational shifts typically conclude at **T0 (Searching)** after the final drop-off, for consistency in the final dataset, this trailing deadhead period was pruned. The final engineered record always terminates with a **T4 (Completed Ride)**.
 
     *   **Redundancy & Deduplication:** To minimize cognitive load during high-stress driving, the agent would "Double-Tap" a state if they were unsure if a transition had logged (especially if the app became idle). The architecture prioritizes **Capture over Cleanliness**; duplicate entries and accidental out-of-order clicks are programmatically pruned during the Post-Session Reconciliation Protocol.
 
     *   **Financial Ground Truth:** All fares entered in the field are treated as **"High-Confidence Drafts."** To ensure 100% financial accuracy, every entry is audited back-home against:
         1.  **Engine 2 Visual Artifacts** (Screenshots) for Upfront Quoted Fares.
         2.  **Platform Activity History** for Realized Net Fares.
+                
+                The edgest of cases ocurred only once that alttered the temporal sequence of events, An accepted reservation whithin 1 hour of acceptance, then accepted and completd trip, then the occurrence of the reservation. this broke the logic and had to swap some variables because they were inverted. 
 
     *   **Temporal Fidelity:** The system captures the natural "Idle Gaps" between T4 (Completion) and the subsequent T0 (New Search). While these seconds of "micro-deadhead" were generally ignored in final modeling, they serve as a critical anchor: if a logging mistake was made, the timestamp for **T4 (Ride n)** serves as the anchor for **T0 (Ride n)**.
-    """)
+    If a chained offer was accepted, after the T4 timestamp, the next state transition would be T1 (Accepted) instead of T0, The real time at which this ride was accepted was lost in this dataset, but unimportant to the analysis. However, it was captured by the OCR Engine through the screenshot.
+                """)
 
 st.caption("Simulator Version: GTS-4.0 | Phase: Converged Policy Exploitation")
