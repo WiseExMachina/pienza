@@ -96,8 +96,31 @@ The engineered \texttt{heuristic\_flag\_context} emerged as the primary non-spat
     \label{tab:cfs_final_set}
 \end{table}
 
-\vspace{0.2cm}
-\noindent \textit{The high-signal categorical features identified in this audit were integrated into each of the three experimental Data Leagues. This finalized feature space provides the standardized foundation for the subsequent \textbf{Algorithmic Tournament}, where various model architectures are evaluated across these refined data regimes.}
+\vspace{0.4cm}
+\begin{tcolorbox}[
+    enhanced, sharp corners, boxrule=0.5pt,
+    colframe=gray!50, colback=gray!5,
+    left=15pt, right=15pt, top=10pt, bottom=10pt
+]
+    \sffamily\small
+    \textbf{METHODOLOGICAL PIVOT: THE FEATURE ABLATION STRIKE} \\
+    \rule{12cm}{0.4pt} \\
+    \vspace{0.2cm}
+    \rmfamily
+    While the initial audit confirmed the high predictive utility of \texttt{heuristic\_flag\_context} (MI: 0.302), a critical review identified this variable as a form of \textbf{Expert Encoding}. Because these manual flags are derived from human backtagging, they constitute an unrealistic "cheat sheet" that would be unavailable in a real-time production environment. 
+
+    \vspace{0.2cm}
+    An \textbf{Ablation Study} was executed to remove these manual labels and force the model to rely solely on objective telemetry. The results yielded two project-defining findings:
+    \begin{enumerate}[noitemsep, topsep=2pt]
+        \item \textbf{Model Robustness:} Predictive performance remained stable, proving that the underlying stateful features (\textit{Silver Palette}) already contained the necessary strategic signal.
+        \item \textbf{Explainability Flourish:} Post-ablation \textit{SHAP} analysis revealed a significantly clearer decision DNA. By removing the dominant manual flags, the latent importance of session-progress and accumulated deadhead emerged, providing a more transparent view of the agent's actual behavioral drivers.\footnotemark
+    \end{enumerate}
+    
+    \vspace{0.2cm}
+    \textit{Decision: To ensure high-fidelity simulation and production realism, all manual context flags were formally deprecated. The subsequent Algorithmic Tournament was executed exclusively on this purified, autonomous feature space.}
+\end{tcolorbox}
+\footnotetext{The reader is kindly invited to review the performance \textit{with} heuristic flags in the provided Jupyter Notebooks: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - Phase 5 Validation]}.}
+\vspace{0.4cm}
 
 
 \subsection{Algorithmic Justification: From First Principles to Ensemble Apex}
@@ -183,25 +206,37 @@ The ``State vs. Time'' dilemma presented a significant architectural trade-off w
 
 Fortunately, this structural bottleneck was mitigated by the project's pre-existing feature architecture. Because the Agent's temporal context (e.g., \texttt{hour_of_day}, \texttt{day_of_week}) and behavioral memory (e.g., \texttt{consecutive_rejects}, \texttt{accumulated_deadhead}, \texttt{cumulative_earnings}) had already been explicitly engineered into the feature space, the operative "state" and exact temporal positioning of the agent were intrinsically captured within each independent observation; hence, the algorithm does not require sequential chronological ordering to accurately interpret the context of a decision. Consequently, utilizing Stratified K-Fold cross-validation to shuffle the observations within the training pool does not constitute true data leakage. Instead, it serves as a vital architectural mechanism to maximize data efficiency and iterative learning volume, allowing the model to robustly map the stateful logic before facing an untouched, out-of-time evaluation in Week 6.
 
-\subsection{Model Performance: Bimodal Learning}
-An audit of the normalized confusion matrix (Figure \ref{fig:monolithic_matrix}) reveals that the monolithic \texttt{XGBoost} champion operates across two distinct performance regimes. These regimes are defined by the degree of feature orthogonality and the presence of deterministic boundaries.
+\subsection{Model Performance: Bimodal Learning \& The Ablation Audit}
+
+To evaluate the impact of manual context, the monolithic \texttt{XGBoost} champion was audited in two states. First, a capacity validation was performed including the \texttt{heuristic\_flag\_context} (Figure \ref{fig:monolithic_matrix}), followed by a reality-check evaluation after the \textbf{Heuristic Ablation Strike} (Figure \ref{fig:ablated_matrix}).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_confusion_matrix.png} 
-    \caption{Normalized Confusion Matrix for the Monolithic \texttt{XGBoost} Champion. High-accuracy clusters (top-left) identify deterministic operational constraints, while the lower-right quadrant reveals the strategic signal decay in nuanced decision classes.}
-    \label{fig:monolithic_matrix}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig_confusion_matrix_2.png} 
+        \caption{Baseline (with Heuristic Flags)}
+        \label{fig:matrix_expert_v5} % Unique label
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{fig_ablated_matrix.png} 
+        \caption{Autonomous (Post-Ablation)}
+        \label{fig:matrix_autonomous_v5} % Unique label
+    \end{subfigure}
+    \caption{Comparative performance of the monolithic architecture. The removal of manual flags exposes the structural inability of a flat model to isolate strategic intent from deterministic noise.}
+    \label{fig:monolith_audit_main} % Unique main label
 \end{figure}
 
-\subsubsection{Regime 1: Deterministic Operational Constraints}
-The model achieves high accuracy ($>85$\%) when evaluating physical, geographical, and hard-economic constraints: \texttt{proxy\_zone} (90.2\%), \texttt{low\_profitability} (90.6\%), \texttt{non\_operational} (88.7\%), and \texttt{long\_pickup} (85.7\%). These classes are effectively orthogonal; their boundaries are dictated by rigid geospatial coordinates or absolute time-and-fare thresholds. The gradient boosting trees isolate these patterns with minimal entropy, representing the model's "Triage" layer.
-
-\subsubsection{Regime 2: Conditional Strategic Nuance}
-Performance degrades significantly ($41\% \dots 68\%$) when the decision boundary shifts to higher-order behavioral states: \texttt{accepted} (68.7\%), \texttt{strategic\_mismatch} (57.1\%), and \texttt{expected\_value\_gamble} (41.5\%). These decisions are not functions of isolated coordinates but involve dynamic calculations of opportunity cost and market velocity. The resulting "fuzzy" boundaries lead to increased entropy and predictive uncertainty.
+\subsubsection{Regime 2: Strategic Signal Masking}
+A critical shift occurs in the high-order behavioral classes once the manual "cheat-sheet" is removed. While the model with flags (Figure \ref{fig:matrix_expert_v5}) appears robust, the autonomous version (Figure \ref{fig:matrix_autonomous_v5}) exhibits a collapse in the \texttt{strategic\_mismatch} class to \textbf{3.6\%}. These decisions are not functions of isolated coordinates but involve dynamic opportunity cost calculations. In a flat architecture, these "quiet" strategic signals are effectively masked by the "loud" deterministic noise of the majority classes.
 
 \subsubsection{The Gravitational Well Effect}
-The audit identifies a critical failure mode: the interaction between the majority and minority classes. Because \texttt{non\_operational} constitutes $\approx 50$\% of the dataset, it creates a statistical \textbf{Gravitational Well}. When the algorithm encounters a nuanced observation with high strategic uncertainty---such as an \texttt{expected\_value\_gamble}---it yields to the Bayesian prior of the majority class. This is proven by the fact that \textbf{34.1\% of true strategic gambles are incorrectly swallowed by the non-operational prediction.}
+The diagnostic audit identifies a structural failure mode: the interaction between majority and minority classes. Because \texttt{non\_operational} constitutes $\approx 50$\% of the dataset, it creates a statistical \textbf{Gravitational Well}. When the algorithm encounters a nuanced observation with high strategic uncertainty, it yields to the Bayesian prior of the majority class. This is evidenced by Figure \ref{fig:matrix_expert_v5}, where \textbf{36.6\% of true gambles are incorrectly swallowed by the non-operational prediction.}
 
+\vspace{0.3cm}
+\noindent \textit{Transition: This identifies the limits of monolithic modeling. By acknowledging that a flat model cannot hear the signal of intent through the noise of geography, the project pivots to a \textbf{Hierarchical Classification} strategy. As documented in the next section, once the "Gravitational Well" is removed through a multi-layered approach, the signal flourishes without the need for manual encoding.}
 
 \subsection{Architectural Pivot: The Cognitive Cascade}
 The audit confirms that "cheap" triage logic (geospatial/economic filters) cannibalizes "expensive" strategic logic. To eliminate this interference, the project implemented the \textbf{Hierarchical Cognitive Cascade}. This architecture decomposes the multi-class problem into a sequence of specialized inference layers:
@@ -213,7 +248,174 @@ The audit confirms that "cheap" triage logic (geospatial/economic filters) canni
 
 By removing the gravitational pull of the non-operational class in Layer 1, the Strategist model can dedicate its full capacity to resolving the subtle economic differences between strategic rejections and acceptances, effectively breaking the performance ceiling identified in the flat architecture.
 
+
 \subsection{Layer 1: The Balanced Bouncer Protocol}
+Layer 1 functions as a high-recall filter designed to isolate deterministic operational noise from strategic signal. By removing the majority classes (\textit{Non-Operational, Low Profitability}) at the entry point, the architecture prevents the ``Gravitational Well'' effect from cannibalizing the nuanced behavioral logic in the subsequent layer.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{fig_layer1_matrix.png} 
+    \caption{Layer 1 Confusion Matrix. The diagonal illustrates the filter's efficiency in isolating noise. Note the high survival rate of the strategic signal (\texttt{THE\_NUANCED\_REST}).}
+    \label{fig:layer1_matrix}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{0.85\textwidth}{l c c X}
+        \toprule
+        \textbf{Layer 1 Metric} & \textbf{Value} & \textbf{Benchmark} & \textbf{Technical Verdict} \\
+        \midrule
+        \textit{Signal Retention} (Recall) & \textbf{81.7\%} & $>80\%$ & \textbf{PASS:} The strategic signal successfully bypasses the filter. \\
+        \textit{Noise Removal} (Recall) & \textbf{90.6\%} & $>90\%$ & \textbf{PASS:} Efficient elimination of deterministic rejections. \\
+        ROC-AUC (Triage) & 0.89 & $>0.85$ & \textbf{STABLE:} Strong discriminatory power for the initial split. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Diagnostic Scorecard for Layer 1 (The Bouncer).}
+    \label{tab:layer1_metrics}
+\end{table}
+
+\noindent \textit{Outcome: The Layer 1 filter successfully cleans the operational environment. By neutralizing 90.6\% of the low-level noise, the system ensures that Layer 2 operates on a high-signal sub-universe, providing the necessary data purity to capture the agent's strategic DNA.}
+
+
+\subsection{Layer 2: The Strategist (Nuance Modeling)}
+The second stage of the cascade operates exclusively on the high-yield subset that passed the Layer 1 filter. This model is designed to resolve the distinctions between rejections and acceptances without the interference of majority-class noise.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{fig_layer2_matrix.png} 
+    \caption{Layer 2 Confusion Matrix. By isolating the high-yield sub-universe, the model achieves separation between complex decision states.}
+    \label{fig:layer2_matrix}
+\end{figure}
+
+\subsubsection{Results: Performance Lift}
+The transition to a hierarchical architecture resulted in a lift for the nuanced classes (Figure \ref{fig:layer2_matrix}):
+
+\begin{itemize}[noitemsep, topsep=3pt]
+    \item \textbf{Directional Intent (\texttt{strategic\_mismatch}):} Accuracy reached \textbf{75.0\%}, confirming the model mapped heuristics such as Friday gridlock and homecoming vectors.
+    \item \textbf{Optimal Stopping (\texttt{expected\_value\_gamble}):} Accuracy rose to \textbf{65.9\%}, a 58\% relative improvement over the monolithic baseline.
+    \item \textbf{Primary Target (\texttt{ACCEPTED}):} The model achieved \textbf{85.1\% accuracy} in replicating the agent's decisions, establishing a high-fidelity behavioral clone.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabularx}{0.85\textwidth}{l c c X}
+        \toprule
+        \textbf{Layer 2 Metric} & \textbf{Value} & \textbf{Benchmark} & \textbf{Technical Verdict} \\
+        \midrule
+        \textbf{F1-Macro (Champion)} & \textbf{0.76} & $>0.70$ & \textbf{WINNER:} 58.3\% lift over the monolithic baseline (0.48). \\
+        ROC-AUC & \textbf{0.92} & $>0.90$ & \textbf{EXCELLENT:} High capability to rank opportunities vs. viable offers. \\
+        Learning Curve Delta ($\Delta$) & 0.04 & $<0.05$ & \textbf{ROBUST:} Minimal gap between training and validation sets. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Performance Ledger for Layer 2 (The Strategist).}
+    \label{tab:layer2_metrics}
+\end{table}
+
+\noindent \textit{Outcome: The move to a hierarchical architecture results in an \textbf{F1-Macro of 0.76}. By removing the gravitational pull of majority classes, the model's accuracy for rejections and acceptances reached its predictive potential using purely autonomous features.}
+
+
+
+
+\subsection{Layer 1: The Balanced Bouncer Protocol}
+% ... (Mantener texto introductorio) ...
+
+\begin{figure}[H]
+    \centering
+    \textcolor{red}{\textbf{[PLACEHOLDER: ACTUALIZAR MATRIZ CAPA 1]}} \\
+    \textit{Current state: fig\_layer1\_matrix.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{Classification Report}}
+        \caption{Precision-Recall Per Class}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{ROC-AUC Curve}}
+        \caption{Discriminatory Power}
+    \end{subfigure}
+    \vspace{0.5cm}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{Precision-Recall Curve}}
+        \caption{Threshold Stability}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{Learning Curve}}
+        \caption{Generalization Audit}
+    \end{subfigure}
+    \caption{Layer 1 Diagnostic Suite: Performance metrics for deterministic noise filtration.}
+\end{figure}
+
+\rule{\linewidth}{0.4pt}
+
+\subsection{Layer 2: The Strategist (Nuance Modeling)}
+% ... (Mantener texto introductorio) ...
+
+\begin{figure}[H]
+    \centering
+    \textcolor{red}{\textbf{[PLACEHOLDER: ACTUALIZAR MATRIZ CAPA 2]}} \\
+    \textit{Current state: fig\_layer2\_matrix.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{Classification Report}}
+        \caption{Precision-Recall Per Class}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{ROC-AUC Curve}}
+        \caption{Discriminatory Power}
+    \end{subfigure}
+    \vspace{0.5cm}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{Precision-Recall Curve}}
+        \caption{Threshold Stability}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \textcolor{red}{\fbox{Learning Curve}}
+        \caption{Generalization Audit}
+    \end{subfigure}
+    \caption{Layer 2 Diagnostic Suite: Performance metrics for behavioral policy cloning.}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Layer 1: The Balanced Bouncer}
 Layer 1 is architected as a high-recall filter designed to isolate deterministic operational noise from strategic signal. This "Bouncer" ensures that the majority classes (\textit{Non-Op, Low Profit}) do not overwhelm the more nuanced strategic rejections in the subsequent layer.
 
 \subsubsection{The Threshold Paradox: Street vs. Code}
