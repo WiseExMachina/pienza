@@ -57,6 +57,8 @@ st.markdown("""
 st.title("Supervised Imitation Learning: From Sky to Psyche")
 st.caption("**Timeline: January 3 — January 12, 2026**")
 
+st.info("""PLACEHOLDER: REFACTORIZAR sensaHeuristicFlags""")
+
 st.markdown("""
 The objective of Phase 5 was to synthesize a predictive model capable of replicating the human Agent’s decision policy with high fidelity. 
 
