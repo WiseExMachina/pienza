@@ -12,7 +12,7 @@
     The successful deployment of a hierarchical XGBoost clone that matched the human agent's strategic efficiency while capturing a 5.7\% volume surplus by eliminating cognitive fatigue.
 }
 
-\section{Phase 5 - Supervised Imitation Learning: From Sky to Psyche}
+\section{Phase 5 - Supervised Imitation Learning}
 
 
 \noindent \textbf{Timeline: January 3 -- January 12, 2026}
@@ -411,6 +411,7 @@ Although initial results appeared promising, holdout testing revealed that the L
     \label{tab:l2_light_features}
 \end{table}
 
+
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
@@ -431,6 +432,7 @@ Although initial results appeared promising, holdout testing revealed that the L
 \end{figure}
 
 
+As shown in Table \ref{tab:layer2_learning_summary}, while the full feature set resulted in a 23.8\% gap between training and validation scores, the lightweight configuration narrowed this gap to 10.6\%, with the tradeoff, however, of losing predictive capacity. 
 
 \begin{table}[H]
     \centering
@@ -448,123 +450,70 @@ Although initial results appeared promising, holdout testing revealed that the L
 \end{table}
 
 
+Within the limitations of the available dataset, this audit identifies the current ceiling for policy optimization. Consequently, it is recommended that both the high-variance and lightweight configurations be evaluated in a production setting through shadow deployment or A/B testing. Identifying the optimal balance between strategic nuance and operational stability would require live verification, irrespective of these specific offline metrics. To provide the qualitative justification for these trade-offs, the analysis shifts from performance auditing to an interpretability study. This allows for the identification of the specific "DNA" markers that drive high-nuance decisions versus those that contribute to model instability.
 
 
-
-FALTA (Sigue): SHAP y coliseo
-
-
-
-
-
-\subsection{Layer 2: The Strategist (Nuance Modeling)}
-% ... (Mantener texto introductorio) ...
+To interpret the internal logic the Nuance Engine, a SHAP contribution audit was performed across the three classes (Figure \ref{fig:layer2_shap_dna_v2}). These plots represent the behavioral genome of the expert agent, quantifying the non-linear psychological and economic shifts that occur during a work shift.
 
 \begin{figure}[H]
     \centering
-    \textcolor{red}{\textbf{[PLACEHOLDER: ACTUALIZAR MATRIZ CAPA 2]}} \\
-    \textit{Current state: fig\_layer2\_matrix.png}
+    \includegraphics[width=0.7\textwidth]{fig_layer2_shap_dna_v2.png} 
+    \caption{Hierarchical Strategic DNA Atlas: Feature contributions for Layer 2 decision classes. Teal bars indicate a positive contribution to class probability; gray bars indicate a negative contribution.}
+    \label{fig:layer2_shap_dna_v2}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \centering
-        \textcolor{red}{\fbox{Classification Report}}
-        \caption{Precision-Recall Per Class}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \centering
-        \textcolor{red}{\fbox{ROC-AUC Curve}}
-        \caption{Discriminatory Power}
-    \end{subfigure}
-    \vspace{0.5cm}
-    \begin{subfigure}[b]{0.45\textwidth}
-        \centering
-        \textcolor{red}{\fbox{Precision-Recall Curve}}
-        \caption{Threshold Stability}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \centering
-        \textcolor{red}{\fbox{Learning Curve}}
-        \caption{Generalization Audit}
-    \end{subfigure}
-    \caption{Layer 2 Diagnostic Suite: Performance metrics for behavioral policy cloning.}
-\end{figure}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\subsubsection{Strategic DNA: Feature Drivers for Layer 2}
-To interpret the internal logic of the Strategist model, a SHAP contribution analysis was performed across the three nuanced strategic classes (Figure \ref{fig:layer2_shap_dna}). This assessment quantifies the directional impact of features on the final classification.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.6\textwidth]{fig_layer2_shap_dna.png} 
-    \caption{Hierarchical Strategic DNA Atlas: Feature contributions for Layer 2 decision classes. Teal bars indicate a positive contribution to class probability; Gray bars indicate a negative contribution.}
-    \label{fig:layer2_shap_dna}
-\end{figure}
-
-The analysis reveals three primary behavioral mechanics that govern the expert agent's high-level strategy:
+\noindent \textbf{Diagnostic Findings:}
+The audit identifies three primary behavioral mechanics that govern the expert agent's high-level strategy:
 
 \begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{The Sunk Cost Mechanic (Accepted):} While \texttt{upfront\_fare} and \texttt{eph\_operational\_index} are the expected financial drivers, \texttt{log\_total\_accumulated\_deadhead\_sec} serves as a powerful positive predictor ($+0.309$). This provides empirical proof of a ``Sunk Cost'' effect: as uncompensated search time increases, the Agent's selectivity threshold decays, leading to a higher probability of acceptance. Conversely, \texttt{obj\_end\_session} acts as the strongest inhibitor ($-0.550$), suppressing acceptance regardless of yield.
+    \item \textbf{The Sunk Cost Mechanic:} \texttt{log\_total\_accumulated\_deadhead\_sec} ($+0.287$) serves as the primary driver for \texttt{ACCEPTED} outcomes. This provides empirical proof of the \textbf{Sunk Cost Fallacy}: as uncompensated search time increases, the agent's selectivity threshold decays. Conversely, this feature is the strongest negative driver for \texttt{expected\_value\_gamble} ($-0.417$), proving that patience is a finite resource; strategic gambling is abandoned once search costs become excessive.
     
-    \item \textbf{The Income Targeting Mechanic (Strategic Mismatch):} This class is dominated by the \texttt{obj\_end\_session} context ($+0.819$). The model correctly identifies that high accumulated earnings (\texttt{log\_cycle\_cumulative\_net\_earnings}) pull the decision toward a mismatch rejection. This verifies the ``Income Targeting'' heuristic: once financial objectives are met, the Agent prioritizes homecoming vectors over marginal revenue gains.
+    \item \textbf{The Endgame Transition:} The \texttt{session\_progress\_ratio} ($+0.431$) is the dominant driver for \texttt{strategic\_mismatch} rejections. This confirms the policy transition from an \textit{Economic Maximizer} at shift commencement to a \textit{Positional Optimizer} as the ratio approaches 1.0. The negative impact of \texttt{home\_vector\_alignment\_score} ($-0.289$) confirms that homecoming vectors toward \textit{Anzures} suppress this rejection type.
     
-    \item \textbf{The Patience Constraint (Expected Val. Gamble):} The primary predictor for the \texttt{expected\_value\_gamble} class is the \textbf{absence} of search fatigue. The strongest negative contributor is \texttt{log\_total\_accumulated\_deadhead\_sec} ($-0.416$). This identifies a critical behavioral constraint: the Agent only gambles on future offers when the current search cost is low. Prolonged search cycles eliminate the Agent's patience, causing a shift from strategic gambling back to acceptance.
+    \item \textbf{Income Targeting:} In the \texttt{strategic\_mismatch} class, high \texttt{cycle\_cumulative\_net\_earnings} ($+0.285$) pull the decision toward rejection. This verifies the \textbf{Target Income} heuristic: once the daily financial quota is secured, the agent prioritizes session termination over marginal revenue gains.
+    
+    \item \textbf{Economic Gravity:} Across all classes, \texttt{log\_upfront\_fare} and \texttt{eph\_operational\_index} remain the baseline anchors. High financial magnitude remains the primary inclusion vector for acceptance, while its absence is the primary driver for low-level rejections.
 \end{itemize}
 
-\noindent \textit{Outcome: The Layer 2 feature assessment proves that the XGBoost champion successfully mapped the Agent's non-linear strategic logic. The quantification of the ``Patience Threshold'' and the ``Sunk Cost Effect'' provides the mathematical foundation for the generative simulation engine in Phase 6.}
 
 
-\subsection{The Shadow Mode Trial: Behavioral Fidelity}
-To measure the operational impact of the architectural pivot, a final performance assessment was executed on the firewalled Week 6 holdout set ($N \approx 780$ offers). The finalized \textbf{Cognitive Cascade} was benchmarked head-to-head against the monolithic \texttt{XGBoost} baseline and the Human Agent’s actual decisions across two primary KPIs: cumulative upfront fare and strategic efficiency.
+\subsection{Behavioral Fidelity: The Shadow Mode Trial}
+To evaluate the operational impact of the hierarchical architecture, a final performance assessment was conducted on the firewalled holdout set ($N \approx 780$ offers). The trial utilized the integrated inference pipeline: Layer 1 triage with a 0.40 threshold followed by the Layer 2 behavior engine. Three entities were benchmarked: the Human Agent, the Full Feature Model, and the Lightweight Model. Performance was measured using \textbf{EPH Direct} to quantify selection efficiency (Figure \ref{fig:shadow_mode_v2}).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_shadow_mode_results.png} 
-    \caption{Shadow Mode Performance Results. The left plot measures total cumulative yield (\$), while the right plot measures strategic efficiency via the mean EPH Index. The Cascade architecture matches the expert’s efficiency while maximizing total value capture.}
-    \label{fig:shadow_mode}
+    \includegraphics[width=0.85\textwidth]{fig_shadow_mode_results_v2.png} 
+    \caption{Shadow Mode Performance: Efficiency Comparison. The plot illustrates the mean EPH Direct achieved across the unseen holdout set.}
+    \label{fig:shadow_mode_v2}
 \end{figure}
 
-The trial results, illustrated in Figure \ref{fig:shadow_mode}, reveal three critical performance findings:
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{l c c l}
+        \toprule
+        \textbf{Entity} & \textbf{Mean EPH Direct} & \textbf{Efficiency Lift} & \textbf{Diagnostic Verdict} \\
+        \midrule
+        Human Agent        & \$336.61 / hr & --- & Operational baseline. \\ \addlinespace[2pt]
+        Full Feature Model & \$349.38 / hr & +3.7\% & Marginal gain; limited by variance. \\ \addlinespace[2pt]
+        \textbf{Lightweight Model} & \textbf{\$369.01 / hr} & \textbf{+9.6\%} & \textbf{Champion:} Superior generalization. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Shadow Mode Results: Efficiency aggregates.}
+    \label{tab:shadow_results}
+\end{table}
 
-\begin{itemize}[noitemsep, topsep=3pt]
-    \item \textbf{Efficiency Parity:} The \textbf{Cascade (Opus)} model achieved a mean EPH index of \textbf{1.33}, perfectly replicating the Human Agent’s strategic efficiency. This confirms the model successfully learned the high-yield selection criteria required to consistently outperform the market baseline ($1.0$).
-    
-    \item \textbf{Monolithic Performance Decay:} The monolithic model significantly underperformed, trailing the Human Agent by \textbf{15.7\% in efficiency}. This provides empirical proof that flat architectures are unable to isolate strategic signal from geospatial noise, confirming the negative impact of the "Gravitational Well."
-    
-    \item \textbf{Volume Surplus (The Machine Advantage):} In a surprising outcome, the Cascade model captured \textbf{5.7\% more total value} than the Human Agent (\$10,312 vs. \$9,750). While maintaining identical efficiency, the machine identified high-yield opportunities that the human agent may have bypassed due to operational fatigue or cognitive load.
-\end{itemize}
+ The Lightweight configuration outperformed the Full Feature set by \textbf{\$19.63/hr}. This provides empirical proof that for small datasets ($N \approx 4,700$), reducing dimensionality  yields superior real-world performance compared to high-capacity models prone to noise memorization. The Shadow Mode trial confirms the project successfully cloned the agent's decision genome. The resulting engine does not just replicate human choices; it improves them by enforcing logical rigor across the entire work session.
 
-\noindent \textit{Outcome: The Shadow Mode trial validates the Cognitive Cascade as a high-fidelity behavioral clone. The model demonstrates the ability to match expert strategic efficiency while providing superior consistency in total value capture across a sustained work shift.}
+
+
 
 \subsection{Phase 5 Conclusion: Breaking the Static Barrier}
-The conclusion of Phase 5 marks the definitive transition from static decision mapping to temporal flow modeling. While the \textit{Cognitive Cascade} successfully isolated the Agent's strategic logic, its performance highlights a fundamental constraint of tabular architectures: \textbf{Snapshot Indifference}. Even when enriched with stateful features, classical \texttt{XGBoost} evaluates offers as isolated events in a vacuum. 
+The conclusion of Phase 5 marks the definitive transition from static decision mapping to dynamic state-space optimization. While the dual-layer Hierarchical Classification model successfully isolated the Agent's strategic logic, its performance highlights a fundamental constraint of tabular architectures: \textbf{Snapshot Indifference}. Even when enriched with stateful features, classical \texttt{XGBoost} evaluates offers as independent events in a vacuum, failing to account for the hidden momentum of a work shift.
 
-This technical boundary provides the formal validation for the transition to the \textbf{Generative Realm}. To fully deconstruct the \textit{expected\_value\_gamble}---the decision to reject a viable offer based on the probability of a future event---the framework must move beyond independent row analysis. This justifies the scope of Phase 6, where Generative Adversarial Networks (GANs) will synthesize the high-volume data manifolds required to train Recurrent Neural Networks (RNNs). By transforming the market from a sequence of static snapshots into a continuous temporal flow, the Pienza framework moves toward modeling the ``Expert Rhythm,'' where every decision is processed as a dynamic function of the marketplace's heartbeat.
+This technical boundary provides the formal validation for the transition to the \textbf{Generative Realm}. To fully model the decision boundary of the agent, the framework must move beyond row-wise classification. This justifies the scope of Phase 6, where Conditional Generative Adversarial Networks (cGANs) will synthesize the high-volume data manifolds required to formalize the marketplace as a \textbf{Markov Decision Process (MDP)}. 
+
+By shifting from a static classifier to a \textbf{State Space Model (SSM)}, the Pienza framework moves toward modeling the ``Expert Rhythm.'' This allows the system to treat the city as a continuous transition matrix where every decision is an action designed to maximize future state-value. Phase 6 thus establishes the bridge between behavioral cloning and autonomous navigation.
 
 
 
