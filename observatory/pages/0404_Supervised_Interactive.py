@@ -29,13 +29,52 @@ st.divider()
 import streamlit as st
 import pandas as pd
 
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.metrics import confusion_matrix, classification_report
+
+# --- PIENZA STYLE CONSTANTS ---
+PIENZA_BG = "#FAFAFA"
+PIENZA_TEAL = "#21918c"
+PIENZA_PURPLE = "#440154"
+PIENZA_TEXT = "#333333"
+pienza_cmap = [[0, "#FFFFFF"], [1, PIENZA_TEAL]]
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.metrics import confusion_matrix, classification_report
+
+# --- PIENZA STYLE CONSTANTS ---
+PIENZA_BG = "#FAFAFA"
+PIENZA_TEAL = "#21918c"
+PIENZA_PURPLE = "#440154"
+PIENZA_TEXT = "#333333"
+pienza_cmap = [[0, "#FFFFFF"], [1, PIENZA_TEAL]]
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+from sklearn.metrics import confusion_matrix, classification_report
+
+# --- PIENZA STYLE CONSTANTS ---
+PIENZA_BG = "#FAFAFA"
+PIENZA_TEAL = "#21918c"
+PIENZA_PURPLE = "#440154"
+PIENZA_TEXT = "#333333"
+pienza_cmap = [[0, "#FFFFFF"], [1, PIENZA_TEAL]]
+
 # ==========================================
 # LAYER 1: DIAGNOSTIC TABS
 # ==========================================
 st.subheader("Layer 1: Isolating Signal from Noise")
 
 st.markdown("""
-To maximize the capture of behavioral intent, the decision threshold for the `THE_NUANCED_REST` class was calibrated at **0.40**. *(Note: To prevent selection bias, Layer 2 performance assessment was executed using 100% of the manually labeled "nuanced" classes from the holdout set to ensure evaluative isolation.)*
+Optimizing the confidence threshold for the `THE_NUANCED_REST` class allows the system to recover signal that would otherwise be masked. **Adjust the lever below to observe the trade-off between Precision and Recall.**
 """)
 
 # Initialize the 4-Tab Architecture
@@ -47,26 +86,31 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 with tab1:
-    st.markdown("""
-    As the interactive matrix below illustrates...
-    """)
-
     # --- 1. THE INTERACTIVE LEVER ---
     t_nuanced = st.slider(
-        "Nuanced Classification Threshold", 
-        min_value=0.10, max_value=0.90, value=0.40, step=0.05
+        "Nuanced Classification Threshold (The Gema)", 
+        min_value=0.10, 
+        max_value=0.50, # <--- Capped at 0.50 per request
+        value=0.40, 
+        step=0.05,
+        help="Lowering the threshold makes the Bouncer more permissive for nuanced offers."
     )
 
     # --- 2. THE REAL DATA FETCH ---
-    # We call the function we imported from utils.gcp_client
     df_l1 = fetch_parquet_from_gcp(
-        bucket_name="pienza_streamlit", # Put your actual bucket name here
-        file_name="260417_layer1_probabilities.parquet"
+        bucket_name="pienza-streamlit", 
+        file_name="260417_layer1_probabilitiesv3.parquet"
     )
 
     if not df_l1.empty:
-        # Define your classes exactly as they appear in your Parquet file
-        classes_l1 = ["Non-Operational", "Low Profitability", "Long Pickup", "Proxy Zone", "THE_NUANCED_REST"]
+        # --- THE HARDCODE OVERRIDE (Forcing the Anchor) ---
+        classes_l1 = [
+            "THE_NUANCED_REST", 
+            "Long Pickup Time", 
+            "Low Profitability", 
+            "Dropoff: Non-Operational", 
+            "Dropoff: Proxy Zone"
+        ]
 
         # --- 3. DYNAMIC INFERENCE ENGINE ---
         def apply_triage_logic(row, threshold):
@@ -76,53 +120,72 @@ with tab1:
 
         df_l1['dynamic_pred'] = df_l1.apply(lambda row: apply_triage_logic(row, t_nuanced), axis=1)
 
+        # --- 4. RENDER DYNAMIC MATRIX (PIENZA STYLE) ---
+        cm = confusion_matrix(df_l1['true_label'], df_l1['dynamic_pred'], labels=classes_l1, normalize='true')
+        
+        fig = px.imshow(
+            cm, 
+            x=classes_l1, 
+            y=classes_l1,
+            labels=dict(x="Bouncer Decision (Predicted)", y="True Category (Actual)", color="Recall"),
+            text_auto=".1%", 
+            color_continuous_scale=pienza_cmap,
+            aspect="auto"
+        )
+        
+        fig.update_layout(
+            title=dict(
+                text=f"Portero: Impacto en Sensibilidad (Gema T={t_nuanced:.2f})",
+                font=dict(size=18, family="Inter", color=PIENZA_PURPLE)
+            ),
+            paper_bgcolor=PIENZA_BG,
+            plot_bgcolor=PIENZA_BG,
+            font=dict(color=PIENZA_TEXT),
+            xaxis=dict(title_font=dict(size=14, family="Inter", weight="bold")),
+            yaxis=dict(title_font=dict(size=14, family="Inter", weight="bold")),
+            margin=dict(l=0, r=0, t=60, b=0)
+        )
+        fig.update_coloraxes(showscale=False)
+        
+        st.plotly_chart(fig, use_container_width=True)
 
+        st.divider()
 
-    # --- 4. RENDER DYNAMIC MATRIX ---
-    cm = confusion_matrix(df_l1['true_label'], df_l1['dynamic_pred'], labels=classes_l1, normalize='true')
-    
-    fig = px.imshow(
-        cm, x=classes_l1, y=classes_l1,
-        labels=dict(x="Bouncer Decision", y="True Category", color="Recall"),
-        text_auto=".1%", color_continuous_scale="Teal", aspect="auto"
-    )
-    fig.update_layout(
-        title=f"Layer 1 Efficiency Matrix (Threshold = {t_nuanced:.2f})",
-        xaxis_title_font=dict(size=14, family="Inter"),
-        yaxis_title_font=dict(size=14, family="Inter"),
-        margin=dict(l=0, r=0, t=40, b=0)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.divider()
-
-    # --- 5. DYNAMIC CLASSIFICATION REPORT ---
-    st.markdown(f"At a threshold of **{t_nuanced:.2f}**, the dynamic classification report confirms the operational balance between noise rejection and strategic signal preservation.")
-    
-    report_dict = classification_report(df_l1['true_label'], df_l1['dynamic_pred'], target_names=classes_l1, output_dict=True, zero_division=0)
-    
-    # Extract only the necessary rows for the clean table
-    display_rows = []
-    for cls in classes_l1:
+        # --- 5. DYNAMIC CLASSIFICATION REPORT ---
+        st.markdown(f"At a threshold of **{t_nuanced:.2f}**, the dynamic report confirms the operational balance.")
+        
+        report_dict = classification_report(
+            df_l1['true_label'], 
+            df_l1['dynamic_pred'], 
+            labels=classes_l1, 
+            target_names=classes_l1, 
+            output_dict=True, 
+            zero_division=0
+        )
+        
+        display_rows = []
+        for cls in classes_l1:
+            display_rows.append({
+                "Class Label": f"`{cls}`",
+                "Precision": f"{report_dict[cls]['precision']:.2f}",
+                "Recall": f"{report_dict[cls]['recall']:.2f}",
+                "F1-Score": f"{report_dict[cls]['f1-score']:.2f}",
+                "Support": str(int(report_dict[cls]['support']))
+            })
+        
         display_rows.append({
-            "Class Label": f"`{cls}`",
-            "Precision": f"{report_dict[cls]['precision']:.2f}",
-            "Recall": f"{report_dict[cls]['recall']:.2f}",
-            "F1-Score": f"{report_dict[cls]['f1-score']:.2f}",
-            "Support": str(int(report_dict[cls]['support']))
+            "Class Label": "**Macro Average**",
+            "Precision": f"**{report_dict['macro avg']['precision']:.2f}**",
+            "Recall": f"**{report_dict['macro avg']['recall']:.2f}**",
+            "F1-Score": f"**{report_dict['macro avg']['f1-score']:.2f}**",
+            "Support": f"**{int(report_dict['macro avg']['support'])}**"
         })
+        
+        st.markdown(pd.DataFrame(display_rows).to_markdown(index=False))
     
-    # Append Macro Avg
-    display_rows.append({
-        "Class Label": "**Macro Average**",
-        "Precision": f"**{report_dict['macro avg']['precision']:.2f}**",
-        "Recall": f"**{report_dict['macro avg']['recall']:.2f}**",
-        "F1-Score": f"**{report_dict['macro avg']['f1-score']:.2f}**",
-        "Support": f"**{int(report_dict['macro avg']['support'])}**"
-    })
-    
-    df_dynamic_report = pd.DataFrame(display_rows)
-    st.markdown(df_dynamic_report.to_markdown(index=False))
+    else:
+        st.error("GCP Data Fetch Failed. Verify file: 260417_layer1_probabilitiesv3.parquet")
+
 
 # ------------------------------------------
 # TAB 2: ROC-AUC & PR-AUC
@@ -417,3 +480,7 @@ with tab4:
     st.info("""
     **Strategic Outcome:** The Layer 2 SHAP audit validates the Hierarchical Cascade architecture. By stripping away deterministic noise in Layer 1, the Nuance Engine successfully extracted complex human psychological phenomena—such as the Sunk Cost Fallacy and Target Income heuristics—directly from objective telemetry. This proves the engine is not merely matching statistical probabilities, but actually replicating the expert agent's dynamic economic reasoning.
     """)
+
+
+
+
