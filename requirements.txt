@@ -14,3 +14,6 @@ geopandas
 scikit-learn>=1.3.0
 keplergl
 streamlit-keplergl
+google-cloud-storage
+pyarrow
+plotly
