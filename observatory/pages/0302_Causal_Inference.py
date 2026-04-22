@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 def get_bq_client():
     # .parent nos saca de 'pages' y nos deja en 'observatory'
     # Ahí es donde vive tu service-account.json
-    json_path = Path(__file__).resolve().parent.parent / "service-account.json"
+    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
     return bigquery.Client.from_service_account_json(json_path)
 
 client = get_bq_client()

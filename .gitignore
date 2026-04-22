@@ -1,20 +1,30 @@
-# Seguridad: NUNCA subir estos archivos
+# ==========================================
+# SECURITY: NEVER COMMIT THESE FILES
+# ==========================================
 service-account.json
-observatory/service-account.json
 .env
-observatory/.env
-basic_commands.md
-/workspaces/pienza/basic_commands.md
-cloudflared
-/workspaces/pienza/cloudflared
+.streamlit/
 
-# Basura de sistema y Python
+# ==========================================
+# LOCAL EXECUTABLES & NOTES
+# ==========================================
+cloudflared
+basic_commands.md
+
+# ==========================================
+# PYTHON & SYSTEM TRASH
+# ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
 .DS_Store
 node_modules/
+venv/
+.venv/
+.env/
 
-# Datos pesados o locales (opcional)
+# ==========================================
+# LOCAL DATA
+# ==========================================
 *.db
 *.db-journal

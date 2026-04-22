@@ -26,7 +26,7 @@ OPUS_TEXT   = '#121212'
 @st.cache_resource
 def get_bq_client():
     # Resolves to observatory/service-account.json assuming this is in pages/
-    json_path = Path(__file__).resolve().parent.parent / "service-account.json"
+    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
     return bigquery.Client.from_service_account_json(json_path)
 
 client = get_bq_client()

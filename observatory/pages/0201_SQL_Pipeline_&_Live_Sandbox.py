@@ -73,7 +73,7 @@ st.markdown("""
 # ==========================================
 @st.cache_resource
 def get_bq_client():
-    json_path = Path(__file__).resolve().parent.parent / "service-account.json"
+    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
     return bigquery.Client.from_service_account_json(json_path)
 
 try:

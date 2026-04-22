@@ -99,7 +99,7 @@ st.markdown(quantum_scroll_js, unsafe_allow_html=True)
 # ==============================================================================
 # 2. LÓGICA DE DATOS Y ESTADO
 # ==============================================================================
-KEY_PATH = "/workspaces/pienza/observatory/service-account.json"
+KEY_PATH = "/workspaces/pienza/observatory/.streamlit/service-account.json"
 
 if 'arena_idx' not in st.session_state: st.session_state.arena_idx = 0
 if 'arena_running' not in st.session_state: st.session_state.arena_running = False
@@ -257,4 +257,4 @@ if st.session_state.arena_running and len(df_session) > 0:
         st.balloons()
 
 # --- PLACEHOLDER DE PENDIENTES ---
-st.info("Pending: Time in Session Counter, Auditoría de Discrepancias, asegurar que el hover jale bien, otros.")
+st.info("Pending: Time in Session Counter, Auditoría de Discrepancias, asegurar que el hover jale bien, stop tournament, otros.")

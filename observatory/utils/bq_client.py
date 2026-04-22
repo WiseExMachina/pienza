@@ -5,7 +5,7 @@ import os
 
 # Ensure the credentials environment variable is set
 # (Assuming the script is run from the observatory root where the JSON lives)
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ".streamlit/service-account.json"
 
 @st.cache_data(show_spinner="Querying the Pienza Data Warehouse...")
 def fetch_data_from_bq(query: str) -> pd.DataFrame:

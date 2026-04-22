@@ -6,7 +6,7 @@ import streamlit as st
 
 # Ensure the credentials environment variable is set
 # (Assuming the script is run from the observatory root where the JSON lives)
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ".streamlit/service-account.json"
 
 @st.cache_data(show_spinner="Decrypting GCP Telemetry...")
 def fetch_parquet_from_gcp(bucket_name: str, file_name: str) -> pd.DataFrame:
