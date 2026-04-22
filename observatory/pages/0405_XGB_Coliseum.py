@@ -192,39 +192,62 @@ if st.session_state.arena_running and len(df_session) > 0:
     idx = st.session_state.arena_idx 
     row = df_session.iloc[idx] 
     
+    # --- 0. CORE MATH & METADATA ---
     fare = float(row['upfront_fare'])
     pickup_m = int(float(row['time_to_pickup_sec'] or 0)/60)
     trip_m = int(float(row['est_trip_time_sec'] or 0)/60)
     base_info = f"${fare:.0f} | {pickup_m}m | {trip_m}m | {str(row['final_zone_name'])[:10]}" 
     q_class = f"quantum-link-{idx}"
 
-    # L1 Logic
+    # --- 1. DEFINICIÓN DE BADGES ORIGINALES (HTML) ---
+    badge_match = "<span class='badge-agreed'>🤝 MATCH</span>"
+    badge_hum = "<span class='badge-human'>👤 HUM</span>"
+    badge_ai = "<span class='badge-ai'>🤖 AI</span>"
+
+    # --- 2. LÓGICA DE ASIGNACIÓN LAYER 1 (BOUNCER) ---
     h_l1, ai_l1 = row['human_l1_bucket'], row['ai_l1_bucket']
     gem_template = f"<div class='offer-gem {{extra_class}} {q_class}'>{{badge}} {base_info}</div>"
 
     if row['is_l1_match']: 
-        gem = gem_template.format(extra_class="nuance-gem" if h_l1 == "THE_NUANCED_REST" else "", badge="🤝")
+        # Match Perfecto
+        gem = gem_template.format(
+            extra_class="nuance-gem" if h_l1 == "THE_NUANCED_REST" else "", 
+            badge=badge_match
+        )
         st.session_state.towers_l1[h_l1].append(gem) 
     else: 
-        st.session_state.towers_l1[h_l1].append(gem_template.format(extra_class="nuance-gem" if h_l1 == "THE_NUANCED_REST" else "", badge="👤")) 
-        st.session_state.towers_l1[ai_l1].append(gem_template.format(extra_class="nuance-gem" if ai_l1 == "THE_NUANCED_REST" else "", badge="🤖")) 
+        # Mismatch (Gemas Espejadas)
+        gem_h = gem_template.format(
+            extra_class="nuance-gem" if h_l1 == "THE_NUANCED_REST" else "", 
+            badge=badge_hum
+        )
+        st.session_state.towers_l1[h_l1].append(gem_h) 
+        
+        gem_ai = gem_template.format(
+            extra_class="nuance-gem" if ai_l1 == "THE_NUANCED_REST" else "", 
+            badge=badge_ai
+        )
+        st.session_state.towers_l1[ai_l1].append(gem_ai) 
             
-    # L2 Logic
+    # --- 3. LÓGICA LAYER 2 (STRATEGIST DUEL) ---
     l2_gem = f"<div class='offer-gem nuance-gem {q_class}'>{base_info}</div>"
     
-    # Human
+    # Human Strategist
     if h_l1 == "THE_NUANCED_REST":
         h_dec = row['human_decision']
-        st.session_state.towers_l2["human"][h_dec].append(l2_gem)
-        if h_dec == "ACCEPTED": st.session_state.bank['human'] += fare
+        if h_dec in st.session_state.towers_l2["human"]:
+            st.session_state.towers_l2["human"][h_dec].append(l2_gem)
+            if h_dec == "ACCEPTED": st.session_state.bank['human'] += fare
     
-    # AI Models
+    # AI Models (Full & Light)
     if ai_l1 == "THE_NUANCED_REST":
         for mod, col in [("full", "ai_l2_full_decision"), ("light", "ai_l2_spartan_decision")]:
             dec = row[col]
-            st.session_state.towers_l2[mod][dec].append(l2_gem)
-            if dec == "ACCEPTED": st.session_state.bank[mod] += fare
+            if dec in st.session_state.towers_l2[mod]:
+                st.session_state.towers_l2[mod][dec].append(l2_gem)
+                if dec == "ACCEPTED": st.session_state.bank[mod] += fare
 
+    # --- 4. AVANCE Y CONTROL ---
     if idx < len(df_session) - 1: 
         st.session_state.arena_idx += 1 
         time.sleep(1.0 / speed_mult) 
@@ -233,6 +256,5 @@ if st.session_state.arena_running and len(df_session) > 0:
         st.session_state.arena_running = False 
         st.balloons()
 
-
-
-st.info("Time in Session Counter, auditoria de discrepancias, asegurar que el hover jale bien, otros")
+# --- PLACEHOLDER DE PENDIENTES ---
+st.info("Pending: Time in Session Counter, Auditoría de Discrepancias, asegurar que el hover jale bien, otros.")
