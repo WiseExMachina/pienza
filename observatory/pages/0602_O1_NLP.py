@@ -125,7 +125,7 @@ class BETOWithCustomHead(nn.Module):
 # ==========================================
 @st.cache_resource(show_spinner="Booting Pienza Inference Engines from GCS...")
 def load_cloud_assets():
-    BUCKET_NAME = "pienza-ml-models" # Update this to your actual bucket name!
+    BUCKET_NAME = "pienza-streamlit" 
     os.makedirs("/tmp/pienza_models", exist_ok=True)
     
     # 1. Download Dictionaries
@@ -186,6 +186,10 @@ def get_google_maps_latency(address: str):
 # ==========================================
 # UI RENDERING
 # ==========================================
+# Initialize session state for address logging
+if 'address_history' not in st.session_state:
+    st.session_state['address_history'] = []
+
 st.title("⚡ The O(1) Engine Room")
 st.markdown("Benchmarking the Latency-Precision Frontier. Watch the architectural trade-offs unfold in real-time.")
 
@@ -204,9 +208,10 @@ with col_input:
 
 if st.button("🚀 Execute Pipeline", type="primary"):
     
-    # --- PHASE 2: VISUALIZER ---
-    st.subheader("Phase 2: The Linguistic Guillotine")
+    # 1. PHASE 2: LINGUISTIC PIPELINE (Preprocessing)
     clean_text, states = standardize_mexico_city_address(raw_address, debug=True)
+    
+    st.subheader("Phase 2: The Linguistic Guillotine")
     st.code(f"""
     1. Raw Input:   {states['raw']}
     2. Hard-Cut:    {states['post_cut']}
@@ -217,51 +222,95 @@ if st.button("🚀 Execute Pipeline", type="primary"):
 
     st.divider()
 
-    # --- PHASE 3: TOURNAMENT ---
+    # 2. PHASE 3: THE TOURNAMENT (Inference)
     st.subheader("Phase 3: The Inference Waterfall")
-    col1, col2, col3 = st.columns(3)
     
-    # 1. Google Maps
+    # --- Execute Google Maps ---
+    gmap_res, gmap_lat = get_google_maps_latency(raw_address)
+    
+    # --- Execute miniBETO ---
+    start_beto = time.perf_counter()
+    encoded = beto_tokenizer(clean_text, return_tensors='pt', max_length=64, padding='max_length', truncation=True)
+    with torch.no_grad():
+        logits_beto = minibeto(encoded['input_ids'], encoded['attention_mask'])
+        probs_beto = torch.softmax(logits_beto, dim=1)
+        conf_beto, pred_idx_beto = torch.max(probs_beto, dim=1)
+    beto_lat = (time.perf_counter() - start_beto) * 1000
+    beto_res_label = f"{idx_to_zone.get(str(pred_idx_beto.item()), 'Unknown')} ({conf_beto.item():.1%} Conf)"
+
+    # --- Execute miniBabel ---
+    start_babel = time.perf_counter()
+    tokens = clean_text.split()
+    indices = [token_to_idx.get(t, token_to_idx.get('<unk>', 1)) for t in tokens]
+    indices = indices[:30] + [token_to_idx.get('<pad>', 0)] * max(0, 30 - len(indices))
+    tensor_in = torch.tensor(indices, dtype=torch.long).unsqueeze(0)
+    with torch.no_grad():
+        logits_babel = minibabel(tensor_in)
+        probs_babel = torch.softmax(logits_babel, dim=1)
+        conf_babel, pred_idx_babel = torch.max(probs_babel, dim=1)
+    babel_lat = (time.perf_counter() - start_babel) * 1000
+    babel_res_label = f"{idx_to_zone.get(str(pred_idx_babel.item()), 'Unknown')} ({conf_babel.item():.1%} Conf)"
+
+    # 3. DISPLAY CURRENT RESULTS (The 3 Columns)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("**🌐 Google Maps API**")
-        st.caption("O(N × M) Geometric")
-        with st.spinner("Network I/O..."):
-            gmap_res, gmap_lat = get_google_maps_latency(raw_address)
         st.metric("Latency", f"{gmap_lat:.1f} ms")
         st.info(gmap_res)
 
-    # 2. miniBETO
     with col2:
         st.markdown("**🧠 miniBETO (FP16)**")
-        st.caption("110M Params - O(L²)")
-        start_beto = time.perf_counter()
-        
-        encoded = beto_tokenizer(clean_text, return_tensors='pt', max_length=64, padding='max_length', truncation=True)
-        with torch.no_grad():
-            logits = minibeto(encoded['input_ids'], encoded['attention_mask'])
-            probs = torch.softmax(logits, dim=1)
-            conf, pred_idx = torch.max(probs, dim=1)
-            
-        beto_lat = (time.perf_counter() - start_beto) * 1000
         st.metric("Latency", f"{beto_lat:.1f} ms")
-        st.success(f"{idx_to_zone.get(str(pred_idx.item()), 'Unknown')} ({conf.item():.1%} Conf)")
+        st.success(beto_res_label)
 
-    # 3. miniBabel
     with col3:
         st.markdown("**🏎️ miniBabel**")
-        st.caption("1.5M Params - O(1)")
-        start_babel = time.perf_counter()
-        
-        tokens = clean_text.split()
-        indices = [token_to_idx.get(t, token_to_idx.get('<unk>', 1)) for t in tokens]
-        indices = indices[:30] + [token_to_idx.get('<pad>', 0)] * max(0, 30 - len(indices))
-        tensor_in = torch.tensor(indices, dtype=torch.long).unsqueeze(0)
-        
-        with torch.no_grad():
-            logits = minibabel(tensor_in)
-            probs = torch.softmax(logits, dim=1)
-            conf, pred_idx = torch.max(probs, dim=1)
+        st.metric("Latency", f"{babel_lat:.1f} ms", delta=f"{(gmap_lat/babel_lat):.1f}x faster", delta_color="normal")
+        st.success(babel_res_label)
+
+    # 4. STATE PERSISTENCE (Log to History)
+    new_entry = {
+        "address": raw_address,
+        "gmaps": {"lat": gmap_lat, "res": gmap_res},
+        "beto": {"lat": beto_lat, "res": beto_res_label},
+        "babel": {"lat": babel_lat, "res": babel_res_label},
+        "timestamp": time.strftime("%H:%M:%S")
+    }
+    st.session_state['address_history'].insert(0, new_entry)
+
+st.divider()
+st.subheader("📜 Live Session Audit Trail")
+
+if st.session_state['address_history']:
+    for i, entry in enumerate(st.session_state['address_history']):
+        with st.container(border=True):
+            cols = st.columns([2, 1, 1, 1])
             
-        babel_lat = (time.perf_counter() - start_babel) * 1000
-        st.metric("Latency", f"{babel_lat:.1f} ms")
-        st.success(f"{idx_to_zone.get(str(pred_idx.item()), 'Unknown')} ({conf.item():.1%} Conf)")
+            with cols[0]:
+                st.markdown(f"**{len(st.session_state['address_history']) - i}. Input:** `{entry['address']}`")
+                st.caption(f"Captured at {entry['timestamp']}")
+            
+            with cols[1]:
+                st.markdown("**🌐 G-Maps**")
+                st.caption(f"{entry['gmaps']['lat']:.1f}ms")
+                st.write(f"_{entry['gmaps']['res']}_")
+                
+            with cols[2]:
+                st.markdown("**🧠 BETO**")
+                st.caption(f"{entry['beto']['lat']:.1f}ms")
+                st.write(entry['beto']['res'])
+                
+            with cols[3]:
+                # miniBabel is highlighted as the efficiency champion
+                st.markdown("**🏎️ Babel**")
+                st.caption(f":green[{entry['babel']['lat']:.1f}ms]")
+                st.write(f"**{entry['babel']['res']}**")
+
+    if st.button("🗑️ Clear Audit Log"):
+        st.session_state['address_history'] = []
+        st.rerun()
+else:
+    st.info("The Engine Room is idling. Execute the pipeline to populate the audit log.")
+
+st.divider()
+st.info(f""" log of all adresses inputed in the end; map P_ to its semantic zone; map displaying the points of the resuls, etc """)
