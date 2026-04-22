@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 db-dtypes
 geopandas
 google-cloud-bigquery
@@ -10,10 +12,14 @@ numpy
 pandas
 plotly
 pyarrow
+regex
+requests
 scikit-learn>=1.3.0
 seaborn
 shapely
 streamlit
 streamlit-keplergl
 streamlit-pdf-viewer
+torch
+transformers
 xgboost>=2.0.0

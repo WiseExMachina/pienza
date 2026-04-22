@@ -27,3 +27,20 @@ def fetch_parquet_from_gcp(bucket_name: str, file_name: str) -> pd.DataFrame:
     except Exception as e:
         st.error(f"Failed to connect to GCP Vault: {e}")
         return pd.DataFrame() # Return empty DF so the app doesn't hard crash
+
+def download_from_gcs(bucket_name: str, source_blob_name: str, destination_file_name: str) -> None:
+    """
+    Downloads a physical file from a GCP bucket to a local directory.
+    Crucial for retrieving ML models (.pth) and JSON dictionaries.
+    """
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(source_blob_name)
+        
+        # Download the file to the specified local path (e.g., /tmp/pienza_models/...)
+        blob.download_to_filename(destination_file_name)
+        
+    except Exception as e:
+        st.error(f"Failed to download {source_blob_name} from GCP: {e}")
+        raise e  # We raise the error here so the Streamlit @cache_resource knows it failed
