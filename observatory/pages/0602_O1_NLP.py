@@ -4,15 +4,9 @@ import requests
 import regex as re
 import unicodedata
 import torch
-import torch.nn as nn
-import math
-import json
-import os
-from transformers import AutoTokenizer, AutoModel
 
-# IMPORT YOUR CLOUD CLIENT HERE
-# Assuming: def download_from_gcs(bucket_name, source_blob_name, destination_file_name)
-from utils.gcp_client import download_from_gcs  
+# IMPORTAMOS DEL BACKEND
+from utils.gcp_client import load_fast_assets, load_heavy_assets
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -59,113 +53,7 @@ def standardize_mexico_city_address(text, debug=False):
     return t
 
 # ==========================================
-# PHASE 3: MODEL ARCHITECTURES
-# ==========================================
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, max_len=5000):
-        super().__init__()
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x):
-        return x + self.pe[:, :x.size(1)]
-
-class ZoneClassifierTransformer(nn.Module):
-    def __init__(self, vocab_size, num_classes, d_model=256, nhead=8, num_layers=2, dropout=0.3):
-        super().__init__()
-        self.embedding = nn.Embedding(vocab_size, d_model)
-        self.pos_encoder = PositionalEncoding(d_model)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dim_feedforward=256, dropout=dropout, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(d_model * 2, num_classes)
-        self.d_model = d_model
-
-    def forward(self, x):
-        x = self.embedding(x) * math.sqrt(self.d_model)
-        x = self.pos_encoder(x)
-        x = self.transformer_encoder(x)
-        avg_pool = x.mean(dim=1)
-        max_pool, _ = x.max(dim=1)
-        fused_features = torch.cat((avg_pool, max_pool), dim=1)
-        fused_features = self.dropout(fused_features)
-        return self.classifier(fused_features)
-
-class BETOWithCustomHead(nn.Module):
-    def __init__(self, model_name, num_classes, dropout_rate=0.3):
-        super().__init__()
-        self.bert = AutoModel.from_pretrained(model_name)
-        self.dropout = nn.Dropout(dropout_rate)
-        self.classifier = nn.Linear(768 * 2, num_classes)
-
-    def forward(self, input_ids, attention_mask):
-        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        hidden_states = outputs.last_hidden_state
-        input_mask_expanded = attention_mask.unsqueeze(-1).expand(hidden_states.size()).float()
-        
-        sum_embeddings = torch.sum(hidden_states * input_mask_expanded, 1)
-        sum_mask = input_mask_expanded.sum(1)
-        sum_mask = torch.clamp(sum_mask, min=1e-9)
-        avg_pool = sum_embeddings / sum_mask
-        
-        hidden_states_masked = hidden_states.masked_fill(input_mask_expanded == 0, -1e9)
-        max_pool, _ = torch.max(hidden_states_masked, dim=1)
-        
-        fused_features = torch.cat((avg_pool, max_pool), dim=1)
-        fused_features = self.dropout(fused_features)
-        return self.classifier(fused_features)
-
-# ==========================================
-# RESOURCE LOADER (Runs Once)
-# ==========================================
-@st.cache_resource(show_spinner="Booting Pienza Inference Engines from GCS...")
-def load_cloud_assets():
-    BUCKET_NAME = "pienza-streamlit" 
-    os.makedirs("/tmp/pienza_models", exist_ok=True)
-    
-    # 1. Download Dictionaries
-    token_path = "/tmp/pienza_models/token_to_idx.json"
-    zone_path = "/tmp/pienza_models/idx_to_zone.json"
-    download_from_gcs(BUCKET_NAME, "260422_token_to_idx.json", token_path)
-    download_from_gcs(BUCKET_NAME, "260423__idx_to_zone_to_semantics.json", zone_path)
-    
-    with open(token_path, 'r', encoding='utf-8') as f:
-        token_to_idx = json.load(f)
-    with open(zone_path, 'r', encoding='utf-8') as f:
-        idx_to_zone = json.load(f)
-        
-    num_classes = len(idx_to_zone)
-    vocab_size = len(token_to_idx)
-
-    # 2. Load miniBabel (Champion)
-    babel_path = "/tmp/pienza_models/babel.pth"
-    download_from_gcs(BUCKET_NAME, "260422_pienza_babel_champion.pth", babel_path)
-    
-    minibabel = ZoneClassifierTransformer(vocab_size=vocab_size, num_classes=num_classes)
-    minibabel.load_state_dict(torch.load(babel_path, map_location="cpu"))
-    minibabel.eval()
-
-    # 3. Load miniBETO (Heavyweight - FP16)
-    beto_path = "/tmp/pienza_models/beto.pth"
-    download_from_gcs(BUCKET_NAME, "260422_pienza_babel_beto_fp16.pth", beto_path)
-    
-    tokenizer = AutoTokenizer.from_pretrained("dccuchile/bert-base-spanish-wwm-cased")
-    minibeto = BETOWithCustomHead("dccuchile/bert-base-spanish-wwm-cased", num_classes=num_classes)
-    
-    # Load the FP16 weights, but cast to float32 for stable CPU inference in Streamlit
-    minibeto.load_state_dict(torch.load(beto_path, map_location="cpu"))
-    minibeto.float() 
-    minibeto.eval()
-    
-    return minibabel, minibeto, tokenizer, token_to_idx, idx_to_zone
-
-# ==========================================
-# INFERENCE LOGIC
+# INFERENCE LOGIC (Google Maps)
 # ==========================================
 def get_google_maps_latency(address: str):
     api_key = st.secrets.get("GCP_API_KEY", "")
@@ -184,23 +72,30 @@ def get_google_maps_latency(address: str):
         return "Network Timeout", (time.perf_counter() - start_time) * 1000
 
 # ==========================================
-# UI RENDERING
+# UI RENDERING & ENGINE INITIALIZATION
 # ==========================================
 # Initialize session state for address logging
 if 'address_history' not in st.session_state:
     st.session_state['address_history'] = []
 
 st.title("⚡ The O(1) Engine Room")
+
 # --- MANUAL CACHE OVERRIDE ---
 if st.button("🔄 Force Clear Cache", type="secondary"):
     st.cache_resource.clear()
     st.cache_data.clear()
     st.success("RAM cleared! Click 'Execute Pipeline' to pull fresh models.")
     st.rerun()
+
 st.markdown("Benchmarking the Latency-Precision Frontier. Watch the architectural trade-offs unfold in real-time.")
 
+# ==========================================
+# AQUÍ VA LA CARGA DE MODELOS (Ya conectada)
+# ==========================================
 try:
-    minibabel, minibeto, beto_tokenizer, token_to_idx, idx_to_zone = load_cloud_assets()
+    # Llamamos a las funciones del cliente. ¡Carga en 0ms gracias al hilo de fondo!
+    minibabel, token_to_idx, idx_to_zone = load_fast_assets()
+    minibeto, beto_tokenizer = load_heavy_assets(num_classes=len(idx_to_zone))
     st.success("✅ Neural Engines Armed and Loaded from GCS.")
 except Exception as e:
     st.error(f"⚠️ Cloud Asset Load Failed: {e}. Check your GCP Client and Bucket Name.")
@@ -319,4 +214,18 @@ else:
     st.info("The Engine Room is idling. Execute the pipeline to populate the audit log.")
 
 st.divider()
-st.info(f""" log of all adresses inputed in the end; map P_ to its semantic zone; map displaying the points of the resuls, etc """)
+st.info(f""" map displaying the points of the resuls, Sugiero esto: 
+
+
+
+top 5 HITT top 5 miss miniBETO
+
+top 5 HITT top 5 miss miniBabel
+
+
+
+y luego usando un RANDOM del holdout test, continuamos con el pipeline que ya tenemos de 
+
+GOOGLE vs beto vs babel
+
+ """)
