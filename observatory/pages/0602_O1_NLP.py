@@ -132,7 +132,7 @@ def load_cloud_assets():
     token_path = "/tmp/pienza_models/token_to_idx.json"
     zone_path = "/tmp/pienza_models/idx_to_zone.json"
     download_from_gcs(BUCKET_NAME, "260422_token_to_idx.json", token_path)
-    download_from_gcs(BUCKET_NAME, "260422_idx_to_zone.json", zone_path)
+    download_from_gcs(BUCKET_NAME, "260423__idx_to_zone_to_semantics.json", zone_path)
     
     with open(token_path, 'r', encoding='utf-8') as f:
         token_to_idx = json.load(f)
@@ -191,6 +191,12 @@ if 'address_history' not in st.session_state:
     st.session_state['address_history'] = []
 
 st.title("⚡ The O(1) Engine Room")
+# --- MANUAL CACHE OVERRIDE ---
+if st.button("🔄 Force Clear Cache", type="secondary"):
+    st.cache_resource.clear()
+    st.cache_data.clear()
+    st.success("RAM cleared! Click 'Execute Pipeline' to pull fresh models.")
+    st.rerun()
 st.markdown("Benchmarking the Latency-Precision Frontier. Watch the architectural trade-offs unfold in real-time.")
 
 try:
