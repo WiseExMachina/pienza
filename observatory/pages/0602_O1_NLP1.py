@@ -4,6 +4,13 @@ import requests
 import regex as re
 import unicodedata
 import torch
+import pydeck as pdk
+import json
+import random
+import io
+from google.cloud import storage
+from pathlib import Path
+import pandas as pd
 
 # IMPORTAMOS DEL BACKEND
 from utils.gcp_client import load_fast_assets, load_heavy_assets
@@ -12,6 +19,39 @@ from utils.gcp_client import load_fast_assets, load_heavy_assets
 # PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon="⚡", layout="wide")
+
+# ==========================================
+# FUNCIÓN: CARGA DE ASSETS (LA QUE FALTABA)
+# ==========================================
+@st.cache_data
+def load_production_assets():
+    """Jala la malla soberana y el test set directamente de la nube y local."""
+    # A. Ruta al GeoJSON Local
+    geojson_path = Path(__file__).resolve().parent.parent / "assets" / "poly.geojson"
+    with open(geojson_path, "r", encoding="utf-8") as f:
+        geojson_data = json.load(f)
+    
+    # B. Conexión a GCS para CSVs
+    KEY_PATH = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
+    client = storage.Client.from_service_account_json(str(KEY_PATH))
+    bucket = client.bucket("pienza-streamlit")
+    
+    def get_gcs_df(blob_name):
+        blob = bucket.blob(blob_name)
+        buffer = io.BytesIO()
+        blob.download_to_file(buffer)
+        buffer.seek(0)
+        return pd.read_csv(buffer)
+
+    # Nombres exactos de tus archivos en el Bucket
+    df_h3 = get_gcs_df("260424_NLP_h3_machine_clusters.csv")
+    df_holdout_raw = get_gcs_df("260424_NLP_holdout_test_set.csv")
+    
+    # FILTRO DE SEGURIDAD
+    zonas_muertas = ['interlomas_magnocentro', 'san_miguel_chapultepec']
+    df_holdout = df_holdout_raw[~df_holdout_raw['true_zone_name'].isin(zonas_muertas)].copy()
+    
+    return geojson_data, df_h3, df_holdout
 
 # ==========================================
 # PHASE 2: LINGUISTIC PIPELINE (Hard-Cut)
@@ -90,18 +130,89 @@ if st.button("🔄 Force Clear Cache", type="secondary"):
 st.markdown("Benchmarking the Latency-Precision Frontier. Watch the architectural trade-offs unfold in real-time.")
 
 # ==========================================
-# AQUÍ VA LA CARGA DE MODELOS (Ya conectada)
+# 3. INITIALIZATION (NLP + SPATIAL)
 # ==========================================
 try:
-    # Llamamos a las funciones del cliente. ¡Carga en 0ms gracias al hilo de fondo!
+    # 1. Carga de Motores NLP (Singleton Cache)
     minibabel, token_to_idx, idx_to_zone = load_fast_assets()
     minibeto, beto_tokenizer = load_heavy_assets(num_classes=len(idx_to_zone))
-    st.success("✅ Neural Engines Armed and Loaded from GCS.")
+    
+    # 2. Carga de Activos de Producción (La función que pegaste en la Parte 1)
+    geojson_data, df_h3, df_holdout = load_production_assets()
+    
+    st.success("✅ Neural Engines & Spatial Sovereign Mesh Armed and Loaded.")
 except Exception as e:
-    st.error(f"⚠️ Cloud Asset Load Failed: {e}. Check your GCP Client and Bucket Name.")
+    st.error(f"🔴 Critical Load Failure: {e}")
     st.stop()
 
 st.divider()
+
+
+# ==========================================
+# 4. TOURNAMENT HIGHLIGHTS (HITS & MISSES)
+# ==========================================
+st.subheader("🏆 Tournament Highlights: Model Audit")
+st.markdown("Auditing **miniBabel** performance across the firewalled holdout set.")
+
+# Función auxiliar para auditoría rápida
+def get_audit_results(df_test, model, token_to_idx, idx_to_zone):
+    results = []
+    zombie_mapper = {
+        'cruce_echanove': 'carretera_al_olivo__carretera_libre__cruce_echanove__vistahermosa',
+        'santa_fe_patio': 'santa_fe_quintana__sante_fe_patio',
+        'vialidad_de_la_barranca': 'ave_club_de_golf_lomas__interlomas_magnocentro__vialidad_de_la_barranca',
+        'terminal_1_aicm': 'aicm_aeropuerto', 
+        'terminal_2_aicm': 'aicm_aeropuerto'
+    }
+    
+    # Tomamos una muestra representativa
+    sample_df = df_test.sample(min(100, len(df_test)))
+    
+    for _, row in sample_df.iterrows():
+        clean = standardize_mexico_city_address(row['raw_address'])
+        tokens = clean.split()
+        indices = [token_to_idx.get(t, token_to_idx.get('<unk>', 1)) for t in tokens]
+        indices = indices[:30] + [token_to_idx.get('<pad>', 0)] * max(0, 30 - len(indices))
+        
+        with torch.no_grad():
+            tensor_in = torch.tensor(indices).unsqueeze(0)
+            logits = model(tensor_in)
+            probs = torch.softmax(logits, dim=1)
+            conf, pred_idx = torch.max(probs, dim=1)
+        
+        # 1. Obtener predicción cruda
+        raw_pred = idx_to_zone.get(str(pred_idx.item()), 'Unknown')
+        
+        # 2. Aplicar mapper a AMBOS (Predicción y Verdad) para que coincidan
+        final_pred = zombie_mapper.get(raw_pred, raw_pred).strip().lower()
+        actual_truth = zombie_mapper.get(row['true_zone_name'], row['true_zone_name']).strip().lower()
+        
+        # 3. Comparación robusta
+        is_hit = (final_pred == actual_truth)
+        
+        results.append({
+            'Address': row['raw_address'][:40] + "...", # Recortado para la tabla
+            'True Zone': actual_truth,
+            'Predicted': final_pred,
+            'Conf': conf.item(),
+            'Status': '✅ HIT' if is_hit else '❌ MISS'
+        })
+    return pd.DataFrame(results)
+
+if st.button("📊 Run Precision Audit"):
+    df_res = get_audit_results(df_holdout, minibabel, token_to_idx, idx_to_zone)
+    col_h, col_m = st.columns(2)
+    with col_h:
+        st.write("**Top 5 Confidence Hits**")
+        st.dataframe(df_res[df_res['Status'] == '✅ HIT'].sort_values('Conf', ascending=False).head(5), hide_index=True)
+    with col_m:
+        st.write("**Toughest Strategic Misses**")
+        st.dataframe(df_res[df_res['Status'] == '❌ MISS'].sort_values('Conf', ascending=False).head(5), hide_index=True)
+
+st.divider()
+
+
+
 
 col_input, _ = st.columns([2, 1])
 with col_input:
