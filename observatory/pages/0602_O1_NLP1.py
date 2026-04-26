@@ -54,7 +54,7 @@ def load_production_assets():
         return pd.read_csv(buffer)
 
     # Carga del Master Mesh (H3) y Holdout
-    df_h3_master = get_gcs_df("260425_h3_sovereign_mesh_master.csv")
+    df_h3_master = get_gcs_df("260425_h3_coalesced.csv")
     df_h3_master['h3_index'] = df_h3_master['h3_index'].astype(str)
     
     df_holdout_raw = get_gcs_df("260424_NLP_holdout_test_set.csv")
@@ -488,3 +488,7 @@ if st.session_state['address_history']:
         st.session_state['address_history'] = []
         st.session_state.pop('active_scan', None)
         st.rerun()
+
+
+
+st.info("""generate random--- que cada boton solo altere su tabla, linguistic engineering -- ocupa mucho espacio, mapa -- que se vea cdmx, audit trail --mas plano y compacto otras columnas, ** el resultado de google maps tambien debe ser ofuscado los numeros **""") 
