@@ -1,8 +1,5 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import threading
-from streamlit.runtime.scriptrunner import add_script_run_ctx
-from utils.gcp_client import load_fast_assets
 
 # --- 1. CANONICAL CONFIGURATION ---
 st.set_page_config(
@@ -10,27 +7,6 @@ st.set_page_config(
     page_title="Project Pienza | Digital Twin",
     page_icon="🛰️"
 )
-
-# ==========================================
-# ASYNC CACHE WARMING (Fire & Forget)
-# ==========================================
-def pre_warm_engines():
-    """Silently loads O(1) models into server RAM in the background."""
-    try:
-        load_fast_assets()
-    except Exception as e:
-        print(f"Background warming failed: {e}")
-
-# Only trigger the thread ONCE per session
-if 'engines_warming' not in st.session_state:
-    st.session_state['engines_warming'] = True
-    
-    warmup_thread = threading.Thread(target=pre_warm_engines)
-    add_script_run_ctx(warmup_thread) # Attaches Streamlit context to the thread
-    warmup_thread.start()
-    
-    # Optional: A subtle notification so recruiters know you did something cool
-    st.toast("⚡ O(1) Neural Engines warming up in the background...", icon="🤖")
 
 # Custom CSS for "Industrial-Grade" Paper Look
 st.markdown("""
