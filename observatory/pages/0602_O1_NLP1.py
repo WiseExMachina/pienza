@@ -19,15 +19,29 @@ from utils.gcp_client import load_babel_assets
 st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon="⚡", layout="wide")
 
 # ==========================================
+# 0. SESSION STATE INITIALIZATION (THE ANCHOR)
+# ==========================================
+if 'address_history' not in st.session_state:
+    st.session_state['address_history'] = []
+
+if 'hits_view' not in st.session_state: 
+    st.session_state['hits_view'] = 'top'
+
+if 'misses_view' not in st.session_state: 
+    st.session_state['misses_view'] = 'top'
+
+# ==========================================
 # FUNCIÓN: CARGA DE ASSETS
 # ==========================================
 @st.cache_data
 def load_production_assets():
     """Jala la malla soberana y el test set directamente de la nube y local."""
+    # A. Ruta al GeoJSON Local
     geojson_path = Path(__file__).resolve().parent.parent / "assets" / "poly.geojson"
     with open(geojson_path, "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
     
+    # B. Conexión a GCS
     KEY_PATH = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
     client = storage.Client.from_service_account_json(str(KEY_PATH))
     bucket = client.bucket("pienza-streamlit")
@@ -39,13 +53,17 @@ def load_production_assets():
         buffer.seek(0)
         return pd.read_csv(buffer)
 
-    df_h3 = get_gcs_df("260424_NLP_h3_machine_clusters.csv")
+    # Carga del Master Mesh (H3) y Holdout
+    df_h3_master = get_gcs_df("260425_h3_sovereign_mesh_master.csv")
+    df_h3_master['h3_index'] = df_h3_master['h3_index'].astype(str)
+    
     df_holdout_raw = get_gcs_df("260424_NLP_holdout_test_set.csv")
     
+    # FILTRO DE SEGURIDAD
     zonas_muertas = ['interlomas_magnocentro', 'san_miguel_chapultepec']
     df_holdout = df_holdout_raw[~df_holdout_raw['true_zone_name'].isin(zonas_muertas)].copy()
     
-    return geojson_data, df_h3, df_holdout
+    return geojson_data, df_h3_master, df_holdout
 
 @st.cache_data(show_spinner="Syncing Parity Ledger from GCS...")
 def load_parity_audit():
@@ -107,117 +125,119 @@ def get_google_maps_latency(address: str):
 # ==========================================
 # NUEVO: MOTOR DEL MAPA (Colócalo aquí)
 # ==========================================
-def render_sovereign_map(pred_name, true_name, google_coords, df_h3, geojson_data):
+def render_sovereign_map(pred_name, true_name, google_coords, df_h3_master, geojson_data):
     import pydeck as pdk
     import copy
 
-    # --- 1. CONFIGURACIÓN DE COLORES (RGBA) ---
-    GHOST_POLY = [60, 60, 60, 40]       # Gris/Teal desaturado para lo que no es foco
-    GHOST_HEX  = [40, 40, 40, 30]       # Hexágonos casi invisibles
-    
-    COLOR_TRUTH = [255, 255, 255, 220]  # Blanco Brillante (Ground Truth)
-    COLOR_HIT   = [76, 232, 215, 255]   # Teal Eléctrico (Acierto)
-    COLOR_MISS  = [255, 75, 75, 255]    # Rojo Intenso (Fallo IA)
-    COLOR_GOOGLE = [255, 200, 0, 255]   # Amarillo/Oro (Ubicación Geocodificada)
-
+    # --- 1. NORMALIZACIÓN Y EXPLOSIÓN ---
     def norm(t):
         if not t: return ""
         t = "".join(c for c in unicodedata.normalize('NFKD', str(t).lower()) if not unicodedata.combining(c))
         return re.sub(r'[^a-z0-9]', '', t)
 
-    t_clean = norm(true_name)
-    p_clean = norm(pred_name)
-    is_hit = (t_clean == p_clean)
+    def explode_and_norm(name_string):
+        if not name_string: return set()
+        # Divide por "__" y normaliza cada parte
+        return {norm(p) for p in str(name_string).split("__")}
 
-    # --- 2. PROCESAR POLÍGONOS (BASE HUMANA) ---
+    true_set = explode_and_norm(true_name)
+    pred_set = explode_and_norm(pred_name)
+    is_hit = (norm(true_name) == norm(pred_name))
+
+    # --- 2. CONFIGURACIÓN DE COLORES (RGBA) ---
+    GHOST_POLY = [60, 60, 60, 40]       # Fondo oscuro
+    GHOST_HEX  = [40, 40, 40, 30]       # Hexágonos apagados
+    COLOR_HIT  = [76, 232, 215, 255]    # Teal Brillante (Hit)
+    COLOR_MISS = [255, 75, 75, 255]     # Rojo Intenso (Miss)
+    COLOR_GOOGLE = [255, 200, 0, 255]   # Amarillo (Pin)
+
+    # --- 3. PROCESAR POLÍGONOS ---
     geojson_copy = copy.deepcopy(geojson_data)
     for feature in geojson_copy['features']:
-        z_name = norm(feature['properties'].get('zone_name', ''))
-        if z_name == t_clean:
-            feature['properties']['fill_color'] = COLOR_HIT if is_hit else COLOR_TRUTH
-        elif z_name == p_clean:
+        props = feature['properties']
+        raw_name = props.get('zone_name') or props.get('Name') or props.get('name')
+        z_name_norm = norm(raw_name)
+        
+        # Lógica: Si el polígono es parte del grupo objetivo, se ilumina
+        if z_name_norm in true_set:
+            feature['properties']['fill_color'] = COLOR_HIT if is_hit else COLOR_HIT
+        elif z_name_norm in pred_set and not is_hit:
             feature['properties']['fill_color'] = COLOR_MISS
         else:
             feature['properties']['fill_color'] = GHOST_POLY
 
-    # --- 3. PROCESAR HEXÁGONOS (BASE IA) ---
-    df_h3_copy = df_h3.copy()
-    def assign_hex_color(row_name):
-        row_clean = norm(row_name)
-        if row_clean == t_clean:
-            return COLOR_HIT if is_hit else COLOR_TRUTH
-        elif row_clean == p_clean:
-            return COLOR_MISS
-        else:
-            return GHOST_HEX
-    df_h3_copy['fill_color'] = df_h3_copy['final_zone_name'].apply(assign_hex_color)
+    # --- 4. PROCESAR HEXÁGONOS (H3) ---
+    df_h3_copy = df_h3_master.copy()
+    
+    # Asegurar que h3_index sea string para evitar errores de render
+    df_h3_copy['h3_index'] = df_h3_copy['h3_index'].astype(str)
+    
+    def get_hex_color(row_name):
+        h_norm = norm(row_name)
+        if h_norm in true_set: return COLOR_HIT if is_hit else COLOR_HIT
+        if h_norm in pred_set and not is_hit: return COLOR_MISS
+        return GHOST_HEX
+            
+    df_h3_copy['fill_color'] = df_h3_copy['final_zone_name'].apply(get_hex_color)
 
-    # --- 4. CAPA DEL PIN DE GOOGLE ---
-    pin_layer = None
-    if google_coords:
-        pin_df = pd.DataFrame([google_coords])
-        pin_layer = pdk.Layer(
-            "ScatterplotLayer",
-            pin_df,
-            get_position=["lng", "lat"],
-            get_color=COLOR_GOOGLE,
-            get_radius=150,
-            pickable=True,
-        )
-
-    # --- 5. CONFIGURAR DECK ---
-    view_state = pdk.ViewState(
-        latitude=google_coords['lat'] if google_coords else 19.4288,
-        longitude=google_coords['lng'] if google_coords else -99.1747,
-        zoom=12, pitch=40 # Un poco de inclinación para el look 3D
-    )
-
+    # --- 5. CAPAS Y RENDER ---
     layers = [
         pdk.Layer(
             "GeoJsonLayer", geojson_copy, stroked=True, filled=True,
-            get_line_color=[255, 255, 255, 30], line_width_min_pixels=1,
+            get_line_color=[255, 255, 255, 50], line_width_min_pixels=1,
             get_fill_color="properties.fill_color",
         ),
         pdk.Layer(
             "H3HexagonLayer", df_h3_copy, get_hexagon="h3_index",
             stroked=False, filled=True, get_fill_color="fill_color",
+            pickable=True
         )
     ]
-    if pin_layer: layers.append(pin_layer)
+    
+    if google_coords:
+        layers.append(pdk.Layer(
+            "ScatterplotLayer", pd.DataFrame([google_coords]),
+            get_position=["lng", "lat"], get_color=COLOR_GOOGLE,
+            get_radius=200, pickable=True,
+        ))
+
+    view_state = pdk.ViewState(
+        latitude=google_coords['lat'] if google_coords else 19.4288,
+        longitude=google_coords['lng'] if google_coords else -99.1747,
+        zoom=11.5, pitch=45
+    )
 
     st.pydeck_chart(pdk.Deck(
-        layers=layers,
-        initial_view_state=view_state,
+        layers=layers, initial_view_state=view_state,
         map_style="mapbox://styles/mapbox/dark-v11",
-        tooltip={"text": "Zone: {final_zone_name}\nGround Truth: " + true_name}
+        tooltip={"text": "Zone: {final_zone_name}"}
     ))
 
 # ==========================================
-# UI & ENGINE INITIALIZATION
+# 3. INITIALIZATION (NLP + SPATIAL)
 # ==========================================
-if 'address_history' not in st.session_state:
-    st.session_state['address_history'] = []
-
-st.title("⚡ The O(1) Engine Room")
-
-# --- MANUAL CACHE OVERRIDE ---
-if st.button("🔄 Force Clear Cache", type="secondary"):
-    st.cache_resource.clear()
-    st.cache_data.clear()
-    st.success("RAM cleared! Click 'Execute Pipeline' to pull fresh models.")
-    st.rerun()
-
-# --- INITIALIZATION ---
 try:
-    # 1. SOLO Babel (rápido)
-    minibabel, token_to_idx, idx_to_zone = load_babel_assets()
-    # 2. Activos de Producción y Auditoría
-    geojson_data, df_h3, df_holdout = load_production_assets()
-    df_audit = load_parity_audit()
-    st.success("✅ O(1) Neural Engine & Spatial Mesh Armed and Loaded.")
+    # 1. Carga de Motores NLP (Singleton Cache)
+    if 'minibabel' not in st.session_state:
+        st.session_state['minibabel'], st.session_state['token_to_idx'], st.session_state['idx_to_zone'] = load_babel_assets()
+    
+    # 2. Carga de Activos (Guardarlos en session_state para que vivan siempre)
+    if 'geojson_data' not in st.session_state:
+        st.session_state['geojson_data'], st.session_state['df_h3_master'], st.session_state['df_holdout'] = load_production_assets()
+        st.session_state['df_audit'] = load_parity_audit()
+        st.success("✅ Neural Engines & Spatial Sovereign Mesh Armed and Loaded.")
+
 except Exception as e:
     st.error(f"🔴 Critical Load Failure: {e}")
     st.stop()
+
+# Alias cortos para que tu código de abajo no truene
+minibabel = st.session_state['minibabel']
+token_to_idx = st.session_state['token_to_idx']
+idx_to_zone = st.session_state['idx_to_zone']
+geojson_data = st.session_state['geojson_data']
+df_h3_master = st.session_state['df_h3_master']
+df_audit = st.session_state['df_audit']
 
 st.divider()
 
@@ -347,7 +367,7 @@ if st.button("🎲 Generate & Execute Random Tournament Scan", type="primary", u
     clean_text, pipeline_steps = run_debug_pipeline(raw_address)
 
     # 3. EXECUTION: GOOGLE VS BABEL
-    gmap_res, gmap_lat = get_google_maps_latency(raw_address)
+    gmap_res, gmap_lat, gmap_coords = get_google_maps_latency(raw_address)
     
     start_babel = time.perf_counter()
     tokens = clean_text.split()
@@ -377,7 +397,7 @@ if st.button("🎲 Generate & Execute Random Tournament Scan", type="primary", u
         "obfuscated": obfuscate_urban_string(raw_address),
         "truth": true_name,
         "pipeline": pipeline_steps,
-        "gmaps": {"res": gmap_res, "lat": gmap_lat},
+        "gmaps": {"res": gmap_res, "lat": gmap_lat, "coords": gmap_coords},
         "babel": {"res": pred_name, "lat": babel_lat, "conf": conf.item(), "hit": is_hit}
     }
     
@@ -434,18 +454,22 @@ if 'active_scan' in st.session_state:
     # STEP 4: SPATIAL OVERLAY
     st.markdown("### 4. Spatial Sovereign Mesh (Neural Footprint)")
     
-    # Extraemos nombres limpios de los resultados
+    # Extraemos info necesaria
     current_pred = scan['babel']['res'].split(" (")[0]
     current_truth = scan['truth']
+    google_coords = scan['gmaps'].get('coords') # Asegúrate que esto se guarde en session_state
     
-    # Llamamos al nuevo motor
-    render_sovereign_map(current_pred, current_truth, df_h3, geojson_data)
+    render_sovereign_map(current_pred, current_truth, google_coords, df_h3_master, geojson_data)
     
-    # Leyenda dinámica
-    if scan['babel']['hit']:
-        st.caption(f"✨ **HIT Detected:** The entire region of **{current_pred}** is illuminated in Teal.")
-    else:
-        st.caption(f"❌ **MISS Audit:** Showing Ground Truth (**White**) vs. Neural Prediction (**Red**).")
+    # Leyenda explicativa
+    st.markdown(f"""
+    <div style="font-size: 12px; color: gray;">
+        🟡 <b>Yellow Pin:</b> Geocoded Google Location<br>
+        ⚪ <b>White Glow:</b> Target Ground Truth<br>
+        ✨ <b>Teal Glow:</b> Neural Hit (Correct Prediction)<br>
+        🔴 <b>Red Glow:</b> Neural Miss (Incorrect Prediction)
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ==========================================
