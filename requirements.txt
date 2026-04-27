@@ -17,9 +17,11 @@ requests
 scikit-learn>=1.3.0
 seaborn
 shapely
+shap
 streamlit
 streamlit-keplergl
 streamlit-pdf-viewer
+tensorflow-cpu
 torch
 transformers
 xgboost>=2.0.0

@@ -7,6 +7,8 @@ import json
 import torch
 import torch.nn as nn
 import math
+import tensorflow as tf
+import joblib
 
 # --- 1. HYGIENE & CONFIG ---
 # Eliminamos transformers porque ya no cargamos a la bestia de 110M de parámetros
@@ -122,3 +124,49 @@ def load_babel_assets():
     model.eval()
     
     return model, token_to_idx, idx_to_zone
+
+
+
+@st.cache_resource(show_spinner="Igniting the cGAN Forge (Downloading Artifacts)...")
+def load_cgan_assets():
+    """
+    Downloads and instantiates the Keras Generator, Scalers, Encoders, 
+    and Dimensional Dictionaries from GCS to local /tmp storage.
+    """
+    BUCKET_NAME = "pienza-streamlit" # Update if your bucket name is different
+    base_dir = "/tmp/pienza_models/cgan"
+    os.makedirs(base_dir, exist_ok=True)
+    
+    # --- 1. Define File Names ---
+    files = {
+        "model": "260426_pienza_generator_v8.keras",
+        "scaler": "260426_pienza_physics_scaler_v8.pkl",
+        "encoders": "260426_pienza_label_encoders_v8.pkl",
+        "dim_prod": "260426_cGAN_dim_product_hierarchy.parquet",
+        "dim_drop": "260426_cGAN_dim_dropoff_zone_dictionary.parquet",
+        "dim_pick": "260426_cGAN_dim_pickup_zone_dictionary.parquet"
+    }
+    
+    paths = {key: os.path.join(base_dir, fname) for key, fname in files.items()}
+    
+    # --- 2. Download from GCS (if not already in /tmp) ---
+    for key, fname in files.items():
+        if not os.path.exists(paths[key]):
+            download_from_gcs(BUCKET_NAME, fname, paths[key])
+            
+    try:
+        # --- 3. Load ML Intelligence ---
+        generator = tf.keras.models.load_model(paths["model"])
+        physics_scaler = joblib.load(paths["scaler"])
+        label_encoders = joblib.load(paths["encoders"])
+        
+        # --- 4. Load Semantic Dictionaries ---
+        dim_prod = pd.read_parquet(paths["dim_prod"])
+        dim_drop = pd.read_parquet(paths["dim_drop"])
+        dim_pick = pd.read_parquet(paths["dim_pick"])
+        
+        return generator, physics_scaler, label_encoders, dim_prod, dim_drop, dim_pick
+        
+    except Exception as e:
+        st.error(f"Critical failure loading cGAN artifacts: {e}")
+        return None, None, None, None, None, None
