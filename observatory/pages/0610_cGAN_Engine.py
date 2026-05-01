@@ -10,7 +10,7 @@ from utils.gcp_client import load_cgan_assets
 from utils.bq_client import fetch_data_from_bq
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="cGAN Engine | Pienza", page_icon="🏭", layout="wide")
+st.set_page_config(page_title="cGAN Engine | Pienza", page_icon="🏭", layout="wide", initial_sidebar_state="collapsed")
 
 # --- CUSTOM CSS ---
 st.markdown("""
@@ -19,16 +19,17 @@ st.markdown("""
     html, body, [class*="css"]  { font-family: 'Inter', sans-serif; }
     h1, h2, h3 { font-family: 'Libre+Baskerville', serif !important; color: #1E3D3D; }
     .metric-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #440154; }
+    /* Hide the sidebar completely for VVS1 UX */
+    [data-testid="collapsedControl"] { display: none; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🏭 The cGAN Engine (Invisible Backend)")
 st.markdown("""
 Welcome to the Generative Forge. This engine bypasses pre-computed tables, allowing you to synthesize 
-**net-new, hyper-realistic ride-hailing demand** on the fly. The neural network generates the physical forces 
-(Fare, Time, Distance), while the deterministic downscaler ensures topological precision at the neighborhood level.
+**net-new, hyper-realistic ride-hailing demand** on the fly. Set your market regime below, and the neural network 
+will hallucinate the physical forces (Fare, Time, Distance) that obey those exact constraints.
 """)
-
 st.markdown("---")
 
 # ==============================================================================
@@ -46,62 +47,139 @@ SWITCH_COLS = ['hour_of_day', 'day_of_week', 'product_category_fk', 'dropoff_zon
 PHYSICS_COLS = ['upfront_fare', 'est_trip_time_sec', 'est_trip_dist_km', 'time_to_pickup_sec', 'dist_to_pickup_km']
 PROJECT_ID = "drivers-dilemma" # Ensure this matches your BQ project
 
-# ==============================================================================
-# 2. SIDEBAR CONTROLS
-# ==============================================================================
-with st.sidebar:
-    st.header("⚙️ Forge Parameters")
-    st.markdown("Set the synthesis volume. *Minimum 10,000 trips required to maintain mathematical integrity during downscaling.*")
-    
-    n_trips = st.slider("Target Volume (N)", min_value=10000, max_value=250000, step=10000, value=50000)
-    
-    st.markdown("---")
-    ignite_forge = st.button("🔥 IGNITE THE FORGE", use_container_width=True, type="primary")
 
 # ==============================================================================
-# 3. THE INVISIBLE BACKEND (EXECUTION)
+# 2. EXTRACT SWITCHES & SEMANTIC MAPPING
+# ==============================================================================
+# Extract exact classes the model was trained on
+days_pool = list(label_encoders['day_of_week'].classes_)
+hours_pool = list(label_encoders['hour_of_day'].classes_)
+products_pool = list(label_encoders['product_category_fk'].classes_)
+
+# Extract Zones, explicitly dropping 'unassigned_area'
+pickups_pool = [z for z in label_encoders['pickup_zone_id'].classes_ if 'unassigned' not in str(z).lower()]
+dropoffs_pool = [z for z in label_encoders['dropoff_zone_id'].classes_ if 'unassigned' not in str(z).lower()]
+
+# Build Semantic Dictionaries for the UI (ID -> Human Name)
+# Adjust the column names below if your parquet dictionaries use slightly different column headers!
+try:
+    dict_pick = dict(zip(dim_pick['pickup_id_GAN'], dim_pick['pickup_name_down']))
+    dict_drop = dict(zip(dim_drop['dropoff_id_GAN'], dim_drop['dropoff_name_down']))
+except KeyError:
+    # Safe fallback just in case the column names vary
+    dict_pick = {k: str(k).replace("P_", "Zone ") for k in pickups_pool}
+    dict_drop = {k: str(k).replace("C_", "Zone ") for k in dropoffs_pool}
+
+def format_pickup(zone_id): return dict_pick.get(zone_id, zone_id)
+def format_dropoff(zone_id): return dict_drop.get(zone_id, zone_id)
+
+# ==============================================================================
+# 3. VVS1 MAIN UI CONTROLS (CLEAN UX)
+# ==============================================================================
+st.markdown("### 🎛️ Market Regime Switches")
+
+# Row 1: Time & Product
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    all_days = st.toggle("🗓️ All Days", value=True)
+    sel_days = days_pool if all_days else st.multiselect("Select Days", days_pool, default=['Friday'])
+
+with c2:
+    all_hours = st.toggle("⏰ All Hours", value=True)
+    sel_hours = hours_pool if all_hours else st.multiselect("Select Hours", hours_pool, default=[18, 19, 20])
+
+with c3:
+    all_products = st.toggle("🚗 All Products", value=True)
+    sel_products = products_pool if all_products else st.multiselect("Select Products", products_pool, default=['UberX'])
+
+st.write("") # Spacing
+
+# Row 2: Geospatial
+c4, c5 = st.columns(2)
+
+with c4:
+    all_pickups = st.toggle("📍 All Pickup Zones", value=True)
+    sel_pickups = pickups_pool if all_pickups else st.multiselect("Select Pickups", pickups_pool, format_func=format_pickup)
+
+with c5:
+    all_dropoffs = st.toggle("🏁 All Dropoff Zones", value=True)
+    sel_dropoffs = dropoffs_pool if all_dropoffs else st.multiselect("Select Dropoffs", dropoffs_pool, format_func=format_dropoff)
+
+st.markdown("---")
+st.markdown("### ⚙️ Production Constraints")
+n_trips = st.slider(
+    "Target Volume (N)", 
+    min_value=10000, max_value=250000, step=10000, value=50000, 
+    help="Minimum 10,000 trips required to maintain mathematical integrity during the deterministic micro-downscaling."
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+ignite_forge = st.button("🔥 IGNITE THE FORGE", use_container_width=True, type="primary")
+
+# --- Safety Check: Ensure no switch is completely empty ---
+if ignite_forge:
+    if not all([sel_days, sel_hours, sel_products, sel_pickups, sel_dropoffs]):
+        st.warning("⚠️ **Generative Starvation Risk:** You must have at least one option selected in every active switch box. The generator cannot synthesize a reality out of nothing.")
+        st.stop()
+
+
+
+# ==============================================================================
+# 4. THE INVISIBLE BACKEND (EXECUTION)
 # ==============================================================================
 if ignite_forge:
     start_time = time.time()
+    
+    # Helper to format SQL IN clauses
+    def format_sql_list(lst):
+        return ", ".join([f"'{str(x)}'" for x in lst])
     
     # ---------------------------------------------------------
     # STEP A: Fetch Contextual Seeds
     # ---------------------------------------------------------
     with st.status("Initiating Pienza Pipeline...", expanded=True) as status:
         
-        st.write("📡 Fetching contextual seeds from BigQuery...")
-        # Query a random sample of actual contexts to feed the Generator
+        st.write("📡 Fetching contextual seeds from BigQuery based on your switches...")
+        
+        # We fetch reason_primary_fk naturally, without filtering it in the WHERE clause
         query_seeds = f"""
             SELECT hour_of_day, day_of_week, product_category_fk, 
                    pickup_id_GAN AS pickup_zone_id, dropoff_id_GAN AS dropoff_zone_id, reason_primary_fk
             FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled`
+            WHERE day_of_week IN ({format_sql_list(sel_days)})
+              AND CAST(hour_of_day AS STRING) IN ({format_sql_list(sel_hours)})
+              AND product_category_fk IN ({format_sql_list(sel_products)})
+              AND pickup_id_GAN IN ({format_sql_list(sel_pickups)})
+              AND dropoff_id_GAN IN ({format_sql_list(sel_dropoffs)})
             ORDER BY RAND() 
             LIMIT {n_trips}
         """
         df_context = fetch_data_from_bq(query_seeds)
         
-        # Check if query returned data
         if df_context.empty:
-            status.update(label="Failed to fetch seeds from BigQuery.", state="error")
+            status.update(label="No seeds found in BigQuery for that specific combination. Broaden your switches.", state="error")
             st.stop()
+
+        # If we got fewer rows than requested (because the niche is too narrow), duplicate them to hit N
+        if len(df_context) < n_trips:
+            st.write(f"⚠️ Niche regime detected (Found {len(df_context)} seeds). Oversampling to reach {n_trips:,}...")
+            df_context = df_context.sample(n=n_trips, replace=True).reset_index(drop=True)
 
         # ---------------------------------------------------------
         # STEP B: Neural Synthesis (Keras)
         # ---------------------------------------------------------
         st.write("🧠 Synthesizing physical reality via Keras Generator...")
         
-        # Encode contexts for the model
         encoded_inputs = []
         for col in SWITCH_COLS:
             le = label_encoders[col]
-            # Handle unseen labels gracefully, though sampling from the same table should prevent this
             known_classes = set(le.classes_)
             safe_data = df_context[col].astype(str).apply(lambda x: x if x in known_classes else le.classes_[0])
             encoded_inputs.append(tf.convert_to_tensor(le.transform(safe_data).reshape(-1, 1), dtype=tf.float32))
             
         noise = tf.random.normal([n_trips, LATENT_DIM])
         
-        # Inference!
         fake_physics = generator([noise] + encoded_inputs, training=False)
         df_synth_physics = pd.DataFrame(fake_physics.numpy(), columns=PHYSICS_COLS)
         
@@ -111,11 +189,9 @@ if ignite_forge:
         st.write("📏 Denormalizing physical limits and executing Log-Inversions...")
         df_synth_physics[PHYSICS_COLS] = physics_scaler.inverse_transform(df_synth_physics[PHYSICS_COLS])
         
-        # Invert Logarithms for Fare and Distance (Based on Notebook 6.11 logic)
         df_synth_physics['upfront_fare'] = np.expm1(df_synth_physics['upfront_fare'])
         df_synth_physics['est_trip_dist_km'] = np.expm1(df_synth_physics['est_trip_dist_km'])
         
-        # Combine Context and Physics
         df_manifold = pd.concat([df_context.reset_index(drop=True), df_synth_physics.reset_index(drop=True)], axis=1)
         
         # ---------------------------------------------------------
@@ -138,7 +214,7 @@ if ignite_forge:
         df_hist_dropoffs = fetch_data_from_bq(query_dropoffs)
         
         # ---------------------------------------------------------
-        # STEP E: The Downscaling Math (Outer Join + Rounding)
+        # STEP E: The Downscaling Math
         # ---------------------------------------------------------
         st.write("⚖️ Executing deterministic downscaling math...")
         
@@ -149,10 +225,8 @@ if ignite_forge:
         gan_p = df_manifold.groupby('pickup_zone_id').size().reset_index(name='gan_pickups')
         downscale_p = pd.merge(df_hist_pickups, gan_p, on='pickup_zone_id', how='outer').fillna({'weight': 1.0, 'gan_pickups': 0})
         downscale_p['pickup_micro_name'] = downscale_p['pickup_micro_name'].fillna(downscale_p['pickup_zone_id'])
-        
         downscale_p['micro_gan_pickups'] = (downscale_p['gan_pickups'] * downscale_p['weight']).round(0).astype(int)
         
-        # Adjust Rounding Deltas
         diff_p = int(n_trips - downscale_p['micro_gan_pickups'].sum())
         if diff_p != 0:
             max_idx = downscale_p['micro_gan_pickups'].idxmax()
@@ -165,7 +239,6 @@ if ignite_forge:
         gan_d = df_manifold.groupby('dropoff_zone_id').size().reset_index(name='gan_dropoffs')
         downscale_d = pd.merge(df_hist_dropoffs, gan_d, on='dropoff_zone_id', how='outer').fillna({'weight': 1.0, 'gan_dropoffs': 0})
         downscale_d['dropoff_micro_name'] = downscale_d['dropoff_micro_name'].fillna(downscale_d['dropoff_zone_id'])
-        
         downscale_d['micro_gan_dropoffs'] = (downscale_d['gan_dropoffs'] * downscale_d['weight']).round(0).astype(int)
         
         diff_d = int(n_trips - downscale_d['micro_gan_dropoffs'].sum())
@@ -178,11 +251,9 @@ if ignite_forge:
         # ---------------------------------------------------------
         st.write("💉 Injecting semantic identities into the final manifold...")
         
-        # Create Pools
         p_pool = downscale_p.loc[downscale_p.index.repeat(downscale_p['micro_gan_pickups'])][['pickup_zone_id', 'pickup_micro_name']].sample(frac=1).reset_index(drop=True)
         d_pool = downscale_d.loc[downscale_d.index.repeat(downscale_d['micro_gan_dropoffs'])][['dropoff_zone_id', 'dropoff_micro_name']].sample(frac=1).reset_index(drop=True)
         
-        # Sort to map safely, inject, then shuffle
         df_manifold = df_manifold.sort_values('pickup_zone_id').reset_index(drop=True)
         p_pool = p_pool.sort_values('pickup_zone_id').reset_index(drop=True)
         df_manifold['pickup_name_down'] = p_pool['pickup_micro_name'].values
@@ -191,13 +262,12 @@ if ignite_forge:
         d_pool = d_pool.sort_values('dropoff_zone_id').reset_index(drop=True)
         df_manifold['dropoff_name_down'] = d_pool['dropoff_micro_name'].values
         
-        # Final Shuffle
         df_manifold = df_manifold.sample(frac=1).reset_index(drop=True)
         
         status.update(label=f"Synthesis Complete! {n_trips:,} trips generated.", state="complete", expanded=False)
         
     # ==============================================================================
-    # 4. RESULTS & DASHBOARD
+    # 5. RESULTS & DASHBOARD
     # ==============================================================================
     st.success(f"Successfully minted **{n_trips:,}** hyper-realistic trips in {time.time() - start_time:.2f} seconds.")
     
@@ -220,14 +290,37 @@ if ignite_forge:
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("### 🧬 Synthetic Manifold (Sample View)")
-    # Show user-friendly columns first
     display_cols = ['pickup_name_down', 'dropoff_name_down', 'upfront_fare', 'est_trip_dist_km', 'time_to_pickup_sec', 'hour_of_day']
     st.dataframe(df_manifold[display_cols].head(50), use_container_width=True)
     
     st.markdown("### 📊 Topological Gravity (Top Micro-Destinations)")
-    # Simple bar chart of top destinations
     top_destinations = df_manifold['dropoff_name_down'].value_counts().head(15)
     st.bar_chart(top_destinations, color="#21918c")
 
-    st.info("""If I request 1 offer only with certain characteristics, how does the generator decide which one to throw at me?Is it the same (or different) to request the same offer 1 million times sequentially, versus giving me a million of the same offer in one single request batch?Is it just a "random offer" from the distribution, meaning the generator does not keep track of what I have requested in the past to make sure I get the full distribution or the whole spectrum of the marketplace?What is the minimum sample size that approximates that perfect bell curve (the Law of Large Numbers convergence) we talked about?Is the cGAN related to a Markov Chain in any way (e.g., the "canicas in a sack" analogy with sequential states and replacement)?What are the philosophical and mathematical terms that distinguish classical statistics (predicting $Y$ / the past) from generative models (creating the future)?How do veteran classical statisticians react to cGANs, and what is the actual proficiency level of academia and ML practitioners regarding generative tabular models?""")
-    
+    # ==============================================================================
+    # 6. THE PHILOSOPHY OF THE cGAN (THEORY VAULT)
+    # ==============================================================================
+    st.markdown("---")
+    with st.expander("📖 The Philosophy of the cGAN (Under the Hood)"):
+        st.markdown("""
+        **1. If I request 1 offer only with certain characteristics, how does the generator decide which one to throw at me?**  
+        It doesn't "pick" an offer; it *synthesizes* one. The engine maps your constraints (e.g., 8:00 AM, UberX) alongside a 100-dimensional vector of pure mathematical noise. This noise collapses a wave of infinite possibilities into a single, concrete reality that obeys the physics of the Mexico City market.
+
+        **2. Is it the same to request the same offer 1 million times sequentially, versus giving me a million of the same offer in one single request batch?**  
+        Sequential requests take time because of network I/O, but batch requests process almost instantly through parallel matrix multiplication in the neural network. As you saw, synthesizing 50,000 trips takes mere seconds. 
+
+        **3. Is it just a "random offer" from the distribution, meaning the generator does not keep track of what I have requested in the past?**  
+        Exactly. The cGAN is completely Stateless (*Independent and Identically Distributed*). Trip #500 has absolutely zero knowledge of Trip #499. It drops 50,000 balls down a Plinko board simultaneously. 
+
+        **4. What is the minimum sample size that approximates that perfect bell curve (the Law of Large Numbers)?**  
+        To ensure the deterministic downscaling math doesn't break and the true topological distributions reveal themselves, the engine requires a minimum of **10,000** trips per run. 
+
+        **5. Is the cGAN related to a Markov Chain in any way (e.g., the "canicas in a sack" analogy)?**  
+        No. They are mathematical opposites. A Markov Chain models a sequential journey through time (where you go next depends on where you are now). The cGAN is an instantaneous snapshot of the entire marketplace frozen in time. To simulate an autonomous fleet, we use the cGAN to *build* the environment, and a Markov Decision Process (MDP) to *route* through it.
+
+        **6. What are the philosophical and mathematical terms that distinguish classical statistics from generative models?**  
+        Classical statistics (like our Phase 4 XGBoost) uses an **Analytic/Discriminative** approach: it predicts the past/present by drawing a boundary ($P(Y|X)$). Generative models use a **Synthetic/Generative** approach: they actualize the future by learning the joint distribution of everything ($P(X,Y)$) to create realities from scratch.
+
+        **7. How do veteran classical statisticians react to cGANs, and what is the actual proficiency level in the industry?**  
+        Classical statisticians often view them with skepticism because they lack P-Values and unbiased estimators (the "Black Box" problem). Furthermore, while the industry widely uses generative models for pixels and text, building a tabular cGAN that perfectly mimics the rigid physics of urban logistics is a highly specialized, rare capability. 
+        """)
