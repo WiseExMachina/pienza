@@ -21,3 +21,17 @@ statsmodels
 # Jupyter Helpers
 ipykernel
 ipywidgets
+
+
+
+pandas
+numpy
+matplotlib
+seaborn
+sqlalchemy
+plotly
+nbformat
+google-cloud-storage
+google-cloud-bigquery
+pandas-gbq
+pyarrow
