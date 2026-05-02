@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+bin/
+lib/
+develop-eggs/
+dist/
+eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+checkpoint_*.ipynb
+
+# Data and Large Files (Crucial for DS)
+*.csv
+*.parquet
+*.jsonl
+*.zip
+*.gz
+*.weights
+*.h5
+*.pkl
+*.npy
+
+# LaTeX
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.pdf
+
+# Environment
+.env
+.devcontainer/
+
+
+basic_commands.md
