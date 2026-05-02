@@ -35,3 +35,6 @@ google-cloud-storage
 google-cloud-bigquery
 pandas-gbq
 pyarrow
+hdbscan
+alphashape 
+geopandas
