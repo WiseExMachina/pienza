@@ -1,0 +1,23 @@
+# Core Data Science
+pandas
+numpy
+scipy
+sqlalchemy
+
+# Visualization
+matplotlib
+seaborn
+
+# Geospatial Engine
+geopandas
+contextily
+pyproj
+shapely
+
+# ML & Stats (Para las fases siguientes)
+scikit-learn
+statsmodels
+
+# Jupyter Helpers
+ipykernel
+ipywidgets
