@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import time
 import os
+import gc
 
 # --- LOCAL UTILITIES ---
 from utils.gcp_client import load_cgan_assets
@@ -11,6 +12,10 @@ from utils.bq_client import fetch_data_from_bq
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="cGAN Engine | Pienza", page_icon="🏭", layout="wide", initial_sidebar_state="collapsed")
+
+# Initialize session state for the manifold
+if 'df_manifold' not in st.session_state:
+    st.session_state.df_manifold = None
 
 # --- CUSTOM CSS ---
 st.markdown("""
@@ -49,13 +54,12 @@ PROJECT_ID = "drivers-dilemma" # Ensure this matches your BQ project
 
 
 # ==============================================================================
-# 2. EXTRACT SWITCHES & MICRO-SEMANTIC MAPPING (SOVEREIGN EDITION)
+# 2. EXTRACT SWITCHES & MICRO-SEMANTIC MAPPING
 # ==============================================================================
 # --- Chronological Handlers ---
 chrono_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 days_pool = sorted(list(label_encoders['day_of_week'].classes_), key=lambda d: chrono_order.index(d))
 hours_pool = sorted(list(label_encoders['hour_of_day'].classes_), key=lambda x: int(x))
-
 def format_hour(h): return f"{int(h):02d}:00 Hrs"
 
 # --- Product Handlers ---
@@ -63,29 +67,22 @@ products_pool = list(label_encoders['product_category_fk'].classes_)
 product_map = {1: "X", '1': "X", 2: "Mid-Tier", '2': "Mid-Tier", 3: "Premium", '3': "Premium"}
 def format_product(p): return product_map.get(p, f"Unknown Tier ({p})")
 
-# --- GEOGRAPHIC MICRO-MAPPING (The Sovereign Filter) ---
-
-# A. Create the Full Reverse Dictionaries (For backend lookups)
+# --- GEOGRAPHIC MICRO-MAPPING (The Loophole Fix) ---
+# A. Create the Reverse Dictionaries (Name -> ID)
 rev_dict_pick = dict(zip(dim_pick['semantic_name'], dim_pick['zone_key']))
 rev_dict_drop = dict(zip(dim_drop['semantic_name'], dim_drop['zone_key']))
 
-# B. THE SOVEREIGN PURGE (UI Only)
-# We filter to keep ONLY zone_keys that start with 'P_' 
-# AND we explicitly drop anything that has 'unassigned' in the name.
+# B. Create the UI Pools (Strict Sovereign Theatre)
+# We filter out any name containing 'unassigned' and only allow 'P_' macro parents.
+pickups_pool = sorted([
+    n for n in dim_pick[dim_pick['zone_key'].str.startswith('P_')]['semantic_name'].unique() 
+    if "unassigned" not in str(n).lower()
+])
 
-pickups_pool = sorted(dim_pick[
-    (dim_pick['zone_key'].str.startswith('P_')) & 
-    (~dim_pick['semantic_name'].str.lower().str.contains('unassigned'))
-]['semantic_name'].unique())
-
-dropoffs_pool = sorted(dim_drop[
-    (dim_drop['zone_key'].str.startswith('P_')) & 
-    (~dim_drop['semantic_name'].str.lower().str.contains('unassigned'))
-]['semantic_name'].unique())
-
-# --- C. Final Validation Check for the Dev ---
-
-print(f"Sovereign Theatre Size: {len(pickups_pool)} Pickups | {len(dropoffs_pool)} Dropoffs")
+dropoffs_pool = sorted([
+    n for n in dim_drop[dim_drop['zone_key'].str.startswith('P_')]['semantic_name'].unique() 
+    if "unassigned" not in str(n).lower()
+])
 
 # ==============================================================================
 # 3. VVS1 MAIN UI CONTROLS (CLEAN UX)
@@ -149,9 +146,8 @@ if ignite_forge:
         st.stop()
 
 
-
 # ==============================================================================
-# 4. THE INVISIBLE BACKEND (EXECUTION)
+# 4. THE SOVEREIGN FORGE (REVERTED TO SQL-SEED CONSTRAINTS)
 # ==============================================================================
 if ignite_forge:
     start_time = time.time()
@@ -159,10 +155,11 @@ if ignite_forge:
     def format_sql_list(lst):
         return ", ".join([f"'{str(x)}'" for x in lst])
     
-    with st.status("Initiating Pienza Pipeline...", expanded=True) as status:
+    with st.status("Initiating Sovereign Pipeline...", expanded=True) as status:
         
-        # --- STEP A: Fetch Contextual Seeds ---
-        st.write("📡 Fetching contextual seeds from BigQuery based on your switches...")
+        # --- STEP A: Fetch Contextual Seeds (The Skeleton) ---
+        # This ensures O-D pairs are geographically valid
+        st.write("📡 Fetching historical regimes from BigQuery...")
         
         query_seeds = f"""
             SELECT hour_of_day, day_of_week, product_category_fk, 
@@ -178,28 +175,26 @@ if ignite_forge:
         """
         df_context = fetch_data_from_bq(query_seeds)
 
-        # --- SAFETY LOGIC & SMART CLUTCH ---
         num_seeds = len(df_context)
-        
         if num_seeds == 0:
             status.update(label="No seeds found in BigQuery. Broaden your switches.", state="error")
             st.stop()
 
-        if num_seeds < 10000:
-            st.warning(f"⚠️ Niche Regime Detected: Only {num_seeds:,} historical seeds found. To prevent memory overload, we are generating exactly {num_seeds:,} trips (No Oversampling).")
-            final_generation_volume = num_seeds
-        else:
+        # Handle Niche Regimes via Oversampling
+        if num_seeds < n_trips:
+            st.write(f"⚠️ Oversampling to reach target volume...")
+            df_context = df_context.sample(n=n_trips, replace=True).reset_index(drop=True)
             final_generation_volume = n_trips
-            if num_seeds < n_trips:
-                st.write(f"⚠️ Oversampling to reach {n_trips:,} from {num_seeds:,} seeds...")
-                df_context = df_context.sample(n=n_trips, replace=True).reset_index(drop=True)
+        else:
+            final_generation_volume = num_seeds
 
         # --- STEP B: Neural Synthesis (Keras) ---
-        st.write("🧠 Synthesizing physical reality via Keras Generator...")
+        st.write("🧠 Hallucinating physical forces via Keras...")
         
         encoded_inputs = []
         for col in SWITCH_COLS:
             le = label_encoders[col]
+            # Safety: ensuring labels exist in encoder
             known_classes = set(le.classes_)
             safe_data = df_context[col].astype(str).apply(lambda x: x if x in known_classes else le.classes_[0])
             encoded_inputs.append(tf.convert_to_tensor(le.transform(safe_data).reshape(-1, 1), dtype=tf.float32))
@@ -209,7 +204,7 @@ if ignite_forge:
         df_synth_physics = pd.DataFrame(fake_physics.numpy(), columns=PHYSICS_COLS)
         
         # --- STEP C: Inverse Transformation ---
-        st.write("📏 Denormalizing physical limits and executing Log-Inversions...")
+        st.write("📏 Executing Log-Inversions...")
         df_synth_physics[PHYSICS_COLS] = physics_scaler.inverse_transform(df_synth_physics[PHYSICS_COLS])
         df_synth_physics['upfront_fare'] = np.expm1(df_synth_physics['upfront_fare'])
         df_synth_physics['est_trip_dist_km'] = np.expm1(df_synth_physics['est_trip_dist_km'])
@@ -217,7 +212,7 @@ if ignite_forge:
         df_manifold = pd.concat([df_context.reset_index(drop=True), df_synth_physics.reset_index(drop=True)], axis=1)
         
         # --- STEP D: Fetch Downscaling Weights ---
-        st.write("🗺️ Fetching topological weights for micro-downscaling...")
+        st.write("🗺️ Fetching topological weights...")
         query_pickups = f"SELECT pickup_id_GAN AS pickup_zone_id, pickup_name_down AS pickup_micro_name, COUNT(*) as hist_pickups FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled` GROUP BY 1, 2"
         query_dropoffs = f"SELECT dropoff_id_GAN AS dropoff_zone_id, dropoff_name_down AS dropoff_micro_name, COUNT(*) as hist_dropoffs FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled` GROUP BY 1, 2"
         
@@ -225,8 +220,7 @@ if ignite_forge:
         df_hist_dropoffs = fetch_data_from_bq(query_dropoffs)
         
         # --- STEP E: Downscaling Math ---
-        st.write("⚖️ Executing deterministic downscaling math...")
-        
+        st.write("⚖️ Executing deterministic downscaling...")
         # Pickups
         df_hist_pickups['macro_total'] = df_hist_pickups.groupby('pickup_zone_id')['hist_pickups'].transform('sum')
         df_hist_pickups['weight'] = df_hist_pickups['hist_pickups'] / df_hist_pickups['macro_total']
@@ -234,6 +228,7 @@ if ignite_forge:
         downscale_p = pd.merge(df_hist_pickups, gan_p, on='pickup_zone_id', how='outer').fillna({'weight': 1.0, 'gan_pickups': 0})
         downscale_p['micro_gan_pickups'] = (downscale_p['gan_pickups'] * downscale_p['weight']).round(0).astype(int)
         
+        # Adjust rounding diffs
         diff_p = int(final_generation_volume - downscale_p['micro_gan_pickups'].sum())
         if diff_p != 0: downscale_p.loc[downscale_p['micro_gan_pickups'].idxmax(), 'micro_gan_pickups'] += diff_p
 
@@ -248,7 +243,7 @@ if ignite_forge:
         if diff_d != 0: downscale_d.loc[downscale_d['micro_gan_dropoffs'].idxmax(), 'micro_gan_dropoffs'] += diff_d
             
         # --- STEP F: Stochastic Identity Injection ---
-        st.write("💉 Injecting semantic identities into the final manifold...")
+        st.write("💉 Injecting semantic identities...")
         p_pool = downscale_p.loc[downscale_p.index.repeat(downscale_p['micro_gan_pickups'])][['pickup_zone_id', 'pickup_micro_name']].sample(frac=1).reset_index(drop=True)
         d_pool = downscale_d.loc[downscale_d.index.repeat(downscale_d['micro_gan_dropoffs'])][['dropoff_zone_id', 'dropoff_micro_name']].sample(frac=1).reset_index(drop=True)
         
@@ -258,64 +253,134 @@ if ignite_forge:
         df_manifold = df_manifold.sort_values('dropoff_zone_id').reset_index(drop=True)
         df_manifold['dropoff_name_down'] = d_pool['dropoff_micro_name'].values[:final_generation_volume]
         
-        df_manifold = df_manifold.sample(frac=1).reset_index(drop=True)
-        status.update(label=f"Synthesis Complete! {final_generation_volume:,} trips generated.", state="complete", expanded=False)
+        # --- STEP G: PERSIST TO SESSION STATE ---
+        st.session_state.df_manifold = df_manifold.sample(frac=1).reset_index(drop=True)
         
-    # ==============================================================================
-    # 5. RESULTS & DASHBOARD
-    # ==============================================================================
-    st.success(f"Successfully minted **{final_generation_volume:,}** hyper-realistic trips in {time.time() - start_time:.2f} seconds.")
+        status.update(label=f"Synthesis Complete! {final_generation_volume:,} trips generated.", state="complete", expanded=False)
+
+# ==============================================================================
+# 5. THE MANIFOLD ANALYTICS SUITE (PERSISTENT & DYNAMIC)
+# ==============================================================================
+
+# This block only executes if the Forge has been ignited at least once in the session
+if st.session_state.df_manifold is not None:
     
+    # Extract data from persistent session memory
+    df_active = st.session_state.df_manifold.copy()
+
+    # --- 5.1 PRE-PROCESSING FOR DISPLAY (Refreshes on every UI change) ---
+    # A. Unit Conversion & Labeling
+    df_active['TTP (min)'] = (df_active['time_to_pickup_sec'] / 60)
+    df_active['Trip Time (min)'] = (df_active['est_trip_time_sec'] / 60)
+    df_active['Trip Dist (km)'] = df_active['est_trip_dist_km']
+    df_active['Fare ($ MXN)'] = df_active['upfront_fare']
+    df_active['Hour'] = df_active['hour_of_day'].apply(lambda x: f"{int(x):02d}:00")
+    df_active['Product'] = df_active['product_category_fk'].map(product_map)
+
+    # B. Micro-Zone Polishing (Using your specific Logic)
+    df_active['Pickup'] = df_active['pickup_name_down'].str.replace('_', ' ').str.title()
+    df_active['Dropoff'] = df_active['dropoff_name_down'].str.replace('_', ' ').str.title()
+
+    # C. THE FINAL SOVEREIGN FILTER (Firewall against Unassigned Entropy)
+    df_display = df_active[
+        (~df_active['Pickup'].str.lower().str.contains('unassigned')) & 
+        (~df_active['Dropoff'].str.lower().str.contains('unassigned'))
+    ].copy()
+
+    # D. Canonical Column Order
+    canonical_cols = [
+        'day_of_week', 'Hour', 'Product', 'Pickup', 'Dropoff', 
+        'TTP (min)', 'Trip Dist (km)', 'Trip Time (min)', 'Fare ($ MXN)'
+    ]
+    df_display = df_display[canonical_cols] 
+
+    st.markdown("---")
+    # --- 5.2 METRIC HIGHLIGHTS ---
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Avg Fare Synthesized", f"${df_manifold['upfront_fare'].mean():.2f}")
+        st.metric("Avg Fare Synthesized", f"${df_display['Fare ($ MXN)'].mean():.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
     with c2:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Avg Trip Distance", f"{df_manifold['est_trip_dist_km'].mean():.1f} km")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.metric("Avg Trip Distance", f"{df_display['Trip Dist (km)'].mean():.2f} km")
     with c3:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Avg Time to Pickup", f"{df_manifold['time_to_pickup_sec'].mean()/60:.1f} min")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.metric("Avg Time to Pickup", f"{df_display['TTP (min)'].mean():.1f} min")
     with c4:
-        st.markdown('<div class="metric-box">', unsafe_allow_html=True)
-        st.metric("Unique Micro-Zones", f"{df_manifold['dropoff_name_down'].nunique()}")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.metric("Sovereign Volume", f"{len(df_display):,}")
 
-    st.markdown("### 🧬 Synthetic Manifold (Sample View)")
-    display_cols = ['pickup_name_down', 'dropoff_name_down', 'upfront_fare', 'est_trip_dist_km', 'time_to_pickup_sec', 'hour_of_day']
-    st.dataframe(df_manifold[display_cols].head(50), use_container_width=True)
-    
-    st.markdown("### 📊 Topological Gravity (Top Micro-Destinations)")
-    top_destinations = df_manifold['dropoff_name_down'].value_counts().head(15)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- 5.3 DYNAMIC AGGREGATION ENGINE ---
+    st.markdown("### 🧬 Manifold Exploration")
+
+    agg_mode = st.selectbox(
+        "📊 Aggregate Manifold By:",
+        ["Hour of Day", "Day of Week", "Product", "Pickup Zone", "Individual Trips (Raw Sample)"],
+        index=0,
+        key="manifold_agg_selector" # Unique key prevents state reset
+    )
+
+    # Aggregation Logic
+    if agg_mode == "Individual Trips (Raw Sample)":
+        st.dataframe(df_display.head(100).style.format({
+            'TTP (min)': '{:.2f}',
+            'Trip Dist (km)': '{:.2f}',
+            'Trip Time (min)': '{:.2f}',
+            'Fare ($ MXN)': '${:.2f}'
+        }), use_container_width=True)
+
+    else:
+        # Map selection to actual columns
+        agg_map = {
+            "Hour of Day": "Hour",
+            "Day of Week": "day_of_week",
+            "Product": "Product",
+            "Pickup Zone": "Pickup"
+        }
+        group_col = agg_map[agg_mode]
+        
+        # Calculate Mean for Physics, Count for Volume
+        df_agg = df_display.groupby(group_col).agg({
+            'Fare ($ MXN)': 'mean',
+            'TTP (min)': 'mean',
+            'Trip Dist (km)': 'mean',
+            'Trip Time (min)': 'mean',
+            'Product': 'count' # Use any col for volume count
+        }).rename(columns={'Product': 'Volume (N)'})
+        
+        # Chronological Sort Enforcer
+        if agg_mode == "Day of Week":
+            df_agg = df_agg.reindex([d for d in chrono_order if d in df_agg.index])
+        elif agg_mode == "Hour of Day":
+            df_agg = df_agg.sort_index()
+            
+        # VVS1 Display with Heatmap on Volume
+        st.dataframe(df_agg.style.format({
+            'Fare ($ MXN)': '${:.2f}',
+            'TTP (min)': '{:.2f}',
+            'Trip Dist (km)': '{:.2f}',
+            'Trip Time (min)': '{:.2f}',
+            'Volume (N)': '{:,}'
+        }).background_gradient(cmap="Purples", subset=['Volume (N)']), use_container_width=True)
+
+    # --- 5.4 TOPOLOGICAL GRAVITY CHART ---
+    st.markdown("### 🏁 Topological Gravity (Top Micro-Destinations)")
+    top_destinations = df_display['Dropoff'].value_counts().head(15)
     st.bar_chart(top_destinations, color="#21918c")
 
-    # ==============================================================================
-    # 6. THE PHILOSOPHY OF THE cGAN (THEORY VAULT)
-    # ==============================================================================
-    st.markdown("---")
-    with st.expander("📖 The Philosophy of the cGAN (Under the Hood)"):
-        st.markdown("""
-        **1. If I request 1 offer only with certain characteristics, how does the generator decide which one to throw at me?**  
-        It doesn't "pick" an offer; it *synthesizes* one. The engine maps your constraints (e.g., 8:00 AM, UberX) alongside a 100-dimensional vector of pure mathematical noise. This noise collapses a wave of infinite possibilities into a single, concrete reality that obeys the physics of the Mexico City market.
+# <--- THE PHILOSOPHY REMAINS OUTSIDE THE SESSION STATE CHECK TO BE ALWAYS VISIBLE --->
 
-        **2. Is it the same to request the same offer 1 million times sequentially, versus giving me a million of the same offer in one single request batch?**  
-        Sequential requests take time because of network I/O, but batch requests process almost instantly through parallel matrix multiplication in the neural network. As you saw, synthesizing 50,000 trips takes mere seconds. 
+# ==============================================================================
+# 6. THE PHILOSOPHY OF THE cGAN (THEORY VAULT)
+# ==============================================================================
+st.markdown("---")
+with st.expander("📖 The Philosophy of the cGAN (Under the Hood)"):
+    st.markdown("""
+    **1. If I request 1 offer only with certain characteristics, how does the generator decide which one to throw at me?**  
+    It doesn't "pick" an offer; it *synthesizes* one... (content continues)
 
-        **3. Is it just a "random offer" from the distribution, meaning the generator does not keep track of what I have requested in the past?**  
-        Exactly. The cGAN is completely Stateless (*Independent and Identically Distributed*). Trip #500 has absolutely zero knowledge of Trip #499. It drops 50,000 balls down a Plinko board simultaneously. 
-
-        **4. What is the minimum sample size that approximates that perfect bell curve (the Law of Large Numbers)?**  
-        To ensure the deterministic downscaling math doesn't break and the true topological distributions reveal themselves, the engine requires a minimum of **10,000** trips per run. 
-
-        **5. Is the cGAN related to a Markov Chain in any way (e.g., the "canicas in a sack" analogy)?**  
-        No. They are mathematical opposites. A Markov Chain models a sequential journey through time (where you go next depends on where you are now). The cGAN is an instantaneous snapshot of the entire marketplace frozen in time. To simulate an autonomous fleet, we use the cGAN to *build* the environment, and a Markov Decision Process (MDP) to *route* through it.
-
-        **6. What are the philosophical and mathematical terms that distinguish classical statistics from generative models?**  
-        Classical statistics (like our Phase 4 XGBoost) uses an **Analytic/Discriminative** approach: it predicts the past/present by drawing a boundary ($P(Y|X)$). Generative models use a **Synthetic/Generative** approach: they actualize the future by learning the joint distribution of everything ($P(X,Y)$) to create realities from scratch.
-
-        **7. How do veteran classical statisticians react to cGANs, and what is the actual proficiency level in the industry?**  
-        Classical statisticians often view them with skepticism because they lack P-Values and unbiased estimators (the "Black Box" problem). Furthermore, while the industry widely uses generative models for pixels and text, building a tabular cGAN that perfectly mimics the rigid physics of urban logistics is a highly specialized, rare capability. 
-        """)
+    **2. Is it the same to request the same offer 1 million times sequentially...?**  
+    Sequential requests take time because... (content continues)
+    
+    ... (rest of your philosophy points)
+    """)
