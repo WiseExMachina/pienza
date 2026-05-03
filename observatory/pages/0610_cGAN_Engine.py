@@ -51,9 +51,15 @@ PROJECT_ID = "drivers-dilemma" # Ensure this matches your BQ project
 # ==============================================================================
 # 2. EXTRACT SWITCHES & SEMANTIC MAPPING
 # ==============================================================================
-# Extract exact classes the model was trained on
-days_pool = list(label_encoders['day_of_week'].classes_)
-hours_pool = list(label_encoders['hour_of_day'].classes_)
+raw_days = list(label_encoders['day_of_week'].classes_)
+chrono_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+days_pool = sorted(raw_days, key=lambda d: chrono_order.index(d))
+# Extract and Sort Hours Chronologically
+raw_hours = list(label_encoders['hour_of_day'].classes_)
+hours_pool = sorted(raw_hours, key=lambda x: int(x))
+# Formatter to make them look like "05:00 Hrs"
+def format_hour(h): 
+    return f"{int(h):02d}:00 Hrs"
 products_pool = list(label_encoders['product_category_fk'].classes_)
 
 # Extract Zones, explicitly dropping 'unassigned_area'
@@ -83,15 +89,15 @@ c1, c2, c3 = st.columns(3)
 
 with c1:
     all_days = st.toggle("🗓️ All Days", value=True)
-    sel_days = days_pool if all_days else st.multiselect("Select Days", days_pool, default=['Friday'])
+    sel_days = days_pool if all_days else st.multiselect("Select Days", days_pool, default=[])
 
 with c2:
     all_hours = st.toggle("⏰ All Hours", value=True)
-    sel_hours = hours_pool if all_hours else st.multiselect("Select Hours", hours_pool, default=[18, 19, 20])
+    sel_hours = hours_pool if all_hours else st.multiselect("Select Hours", hours_pool, format_func=format_hour, default=[])
 
 with c3:
     all_products = st.toggle("🚗 All Products", value=True)
-    sel_products = products_pool if all_products else st.multiselect("Select Products", products_pool, default=['UberX'])
+    sel_products = products_pool if all_products else st.multiselect("Select Products", products_pool, default=[])
 
 st.write("") # Spacing
 
@@ -100,11 +106,11 @@ c4, c5 = st.columns(2)
 
 with c4:
     all_pickups = st.toggle("📍 All Pickup Zones", value=True)
-    sel_pickups = pickups_pool if all_pickups else st.multiselect("Select Pickups", pickups_pool, format_func=format_pickup)
+    sel_pickups = pickups_pool if all_pickups else st.multiselect("Select Pickups", pickups_pool, format_func=format_pickup, default=[])
 
 with c5:
     all_dropoffs = st.toggle("🏁 All Dropoff Zones", value=True)
-    sel_dropoffs = dropoffs_pool if all_dropoffs else st.multiselect("Select Dropoffs", dropoffs_pool, format_func=format_dropoff)
+    sel_dropoffs = dropoffs_pool if all_dropoffs else st.multiselect("Select Dropoffs", dropoffs_pool, format_func=format_dropoff, default=[])
 
 st.markdown("---")
 st.markdown("### ⚙️ Production Constraints")
