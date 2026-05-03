@@ -37,3 +37,4 @@ alphashape
 geopandas
 h3>=4.0.0
 keplergl
+folium
