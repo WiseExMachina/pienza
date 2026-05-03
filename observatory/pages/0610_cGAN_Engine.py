@@ -61,23 +61,34 @@ hours_pool = sorted(raw_hours, key=lambda x: int(x))
 def format_hour(h): 
     return f"{int(h):02d}:00 Hrs"
 products_pool = list(label_encoders['product_category_fk'].classes_)
+product_map = {
+    1: "X", '1': "X",
+    2: "Mid-Tier", '2': "Mid-Tier",
+    3: "Premium", '3': "Premium"
+}
 
-# Extract Zones, explicitly dropping 'unassigned_area'
+def format_product(p):
+    return product_map.get(p, f"Unknown Tier ({p})")
+
+# Extract Zones, explicitly dropping 'unassigned' and asymmetric 'C_' dropoff zones
 pickups_pool = [z for z in label_encoders['pickup_zone_id'].classes_ if 'unassigned' not in str(z).lower()]
-dropoffs_pool = [z for z in label_encoders['dropoff_zone_id'].classes_ if 'unassigned' not in str(z).lower()]
+dropoffs_pool = [z for z in label_encoders['dropoff_zone_id'].classes_ if 'unassigned' not in str(z).lower() and not str(z).startswith('C_')]
 
+# ==============================================================================
 # Build Semantic Dictionaries for the UI (ID -> Human Name)
-# Adjust the column names below if your parquet dictionaries use slightly different column headers!
-try:
-    dict_pick = dict(zip(dim_pick['pickup_id_GAN'], dim_pick['pickup_name_down']))
-    dict_drop = dict(zip(dim_drop['dropoff_id_GAN'], dim_drop['dropoff_name_down']))
-except KeyError:
-    # Safe fallback just in case the column names vary
-    dict_pick = {k: str(k).replace("P_", "Zone ") for k in pickups_pool}
-    dict_drop = {k: str(k).replace("C_", "Zone ") for k in dropoffs_pool}
+# ==============================================================================
+dict_pick = dict(zip(dim_pick['zone_key'], dim_pick['semantic_name']))
+dict_drop = dict(zip(dim_drop['zone_key'], dim_drop['semantic_name']))
 
-def format_pickup(zone_id): return dict_pick.get(zone_id, zone_id)
-def format_dropoff(zone_id): return dict_drop.get(zone_id, zone_id)
+def format_pickup(zone_id): 
+    return dict_pick.get(zone_id, f"Unknown Zone ({zone_id})")
+
+def format_dropoff(zone_id): 
+    return dict_drop.get(zone_id, f"Unknown Zone ({zone_id})")
+
+# Sort the pools alphabetically based on their semantic UI names
+pickups_pool = sorted(pickups_pool, key=lambda x: format_pickup(x).lower())
+dropoffs_pool = sorted(dropoffs_pool, key=lambda x: format_dropoff(x).lower())
 
 # ==============================================================================
 # 3. VVS1 MAIN UI CONTROLS (CLEAN UX)
@@ -97,7 +108,7 @@ with c2:
 
 with c3:
     all_products = st.toggle("🚗 All Products", value=True)
-    sel_products = products_pool if all_products else st.multiselect("Select Products", products_pool, default=[])
+    sel_products = products_pool if all_products else st.multiselect("Select Products", products_pool, format_func=format_product, default=[])
 
 st.write("") # Spacing
 
@@ -116,8 +127,11 @@ st.markdown("---")
 st.markdown("### ⚙️ Production Constraints")
 n_trips = st.slider(
     "Target Volume (N)", 
-    min_value=10000, max_value=250000, step=10000, value=50000, 
-    help="Minimum 10,000 trips required to maintain mathematical integrity during the deterministic micro-downscaling."
+    min_value=10000, 
+    max_value=50000, 
+    value=50000, 
+    step=5000, 
+    help="Minimum 10,000 trips required to maintain the Law of Large Numbers and statistical integrity during deterministic micro-downscaling."
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -137,18 +151,14 @@ if ignite_forge:
 if ignite_forge:
     start_time = time.time()
     
-    # Helper to format SQL IN clauses
     def format_sql_list(lst):
         return ", ".join([f"'{str(x)}'" for x in lst])
     
-    # ---------------------------------------------------------
-    # STEP A: Fetch Contextual Seeds
-    # ---------------------------------------------------------
     with st.status("Initiating Pienza Pipeline...", expanded=True) as status:
         
+        # --- STEP A: Fetch Contextual Seeds ---
         st.write("📡 Fetching contextual seeds from BigQuery based on your switches...")
         
-        # We fetch reason_primary_fk naturally, without filtering it in the WHERE clause
         query_seeds = f"""
             SELECT hour_of_day, day_of_week, product_category_fk, 
                    pickup_id_GAN AS pickup_zone_id, dropoff_id_GAN AS dropoff_zone_id, reason_primary_fk
@@ -162,19 +172,24 @@ if ignite_forge:
             LIMIT {n_trips}
         """
         df_context = fetch_data_from_bq(query_seeds)
+
+        # --- SAFETY LOGIC & SMART CLUTCH ---
+        num_seeds = len(df_context)
         
-        if df_context.empty:
-            status.update(label="No seeds found in BigQuery for that specific combination. Broaden your switches.", state="error")
+        if num_seeds == 0:
+            status.update(label="No seeds found in BigQuery. Broaden your switches.", state="error")
             st.stop()
 
-        # If we got fewer rows than requested (because the niche is too narrow), duplicate them to hit N
-        if len(df_context) < n_trips:
-            st.write(f"⚠️ Niche regime detected (Found {len(df_context)} seeds). Oversampling to reach {n_trips:,}...")
-            df_context = df_context.sample(n=n_trips, replace=True).reset_index(drop=True)
+        if num_seeds < 10000:
+            st.warning(f"⚠️ Niche Regime Detected: Only {num_seeds:,} historical seeds found. To prevent memory overload, we are generating exactly {num_seeds:,} trips (No Oversampling).")
+            final_generation_volume = num_seeds
+        else:
+            final_generation_volume = n_trips
+            if num_seeds < n_trips:
+                st.write(f"⚠️ Oversampling to reach {n_trips:,} from {num_seeds:,} seeds...")
+                df_context = df_context.sample(n=n_trips, replace=True).reset_index(drop=True)
 
-        # ---------------------------------------------------------
-        # STEP B: Neural Synthesis (Keras)
-        # ---------------------------------------------------------
+        # --- STEP B: Neural Synthesis (Keras) ---
         st.write("🧠 Synthesizing physical reality via Keras Generator...")
         
         encoded_inputs = []
@@ -184,98 +199,67 @@ if ignite_forge:
             safe_data = df_context[col].astype(str).apply(lambda x: x if x in known_classes else le.classes_[0])
             encoded_inputs.append(tf.convert_to_tensor(le.transform(safe_data).reshape(-1, 1), dtype=tf.float32))
             
-        noise = tf.random.normal([n_trips, LATENT_DIM])
-        
+        noise = tf.random.normal([final_generation_volume, LATENT_DIM])
         fake_physics = generator([noise] + encoded_inputs, training=False)
         df_synth_physics = pd.DataFrame(fake_physics.numpy(), columns=PHYSICS_COLS)
         
-        # ---------------------------------------------------------
-        # STEP C: Inverse Transformation (Denormalization)
-        # ---------------------------------------------------------
+        # --- STEP C: Inverse Transformation ---
         st.write("📏 Denormalizing physical limits and executing Log-Inversions...")
         df_synth_physics[PHYSICS_COLS] = physics_scaler.inverse_transform(df_synth_physics[PHYSICS_COLS])
-        
         df_synth_physics['upfront_fare'] = np.expm1(df_synth_physics['upfront_fare'])
         df_synth_physics['est_trip_dist_km'] = np.expm1(df_synth_physics['est_trip_dist_km'])
         
         df_manifold = pd.concat([df_context.reset_index(drop=True), df_synth_physics.reset_index(drop=True)], axis=1)
         
-        # ---------------------------------------------------------
-        # STEP D: Fetch Downscaling Weights (BigQuery)
-        # ---------------------------------------------------------
+        # --- STEP D: Fetch Downscaling Weights ---
         st.write("🗺️ Fetching topological weights for micro-downscaling...")
-        
-        query_pickups = f"""
-            SELECT pickup_id_GAN AS pickup_zone_id, pickup_name_down AS pickup_micro_name, COUNT(*) as hist_pickups
-            FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled`
-            GROUP BY 1, 2
-        """
-        query_dropoffs = f"""
-            SELECT dropoff_id_GAN AS dropoff_zone_id, dropoff_name_down AS dropoff_micro_name, COUNT(*) as hist_dropoffs
-            FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled`
-            GROUP BY 1, 2
-        """
+        query_pickups = f"SELECT pickup_id_GAN AS pickup_zone_id, pickup_name_down AS pickup_micro_name, COUNT(*) as hist_pickups FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled` GROUP BY 1, 2"
+        query_dropoffs = f"SELECT dropoff_id_GAN AS dropoff_zone_id, dropoff_name_down AS dropoff_micro_name, COUNT(*) as hist_dropoffs FROM `{PROJECT_ID}.pienza_big.synthetic_manifold_v8_downscaled` GROUP BY 1, 2"
         
         df_hist_pickups = fetch_data_from_bq(query_pickups)
         df_hist_dropoffs = fetch_data_from_bq(query_dropoffs)
         
-        # ---------------------------------------------------------
-        # STEP E: The Downscaling Math
-        # ---------------------------------------------------------
+        # --- STEP E: Downscaling Math ---
         st.write("⚖️ Executing deterministic downscaling math...")
         
-        # PICKUPS
+        # Pickups
         df_hist_pickups['macro_total'] = df_hist_pickups.groupby('pickup_zone_id')['hist_pickups'].transform('sum')
         df_hist_pickups['weight'] = df_hist_pickups['hist_pickups'] / df_hist_pickups['macro_total']
-        
         gan_p = df_manifold.groupby('pickup_zone_id').size().reset_index(name='gan_pickups')
         downscale_p = pd.merge(df_hist_pickups, gan_p, on='pickup_zone_id', how='outer').fillna({'weight': 1.0, 'gan_pickups': 0})
-        downscale_p['pickup_micro_name'] = downscale_p['pickup_micro_name'].fillna(downscale_p['pickup_zone_id'])
         downscale_p['micro_gan_pickups'] = (downscale_p['gan_pickups'] * downscale_p['weight']).round(0).astype(int)
         
-        diff_p = int(n_trips - downscale_p['micro_gan_pickups'].sum())
-        if diff_p != 0:
-            max_idx = downscale_p['micro_gan_pickups'].idxmax()
-            downscale_p.loc[max_idx, 'micro_gan_pickups'] += diff_p
+        diff_p = int(final_generation_volume - downscale_p['micro_gan_pickups'].sum())
+        if diff_p != 0: downscale_p.loc[downscale_p['micro_gan_pickups'].idxmax(), 'micro_gan_pickups'] += diff_p
 
-        # DROPOFFS
+        # Dropoffs
         df_hist_dropoffs['macro_total'] = df_hist_dropoffs.groupby('dropoff_zone_id')['hist_dropoffs'].transform('sum')
         df_hist_dropoffs['weight'] = df_hist_dropoffs['hist_dropoffs'] / df_hist_dropoffs['macro_total']
-        
         gan_d = df_manifold.groupby('dropoff_zone_id').size().reset_index(name='gan_dropoffs')
         downscale_d = pd.merge(df_hist_dropoffs, gan_d, on='dropoff_zone_id', how='outer').fillna({'weight': 1.0, 'gan_dropoffs': 0})
-        downscale_d['dropoff_micro_name'] = downscale_d['dropoff_micro_name'].fillna(downscale_d['dropoff_zone_id'])
         downscale_d['micro_gan_dropoffs'] = (downscale_d['gan_dropoffs'] * downscale_d['weight']).round(0).astype(int)
         
-        diff_d = int(n_trips - downscale_d['micro_gan_dropoffs'].sum())
-        if diff_d != 0:
-            max_idx = downscale_d['micro_gan_dropoffs'].idxmax()
-            downscale_d.loc[max_idx, 'micro_gan_dropoffs'] += diff_d
+        diff_d = int(final_generation_volume - downscale_d['micro_gan_dropoffs'].sum())
+        if diff_d != 0: downscale_d.loc[downscale_d['micro_gan_dropoffs'].idxmax(), 'micro_gan_dropoffs'] += diff_d
             
-        # ---------------------------------------------------------
-        # STEP F: Stochastic Identity Injection
-        # ---------------------------------------------------------
+        # --- STEP F: Stochastic Identity Injection ---
         st.write("💉 Injecting semantic identities into the final manifold...")
-        
         p_pool = downscale_p.loc[downscale_p.index.repeat(downscale_p['micro_gan_pickups'])][['pickup_zone_id', 'pickup_micro_name']].sample(frac=1).reset_index(drop=True)
         d_pool = downscale_d.loc[downscale_d.index.repeat(downscale_d['micro_gan_dropoffs'])][['dropoff_zone_id', 'dropoff_micro_name']].sample(frac=1).reset_index(drop=True)
         
         df_manifold = df_manifold.sort_values('pickup_zone_id').reset_index(drop=True)
-        p_pool = p_pool.sort_values('pickup_zone_id').reset_index(drop=True)
-        df_manifold['pickup_name_down'] = p_pool['pickup_micro_name'].values
+        df_manifold['pickup_name_down'] = p_pool['pickup_micro_name'].values[:final_generation_volume]
         
         df_manifold = df_manifold.sort_values('dropoff_zone_id').reset_index(drop=True)
-        d_pool = d_pool.sort_values('dropoff_zone_id').reset_index(drop=True)
-        df_manifold['dropoff_name_down'] = d_pool['dropoff_micro_name'].values
+        df_manifold['dropoff_name_down'] = d_pool['dropoff_micro_name'].values[:final_generation_volume]
         
         df_manifold = df_manifold.sample(frac=1).reset_index(drop=True)
-        
-        status.update(label=f"Synthesis Complete! {n_trips:,} trips generated.", state="complete", expanded=False)
+        status.update(label=f"Synthesis Complete! {final_generation_volume:,} trips generated.", state="complete", expanded=False)
         
     # ==============================================================================
     # 5. RESULTS & DASHBOARD
     # ==============================================================================
-    st.success(f"Successfully minted **{n_trips:,}** hyper-realistic trips in {time.time() - start_time:.2f} seconds.")
+    st.success(f"Successfully minted **{final_generation_volume:,}** hyper-realistic trips in {time.time() - start_time:.2f} seconds.")
     
     c1, c2, c3, c4 = st.columns(4)
     with c1:

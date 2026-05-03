@@ -25,3 +25,4 @@ tensorflow-cpu
 torch
 transformers
 xgboost>=2.0.0
+gcsfs

@@ -28,3 +28,5 @@ venv/
 # ==========================================
 *.db
 *.db-journal
+
+/observatory/jupyter_scratchpad
