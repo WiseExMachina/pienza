@@ -21,9 +21,6 @@ statsmodels
 # Jupyter Helpers
 ipykernel
 ipywidgets
-
-
-
 pandas
 numpy
 matplotlib
@@ -38,3 +35,5 @@ pyarrow
 hdbscan
 alphashape 
 geopandas
+h3>=4.0.0
+keplergl
