@@ -133,18 +133,18 @@ def load_cgan_assets():
     Downloads and instantiates the Keras Generator, Scalers, Encoders, 
     and Dimensional Dictionaries from GCS to local /tmp storage.
     """
-    BUCKET_NAME = "pienza-streamlit" # Update if your bucket name is different
+    BUCKET_NAME = "pienza-streamlit" 
     base_dir = "/tmp/pienza_models/cgan"
     os.makedirs(base_dir, exist_ok=True)
     
-    # --- 1. Define File Names ---
+    # --- 1. Define File Names (UPDATED TO CANONICAL MICRO VERSIONS) ---
     files = {
         "model": "260426_pienza_generator_v8.keras",
         "scaler": "260426_pienza_physics_scaler_v8.pkl",
         "encoders": "260426_pienza_label_encoders_v8.pkl",
         "dim_prod": "260426_cGAN_dim_product_hierarchy.parquet",
-        "dim_drop": "260426_cGAN_dim_dropoff_zone_dictionary.parquet",
-        "dim_pick": "260426_cGAN_dim_pickup_zone_dictionary.parquet"
+        "dim_drop": "06XX_260503_dim_dropoff_micro.parquet",   
+        "dim_pick": "06XX_260503_dim_pickup_micro.parquet"    
     }
     
     paths = {key: os.path.join(base_dir, fname) for key, fname in files.items()}

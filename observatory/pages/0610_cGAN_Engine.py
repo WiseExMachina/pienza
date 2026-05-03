@@ -49,46 +49,43 @@ PROJECT_ID = "drivers-dilemma" # Ensure this matches your BQ project
 
 
 # ==============================================================================
-# 2. EXTRACT SWITCHES & SEMANTIC MAPPING
+# 2. EXTRACT SWITCHES & MICRO-SEMANTIC MAPPING (SOVEREIGN EDITION)
 # ==============================================================================
-raw_days = list(label_encoders['day_of_week'].classes_)
+# --- Chronological Handlers ---
 chrono_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-days_pool = sorted(raw_days, key=lambda d: chrono_order.index(d))
-# Extract and Sort Hours Chronologically
-raw_hours = list(label_encoders['hour_of_day'].classes_)
-hours_pool = sorted(raw_hours, key=lambda x: int(x))
-# Formatter to make them look like "05:00 Hrs"
-def format_hour(h): 
-    return f"{int(h):02d}:00 Hrs"
+days_pool = sorted(list(label_encoders['day_of_week'].classes_), key=lambda d: chrono_order.index(d))
+hours_pool = sorted(list(label_encoders['hour_of_day'].classes_), key=lambda x: int(x))
+
+def format_hour(h): return f"{int(h):02d}:00 Hrs"
+
+# --- Product Handlers ---
 products_pool = list(label_encoders['product_category_fk'].classes_)
-product_map = {
-    1: "X", '1': "X",
-    2: "Mid-Tier", '2': "Mid-Tier",
-    3: "Premium", '3': "Premium"
-}
+product_map = {1: "X", '1': "X", 2: "Mid-Tier", '2': "Mid-Tier", 3: "Premium", '3': "Premium"}
+def format_product(p): return product_map.get(p, f"Unknown Tier ({p})")
 
-def format_product(p):
-    return product_map.get(p, f"Unknown Tier ({p})")
+# --- GEOGRAPHIC MICRO-MAPPING (The Sovereign Filter) ---
 
-# Extract Zones, explicitly dropping 'unassigned' and asymmetric 'C_' dropoff zones
-pickups_pool = [z for z in label_encoders['pickup_zone_id'].classes_ if 'unassigned' not in str(z).lower()]
-dropoffs_pool = [z for z in label_encoders['dropoff_zone_id'].classes_ if 'unassigned' not in str(z).lower() and not str(z).startswith('C_')]
+# A. Create the Full Reverse Dictionaries (For backend lookups)
+rev_dict_pick = dict(zip(dim_pick['semantic_name'], dim_pick['zone_key']))
+rev_dict_drop = dict(zip(dim_drop['semantic_name'], dim_drop['zone_key']))
 
-# ==============================================================================
-# Build Semantic Dictionaries for the UI (ID -> Human Name)
-# ==============================================================================
-dict_pick = dict(zip(dim_pick['zone_key'], dim_pick['semantic_name']))
-dict_drop = dict(zip(dim_drop['zone_key'], dim_drop['semantic_name']))
+# B. THE SOVEREIGN PURGE (UI Only)
+# We filter to keep ONLY zone_keys that start with 'P_' 
+# AND we explicitly drop anything that has 'unassigned' in the name.
 
-def format_pickup(zone_id): 
-    return dict_pick.get(zone_id, f"Unknown Zone ({zone_id})")
+pickups_pool = sorted(dim_pick[
+    (dim_pick['zone_key'].str.startswith('P_')) & 
+    (~dim_pick['semantic_name'].str.lower().str.contains('unassigned'))
+]['semantic_name'].unique())
 
-def format_dropoff(zone_id): 
-    return dict_drop.get(zone_id, f"Unknown Zone ({zone_id})")
+dropoffs_pool = sorted(dim_drop[
+    (dim_drop['zone_key'].str.startswith('P_')) & 
+    (~dim_drop['semantic_name'].str.lower().str.contains('unassigned'))
+]['semantic_name'].unique())
 
-# Sort the pools alphabetically based on their semantic UI names
-pickups_pool = sorted(pickups_pool, key=lambda x: format_pickup(x).lower())
-dropoffs_pool = sorted(dropoffs_pool, key=lambda x: format_dropoff(x).lower())
+# --- C. Final Validation Check for the Dev ---
+
+print(f"Sovereign Theatre Size: {len(pickups_pool)} Pickups | {len(dropoffs_pool)} Dropoffs")
 
 # ==============================================================================
 # 3. VVS1 MAIN UI CONTROLS (CLEAN UX)
@@ -117,11 +114,19 @@ c4, c5 = st.columns(2)
 
 with c4:
     all_pickups = st.toggle("📍 All Pickup Zones", value=True)
-    sel_pickups = pickups_pool if all_pickups else st.multiselect("Select Pickups", pickups_pool, format_func=format_pickup, default=[])
+    # The multiselect now shows Micro-Names (e.g., "Santa Fe Tec")
+    sel_pickup_names = pickups_pool if all_pickups else st.multiselect("Select Pickups", pickups_pool)
+    
+    # CRITICAL: Map names back to Macro GAN IDs (e.g., "Santa Fe Tec" -> "P_0")
+    sel_pickups = [rev_dict_pick[name] for name in sel_pickup_names]
 
 with c5:
     all_dropoffs = st.toggle("🏁 All Dropoff Zones", value=True)
-    sel_dropoffs = dropoffs_pool if all_dropoffs else st.multiselect("Select Dropoffs", dropoffs_pool, format_func=format_dropoff, default=[])
+    # The multiselect now shows Micro-Names
+    sel_dropoff_names = dropoffs_pool if all_dropoffs else st.multiselect("Select Dropoffs", dropoffs_pool)
+    
+    # CRITICAL: Map names back to GAN IDs
+    sel_dropoffs = [rev_dict_drop[name] for name in sel_dropoff_names]
 
 st.markdown("---")
 st.markdown("### ⚙️ Production Constraints")
