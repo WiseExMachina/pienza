@@ -127,21 +127,18 @@ def load_babel_assets():
 
 
 
-@st.cache_resource(show_spinner="Igniting the cGAN Forge (Downloading Artifacts)...")
-def load_cgan_assets():
+@st.cache_resource(show_spinner="Accessing Sovereign Dimensions (Fast-Load)...")
+def load_manifold_dimensions():
     """
-    Downloads and instantiates the Keras Generator, Scalers, Encoders, 
-    and Dimensional Dictionaries from GCS to local /tmp storage.
+    Lightweight Asset Loader: Bypasses Keras/Neural engines to serve 
+    pre-computed manifold dimensions for sub-second page loads.
     """
     BUCKET_NAME = "pienza-streamlit" 
-    base_dir = "/tmp/pienza_models/cgan"
+    base_dir = "/tmp/pienza_dimensions"
     os.makedirs(base_dir, exist_ok=True)
     
-    # --- 1. Define File Names (UPDATED TO CANONICAL MICRO VERSIONS) ---
+    # --- 1. Define Canonical Semantic Files ---
     files = {
-        "model": "260426_pienza_generator_v8.keras",
-        "scaler": "260426_pienza_physics_scaler_v8.pkl",
-        "encoders": "260426_pienza_label_encoders_v8.pkl",
         "dim_prod": "260426_cGAN_dim_product_hierarchy.parquet",
         "dim_drop": "06XX_260503_dim_dropoff_micro.parquet",   
         "dim_pick": "06XX_260503_dim_pickup_micro.parquet"    
@@ -149,24 +146,24 @@ def load_cgan_assets():
     
     paths = {key: os.path.join(base_dir, fname) for key, fname in files.items()}
     
-    # --- 2. Download from GCS (if not already in /tmp) ---
+    # --- 2. Secure Download Logic ---
     for key, fname in files.items():
         if not os.path.exists(paths[key]):
-            download_from_gcs(BUCKET_NAME, fname, paths[key])
+            try:
+                download_from_gcs(BUCKET_NAME, fname, paths[key])
+            except Exception as e:
+                st.error(f"Failed to fetch {fname}: {e}")
+                return None, None, None
             
     try:
-        # --- 3. Load ML Intelligence ---
-        generator = tf.keras.models.load_model(paths["model"])
-        physics_scaler = joblib.load(paths["scaler"])
-        label_encoders = joblib.load(paths["encoders"])
-        
-        # --- 4. Load Semantic Dictionaries ---
+        # --- 3. Load Semantic Dictionaries (Pure Pandas) ---
         dim_prod = pd.read_parquet(paths["dim_prod"])
         dim_drop = pd.read_parquet(paths["dim_drop"])
         dim_pick = pd.read_parquet(paths["dim_pick"])
         
-        return generator, physics_scaler, label_encoders, dim_prod, dim_drop, dim_pick
+        # We return ONLY the dimensions. No Keras, no Scalers, no Encoders.
+        return dim_prod, dim_drop, dim_pick
         
     except Exception as e:
-        st.error(f"Critical failure loading cGAN artifacts: {e}")
-        return None, None, None, None, None, None
+        st.error(f"Critical failure loading semantic dimensions: {e}")
+        return None, None, None
