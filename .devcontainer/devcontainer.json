@@ -2,17 +2,20 @@
     "name": "Pienza DS Environment",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
     
-    // Configuración de características adicionales (opcional)
     "features": {
         "ghcr.io/devcontainers/features/github-cli:1": {}
     },
 
-    // Instala dependencias del Sistema Operativo y de Python al crear el Codespace
-    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y graphviz && pip install -r requirements.txt",
+    // 1. AJUSTE: Añadimos python3-pip a la instalación de sistema y forzamos el upgrade de pip
+    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y graphviz python3-pip && python3 -m pip install --upgrade pip && pip install -r requirements.txt",
 
-    // Configura extensiones de VS Code que quieres que SIEMPRE estén instaladas
     "customizations": {
         "vscode": {
+            // 2. AJUSTE: Forzamos a que VS Code use tu Python de trabajo por defecto para evitar que "busque" en el sistema
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.analysis.typeCheckingMode": "basic"
+            },
             "extensions": [
                 "ms-python.python",
                 "ms-toolsai.jupyter",
@@ -23,6 +26,5 @@
         }
     },
 
-    // Permite que el contenedor use tu cuenta de GitHub para Git (vital)
     "remoteUser": "vscode"
 }
