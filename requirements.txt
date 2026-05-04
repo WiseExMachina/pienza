@@ -41,3 +41,4 @@ folium
 
 google-cloud-bigquery-storage
 pyarrow
+graphviz
