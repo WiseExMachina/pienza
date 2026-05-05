@@ -43,3 +43,4 @@ google-cloud-bigquery-storage
 pyarrow
 shap
 xgboost
+graphviz
