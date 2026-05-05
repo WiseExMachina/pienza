@@ -1,30 +1,19 @@
 {
-  "name": "Pienza - Canonical Data Stack",
-  
-  "build": { 
-    "dockerfile": "Dockerfile"
-  },
+  "name": "Pienza 3.11 High Performance",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
 
   "containerEnv": {
     "PIP_BREAK_SYSTEM_PACKAGES": "1"
   },
 
-  // Post-instalación por si decides meter algo más en el requirements.txt
-  "postCreateCommand": "[ -f requirements.txt ] && pip3 install --no-cache-dir -r requirements.txt || echo 'Stack Canónico Listo'",
+  "postCreateCommand": "sudo rm -f /etc/apt/sources.list.d/yarn.list && sudo apt-get update && sudo apt-get install -y libgdal-dev libproj-dev g++ python3-dev && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*",
 
   "customizations": {
     "vscode": {
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.terminal.activateEnvironment": false,
-        "jupyter.askForKernelRestart": false
-      },
-      "extensions": [
-        "ms-python.python",
-        "ms-toolsai.jupyter",
-        "ms-python.vscode-pylint",
-        "christian-kohler.path-intellisense"
-      ]
+        "python.terminal.activateEnvironment": false
+      }
     }
   }
 }
