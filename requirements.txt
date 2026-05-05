@@ -47,3 +47,4 @@ graphviz
 pyjokes
 optuna
 torch
+tensorflow

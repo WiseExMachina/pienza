@@ -1,24 +1,16 @@
 {
-  "name": "Pienza 3.11 - Opus Lab (GPU & Deep Learning)",
-  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
+  "name": "Pienza - Canonical Data Stack",
   
-  // 🚫 COMENTADO PARA EVITAR ERROR EN MÁQUINAS SIN GPU
-  // "hostRequirements": {
-  //   "gpu": "optional"
-  // },
-
-  "containerEnv": {
-    "PIP_BREAK_SYSTEM_PACKAGES": "1",
-    "NVIDIA_VISIBLE_DEVICES": "all",
-    "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
+  "build": { 
+    "dockerfile": "Dockerfile"
   },
 
-  // 🚫 ESTA ES LA LÍNEA QUE CAUSA EL RECOVERY MODE EN MÁQUINAS STANDARD
-  // "runArgs": [
-  //   "--gpus", "all"
-  // ],
+  "containerEnv": {
+    "PIP_BREAK_SYSTEM_PACKAGES": "1"
+  },
 
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libgdal-dev libproj-dev g++ graphviz python3-dev && pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && pip3 install --no-cache-dir 'tensorflow[and-cuda]' && [ -f requirements.txt ] && pip3 install --no-cache-dir -r requirements.txt || echo 'No requirements.txt found' && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*",
+  // Post-instalación por si decides meter algo más en el requirements.txt
+  "postCreateCommand": "[ -f requirements.txt ] && pip3 install --no-cache-dir -r requirements.txt || echo 'Stack Canónico Listo'",
 
   "customizations": {
     "vscode": {
