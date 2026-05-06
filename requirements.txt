@@ -63,3 +63,5 @@ pyjokes
 
 ml_dtypes
 dtreeviz
+pyspark==3.5.1
+rtree
