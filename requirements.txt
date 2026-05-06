@@ -66,3 +66,5 @@ dtreeviz
 pyspark==3.5.1
 findspark
 rtree
+networkx>=3.0
+python-louvain
