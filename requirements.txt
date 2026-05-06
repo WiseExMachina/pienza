@@ -1,58 +1,15 @@
-# Core Data Science
-pandas
-numpy
-scipy
-sqlalchemy
-
-# Visualization
-matplotlib
-seaborn
-
-# Geospatial Engine
-geopandas
-contextily
-pyproj
-shapely
-
-# ML & Stats (Para las fases siguientes)
-scikit-learn
-statsmodels
-
-# Jupyter Helpers
-ipykernel
-ipywidgets
-pandas
-numpy
-matplotlib
-seaborn
-sqlalchemy
-plotly
-nbformat
-google-cloud-storage
-google-cloud-bigquery
-pandas-gbq
-pyarrow
-hdbscan
-alphashape 
-geopandas
-h3>=4.0.0
-keplergl
-folium
-
-google-cloud-bigquery-storage
-pyarrow
-shap
-xgboost
-graphviz
-pyjokes
-optuna
-tensorflow
-
+# --- NEURAL ENGINE (FORZANDO CPU & COMPATIBILIDAD) ---
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.0+cpu
+torchvision==0.19.0+cpu
+torchaudio==2.4.0+cpu
+numpy<2.0.0
 
 # --- CORE DATA ENGINE ---
 pandas
-numpy
+scipy
 SQLAlchemy
+pyarrow
 
 # --- NLP & SEMANTICS ---
 transformers
@@ -63,20 +20,40 @@ textblob
 regex
 gensim
 
-# --- MACHINE LEARNING & DIMENSIONALITY ---
+# --- MACHINE LEARNING & STATS ---
 scikit-learn
+statsmodels
 umap-learn
+xgboost
+optuna
+shap
+hdbscan
 
-# --- GEOSPATIAL ---
-h3
+# --- GEOSPATIAL (CDMX STACK) ---
+geopandas
+contextily
+pyproj
+shapely
+h3>=4.0.0
+keplergl
+folium
+alphashape
 
-# --- VISUALIZATION ---
+# --- CLOUD & BIG DATA (GCP) ---
+google-cloud-storage
+google-cloud-bigquery
+google-cloud-bigquery-storage
+pandas-gbq
+
+# --- VISUALIZATION & JUPYTER ---
 matplotlib
 seaborn
+plotly
 wordcloud
+nbformat
+ipykernel
+ipywidgets
+graphviz
 
-# --- NEURAL ENGINE (FORZANDO CPU PARA EVITAR ERROR DE TORCHVISION::NMS) ---
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2+cpu
-torchvision==0.17.2+cpu
-torchaudio==2.2.2+cpu
+# --- OTROS ---
+pyjokes
