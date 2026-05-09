@@ -68,3 +68,6 @@ findspark
 rtree
 networkx>=3.0
 python-louvain
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
