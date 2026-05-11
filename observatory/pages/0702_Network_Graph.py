@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from networkx.algorithms.community import greedy_modularity_communities
 from shapely.affinity import translate
 from pathlib import Path
+import numpy as np
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -120,9 +121,10 @@ eccentricity = nx.eccentricity(G_giant)
 # ==========================================
 
 # Create the Tabs
-tab_topo, tab_tensor = st.tabs([
+tab_topo, tab_tensor_global, tab_tensor_live = st.tabs([
     "🕸️ Topological Sandbox", 
-    "📈 Mobility Tensor (Live Slicing)"
+    "🌍 Tensor Global (Kepler.gl)",
+    "📈 Live Slicing"
 ])
 
 # --- TAB 1: TOPOLOGICAL SANDBOX ---
@@ -312,11 +314,217 @@ with tab_topo:
         
         st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
-# TAB 2: MOBILITY TENSOR (LIVE SLICING)
-# ==========================================
-with tab_tensor:
-    st.header("The Internal Pienza Flow (IPF)")
-    st.info("Tensor slicing UI is under construction. We will build the dynamic directed flow components here next.")
 
 
+
+
+
+
+
+# ==========================================
+# CHUNK 4.5: TAB 2 - TENSOR GLOBAL (KEPLER.GL & MÉTRICAS)
+# ==========================================
+from streamlit_keplergl import keplergl_static
+from keplergl import KeplerGl
+
+with tab_tensor_global:
+    st.markdown("### 🌍 Observatorio del Tensor Global (Steady-State)")
+    st.markdown("Visualización estática de la Masa Económica total y la jerarquía de retención de valor en Pienza.")
+    
+    # --- 1. LAYOUT HORIZONTAL (CONTROLES) ---
+    st.markdown("#### 🎛️ Oráculo de Métricas Económicas")
+    t_col1, t_col2, t_col3 = st.columns(3)
+    
+    with t_col1:
+        tensor_lens = st.selectbox("Lente de Análisis:", [
+            "Soberanía Económica (PageRank)", 
+            "Asimetría (Sumideros vs Fuentes)", 
+            "Oráculo HITS (Hubs & Authorities)",
+            "Logias de Valor (Comunidades Louvain)"
+        ])
+    with t_col2:
+        top_n = st.slider("Mostrar Top N Nodos:", min_value=3, max_value=20, value=10)
+    with t_col3:
+        # Filtro visual para Kepler
+        min_eph_arc = st.number_input("Filtro de Arcos (Min EPH $):", min_value=0, value=150, step=50)
+
+    st.divider()
+
+    # --- 2. ÁREA DIVIDIDA: TABLA TOP N A LA IZQUIERDA, KEPLER A LA DERECHA ---
+    col_metrics, col_kepler = st.columns([1, 2.5])
+    
+    with col_metrics:
+        st.markdown(f"**Top {top_n} por {tensor_lens.split(' ')[0]}**")
+        st.info("Aquí conectaremos el dataframe ordenado según la métrica seleccionada (HITS, PageRank, etc.), extraído de tu Libreta 2.")
+        # Placeholder visual para la tabla
+        df_mock = pd.DataFrame({
+            "Zona": ["Santa Fe CC", "Tamarindos", "Polanco Uber HQ"],
+            "Score": [1.0, 0.85, 0.72]
+        })
+        st.dataframe(df_mock, use_container_width=True, hide_index=True)
+
+    with col_kepler:
+        # =========================================================
+        # 🧠 PREPARACIÓN DE DATOS PARA KEPLER.GL
+        # =========================================================
+        # Kepler necesita un DataFrame plano con start_lat, start_lon, end_lat, end_lon
+        # Aquí simulo la estructura que extraerás de tu G_functional
+        
+        # 1. Crear el DataFrame de Arcos (Trayectos)
+        arc_data = []
+        for u, v in G.edges(): # Cambiarás G por G_functional cuando lo conectes
+            if u in gdf_active['name'].values and v in gdf_active['name'].values:
+                # Simulamos EPH para el ejemplo
+                peso = np.random.uniform(50, 400)
+                if peso > min_eph_arc:
+                    p1 = gdf_active[gdf_active['name']==u]['centroid'].values[0]
+                    p2 = gdf_active[gdf_active['name']==v]['centroid'].values[0]
+                    arc_data.append({
+                        'origen': u, 'destino': v, 'EPH': peso,
+                        'start_lon': p1.x, 'start_lat': p1.y,
+                        'end_lon': p2.x, 'end_lat': p2.y
+                    })
+        df_arcs_kepler = pd.DataFrame(arc_data)
+
+        # 2. Configurar y Renderizar KeplerGl
+        # (El config dictionary lo puedes exportar desde la UI de Kepler para que siempre nazca en 3D oscuro)
+        map_1 = KeplerGl(height=600)
+        
+        # Cargamos los datos de flujo
+        if not df_arcs_kepler.empty:
+            map_1.add_data(data=df_arcs_kepler, name='Flujos de Capital (EPH)')
+            
+            # Cargamos los polígonos base para contexto espacial
+            map_1.add_data(data=gdf_active[['name', 'geometry']].copy(), name='Geocerca Pienza')
+            
+            # Render estático en Streamlit
+            keplergl_static(map_1)
+        else:
+            st.warning("No hay flujos que superen el umbral seleccionado.")
+
+
+
+
+
+# ==========================================
+# TAB 3: MOBILITY TENSOR (LIVE SLICING)
+# ==========================================
+# ==========================================
+# CHUNK 5: TAB 2 - MOBILITY TENSOR (LIVE SLICING)
+# ==========================================
+with tab_tensor_global:
+    st.markdown("### 📈 Análisis de Dinámica de Flujos (Mobility Tensor)")
+    st.markdown("Corta el tensor multidimensional para observar cómo mutan los flujos de capital según el día y la hora.")
+    
+    # --- 1. LAYOUT HORIZONTAL (CONTROLES ARRIBA) ---
+    st.markdown("#### 🎛️ Panel de Control de Flujos")
+    ctrl_col1, ctrl_col2, ctrl_col3, ctrl_col4 = st.columns(4)
+    
+    with ctrl_col1:
+        tensor_day = st.selectbox("📅 Día de la Semana:", 
+                                  ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+    with ctrl_col2:
+        tensor_hour = st.slider("⏰ Hora del Día:", min_value=5, max_value=22, value=14, step=1, format="%d:00")
+    with ctrl_col3:
+        tensor_metric = st.selectbox("Lente Analítico:", 
+                                     ["EPH Bruto (Rentabilidad)", "Asimetría (Fuentes vs Sumideros)", "Prestigio (HITS Authority)"])
+    with ctrl_col4:
+        # Filtro para limpiar el ruido visual y dejar solo las "Autopistas"
+        edge_threshold = st.slider("Umbral de Flujo (Filtrar Ruido):", min_value=0, max_value=100, value=25, 
+                                   help="Oculta las aristas con peso relativo menor a este porcentaje.")
+
+    st.divider()
+
+    # --- 2. ÁREA DEL MAPA (ABAJO) ---
+    st.markdown(f"**Visualizando:** Flujos de las `{tensor_hour}:00 hrs` del `{tensor_day}`")
+    
+    # =========================================================
+    # 🧠 AQUÍ SE INYECTA TU LÓGICA DE DATOS (Backend Tensor)
+    # Reemplazarás esto con tu función extraer_fotografia_temporal()
+    # Por ahora, usamos G_giant como estructura base para el renderizado
+    # =========================================================
+    G_dir = nx.DiGraph()
+    G_dir.add_nodes_from(G_giant.nodes())
+    # Simulamos un flujo dirigido (Solo el 30% de las calles físicas tienen flujo rentable en esta hora)
+    import random
+    for u, v in G_giant.edges():
+        if random.random() > (edge_threshold / 100.0):
+            # Asignamos pesos aleatorios para simular el EPH
+            G_dir.add_edge(u, v, weight=random.uniform(50, 300))
+            if random.random() > 0.5: # Flujo bidireccional asimétrico
+                G_dir.add_edge(v, u, weight=random.uniform(50, 300))
+    # =========================================================
+
+    # --- 3. MOTOR DE RENDERIZADO (GRAFO DIRIGIDO) ---
+    fig_tensor = go.Figure()
+
+    # A. Dibujar las Aristas (Vectores de Flujo)
+    edge_x, edge_y, edge_weights = [], [], []
+    for u, v, data in G_dir.edges(data=True):
+        if u in gdf_active['name'].values and v in gdf_active['name'].values:
+            p1 = gdf_active[gdf_active['name']==u]['centroid'].values[0]
+            p2 = gdf_active[gdf_active['name']==v]['centroid'].values[0]
+            
+            # Líneas base
+            edge_x.extend([p1.x, p2.x, None])
+            edge_y.extend([p1.y, p2.y, None])
+            
+            # Opcional en Plotly: Añadir flechas mediante annotations
+            fig_tensor.add_annotation(
+                x=(p1.x + p2.x)/2, y=(p1.y + p2.y)/2,
+                ax=p1.x, ay=p1.y,
+                xref='x', yref='y', axref='x', ayref='y',
+                showarrow=True, arrowhead=2, arrowsize=1.5, arrowwidth=1.5, arrowcolor='rgba(41, 128, 185, 0.4)'
+            )
+
+    fig_tensor.add_trace(go.Scatter(
+        x=edge_x, y=edge_y,
+        line=dict(width=1, color='rgba(189, 195, 199, 0.3)'),
+        mode='lines', hoverinfo='none', showlegend=False
+    ))
+
+    # B. Dibujar los Nodos (Polígonos)
+    for _, row in gdf_active.iterrows():
+        name = row['name']
+        x, y = row.geometry.exterior.xy
+        
+        # Color dinámico basado en el lente analítico seleccionado
+        node_color = OPUS_BLUE_FILL
+        hover_text = f"<b>{name.replace('_', ' ').upper()}</b>"
+        
+        if tensor_metric == "Asimetría (Fuentes vs Sumideros)":
+            # Simulación: Random entre -1 (Sumidero Rojo) y +1 (Fuente Verde)
+            asimetria = random.uniform(-1, 1) 
+            if asimetria > 0.2: node_color = '#A9DFBF' # Verde suave (Fuente)
+            elif asimetria < -0.2: node_color = '#F5B7B1' # Rojo suave (Sumidero)
+            hover_text += f"<br>Índice de Asimetría: {asimetria:+.2f}"
+            
+        elif tensor_metric == "Prestigio (HITS Authority)":
+            auth = random.uniform(0, 1)
+            if auth > 0.8: node_color = '#D2B4DE' # Morado (Apex)
+            hover_text += f"<br>Authority Score: {auth:.2f}"
+
+        fig_tensor.add_trace(go.Scatter(
+            x=list(x), y=list(y),
+            fill="toself", fillcolor=node_color,
+            mode='lines', line=dict(color=OPUS_BLUE_EDGE, width=0.8),
+            text=hover_text, hoverinfo="text", showlegend=False
+        ))
+
+    # C. Etiquetas de texto
+    fig_tensor.add_trace(go.Scatter(
+        x=gdf_active['centroid'].apply(lambda p: p.x), 
+        y=gdf_active['centroid'].apply(lambda p: p.y), 
+        mode='text', text=gdf_active['name'].str.replace('_', '<br>'), 
+        textfont=dict(size=7, color="#2C3E50", family="Arial Black"), 
+        hoverinfo='skip', showlegend=False
+    ))
+
+    fig_tensor.update_layout(
+        plot_bgcolor='white', showlegend=False, height=750, 
+        margin=dict(l=0, r=0, t=0, b=0), dragmode='pan',
+        xaxis=dict(visible=False, fixedrange=False), 
+        yaxis=dict(visible=False, fixedrange=False, scaleanchor="x", scaleratio=1)
+    )
+    
+    st.plotly_chart(fig_tensor, use_container_width=True)
