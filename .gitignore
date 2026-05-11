@@ -30,3 +30,4 @@ venv/
 *.db-journal
 
 /observatory/jupyter_scratchpad
+/observatory/assets

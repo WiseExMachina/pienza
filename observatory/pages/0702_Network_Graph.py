@@ -9,6 +9,14 @@ from networkx.algorithms.community import greedy_modularity_communities
 from shapely.affinity import translate
 from pathlib import Path
 import numpy as np
+import json
+from streamlit_keplergl import keplergl_static
+from keplergl import KeplerGl
+import json
+import pandas as pd
+import geopandas as gpd
+import streamlit.components.v1 as components  # <- El salvavidas nativo
+from keplergl import KeplerGl
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -114,18 +122,29 @@ eccentricity = nx.eccentricity(G_giant)
 # =
 # =
 
-
-
 # ==========================================
 # CHUNK 3: THE OBSERVATORY TABS & UI LOGIC
 # ==========================================
 
-# Create the Tabs
+# Create the Tabs (Actualizado a PyDeck)
 tab_topo, tab_tensor_global, tab_tensor_live = st.tabs([
     "🕸️ Topological Sandbox", 
-    "🌍 Tensor Global (Kepler.gl)",
+    "🌍 Tensor Global (PyDeck)",
     "📈 Live Slicing"
 ])
+
+# ==============================================================================
+# CARGA DE DATOS PYDECK (Declarado fuera de los tabs por buenas prácticas)
+# ==============================================================================
+import pydeck as pdk
+
+@st.cache_data
+def load_pydeck_assets():
+    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260511_kepler_arcos_mvp.csv')
+    gdf_poly = gpd.read_file('/workspaces/pienza/observatory/assets/poly.geojson')
+    return df_arcos, gdf_poly
+
+df_arcos_pd, gdf_poly_pd = load_pydeck_assets()
 
 # --- TAB 1: TOPOLOGICAL SANDBOX ---
 with tab_topo:
@@ -232,22 +251,6 @@ with tab_topo:
             st.markdown("### 🏘️ Latent Structure")
             st.info("Organic Community Detection active.")
 
-
-# =
-# =
-# =
-# =
-# =
-# =
-
-
-
-
-
-# ==========================================
-# CHUNK 4: MAP RENDER ENGINE & TENSOR TAB
-# ==========================================
-    
     with col_map:
         # --- RENDER ENGINE ---
         fig = go.Figure()
@@ -315,104 +318,84 @@ with tab_topo:
         st.plotly_chart(fig, use_container_width=True)
 
 
-
-
-
-
-
-
 # ==========================================
-# CHUNK 4.5: TAB 2 - TENSOR GLOBAL (KEPLER.GL & MÉTRICAS)
+# CHUNK 4.5: TAB 2 - TENSOR GLOBAL (PYDECK MVP)
 # ==========================================
-from streamlit_keplergl import keplergl_static
-from keplergl import KeplerGl
-
 with tab_tensor_global:
-    st.markdown("### 🌍 Observatorio del Tensor Global (Steady-State)")
-    st.markdown("Visualización estática de la Masa Económica total y la jerarquía de retención de valor en Pienza.")
-    
-    # --- 1. LAYOUT HORIZONTAL (CONTROLES) ---
-    st.markdown("#### 🎛️ Oráculo de Métricas Económicas")
-    t_col1, t_col2, t_col3 = st.columns(3)
-    
-    with t_col1:
-        tensor_lens = st.selectbox("Lente de Análisis:", [
-            "Soberanía Económica (PageRank)", 
-            "Asimetría (Sumideros vs Fuentes)", 
-            "Oráculo HITS (Hubs & Authorities)",
-            "Logias de Valor (Comunidades Louvain)"
-        ])
-    with t_col2:
-        top_n = st.slider("Mostrar Top N Nodos:", min_value=3, max_value=20, value=10)
-    with t_col3:
-        # Filtro visual para Kepler
-        min_eph_arc = st.number_input("Filtro de Arcos (Min EPH $):", min_value=0, value=150, step=50)
+    st.markdown("### 🌍 Observatorio del Tensor Global (PyDeck)")
+    st.markdown("Aislando los Vectores de Élite: Top 5 rutas de mayor rentabilidad.")
 
+    zonas_disponibles = sorted(df_arcos_pd['origen_id'].unique())
+    idx_default = zonas_disponibles.index('santa_fe_centro_comercial') if 'santa_fe_centro_comercial' in zonas_disponibles else 0
+
+    origen_seleccionado = st.selectbox("🎯 Aislar Origen:", zonas_disponibles, index=idx_default)
     st.divider()
 
-    # --- 2. ÁREA DIVIDIDA: TABLA TOP N A LA IZQUIERDA, KEPLER A LA DERECHA ---
-    col_metrics, col_kepler = st.columns([1, 2.5])
-    
-    with col_metrics:
-        st.markdown(f"**Top {top_n} por {tensor_lens.split(' ')[0]}**")
-        st.info("Aquí conectaremos el dataframe ordenado según la métrica seleccionada (HITS, PageRank, etc.), extraído de tu Libreta 2.")
-        # Placeholder visual para la tabla
-        df_mock = pd.DataFrame({
-            "Zona": ["Santa Fe CC", "Tamarindos", "Polanco Uber HQ"],
-            "Score": [1.0, 0.85, 0.72]
-        })
-        st.dataframe(df_mock, use_container_width=True, hide_index=True)
+    # Cortamos la data
+    df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == origen_seleccionado]
 
-    with col_kepler:
-        # =========================================================
-        # 🧠 PREPARACIÓN DE DATOS PARA KEPLER.GL
-        # =========================================================
-        # Kepler necesita un DataFrame plano con start_lat, start_lon, end_lat, end_lon
-        # Aquí simulo la estructura que extraerás de tu G_functional
-        
-        # 1. Crear el DataFrame de Arcos (Trayectos)
-        arc_data = []
-        for u, v in G.edges(): # Cambiarás G por G_functional cuando lo conectes
-            if u in gdf_active['name'].values and v in gdf_active['name'].values:
-                # Simulamos EPH para el ejemplo
-                peso = np.random.uniform(50, 400)
-                if peso > min_eph_arc:
-                    p1 = gdf_active[gdf_active['name']==u]['centroid'].values[0]
-                    p2 = gdf_active[gdf_active['name']==v]['centroid'].values[0]
-                    arc_data.append({
-                        'origen': u, 'destino': v, 'EPH': peso,
-                        'start_lon': p1.x, 'start_lat': p1.y,
-                        'end_lon': p2.x, 'end_lat': p2.y
-                    })
-        df_arcs_kepler = pd.DataFrame(arc_data)
+    # Capa 1: Los polígonos base (GeoJSON)
+    layer_poly = pdk.Layer(
+        "GeoJsonLayer",
+        gdf_poly_pd,
+        opacity=0.2,
+        stroked=True,
+        filled=True,
+        extruded=False,
+        get_fill_color=[200, 200, 200, 100],  # Gris claro transparente
+        get_line_color=[100, 100, 100, 255],  # Bordes grises
+        get_line_width=15,
+    )
 
-        # 2. Configurar y Renderizar KeplerGl
-        # (El config dictionary lo puedes exportar desde la UI de Kepler para que siempre nazca en 3D oscuro)
-        map_1 = KeplerGl(height=600)
-        
-        # Cargamos los datos de flujo
-        if not df_arcs_kepler.empty:
-            map_1.add_data(data=df_arcs_kepler, name='Flujos de Capital (EPH)')
-            
-            # Cargamos los polígonos base para contexto espacial
-            map_1.add_data(data=gdf_active[['name', 'geometry']].copy(), name='Geocerca Pienza')
-            
-            # Render estático en Streamlit
-            keplergl_static(map_1)
-        else:
-            st.warning("No hay flujos que superen el umbral seleccionado.")
+    # Capa 2: Los Arcos 3D
+    layer_arcos = pdk.Layer(
+        "ArcLayer",
+        data=df_filtrado,
+        get_source_position=["start_lon", "start_lat"],
+        get_target_position=["end_lon", "end_lat"],
+        get_source_color=[231, 76, 60, 200],   # Rojo vivo (Origen)
+        get_target_color=[52, 152, 219, 200],  # Azul vivo (Destino)
+        get_width="volumen_historico / 100",   # Normalizamos el grosor un poco
+        auto_highlight=True,
+        pickable=True, # Habilita el hover/tooltip
+    )
 
+    # Centramos la cámara en la CDMX con inclinación 3D
+    view_state = pdk.ViewState(
+        latitude=19.4093,
+        longitude=-99.2423,
+        zoom=11.5,
+        pitch=50,
+        bearing=0
+    )
 
+    # El Tooltip cuando pones el mouse sobre un arco
+    tooltip = {
+        "html": """
+        <b>Origen:</b> {origen_id} <br/>
+        <b>Destino:</b> {destino_id} <br/>
+        <b>Volumen Histórico:</b> {volumen_historico} viajes <br/>
+        <b>Rentabilidad EPH:</b> ${peso_maestro_eph}
+        """,
+        "style": {"backgroundColor": "steelblue", "color": "white"}
+    }
 
+    # Armamos el mapa
+    r = pdk.Deck(
+        layers=[layer_poly, layer_arcos],
+        initial_view_state=view_state,
+        map_style="light", 
+        tooltip=tooltip
+    )
+
+    # Streamlit lo inyecta nativamente
+    st.pydeck_chart(r)
 
 
 # ==========================================
-# TAB 3: MOBILITY TENSOR (LIVE SLICING)
+# CHUNK 5: TAB 3 - MOBILITY TENSOR (LIVE SLICING)
 # ==========================================
-# ==========================================
-# CHUNK 5: TAB 2 - MOBILITY TENSOR (LIVE SLICING)
-# ==========================================
-with tab_tensor_global:
+with tab_tensor_live:
     st.markdown("### 📈 Análisis de Dinámica de Flujos (Mobility Tensor)")
     st.markdown("Corta el tensor multidimensional para observar cómo mutan los flujos de capital según el día y la hora.")
     
@@ -438,11 +421,6 @@ with tab_tensor_global:
     # --- 2. ÁREA DEL MAPA (ABAJO) ---
     st.markdown(f"**Visualizando:** Flujos de las `{tensor_hour}:00 hrs` del `{tensor_day}`")
     
-    # =========================================================
-    # 🧠 AQUÍ SE INYECTA TU LÓGICA DE DATOS (Backend Tensor)
-    # Reemplazarás esto con tu función extraer_fotografia_temporal()
-    # Por ahora, usamos G_giant como estructura base para el renderizado
-    # =========================================================
     G_dir = nx.DiGraph()
     G_dir.add_nodes_from(G_giant.nodes())
     # Simulamos un flujo dirigido (Solo el 30% de las calles físicas tienen flujo rentable en esta hora)
@@ -453,7 +431,6 @@ with tab_tensor_global:
             G_dir.add_edge(u, v, weight=random.uniform(50, 300))
             if random.random() > 0.5: # Flujo bidireccional asimétrico
                 G_dir.add_edge(v, u, weight=random.uniform(50, 300))
-    # =========================================================
 
     # --- 3. MOTOR DE RENDERIZADO (GRAFO DIRIGIDO) ---
     fig_tensor = go.Figure()
@@ -493,7 +470,6 @@ with tab_tensor_global:
         hover_text = f"<b>{name.replace('_', ' ').upper()}</b>"
         
         if tensor_metric == "Asimetría (Fuentes vs Sumideros)":
-            # Simulación: Random entre -1 (Sumidero Rojo) y +1 (Fuente Verde)
             asimetria = random.uniform(-1, 1) 
             if asimetria > 0.2: node_color = '#A9DFBF' # Verde suave (Fuente)
             elif asimetria < -0.2: node_color = '#F5B7B1' # Rojo suave (Sumidero)
