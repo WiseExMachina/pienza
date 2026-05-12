@@ -140,7 +140,7 @@ import pydeck as pdk
 
 @st.cache_data
 def load_pydeck_assets():
-    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260511_kepler_arcos_mvp.csv')
+    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260512_tensor_arcos_mvp.csv')
     gdf_poly = gpd.read_file('/workspaces/pienza/observatory/assets/poly.geojson')
     return df_arcos, gdf_poly
 
@@ -318,12 +318,12 @@ with tab_topo:
         st.plotly_chart(fig, use_container_width=True)
 
 
-# ==========================================
+# ==============================================================================
 # CHUNK 4.5: TAB 2 - TENSOR GLOBAL (PYDECK MVP)
-# ==========================================
+# ==============================================================================
 with tab_tensor_global:
     st.markdown("### 🌍 Observatorio del Tensor Global (PyDeck)")
-    st.markdown("Aislando los Vectores de Élite: Top 5 rutas de mayor rentabilidad.")
+    st.markdown("Aislando la Telaraña de Vectores: Flujos de capital y volumen.")
 
     zonas_disponibles = sorted(df_arcos_pd['origen_id'].unique())
     idx_default = zonas_disponibles.index('santa_fe_centro_comercial') if 'santa_fe_centro_comercial' in zonas_disponibles else 0
@@ -331,36 +331,64 @@ with tab_tensor_global:
     origen_seleccionado = st.selectbox("🎯 Aislar Origen:", zonas_disponibles, index=idx_default)
     st.divider()
 
-    # Cortamos la data
-    df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == origen_seleccionado]
+    # 1. CORTAR Y PREPARAR LA DATA (Usamos .copy() para poder agregar columnas sin warnings)
+    df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == origen_seleccionado].copy()
 
-    # Capa 1: Los polígonos base (GeoJSON)
+    # 2. MOTOR DE ESTILO (Calculamos el gradiente dinámico para la zona seleccionada)
+    v_min = df_filtrado['volumen_historico'].min()
+    v_max = df_filtrado['volumen_historico'].max()
+
+    def calcular_color_volumen(val):
+        if v_max == v_min: return [255, 255, 0, 200] # Amarillo por defecto si solo hay 1 ruta
+        
+        # Ratio va de 0 (volumen mínimo) a 1 (volumen máximo)
+        ratio = (val - v_min) / (v_max - v_min)
+        
+        # LÓGICA DEL GRADIENTE: Amarillo (255, 255, 0) -> Rojo Casi Negro (50, 0, 0)
+        # El rojo baja de 255 a 50. El verde baja de 255 a 0. El azul se queda en 0.
+        r = int(255 - (205 * ratio))
+        g = int(255 * (1 - ratio))
+        
+        return [r, g, 0, 200] # El 200 final es la opacidad (alpha)
+
+    def calcular_grosor_acotado(val):
+        if v_max == v_min: return 2
+        ratio = (val - v_min) / (v_max - v_min)
+        # El arco más delgado medirá 1, el más grueso medirá 4. (No más "hairballs" asfixiantes)
+        return 1 + (3 * ratio)
+
+    # Inyectamos las columnas visuales al vuelo
+    df_filtrado['color_arco'] = df_filtrado['volumen_historico'].apply(calcular_color_volumen)
+    df_filtrado['ancho_arco'] = df_filtrado['volumen_historico'].apply(calcular_grosor_acotado)
+
+    # ==============================================================================
+    # 3. CONSTRUCCIÓN DE CAPAS PYDECK
+    # ==============================================================================
     layer_poly = pdk.Layer(
         "GeoJsonLayer",
         gdf_poly_pd,
-        opacity=0.2,
+        opacity=0.8,
         stroked=True,
         filled=True,
         extruded=False,
-        get_fill_color=[200, 200, 200, 100],  # Gris claro transparente
-        get_line_color=[100, 100, 100, 255],  # Bordes grises
-        get_line_width=15,
+        get_fill_color=[220, 220, 220, 90],  # Gris muy claro y translúcido (no estorba)
+        get_line_color=[85, 85, 85, 255],    # Gris oscuro sólido para las fronteras
+        get_line_width=20,                   # Fronteras un poco más remarcadas
     )
 
-    # Capa 2: Los Arcos 3D
     layer_arcos = pdk.Layer(
         "ArcLayer",
         data=df_filtrado,
         get_source_position=["start_lon", "start_lat"],
         get_target_position=["end_lon", "end_lat"],
-        get_source_color=[231, 76, 60, 200],   # Rojo vivo (Origen)
-        get_target_color=[52, 152, 219, 200],  # Azul vivo (Destino)
-        get_width="volumen_historico / 100",   # Normalizamos el grosor un poco
+        # PyDeck ahora lee las columnas que acabamos de calcular en Pandas
+        get_source_color="color_arco",
+        get_target_color="color_arco",
+        get_width="ancho_arco",
         auto_highlight=True,
-        pickable=True, # Habilita el hover/tooltip
+        pickable=True, 
     )
 
-    # Centramos la cámara en la CDMX con inclinación 3D
     view_state = pdk.ViewState(
         latitude=19.4093,
         longitude=-99.2423,
@@ -369,27 +397,33 @@ with tab_tensor_global:
         bearing=0
     )
 
-    # El Tooltip cuando pones el mouse sobre un arco
     tooltip = {
         "html": """
         <b>Origen:</b> {origen_id} <br/>
         <b>Destino:</b> {destino_id} <br/>
-        <b>Volumen Histórico:</b> {volumen_historico} viajes <br/>
+        <b>Volumen:</b> {volumen_historico} viajes <br/>
         <b>Rentabilidad EPH:</b> ${peso_maestro_eph}
         """,
-        "style": {"backgroundColor": "steelblue", "color": "white"}
+        "style": {"backgroundColor": "#2C3E50", "color": "white", "fontFamily": "Inter"}
     }
 
-    # Armamos el mapa
+# ==============================================================================
+    # 4. RENDERIZADO CON MAPBOX NATIVO (El fondo del Screenshot)
+    # ==============================================================================
+    
+    # Pega tu token NUEVO y sin restricciones aquí:
+    TOKEN_MAPBOX = "pk.eyJ1IjoiYmVybmFyZG9sdzg4IiwiYSI6ImNtcDMxcmphZjBtM3Eyc3Bwemc2OHhmbHIifQ.nRURL7plankvRicGkLIKDQ"
+
     r = pdk.Deck(
         layers=[layer_poly, layer_arcos],
         initial_view_state=view_state,
-        map_style="light", 
+        map_provider="mapbox", # Le decimos explícitamente que use el motor de Mapbox
+        map_style="mapbox://styles/mapbox/light-v11", # Este es el estilo EXACTO de tu foto
+        api_keys={"mapbox": TOKEN_MAPBOX}, # Le pasamos la llave directamente
         tooltip=tooltip
     )
 
-    # Streamlit lo inyecta nativamente
-    st.pydeck_chart(r)
+    st.pydeck_chart(r, use_container_width=True, height=850)
 
 
 # ==========================================
