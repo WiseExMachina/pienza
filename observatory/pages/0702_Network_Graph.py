@@ -140,7 +140,7 @@ import pydeck as pdk
 
 @st.cache_data
 def load_pydeck_assets():
-    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260512_tensor_arcos_mvp.csv')
+    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260513_tensor_arcos_w_edge_centrality.csv')
     gdf_poly = gpd.read_file('/workspaces/pienza/observatory/assets/poly.geojson')
     return df_arcos, gdf_poly
 
@@ -326,40 +326,101 @@ with tab_tensor_global:
     st.markdown("Aislando la Telaraña de Vectores: Flujos de capital y volumen.")
 
     zonas_disponibles = sorted(df_arcos_pd['origen_id'].unique())
-    idx_default = zonas_disponibles.index('santa_fe_centro_comercial') if 'santa_fe_centro_comercial' in zonas_disponibles else 0
+    idx_default = zonas_disponibles.index('lomas_virreyes') if 'lomas_virreyes' in zonas_disponibles else 0
 
     origen_seleccionado = st.selectbox("🎯 Aislar Origen:", zonas_disponibles, index=idx_default)
     st.divider()
 
-    # 1. CORTAR Y PREPARAR LA DATA (Usamos .copy() para poder agregar columnas sin warnings)
-    df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == origen_seleccionado].copy()
+    # ==============================================================================
+    # 1. UI CONTROLS & DATA FILTERING (MUTUALLY EXCLUSIVE - 100% ENGLISH)
+    # ==============================================================================
+    
+    # Initialize session state variables if they don't exist
+    if 'sel_origin' not in st.session_state:
+        st.session_state.sel_origin = 'lomas_virreyes'
+    if 'sel_metric' not in st.session_state:
+        st.session_state.sel_metric = '---'
 
-    # 2. MOTOR DE ESTILO (Calculamos el gradiente dinámico para la zona seleccionada)
-    v_min = df_filtrado['volumen_historico'].min()
-    v_max = df_filtrado['volumen_historico'].max()
+    # Callbacks to enforce mutual exclusivity
+    def update_origin():
+        if st.session_state.sel_origin != '---':
+            st.session_state.sel_metric = '---' # Reset centrality filter
 
-    def calcular_color_volumen(val):
-        if v_max == v_min: return [255, 255, 0, 200] # Amarillo por defecto si solo hay 1 ruta
+    def update_metric():
+        if st.session_state.sel_metric != '---':
+            st.session_state.sel_origin = '---' # Reset origin filter
+
+    # Dictionaries and lists for UI options
+    zones_available = sorted(df_arcos_pd['origen_id'].unique())
+    origin_options = ['---'] + zones_available
+    
+    metric_mapping = {
+        "Flow Sovereignty (PageRank)": "edge_pagerank",
+        "Connector Power (Betweenness)": "edge_betweenness",
+        "Economic Proximity (Closeness)": "edge_closeness"
+    }
+    metric_options = ['---'] + list(metric_mapping.keys())
+
+    # Flat, but mutually exclusive selectors
+    st.selectbox("🎯 Isolate Origin:", origin_options, key='sel_origin', on_change=update_origin)
+    st.selectbox("📈 Centrality Leaders:", metric_options, key='sel_metric', on_change=update_metric)
+
+    # --- FILTERING LOGIC ---
+    if st.session_state.sel_metric != '---':
+        # CENTRALITY LEADERS LOGIC
+        active_metric = metric_mapping[st.session_state.sel_metric]
+        color_metric = active_metric # Visuals will be driven by the centrality score
         
-        # Ratio va de 0 (volumen mínimo) a 1 (volumen máximo)
+        # 1. Find Top 3 Origins for the selected metric
+        top_3_origins = df_arcos_pd.groupby('origen_id')[active_metric].max().nlargest(3).index.tolist()
+        
+        # 2. Extract Top 5 edges for each of those 3 origins
+        frames = []
+        for origin in top_3_origins:
+            top_edges = df_arcos_pd[df_arcos_pd['origen_id'] == origin].nlargest(5, active_metric)
+            frames.append(top_edges)
+            
+        df_filtrado = pd.concat(frames).copy()
+
+    else:
+        # SINGLE ORIGIN LOGIC
+        # Fallback to lomas_virreyes if somehow both are '---'
+        target = st.session_state.sel_origin if st.session_state.sel_origin != '---' else 'lomas_virreyes'
+        color_metric = 'volumen_historico' # Visuals will be driven by volume
+        
+        df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == target].nlargest(15, 'volumen_historico').copy()
+
+    # ==============================================================================
+    # 2. DYNAMIC STYLE ENGINE
+    # ==============================================================================
+    # The visual weight now automatically adapts to volume OR centrality
+    v_min = df_filtrado[color_metric].min()
+    v_max = df_filtrado[color_metric].max()
+
+    def calculate_color(val):
+        paleta = [
+            [255, 195, 0, 200],  # 0: Yellow
+            [239, 145, 0, 200],  # 1: Light Orange
+            [214, 97, 10, 200],  # 2: Orange
+            [183, 47, 21, 200],  # 3: Red-Orange
+            [136, 0, 48, 200],   # 4: Dark Red
+            [76, 0, 53, 200]     # 5: Purple/Black
+        ]
+        if v_max == v_min: return paleta[5] 
+        
         ratio = (val - v_min) / (v_max - v_min)
-        
-        # LÓGICA DEL GRADIENTE: Amarillo (255, 255, 0) -> Rojo Casi Negro (50, 0, 0)
-        # El rojo baja de 255 a 50. El verde baja de 255 a 0. El azul se queda en 0.
-        r = int(255 - (205 * ratio))
-        g = int(255 * (1 - ratio))
-        
-        return [r, g, 0, 200] # El 200 final es la opacidad (alpha)
+        idx = int(ratio * 5.99) 
+        return paleta[idx]
 
-    def calcular_grosor_acotado(val):
-        if v_max == v_min: return 2
+    def calculate_width(val):
+        if v_max == v_min: return 5 
         ratio = (val - v_min) / (v_max - v_min)
-        # El arco más delgado medirá 1, el más grueso medirá 4. (No más "hairballs" asfixiantes)
-        return 1 + (3 * ratio)
+        return 3 + (8 * ratio)
 
-    # Inyectamos las columnas visuales al vuelo
-    df_filtrado['color_arco'] = df_filtrado['volumen_historico'].apply(calcular_color_volumen)
-    df_filtrado['ancho_arco'] = df_filtrado['volumen_historico'].apply(calcular_grosor_acotado)
+    df_filtrado['color_arco'] = df_filtrado[color_metric].apply(calculate_color)
+    df_filtrado['ancho_arco'] = df_filtrado[color_metric].apply(calculate_width)
+
+
 
     # ==============================================================================
     # 3. CONSTRUCCIÓN DE CAPAS PYDECK
@@ -392,19 +453,19 @@ with tab_tensor_global:
     view_state = pdk.ViewState(
         latitude=19.4093,
         longitude=-99.2423,
-        zoom=11.5,
+        zoom=12.5,
         pitch=50,
         bearing=0
     )
 
     tooltip = {
         "html": """
-        <b>Origen:</b> {origen_id} <br/>
-        <b>Destino:</b> {destino_id} <br/>
-        <b>Volumen:</b> {volumen_historico} viajes <br/>
-        <b>Rentabilidad EPH:</b> ${peso_maestro_eph}
+        <b>Trayecto:</b> {origen_id} → {destino_id} <br/>
+        <b>Volumen:</b> {volumen_historico} <br/>
+        <b>Soberanía (PageRank):</b> {edge_pagerank:.4f} <br/>
+        <b>Poder Conector:</b> {edge_betweenness:.4f}
         """,
-        "style": {"backgroundColor": "#2C3E50", "color": "white", "fontFamily": "Inter"}
+        "style": {"backgroundColor": "#2C3E50", "color": "white"}
     }
 
 # ==============================================================================
@@ -415,11 +476,11 @@ with tab_tensor_global:
     TOKEN_MAPBOX = "pk.eyJ1IjoiYmVybmFyZG9sdzg4IiwiYSI6ImNtcDMxcmphZjBtM3Eyc3Bwemc2OHhmbHIifQ.nRURL7plankvRicGkLIKDQ"
 
     r = pdk.Deck(
-        layers=[layer_poly, layer_arcos],
+        layers=[layer_poly, layer_arcos], # <- Aquí está la capa añadida
         initial_view_state=view_state,
-        map_provider="mapbox", # Le decimos explícitamente que use el motor de Mapbox
-        map_style="mapbox://styles/mapbox/light-v11", # Este es el estilo EXACTO de tu foto
-        api_keys={"mapbox": TOKEN_MAPBOX}, # Le pasamos la llave directamente
+        map_provider="mapbox", 
+        map_style="mapbox://styles/mapbox/light-v11",
+        api_keys={"mapbox": TOKEN_MAPBOX}, 
         tooltip=tooltip
     )
 
