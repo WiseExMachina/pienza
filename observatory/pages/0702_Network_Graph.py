@@ -127,9 +127,9 @@ eccentricity = nx.eccentricity(G_giant)
 # ==========================================
 
 # Create the Tabs (Actualizado a PyDeck)
-tab_topo, tab_tensor_global, tab_tensor_live = st.tabs([
-    "🕸️ Topological Sandbox", 
-    "🌍 Tensor Global (PyDeck)",
+tab_tensor_global, tab_topo, tab_tensor_live = st.tabs([
+    "Global Tensor Graph", 
+    "Undirected Topological Graph",
     "📈 Live Slicing"
 ])
 
@@ -325,32 +325,25 @@ with tab_tensor_global:
     st.markdown("### 🌍 Observatorio del Tensor Global (PyDeck)")
     st.markdown("Aislando la Telaraña de Vectores: Flujos de capital y volumen.")
 
-    zonas_disponibles = sorted(df_arcos_pd['origen_id'].unique())
-    idx_default = zonas_disponibles.index('lomas_virreyes') if 'lomas_virreyes' in zonas_disponibles else 0
 
-    origen_seleccionado = st.selectbox("🎯 Aislar Origen:", zonas_disponibles, index=idx_default)
-    st.divider()
 
     # ==============================================================================
-    # 1. UI CONTROLS & DATA FILTERING (MUTUALLY EXCLUSIVE - 100% ENGLISH)
+    # 1. UI CONTROLS & DATA FILTERING (SMART SUB-FILTERS - 100% ENGLISH)
     # ==============================================================================
     
-    # Initialize session state variables if they don't exist
     if 'sel_origin' not in st.session_state:
         st.session_state.sel_origin = 'lomas_virreyes'
     if 'sel_metric' not in st.session_state:
         st.session_state.sel_metric = '---'
 
-    # Callbacks to enforce mutual exclusivity
     def update_origin():
         if st.session_state.sel_origin != '---':
-            st.session_state.sel_metric = '---' # Reset centrality filter
+            st.session_state.sel_metric = '---' 
 
     def update_metric():
         if st.session_state.sel_metric != '---':
-            st.session_state.sel_origin = '---' # Reset origin filter
+            st.session_state.sel_origin = '---' 
 
-    # Dictionaries and lists for UI options
     zones_available = sorted(df_arcos_pd['origen_id'].unique())
     origin_options = ['---'] + zones_available
     
@@ -361,7 +354,6 @@ with tab_tensor_global:
     }
     metric_options = ['---'] + list(metric_mapping.keys())
 
-    # Flat, but mutually exclusive selectors
     st.selectbox("🎯 Isolate Origin:", origin_options, key='sel_origin', on_change=update_origin)
     st.selectbox("📈 Centrality Leaders:", metric_options, key='sel_metric', on_change=update_metric)
 
@@ -369,33 +361,44 @@ with tab_tensor_global:
     if st.session_state.sel_metric != '---':
         # CENTRALITY LEADERS LOGIC
         active_metric = metric_mapping[st.session_state.sel_metric]
-        color_metric = active_metric # Visuals will be driven by the centrality score
+        color_metric = active_metric 
         
-        # 1. Find Top 3 Origins for the selected metric
+        # 1. Calculate the Top 3 Origins DYNAMICALLY
         top_3_origins = df_arcos_pd.groupby('origen_id')[active_metric].max().nlargest(3).index.tolist()
         
-        # 2. Extract Top 5 edges for each of those 3 origins
-        frames = []
-        for origin in top_3_origins:
-            top_edges = df_arcos_pd[df_arcos_pd['origen_id'] == origin].nlargest(5, active_metric)
-            frames.append(top_edges)
-            
-        df_filtrado = pd.concat(frames).copy()
+        # 2. Render the "Smart" Sub-filter UI (With 'All' option as default)
+        radio_options = ["🌟 All Top 3 Leaders"] + top_3_origins
+        selected_leader = st.radio(
+            "👑 Inspect Leader Node:", 
+            options=radio_options,
+            horizontal=True
+        )
+        
+        # 3. Extract edges based on the sub-filter selection
+        if selected_leader == "🌟 All Top 3 Leaders":
+            frames = []
+            for origin in top_3_origins:
+                top_edges = df_arcos_pd[df_arcos_pd['origen_id'] == origin].nlargest(5, active_metric)
+                frames.append(top_edges)
+            df_filtrado = pd.concat(frames).copy()
+        else:
+            # Only show the 5 edges for the specifically selected leader
+            df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == selected_leader].nlargest(5, active_metric).copy()
 
     else:
         # SINGLE ORIGIN LOGIC
-        # Fallback to lomas_virreyes if somehow both are '---'
         target = st.session_state.sel_origin if st.session_state.sel_origin != '---' else 'lomas_virreyes'
-        color_metric = 'volumen_historico' # Visuals will be driven by volume
+        color_metric = 'volumen_historico' 
         
         df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == target].nlargest(15, 'volumen_historico').copy()
 
     # ==============================================================================
-    # 2. DYNAMIC STYLE ENGINE
+    # 2. DYNAMIC STYLE ENGINE (ABSOLUTE SCALING FIX)
     # ==============================================================================
-    # The visual weight now automatically adapts to volume OR centrality
-    v_min = df_filtrado[color_metric].min()
-    v_max = df_filtrado[color_metric].max()
+    # We now calculate the min and max from the GLOBAL dataframe (df_arcos_pd),
+    # not the filtered one. This prevents colors from resetting when isolating a node.
+    v_min = df_arcos_pd[color_metric].min()
+    v_max = df_arcos_pd[color_metric].max()
 
     def calculate_color(val):
         paleta = [
@@ -408,22 +411,97 @@ with tab_tensor_global:
         ]
         if v_max == v_min: return paleta[5] 
         
-        ratio = (val - v_min) / (v_max - v_min)
+        # Calculate ratio and ensure it strictly stays between 0.0 and 1.0
+        ratio = max(0.0, min(1.0, (val - v_min) / (v_max - v_min)))
         idx = int(ratio * 5.99) 
         return paleta[idx]
 
     def calculate_width(val):
         if v_max == v_min: return 5 
-        ratio = (val - v_min) / (v_max - v_min)
+        ratio = max(0.0, min(1.0, (val - v_min) / (v_max - v_min)))
         return 3 + (8 * ratio)
 
+    # Inject visual columns based on the ABSOLUTE metric
     df_filtrado['color_arco'] = df_filtrado[color_metric].apply(calculate_color)
     df_filtrado['ancho_arco'] = df_filtrado[color_metric].apply(calculate_width)
 
 
+    # ==============================================================================
+    # 2.5 DYNAMIC POLYGON HIGHLIGHTING & LABELS (Dark Origin & Z-Fighting Fix)
+    # ==============================================================================
+    active_origins = df_filtrado['origen_id'].unique().tolist()
+    active_destinations = df_filtrado['destino_id'].unique().tolist()
+
+    def get_poly_color(zone_name):
+        if zone_name in active_origins:
+            # Origin Node: Darker, solid gray
+            return [100, 100, 100, 220] 
+        elif zone_name in active_destinations:
+            # Destination Node: Lighter, transparent gray
+            return [170, 170, 170, 160]
+        else:
+            # Background Nodes: Faint, almost invisible gray
+            return [230, 230, 230, 60] 
+
+    gdf_poly_pd['fill_color'] = gdf_poly_pd['name'].apply(get_poly_color)
+
+    # 3. Create Labels DataFrame
+    active_nodes = set(active_origins + active_destinations)
+    gdf_active_poly = gdf_poly_pd[gdf_poly_pd['name'].isin(active_nodes)]
+
+    df_labels = pd.DataFrame({
+        'nombre': gdf_active_poly['name'].astype(str).str.lower(),
+        'lon': gdf_active_poly.geometry.centroid.x,
+        'lat': gdf_active_poly.geometry.centroid.y
+    }).dropna()
+
+
+
 
     # ==============================================================================
-    # 3. CONSTRUCCIÓN DE CAPAS PYDECK
+    # 2.8 DYNAMIC MAP LEGEND (Explains the color scale to the user)
+    # ==============================================================================
+    # Map the internal metric name back to a readable UI title
+    legend_titles = {
+        'volumen_historico': 'Historical Volume',
+        'edge_pagerank': 'Flow Sovereignty (PageRank)',
+        'edge_betweenness': 'Connector Power (Betweenness)',
+        'edge_closeness': 'Economic Proximity (Closeness)'
+    }
+    
+    active_title = legend_titles.get(color_metric, 'Active Metric')
+    
+    # Render an elegant HTML legend with a CSS gradient matching your PyDeck palette
+    legend_html = f"""
+    <div style="background-color: rgba(240, 242, 246, 0.5); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e0e0e0;">
+        <p style="margin-top: 0px; margin-bottom: 8px; font-weight: 600; color: #31333F; font-size: 14px;">
+            🎨 Visualizing: <span style="color: #FF4B4B;">{active_title}</span>
+        </p>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #555;">
+            <span style="font-weight: bold;">Low</span>
+            <div style="flex-grow: 1; height: 12px; margin: 0 15px; border-radius: 6px; 
+                        background: linear-gradient(to right, 
+                        rgb(255, 195, 0), 
+                        rgb(239, 145, 0), 
+                        rgb(214, 97, 10), 
+                        rgb(183, 47, 21), 
+                        rgb(136, 0, 48), 
+                        rgb(76, 0, 53));">
+            </div>
+            <span style="font-weight: bold;">High</span>
+        </div>
+    </div>
+    """
+    
+    # Display the legend in Streamlit
+    st.markdown(legend_html, unsafe_allow_html=True)
+
+
+
+    
+
+    # ==============================================================================
+    # 3. PYDECK LAYER CONSTRUCTION
     # ==============================================================================
     layer_poly = pdk.Layer(
         "GeoJsonLayer",
@@ -432,17 +510,17 @@ with tab_tensor_global:
         stroked=True,
         filled=True,
         extruded=False,
-        get_fill_color=[220, 220, 220, 90],  # Gris muy claro y translúcido (no estorba)
-        get_line_color=[85, 85, 85, 255],    # Gris oscuro sólido para las fronteras
-        get_line_width=20,                   # Fronteras un poco más remarcadas
+        get_fill_color="fill_color",         
+        get_line_color=[85, 85, 85, 150],    # Softer borders
+        get_line_width=15,                   
     )
 
+    # (Your layer_arcos remains the same here)
     layer_arcos = pdk.Layer(
         "ArcLayer",
         data=df_filtrado,
         get_source_position=["start_lon", "start_lat"],
         get_target_position=["end_lon", "end_lat"],
-        # PyDeck ahora lee las columnas que acabamos de calcular en Pandas
         get_source_color="color_arco",
         get_target_color="color_arco",
         get_width="ancho_arco",
@@ -450,10 +528,24 @@ with tab_tensor_global:
         pickable=True, 
     )
 
+    # Bulletproof TextLayer (Scales with zoom, only on active nodes)
+    layer_text = pdk.Layer(
+        "TextLayer",
+        data=df_labels,
+        get_position=["lon", "lat"],
+        get_text="nombre",
+        get_size=350,                  
+        size_units="meters",           
+        size_min_pixels=0,             
+        size_max_pixels=14,            
+        get_color=[40, 40, 40, 255],   # Darkest gray for maximum readability
+        parameters={"depthTest": False} # <--- EL HACK: Forza a renderizar sobre los polígonos
+    )
+
     view_state = pdk.ViewState(
         latitude=19.4093,
         longitude=-99.2423,
-        zoom=12.5,
+        zoom=13,
         pitch=50,
         bearing=0
     )
@@ -476,7 +568,7 @@ with tab_tensor_global:
     TOKEN_MAPBOX = "pk.eyJ1IjoiYmVybmFyZG9sdzg4IiwiYSI6ImNtcDMxcmphZjBtM3Eyc3Bwemc2OHhmbHIifQ.nRURL7plankvRicGkLIKDQ"
 
     r = pdk.Deck(
-        layers=[layer_poly, layer_arcos], # <- Aquí está la capa añadida
+        layers=[layer_poly, layer_arcos, layer_text], # <- Aquí está la capa añadida
         initial_view_state=view_state,
         map_provider="mapbox", 
         map_style="mapbox://styles/mapbox/light-v11",
