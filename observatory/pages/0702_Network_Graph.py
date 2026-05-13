@@ -140,7 +140,7 @@ import pydeck as pdk
 
 @st.cache_data
 def load_pydeck_assets():
-    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260513_tensor_arcos_w_edge_centrality.csv')
+    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260513_tensor_arcos_w_eph_maestro.csv')
     gdf_poly = gpd.read_file('/workspaces/pienza/observatory/assets/poly.geojson')
     return df_arcos, gdf_poly
 
@@ -327,22 +327,43 @@ with tab_tensor_global:
 
 
 
-    # ==============================================================================
-    # 1. UI CONTROLS & DATA FILTERING (SMART SUB-FILTERS - 100% ENGLISH)
+# ==============================================================================
+    # 1. UI CONTROLS & DATA FILTERING (UPDATED WITH ECONOMIC BALANCE)
     # ==============================================================================
     
-    if 'sel_origin' not in st.session_state:
-        st.session_state.sel_origin = 'lomas_virreyes'
-    if 'sel_metric' not in st.session_state:
-        st.session_state.sel_metric = '---'
+    if 'sel_origin' not in st.session_state: st.session_state.sel_origin = '---'
+    if 'sel_metric' not in st.session_state: st.session_state.sel_metric = '---'
+    if 'sel_balance' not in st.session_state: st.session_state.sel_balance = '---' # Nuevo
 
     def update_origin():
         if st.session_state.sel_origin != '---':
-            st.session_state.sel_metric = '---' 
+            st.session_state.sel_metric = '---'
+            st.session_state.sel_balance = '---'
 
     def update_metric():
         if st.session_state.sel_metric != '---':
-            st.session_state.sel_origin = '---' 
+            st.session_state.sel_origin = '---'
+            st.session_state.sel_balance = '---'
+
+    def update_balance(): # Nuevo callback
+        if st.session_state.sel_balance != '---':
+            st.session_state.sel_origin = '---'
+            st.session_state.sel_metric = '---'
+
+
+    # ==============================================================================
+    # AQUÍ MERO: CÁLCULO DE FUENTES Y SUMIDEROS (AL VUELO)
+    # ==============================================================================
+    out_flow = df_arcos_pd.groupby('origen_id')['masa_economica'].sum()
+    in_flow = df_arcos_pd.groupby('destino_id')['masa_economica'].sum()
+    balance_df = pd.DataFrame({'out': out_flow, 'in': in_flow}).fillna(0)
+    balance_df['net_balance'] = balance_df['out'] - balance_df['in']
+    
+    top_sources = balance_df.nlargest(3, 'net_balance').index.tolist()
+    top_sinks = balance_df.nsmallest(3, 'net_balance').index.tolist()
+    
+    balance_options = ['---'] + [f"🟢 SOURCE: {n}" for n in top_sources] + [f"🔴 SINK: {n}" for n in top_sinks]
+    # ==============================================================================
 
     zones_available = sorted(df_arcos_pd['origen_id'].unique())
     origin_options = ['---'] + zones_available
@@ -354,76 +375,93 @@ with tab_tensor_global:
     }
     metric_options = ['---'] + list(metric_mapping.keys())
 
-    st.selectbox("🎯 Isolate Origin:", origin_options, key='sel_origin', on_change=update_origin)
-    st.selectbox("📈 Centrality Leaders:", metric_options, key='sel_metric', on_change=update_metric)
+    # --- UI DE FILTROS EN COLUMNAS ---
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        st.selectbox("🎯 Isolate Origin:", origin_options, key='sel_origin', on_change=update_origin)
+    
+    with c2:
+        st.selectbox("📈 Centrality Leaders:", metric_options, key='sel_metric', on_change=update_metric)
+        
+    with c3:
+        st.selectbox("⚖️ Economic Balance:", balance_options, key='sel_balance', on_change=update_balance)
 
     # --- FILTERING LOGIC ---
+    is_balance_mode = False # Bandera para el motor de estilo
+
     if st.session_state.sel_metric != '---':
-        # CENTRALITY LEADERS LOGIC
+        # MODO CENTRALIDAD (Top 15 Absoluto)
         active_metric = metric_mapping[st.session_state.sel_metric]
         color_metric = active_metric 
+        df_top_global = df_arcos_pd.nlargest(15, active_metric).copy()
+        true_leaders = df_top_global['origen_id'].unique().tolist()
         
-        # 1. Calculate the Top 3 Origins DYNAMICALLY
-        top_3_origins = df_arcos_pd.groupby('origen_id')[active_metric].max().nlargest(3).index.tolist()
+        radio_options = ["🌟 All Elite Routes"] + true_leaders
+        selected_leader = st.radio("👑 Inspect Leader Node:", options=radio_options, horizontal=True)
         
-        # 2. Render the "Smart" Sub-filter UI (With 'All' option as default)
-        radio_options = ["🌟 All Top 3 Leaders"] + top_3_origins
-        selected_leader = st.radio(
-            "👑 Inspect Leader Node:", 
-            options=radio_options,
-            horizontal=True
-        )
-        
-        # 3. Extract edges based on the sub-filter selection
-        if selected_leader == "🌟 All Top 3 Leaders":
-            frames = []
-            for origin in top_3_origins:
-                top_edges = df_arcos_pd[df_arcos_pd['origen_id'] == origin].nlargest(5, active_metric)
-                frames.append(top_edges)
-            df_filtrado = pd.concat(frames).copy()
+        if selected_leader == "🌟 All Elite Routes":
+            df_filtrado = df_top_global
         else:
-            # Only show the 5 edges for the specifically selected leader
-            df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == selected_leader].nlargest(5, active_metric).copy()
+            df_filtrado = df_top_global[df_top_global['origen_id'] == selected_leader].copy()
+
+    elif st.session_state.sel_balance != '---':
+        # MODO BALANZA (Doble Sentido: Entradas y Salidas)
+        is_balance_mode = True
+        target_node = st.session_state.sel_balance.split(": ")[1]
+        
+        # Obtenemos las 10 rutas más pesadas que SALEN y que ENTRAN
+        df_out = df_arcos_pd[df_arcos_pd['origen_id'] == target_node].nlargest(10, 'masa_economica').copy()
+        df_in = df_arcos_pd[df_arcos_pd['destino_id'] == target_node].nlargest(10, 'masa_economica').copy()
+        
+        # Asignación Directa de Colores [R, G, B, Alpha]
+        df_out['color_arco'] = df_out.apply(lambda x: [39, 174, 96, 220], axis=1) # Verde
+        df_in['color_arco'] = df_in.apply(lambda x: [231, 76, 60, 220], axis=1)   # Rojo
+        
+        # Asignación de anchos fijos para este modo
+        df_out['ancho_arco'] = 5
+        df_in['ancho_arco'] = 5
+
+        df_filtrado = pd.concat([df_out, df_in])
+        color_metric = 'masa_economica' # Solo para la leyenda
 
     else:
-        # SINGLE ORIGIN LOGIC
+        # MODO ORIGEN ÚNICO (Default)
         target = st.session_state.sel_origin if st.session_state.sel_origin != '---' else 'lomas_virreyes'
-        color_metric = 'volumen_historico' 
-        
-        df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == target].nlargest(15, 'volumen_historico').copy()
+        color_metric = 'eph_maestro' # Usamos el peso explícito que pediste
+        df_filtrado = df_arcos_pd[df_arcos_pd['origen_id'] == target].nlargest(15, 'eph_maestro').copy()
 
     # ==============================================================================
-    # 2. DYNAMIC STYLE ENGINE (ABSOLUTE SCALING FIX)
+    # 2. DYNAMIC STYLE ENGINE (CORREGIDO)
     # ==============================================================================
-    # We now calculate the min and max from the GLOBAL dataframe (df_arcos_pd),
-    # not the filtered one. This prevents colors from resetting when isolating a node.
-    v_min = df_arcos_pd[color_metric].min()
-    v_max = df_arcos_pd[color_metric].max()
+    if not is_balance_mode:
+        v_min = df_arcos_pd[color_metric].min()
+        v_max = df_arcos_pd[color_metric].max()
 
-    def calculate_color(val):
-        paleta = [
-            [255, 195, 0, 200],  # 0: Yellow
-            [239, 145, 0, 200],  # 1: Light Orange
-            [214, 97, 10, 200],  # 2: Orange
-            [183, 47, 21, 200],  # 3: Red-Orange
-            [136, 0, 48, 200],   # 4: Dark Red
-            [76, 0, 53, 200]     # 5: Purple/Black
-        ]
-        if v_max == v_min: return paleta[5] 
-        
-        # Calculate ratio and ensure it strictly stays between 0.0 and 1.0
-        ratio = max(0.0, min(1.0, (val - v_min) / (v_max - v_min)))
-        idx = int(ratio * 5.99) 
-        return paleta[idx]
+        # --- 1. PRIMERO DEFINIMOS LAS FUNCIONES ---
+        def calculate_color(val):
+            paleta = [
+                [255, 195, 0, 200],  # 0: Yellow
+                [239, 145, 0, 200],  # 1: Light Orange
+                [214, 97, 10, 200],  # 2: Orange
+                [183, 47, 21, 200],  # 3: Red-Orange
+                [136, 0, 48, 200],   # 4: Dark Red
+                [76, 0, 53, 200]     # 5: Purple/Black
+            ]
+            if v_max == v_min: return paleta[5] 
+            
+            ratio = max(0.0, min(1.0, (val - v_min) / (v_max - v_min)))
+            idx = int(ratio * 5.99) 
+            return paleta[idx]
 
-    def calculate_width(val):
-        if v_max == v_min: return 5 
-        ratio = max(0.0, min(1.0, (val - v_min) / (v_max - v_min)))
-        return 3 + (8 * ratio)
+        def calculate_width(val):
+            if v_max == v_min: return 5 
+            ratio = max(0.0, min(1.0, (val - v_min) / (v_max - v_min)))
+            return 3 + (8 * ratio)
 
-    # Inject visual columns based on the ABSOLUTE metric
-    df_filtrado['color_arco'] = df_filtrado[color_metric].apply(calculate_color)
-    df_filtrado['ancho_arco'] = df_filtrado[color_metric].apply(calculate_width)
+        # --- 2. DESPUÉS LAS APLICAMOS AL DATAFRAME ---
+        df_filtrado['color_arco'] = df_filtrado[color_metric].apply(calculate_color)
+        df_filtrado['ancho_arco'] = df_filtrado[color_metric].apply(calculate_width)
 
 
     # ==============================================================================
@@ -497,8 +535,16 @@ with tab_tensor_global:
     st.markdown(legend_html, unsafe_allow_html=True)
 
 
+    # ==============================================================================
+    # 2.9 PREPARE TOOLTIP DATA (Formatting strings for JavaScript/PyDeck)
+    # ==============================================================================
+    # PyDeck cannot process Python string formats like :.4f inside the HTML, 
+    # so we prepare literal string columns specifically for the tooltip.
+    df_filtrado['tooltip_pr'] = df_filtrado['edge_pagerank'].apply(lambda x: f"{x:.4f}")
+    df_filtrado['tooltip_bw'] = df_filtrado['edge_betweenness'].apply(lambda x: f"{x:.4f}")
+    df_filtrado['tooltip_cl'] = df_filtrado['edge_closeness'].apply(lambda x: f"{x:.4f}")
 
-    
+
 
     # ==============================================================================
     # 3. PYDECK LAYER CONSTRUCTION
@@ -545,19 +591,32 @@ with tab_tensor_global:
     view_state = pdk.ViewState(
         latitude=19.4093,
         longitude=-99.2423,
-        zoom=13,
+        zoom=12.5,
         pitch=50,
         bearing=0
     )
 
+    
+
+
     tooltip = {
         "html": """
-        <b>Trayecto:</b> {origen_id} → {destino_id} <br/>
-        <b>Volumen:</b> {volumen_historico} <br/>
-        <b>Soberanía (PageRank):</b> {edge_pagerank:.4f} <br/>
-        <b>Poder Conector:</b> {edge_betweenness:.4f}
+        <div style='font-family: sans-serif; font-size: 13px;'>
+            <b style='color: #FF4B4B;'>Route:</b> {origen_id} → {destino_id} <br/>
+            <hr style='margin: 6px 0; border: 0; border-top: 1px solid #555;'/>
+            <b>Historical Volume:</b> {volumen_historico} <br/>
+            <b>PageRank:</b> {tooltip_pr} <br/>
+            <b>Betweeness:</b> {tooltip_bw} <br/>
+            <b>Closeness:</b> {tooltip_cl}
+        </div>
         """,
-        "style": {"backgroundColor": "#2C3E50", "color": "white"}
+        "style": {
+            "backgroundColor": "#2C3E50", 
+            "color": "white", 
+            "padding": "12px", 
+            "borderRadius": "8px",
+            "boxShadow": "0px 4px 6px rgba(0,0,0,0.3)"
+        }
     }
 
 # ==============================================================================
