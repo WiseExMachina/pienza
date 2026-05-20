@@ -3,173 +3,259 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import pydeck as pdk
-from pathlib import Path
 from shapely.affinity import translate
+from pathlib import Path
 
 # ==========================================
-# PAGE CONFIG & STYLING
+# 1. PAGE CONFIG & STYLING (Homologado Pienza)
 # ==========================================
-st.set_page_config(page_title="Markov Fleet Bridge", page_icon="🤖", layout="wide")
-
-st.markdown("""
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@200..900&family=Inter:wght@400;600;700&display=swap');
-        p, li, td, th { font-family: 'Crimson Pro', serif !important; font-size: 18px !important; }
-        h1, h2, h3 { font-family: 'Inter', sans-serif !important; font-weight: 600 !important; }
-    </style>
-""", unsafe_allow_html=True)
-
-st.title("🤖 The Markov Bridge: Fleet Optimization")
-st.markdown("---")
+st.set_page_config(page_title="Markov Fleet Simulator", page_icon="🤖", layout="wide")
+st.title("🤖 The Markov Bridge: Tactical Fleet Deployment")
+st.markdown("Observatorio Prescriptivo de Flotilla. Despliegue secuencial simulado con Absorción de Demanda.")
+st.divider()
 
 # ==========================================
-# DATA LOADING (MOCK & TOPOLOGY)
+# 2. DATA LOADING (GeoJSON - Topología Fiel)
 # ==========================================
 @st.cache_data
-def load_mock_topology():
-    # Intentamos cargar tu GeoJSON real si existe, si no, fall-back a estructura vacía
-    path = Path(__file__).resolve().parent.parent / "assets" / "poly.geojson"
+def load_topology():
+    base_path = Path(__file__).resolve().parent.parent / "assets" / "poly.geojson"
+    
     try:
-        gdf = gpd.read_file(str(path))
+        gdf = gpd.read_file(str(base_path))
+        
+        # Corrección quirúrgica de Tecamachalco
+        tecas = gdf[gdf['name'] == 'tecamachalco']
+        if len(tecas) > 1:
+            idx_norte = tecas.geometry.centroid.x.idxmax()
+            idx_sur = tecas.geometry.centroid.x.idxmin()
+            gdf.at[idx_norte, 'name'] = 'reforma_social'
+            gdf.at[idx_sur, 'name'] = 'tecamachalco'
+            
         gdf['name'] = gdf['name'].str.strip().str.lower()
         
-        # Tu lógica de escalado Pienza (0.8)
-        b = gdf.total_bounds
-        mx, my = (b[0]+b[2])/2, (b[1]+b[3])/2
-        gdf['geometry'] = gdf.geometry.apply(lambda g: translate(g, xoff=(g.centroid.x-mx)*0.8, yoff=(g.centroid.y-my)*0.8))
-        gdf['lat'] = gdf.geometry.centroid.y
-        gdf['lon'] = gdf.geometry.centroid.x
-        return gdf
-    except:
-        st.error("GeoJSON not found. Running with mock spatial nodes.")
-        # Mock de 72 nodos si no hay archivo
-        return pd.DataFrame({
-            'name': [f'node_{i}' for i in range(72)],
-            'lat': np.random.uniform(19.35, 19.45, 72),
-            'lon': np.random.uniform(-99.28, -99.20, 72)
-        })
+        # Diccionario de coordenadas de centroides reales {nodo: [lon, lat]}
+        coords = {row['name']: [row.geometry.centroid.x, row.geometry.centroid.y] for _, row in gdf.iterrows()}
+        zonas = sorted(gdf['name'].unique().tolist())
+        
+        # Color del Polígono gris oscuro translúcido como el Tensor Global
+        gdf['fill_color'] = [[108, 117, 125, 120]] * len(gdf) # '#6c757d' con alpha
+        
+        return gdf, zonas, coords
+    except Exception as e:
+        st.error(f"Error cargando poly.geojson: {e}")
+        return None, [], {}
 
-gdf_nodes = load_mock_topology()
-node_names = gdf_nodes['name'].tolist()
+gdf_poly, zonas_ordenadas, coords_dict = load_topology()
 
 # ==========================================
-# SIDEBAR - BELLMAN & MARKOV CONTROLS
+# 3. CONTROLES SUPERIORES (Cuerpo de la Pantalla)
 # ==========================================
-with st.sidebar:
-    st.header("⚙️ Agent Hyperparameters")
-    gamma = st.slider("Discount Factor (γ) - Future Vision", 0.0, 1.0, 0.9, help="How much we value future rewards vs immediate ones.")
-    alpha = st.slider("Learning Rate (α)", 0.01, 0.5, 0.1)
-    epsilon = st.slider("Exploration (ε)", 0.0, 1.0, 0.2, help="Probability of choosing a random route to discover new payouts.")
+st.markdown("#### 🎛️ Panel de Mando Táctico")
+
+# Layout de controles en línea (estilo Tensor Global)
+c1, cMetric, cBalance = st.columns(3)
+
+with c1:
+    # Restricción estricta a los Warehouses oficiales, agregando "TODOS"
+    warehouses_oficiales = ['carso_antara_miyana', 'santa_fe_centro_comercial', 'interlomas_magnocentro']
     
-    st.divider()
-    st.header("🚢 Fleet Strategy")
-    fleet_size = st.number_input("Number of Agents", 1, 500, 50)
-    initial_node = st.selectbox("Deployment Base", node_names)
+    warehouses_validos = [w for w in warehouses_oficiales if w in zonas_ordenadas]
     
-    run_sim = st.button("🚀 Run Bellman Iteration", use_container_width=True)
+    # Agregar la opción TODOS al principio
+    warehouses_opciones = ['TODOS'] + warehouses_validos
+    if not warehouses_validos and len(zonas_ordenadas) > 0:
+        warehouses_opciones = ['TODOS'] + zonas_ordenadas[:3] 
+        
+    origen_despliegue = st.selectbox("🎯 Deployment Warehouse:", warehouses_opciones, index=0)
+
+with cMetric:
+    # Lógica de Bellman (Miopía estratégica)
+    gamma = st.slider("Future Value Discount (γ):", 0.0, 1.0, 0.85, step=0.05)
+
+with cBalance:
+    # Lógica de Saltos Múltiples (Profundidad de la política Rollout)
+    saltos_totales = st.slider("System Total Hops (T):", 1, 8, 5)
+
+# Espaciado y botón destacado
+st.markdown("<br>", unsafe_allow_html=True) 
+_, btn_col, _ = st.columns([1, 1, 1])
+with btn_col:
+    run_sim = st.button("🚀 CALCULAR VECTORES DE DESPLIEGUE", use_container_width=True)
 
 # ==========================================
-# MARKOV ENGINE (MOCK LOGIC)
+# 4. ENGINE: MARKOV DEMAND DEPLETION (TODOS Support)
 # ==========================================
-# Aquí creamos una V-Table (Valor del nodo) aleatoria para el Mock
-if 'v_table' not in st.session_state:
-    st.session_state.v_table = {name: np.random.uniform(10, 100) for name in node_names}
+def simular_enjambre(origen_str, hops, gamma_val):
+    N = len(zonas_ordenadas)
+    
+    np.random.seed(42)
+    Q_real = np.random.uniform(10, 500, (N, N))
+    np.fill_diagonal(Q_real, 0)
+    
+    if origen_str == 'TODOS':
+        sources_to_simulate = warehouses_validos
+    else:
+        sources_to_simulate = [origen_str]
+        
+    all_arcos_generados = []
+    all_bitacoras_generadas = []
+    
+    opciones_salida_warehouse = 10 
+    opciones_por_salto = 3
+    
+    # EL FIX DEL COMETA: Transparente en Origen (Alpha 30), Sólido en Destino (Alpha 255)
+    flota_conf = [
+        {'id': 'AV-1', 'name': 'Pionero', 'col_orig': [231, 76, 60, 30], 'col_dest': [231, 76, 60, 255], 'tilt': 0},
+        {'id': 'AV-2', 'name': 'Flanco N', 'col_orig': [41, 128, 185, 30], 'col_dest': [41, 128, 185, 255], 'tilt': 45},
+        {'id': 'AV-3', 'name': 'Flanco S', 'col_orig': [39, 174, 96, 30], 'col_dest': [39, 174, 96, 255], 'tilt': -45}
+    ]
 
-def simulate_step():
-    # Simulamos que el valor de los nodos cambia (como si los agentes aprendieran)
-    for name in node_names:
-        reward = np.random.normal(50, 10) # El payout real de Pienza entrará aquí
-        # Ecuación simplificada de Bellman: V(s) = R + γ * max(V(s'))
-        st.session_state.v_table[name] = (1 - alpha) * st.session_state.v_table[name] + \
-                                         alpha * (reward + gamma * max(st.session_state.v_table.values()))
+    for source_node in sources_to_simulate:
+        idx_origen = zonas_ordenadas.index(source_node)
+        source_base_name = source_node.replace('_', ' ').split()[0].title()
 
+        for av_conf in flota_conf:
+            rutas_candidatas = []
+            
+            def buscar_rutas(zona_actual, path, score_acumulado, profundidad):
+                if profundidad == hops:
+                    rutas_candidatas.append({'path_indices': path, 'score': score_acumulado})
+                    return
+                    
+                opciones = np.argsort(Q_real[zona_actual, :])[::-1]
+                validas = [dst for dst in opciones if Q_real[zona_actual, dst] > 0 and dst != zona_actual]
+                limite = opciones_salida_warehouse if profundidad == 0 else opciones_por_salto
+                
+                for dst in validas[:limite]:
+                    buscar_rutas(dst, path + [dst], score_acumulado + Q_real[zona_actual, dst], profundidad + 1)
+            
+            buscar_rutas(idx_origen, [idx_origen], 0, 0)
+            
+            if rutas_candidatas:
+                mejor_ruta = sorted(rutas_candidatas, key=lambda x: x['score'], reverse=True)[0]
+                path_ganador = mejor_ruta['path_indices']
+                nombres_ruta = [zonas_ordenadas[i].replace('_', ' ').title() for i in path_ganador]
+                
+                vehicle_fullname = f"{source_base_name} {av_conf['id']} ({av_conf['name']})"
+
+                all_bitacoras_generadas.append({
+                    'Almacén Origen': source_base_name,
+                    'Vehículo ID': vehicle_fullname,
+                    'Secuencia Táctica': " → ".join(nombres_ruta),
+                    'Score (pts)': f"${mejor_ruta['score']:,.0f}"
+                })
+                
+                for i in range(len(path_ganador) - 1):
+                    u = path_ganador[i]
+                    v = path_ganador[i+1]
+                    
+                    all_arcos_generados.append({
+                        'source_pos': coords_dict[zonas_ordenadas[u]],
+                        'target_pos': coords_dict[zonas_ordenadas[v]],
+                        'color_origen': av_conf['col_orig'],
+                        'color_destino': av_conf['col_dest'],
+                        'tilt': av_conf['tilt'],
+                        'av_fullname': vehicle_fullname,
+                        'origen_n': nombres_ruta[i],
+                        'destino_n': nombres_ruta[i+1],
+                        'step': i + 1
+                    })
+                    
+                    Q_real[u, v] *= 0.10
+                
+    return pd.DataFrame(all_bitacoras_generadas), pd.DataFrame(all_arcos_generados)
+
+
+# ==========================================
+# 5. RENDERIZADO (Paginación Táctica)
+# ==========================================
 if run_sim:
-    simulate_step()
+    df_bitacora, df_arcos = simular_enjambre(origen_despliegue, saltos_totales, gamma)
+    st.session_state['bitacora'] = df_bitacora
+    st.session_state['arcos'] = df_arcos
+    st.session_state['sim_activa'] = True
+    st.session_state['paso_actual'] = 1
 
-# Preparar datos para el mapa
-df_map = gdf_nodes.copy()
-df_map['value'] = df_map['name'].map(st.session_state.v_table)
-# Normalizar para color (Verde = Alto Valor, Rojo = Bajo Valor)
-v_max = df_map['value'].max()
-v_min = df_map['value'].min()
-df_map['color'] = df_map['value'].apply(lambda v: [
-    int(255 * (1 - (v-v_min)/(v_max-v_min))), # R
-    int(255 * (v-v_min)/(v_max-v_min)),       # G
-    150, 200                                  # B, A
-])
+if st.session_state.get('sim_activa', False):
+    st.divider()
+    
+    ware_display = origen_despliegue.replace('_', ' ').upper()
+    st.markdown(f"### 🗺️ Abanico Táctico de Markov (Warehouse(s): {ware_display})")
+    
+    if 'paso_actual' not in st.session_state:
+        st.session_state['paso_actual'] = 1
 
-# ==========================================
-# DASHBOARD LAYOUT
-# ==========================================
-col_map, col_stats = st.columns([2, 1])
+    c_prev, c_info, c_next = st.columns([1, 2, 1])
+    
+    with c_prev:
+        if st.button("◀️ Salto Anterior", use_container_width=True, disabled=(st.session_state['paso_actual'] <= 1)):
+            st.session_state['paso_actual'] -= 1
+            
+    with c_info:
+        st.markdown(
+            f"<div style='text-align: center; font-size: 18px; font-weight: bold; padding-top: 5px; color: #2C3E50;'>"
+            f"Mostrando Salto: <span style='color: #E74C3C;'>{st.session_state['paso_actual']}</span> de {saltos_totales}</div>", 
+            unsafe_allow_html=True
+        )
+            
+    with c_next:
+        if st.button("Siguiente Salto ▶️", use_container_width=True, disabled=(st.session_state['paso_actual'] >= saltos_totales)):
+            st.session_state['paso_actual'] += 1
 
-with col_map:
-    st.subheader("📍 State-Value Map (V-Matrix)")
+    paso = st.session_state['paso_actual']
+    df_arcos_t = st.session_state['arcos']
+    df_arcos_visible = df_arcos_t[df_arcos_t['step'] <= paso]
+    
+    layer_poly = pdk.Layer(
+        "GeoJsonLayer",
+        gdf_poly,
+        opacity=0.8,
+        stroked=True,
+        filled=True,
+        get_fill_color=[230, 230, 230, 50],
+        get_line_color=[150, 150, 150, 120],
+        get_line_width=15,
+        lineWidthMinPixels=1, 
+    )
+    
+    layer_arcos = pdk.Layer(
+        "ArcLayer",
+        data=df_arcos_visible,
+        get_source_position="source_pos",
+        get_target_position="target_pos",
+        get_source_color="color_origen",   # Nace transparente
+        get_target_color="color_destino",  # Termina brillante
+        get_tilt="tilt",
+        get_width=7, # Un poco más gruesos para que luzca el gradiente
+        pickable=True,
+        auto_highlight=True
+    )
     
     view_state = pdk.ViewState(
-        latitude=df_map['lat'].mean(),
-        longitude=df_map['lon'].mean(),
-        zoom=12, pitch=45
+        latitude=19.4093, longitude=-99.2423,
+        zoom=12.2, pitch=50, bearing=0
     )
     
-    layer_nodes = pdk.Layer(
-        "ScatterplotLayer",
-        df_map,
-        get_position=["lon", "lat"],
-        get_fill_color="color",
-        get_radius=200,
-        pickable=True
-    )
+    tooltip = {
+        "html": "<b>{av_fullname}</b><br/>Salto #{step}<br/>{origen_n} → {destino_n}",
+        "style": {"backgroundColor": "#2C3E50", "color": "white", "font-family": "sans-serif", "font-size": "13px"}
+    }
     
-    # Capa de "Flujo Óptimo" (Mock de política de Markov)
-    # Dibujamos arcos hacia los nodos de mayor valor
-    top_nodes = df_map.nlargest(5, 'value')
-    df_arcs = pd.DataFrame({
-        's_lon': [df_map[df_map['name']==initial_node]['lon'].values[0]] * 5,
-        's_lat': [df_map[df_map['name']==initial_node]['lat'].values[0]] * 5,
-        'e_lon': top_nodes['lon'].values,
-        'e_lat': top_nodes['lat'].values,
-    })
+    TOKEN_MAPBOX = "pk.eyJ1IjoiYmVybmFyZG9sdzg4IiwiYSI6ImNtcDMxcmphZjBtM3Eyc3Bwemc2OHhmbHIifQ.nRURL7plankvRicGkLIKDQ"
     
-    layer_arcs = pdk.Layer(
-        "ArcLayer",
-        df_arcs,
-        get_source_position=["s_lon", "s_lat"],
-        get_target_position=["e_lon", "e_lat"],
-        get_source_color=[255, 255, 255, 80],
-        get_target_color=[0, 255, 0, 200],
-        get_width=3
-    )
-
     st.pydeck_chart(pdk.Deck(
-        layers=[layer_nodes, layer_arcs],
+        layers=[layer_poly, layer_arcos], 
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/dark-v11",
-        tooltip={"text": "Node: {name}\nValue: {value}"}
-    ))
+        map_provider="mapbox",
+        map_style="mapbox://styles/mapbox/light-v11",    
+        api_keys={"mapbox": TOKEN_MAPBOX},
+        tooltip=tooltip
+    ), use_container_width=True, height=650)
 
-with col_stats:
-    st.subheader("📊 Policy Metrics")
+    st.markdown("---")
+    st.markdown("#### 📋 Bitácora de Despliegue Secuencial (Full Fleet Manual)")
+    st.dataframe(st.session_state['bitacora'], hide_index=True, use_container_width=True)
     
-    # Métricas de convergencia
-    st.metric("Avg Node Value", f"${df_map['value'].mean():.2f}")
-    st.metric("System Entropy", f"{np.random.uniform(0.1, 0.5):.4f}", delta="-0.02")
-    
-    st.markdown("### 🏆 Top Profit States")
-    st.dataframe(
-        df_map.nlargest(10, 'value')[['name', 'value']].style.background_gradient(cmap='Greens'),
-        use_container_width=True,
-        hide_index=True
-    )
-    
-    st.info("""
-    **Markov Logic:**
-    In this view, the fleet learns which states are 'absorbing' (high payout) 
-    and which routes represent the *Optimal Policy* using the Bellman Equation.
-    """)
-
-# ==========================================
-# FOOTER / DEBUG
-# ==========================================
-st.divider()
-st.caption(f"Fleet Optimizer MVP | Nodes: {len(gdf_nodes)} | Convergence Mode: Value Iteration")
+else:
+    st.info("💡 Configura los parámetros superiores y presiona Calcular Vectores de Despliegue para iniciar.")
