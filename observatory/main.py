@@ -63,24 +63,97 @@ build_sidebar()
 st.title("Project Pienza: An AI Digital Twin to Navigate the Ride-Hailing Dynamics of Mexico City")
 st.markdown("""
     <h4 style='color: #21918c; font-weight: 400; margin-top: -10px;'>
-        From Field Acquisition to Markov Generative Simulations
+        From Field Acquisition to Generative Simulation
     </h4>
     """, unsafe_allow_html=True)
 
 st.write("") # Spacer
 
-# --- 4. THE KILLER NARRATIVE ---
-col_intro, col_spacing, col_stats = st.columns([2.5, 0.2, 1.2])
+# --- 4. THE KILLER NARRATIVE & ACHIEVEMENTS ---
+st.markdown("<h3 style='margin-top: 0;'>The Mission</h3>", unsafe_allow_html=True)
+st.markdown("""
+**Project Pienza** transforms street-level gig-economy fieldwork into a generative digital twin. 
 
-with col_intro:
-    st.markdown("""
-    Project Pienza is an end-to-end decision science framework that transforms street-level gig-economy fieldwork into a generative digital twin. Engineered to overcome the survivorship bias inherent in ride-hailing algorithms, the project captures the total market liquidity of an expert agent via custom OCR and telemetry pipelines. This sovereign dataset powers a hierarchical imitation learning engine (XGBoost), an $O(1)$ NLP spatial transformer, and a Conditional GAN that synthesizes a 1,000,000-row market manifold. Ultimately, Pienza bridges the gap between human behavioral cloning and autonomous execution, culminating in a graph-based Markov sandbox for strategic fleet orchestration.
-    """)
+Engineered to overcome algorithmic survivorship bias, it captures the total market liquidity of a human agent -including rejected offers- to build a proprietary dataset that powers a hierarchical imitation engine, an NLP spatial transformer, and a conditional Generative Adversarial Network (cGAN).
 
-st.markdown("---")
+Ultimately, Pienza bridges the gap between human behavioral cloning and autonomous execution via a graph-based Markov sandbox for fleet orchestration.
+""")
+
+st.write("") # Spacer
+
+st.markdown("""
+<style>
+.bento-grid {
+    display: grid;
+    /* Ajusta minmax para que las tarjetas se adapten al ancho completo de la pantalla */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 10px; 
+}
+.bento-card {
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+.bento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    border-color: #21918c;
+}
+.bento-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #121212;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 5px;
+}
+.bento-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #21918c;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+.bento-desc {
+    font-size: 0.8rem;
+    color: #555;
+    line-height: 1.4;
+}
+</style>
+
+<div class="bento-grid">
+    <div class="bento-card">
+        <div class="bento-title">Telemetry Ledger</div>
+        <div class="bento-value">4,700+</div>
+        <div class="bento-desc">Ride offers and market interactions captured via a dual-engine OCR system.</div>
+    </div>
+    <div class="bento-card">
+        <div class="bento-title">Generative Scale</div>
+        <div class="bento-value">1M Rows</div>
+        <div class="bento-desc">Operational manifold synthesized using cGANs.</div>
+    </div>
+    <div class="bento-card">
+        <div class="bento-title">Spatial Latency</div>
+        <div class="bento-value">< 10ms</div>
+        <div class="bento-desc">Real-time inference via the miniBabel NLP Transformer.</div>
+    </div>
+    <div class="bento-card">
+        <div class="bento-title">Markov Decision Process</div>
+        <div class="bento-value">5-Jump</div>
+        <div class="bento-desc">Optimized mission sequences derived via a prescriptive Q-Matrix policy.</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
 
 # --- 5. THE HERO VISUAL (3D MANIFOLD) ---
-st.subheader("The Playground: Machine-Discovered Hubs")
+st.subheader("The Playground: Machine Discovered Hubs")
 
 try:
     with open("/workspaces/pienza/observatory/assets/kepler_3D.html", 'r', encoding='utf-8') as f:
@@ -130,7 +203,7 @@ with p4:
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: gray; font-size: 0.8rem;'>"
-    "Lozano Wise, B. (2026). Project Pienza: From Field Acquisition to Generative Simulation. Independent Research Initiative."
+    "Lozano Wise, B. (2026). Project Pienza. Independent Research Initiative."
     "</div>", 
     unsafe_allow_html=True
 )
