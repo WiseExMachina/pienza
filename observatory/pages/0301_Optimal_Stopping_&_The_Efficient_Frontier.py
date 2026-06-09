@@ -6,6 +6,7 @@ import plotly.express as px
 from google.cloud import bigquery
 from pathlib import Path
 from scipy.interpolate import interp1d
+from utils.sidebar import build_sidebar
 
 # ==============================================================================
 # 0. PAGE CONFIGURATION
@@ -19,6 +20,8 @@ OPUS_PURPLE = '#440154'
 OPUS_TEAL   = '#21918c'
 OPUS_GREY   = '#FAFAFA'
 OPUS_TEXT   = '#121212'
+
+build_sidebar()
 
 # ==============================================================================
 # 2. DATA PIPELINE (BigQuery Connection)

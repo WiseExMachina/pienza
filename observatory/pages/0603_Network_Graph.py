@@ -17,6 +17,7 @@ import pandas as pd
 import geopandas as gpd
 import streamlit.components.v1 as components  # <- El salvavidas nativo
 from keplergl import KeplerGl
+from utils.sidebar import build_sidebar
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -26,6 +27,9 @@ st.set_page_config(
     page_icon="🔭",
     layout="wide"
 )
+
+build_sidebar()
+
 
 # ==========================================
 # CUSTOM FONT INJECTION

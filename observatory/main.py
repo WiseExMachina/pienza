@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+from utils.sidebar import build_sidebar
 
 # --- 1. CANONICAL CONFIGURATION ---
 st.set_page_config(
@@ -10,7 +11,7 @@ st.set_page_config(
 
 # Custom CSS for "Industrial-Grade" Paper Look (Strictly Inter)
 st.markdown("""
-    <style>
+   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
     /* Main Typography - Enforce Inter globally */
@@ -18,11 +19,24 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Clean Title Colors */
-    h1, h2, h3 {
-        color: #121212;
-        font-weight: 400 !important;
-        letter-spacing: -0.5px;
+    /* --- 1. TAMAÑO DEL HEADER PRINCIPAL --- */
+    h1 { 
+        font-size: 36px !important; /* <-- CAMBIA ESTE NÚMERO A TU GUSTO */
+        font-weight: 350 !important; 
+        color: #121212; 
+        letter-spacing: -1px; 
+    }
+    
+    h4 { 
+        color: #21918c; 
+        font-weight: 400 !important; 
+        margin-top: -10px; 
+    }
+    
+    /* --- 2. TAMAÑO DE LAS PAGES EN EL SIDEBAR --- */
+    [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
+        font-size: 12px !important; /* <-- CAMBIA ESTE NÚMERO A TU GUSTO */
+        /* font-weight: 600 !important; Opcional: descomenta esto si las quieres en negritas */
     }
 
     .block-container { padding-top: 2rem; }
@@ -32,7 +46,7 @@ st.markdown("""
         background-color: #f8f9fa;
         padding: 20px;
         border-radius: 10px;
-        border-left: 5px solid #21918c; /* Pienza Teal */
+        border-left: 5px solid #21918c; 
         text-align: center;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
@@ -43,16 +57,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. SIDEBAR (Executive Info) ---
-with st.sidebar:
-    st.image("https://img.icons8.com/ios-filled/100/21918c/satellite-sending-signal.png", width=80)
-    st.markdown("## Project Pienza")
-    st.markdown("---")
-    st.markdown("**Author:** Bernardo Lozano Wise")
-    st.markdown("**Domain:** Autonomous AV Simulation")
-    st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
-    st.markdown("---")
-    st.download_button("📄 Download 91-Page Report (PDF)", data="PDF_DATA_HERE", file_name="Project_Pienza_Full_Report.pdf")
-    st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
+build_sidebar()
 
 # --- 3. HERO HEADER ---
 st.title("Project Pienza: An AI Digital Twin to Navigate the Ride-Hailing Dynamics of Mexico City")
@@ -101,25 +106,25 @@ with p1:
     st.markdown("#### 1. Forensic Engineering")
     st.write("Transmuting raw OCR captures and GPS telemetry into an idempotent, relational SSoT (Single Source of Truth).")
     if st.button("Explore Pipeline", key="btn_p1", use_container_width=True):
-        st.switch_page("pages/1_Engineering.py") # Update with actual page name
+        st.switch_page("pages/0101_Acquisition_and_Ground_Truth.py") 
 
 with p2:
     st.markdown("#### 2. Decision Science")
     st.write("Causal analysis of the Agent's decision boundary: Sunk Costs, Optimal Stopping, and the Fraud Prevention Response.")
     if st.button("Explore Statistics", key="btn_p2", use_container_width=True):
-        st.switch_page("pages/2_Economics.py") # Update with actual page name
+        st.switch_page("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py") 
 
 with p3:
     st.markdown("#### 3. Supervised Imitation")
     st.write("**Real-Data Cloning.** Encoding the expert policy via XGBoost hierarchical classification with 90%+ recall.")
     if st.button("Explore ML Model", key="btn_p3", use_container_width=True):
-        st.switch_page("pages/3_MachineLearning.py") # Update with actual page name
+        st.switch_page("pages/0405_XGB_Coliseum.py") 
 
 with p4:
     st.markdown("#### 4. Generative Moonshots")
     st.write("Scaling the study via cGANs to synthesize a 1M-row manifold, enabling the construction of the Mobility Tensor.")
     if st.button("Explore Synthesis", key="btn_p4", use_container_width=True):
-        st.switch_page("pages/4_Generative.py") # Update with actual page name
+        st.switch_page("pages/0610_cGAN_Engine.py") 
 
 # --- 7. FOOTER ---
 st.markdown("---")

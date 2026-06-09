@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from utils.sidebar import build_sidebar
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -10,7 +11,7 @@ st.set_page_config(
 )
 
 
-
+build_sidebar()
 
 
 

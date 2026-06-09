@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from utils.sidebar import build_sidebar
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -8,6 +9,8 @@ st.set_page_config(
     page_title="Project Strategy and Scope",
     layout="wide"
 )
+
+build_sidebar()
 
 # ==========================================
 # CUSTOM FONT & SIZE INJECTION (SAFE VERSION)

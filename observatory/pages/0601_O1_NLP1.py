@@ -9,14 +9,17 @@ import io
 from google.cloud import storage
 from pathlib import Path
 import pandas as pd
-
+from utils.sidebar import build_sidebar
 # IMPORTAMOS SOLO LO NECESARIO (Babel)
 from utils.gcp_client import load_babel_assets
+
 
 # ==========================================
 # PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon="⚡", layout="wide")
+
+build_sidebar()
 
 # ==========================================
 # 0. SESSION STATE INITIALIZATION (THE ANCHOR)

@@ -5,6 +5,7 @@ import joblib
 import time
 import io
 from google.cloud import storage
+from utils.sidebar import build_sidebar
 
 # ==============================================================================
 # 1. CONFIGURACIÓN, ESTÉTICA Y QUANTUM SYNC (BLOQUE MAESTRO UNIFICADO)
@@ -95,6 +96,8 @@ hover_css += "</style>"
 st.markdown(base_css, unsafe_allow_html=True)
 st.markdown(hover_css, unsafe_allow_html=True)
 st.markdown(quantum_scroll_js, unsafe_allow_html=True)
+
+build_sidebar()
 
 # ==============================================================================
 # 2. LÓGICA DE DATOS Y ESTADO

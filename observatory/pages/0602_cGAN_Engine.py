@@ -9,9 +9,12 @@ import gc
 # --- LOCAL UTILITIES ---
 from utils.gcp_client import load_manifold_dimensions 
 from utils.bq_client import fetch_data_from_bq
+from utils.sidebar import build_sidebar
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="cGAN Engine | Pienza", page_icon="🏭", layout="wide", initial_sidebar_state="collapsed")
+
+build_sidebar()
 
 # Initialize session state for the manifold
 if 'df_manifold' not in st.session_state:
@@ -36,6 +39,7 @@ Welcome to the Generative Forge. This engine bypasses pre-computed tables, allow
 will hallucinate the physical forces (Fare, Time, Distance) that obey those exact constraints.
 """)
 st.markdown("---")
+
 
 # ==============================================================================
 # 0. GLOBAL CONSTANTS
