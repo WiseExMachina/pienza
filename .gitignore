@@ -49,3 +49,45 @@ basic_commands.md
 /data
 /assets
 /secrets
+
+============
+=======
+======
+# copiado de rama app-streamlit
+========
+=======
+======
+
+# ==========================================
+# SECURITY: NEVER COMMIT THESE FILES
+# ==========================================
+service-account.json
+.env
+.streamlit/
+
+# ==========================================
+# LOCAL EXECUTABLES & NOTES
+# ==========================================
+cloudflared
+basic_commands.md
+
+# ==========================================
+# PYTHON & SYSTEM TRASH
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+node_modules/
+venv/
+.venv/
+.env/
+
+# ==========================================
+# LOCAL DATA
+# ==========================================
+*.db
+*.db-journal
+
+/observatory/jupyter_scratchpad
+/observatory/assets
