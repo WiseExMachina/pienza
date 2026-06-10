@@ -5,14 +5,14 @@ import geopandas as gpd
 import pydeck as pdk
 from shapely.affinity import translate
 from pathlib import Path
-from utils.sidebar import build_sidebar
+
 
 # ==========================================
 # 1. PAGE CONFIG & STYLING (Homologado Pienza)
 # ==========================================
 st.set_page_config(page_title="Markov Fleet Simulator", page_icon="🤖", layout="wide")
 
-build_sidebar()
+
 
 st.title("🤖 The Markov Bridge: Tactical Fleet Deployment")
 st.markdown("Observatorio Prescriptivo de Flotilla. Despliegue secuencial simulado con Absorción de Demanda.")

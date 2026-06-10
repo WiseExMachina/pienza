@@ -1,6 +1,50 @@
 import streamlit as st
 import streamlit.components.v1 as components
-from utils.sidebar import build_sidebar
+
+
+# --- 0. SIDEBAR INTEGRADA ---
+def build_sidebar():
+    with st.sidebar:
+        st.markdown("Proyect Pienza")   
+        st.markdown("---")
+        
+        # Resolve path dynamically for home page and subpages
+        st.page_link("main.py", label="Home")
+        st.page_link("pages/0101_Project_Strategy_and_Scope.py", label="Project Strategy and Scope")
+        st.page_link("pages/0102_Acquisition_and_Ground_Truth.py", label="Acquisition and Ground Truth")
+        st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
+        st.page_link("pages/0202_Target_and_Feature_Engineering.py", label="Target and Feature Engineering")
+        st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
+        st.page_link("pages/0302_Causal_Inference.py", label="Causal Inference")
+        st.page_link("pages/0401_Unsupervised_Learning.py", label="Unsupervised Learning")
+        st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
+        st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
+        st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
+        st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topoligcal")
+        st.page_link("pages/0604_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
+
+        st.markdown("---")
+        st.markdown("**Author:** Bernardo Lozano Wise")
+        st.markdown("**Domain:** Autonomous AV Simulation")
+        st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
+        st.markdown("---")
+        
+        try:
+            with open("assets/Pienza_Papers.pdf", "rb") as f:
+                pdf_data = f.read()
+            st.download_button(
+                "📄 Download 91-Page Report (PDF)", 
+                data=pdf_data, 
+                file_name="Project_Pienza_Full_Report.pdf",
+                mime="application/pdf"
+            )
+        except FileNotFoundError:
+            pass
+            
+        st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
+        st.markdown("---")
+
+
 
 # --- 1. CANONICAL CONFIGURATION ---
 st.set_page_config(
@@ -8,6 +52,10 @@ st.set_page_config(
     page_title="Project Pienza | Digital Twin",
     page_icon="🛰️"
 )
+
+# --- 2. SIDEBAR CALL ---
+build_sidebar()
+
 
 # Custom CSS for "Industrial-Grade" Paper Look (Strictly Inter)
 st.markdown("""
@@ -22,14 +70,28 @@ st.markdown("""
     /* --- 1. TAMAÑO DEL HEADER PRINCIPAL --- */
     h1 { 
         font-size: 36px !important; /* <-- CAMBIA ESTE NÚMERO A TU GUSTO */
-        font-weight: 350 !important; 
+        font-weight: 400 !important; 
         color: #121212; 
         letter-spacing: -1px; 
     }
+            
+    h2 { 
+        color: #21918c;
+        font-size: 30px !important;
+        font-weight: 300 !important; 
+        margin-top: -10px; 
+    }
+            
+    h3 { 
+        color: #21918c;
+        font-size: 26px !important;
+        font-weight: 400 !important; 
+        margin-top: -10px; 
+    }
     
     h4 { 
-        color: #21918c; 
-        font-weight: 400 !important; 
+        color: #21918c;
+        font-weight: 100 !important; 
         margin-top: -10px; 
     }
     
@@ -56,8 +118,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. SIDEBAR (Executive Info) ---
-build_sidebar()
 
 # --- 3. HERO HEADER ---
 st.title("Project Pienza: An AI Digital Twin to Navigate the Ride-Hailing Dynamics of Mexico City")
@@ -150,10 +210,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
+st.markdown("""
+<div style="height: 50px;"></div>
+""", unsafe_allow_html=True)
 
 # --- 5. THE HERO VISUAL (3D MANIFOLD) ---
-st.subheader("The Playground: Machine Discovered Hubs")
+st.markdown("### The Playground: Machine Discovered Hubs")
 
 try:
     with open("/workspaces/pienza/observatory/assets/kepler_3D.html", 'r', encoding='utf-8') as f:
@@ -169,35 +231,190 @@ except FileNotFoundError:
 
 st.caption("Manifold Visualization: 44 HDBSCAN clusters defining the primary decision playground. Height represents offer density; color encodes topological gravity wells. Clusters are highlighted against the Agent's hand-crafted polygons representing the operational zone theatre.")
 
+
+
+# --- 6. NAVIGATE THE OBSERVATORY ---
+st.markdown("### The Observatory Architecture")
+st.markdown("Navigate through the core modules of the Pienza digital twin.")
+
+# Inject the Bento Aesthetic CSS targeting our specific containers with high specificity (!important)
+st.markdown("""
+<style>
+/* 1. ESTILO BASE DE LA TARJETA (Mimic de ingestion-panel) */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) {
+    background-color: #ffffff !important;
+    border: 1px solid #eaeaea !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+    transition: all 0.3s ease-in-out !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
+}
+
+/* 2. EFECTO HOVER EN LA TARJETA (Elevación + Delineado en Teal) */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card):hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06) !important;
+    border-color: #21918c !important; /* Delineado Teal */
+}
+
+/* 3. ESTILO DEL BOTÓN DE NAVEGACIÓN (st.page_link) */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #21918c !important; /* Fondo Teal */
+    color: #ffffff !important;
+    padding: 10px 14px !important;
+    border-radius: 6px !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s ease-in-out !important;
+    width: 100% !important;
+    border: none !important;
+}
+
+/* 4. HOVER DEL BOTÓN (Teal Oscuro) */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a:hover {
+    background-color: #1a7576 !important;
+}
+
+/* 5. FORZAR TEXTO BLANCO EN EL BOTÓN */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a p {
+    color: #ffffff !important;
+    margin: 0 !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+}
+
+/* Ocultar el marcador de destino */
+.nav-card { display: none; }
+</style>
+""", unsafe_allow_html=True)
+
+# Exact original order, with a real summary of what the code actually does
+modules = [
+    ("pages/0101_Project_Strategy_and_Scope.py", "🎯", "Strategy and Scope", 
+     "Defines the bottom-up research strategy, project constraints, and the iterative development roadmap."),
+     
+    ("pages/0102_Acquisition_and_Ground_Truth.py", "📡", "Acquisition & Ground Truth", 
+     "Details the dual-engine field data ingestion (Telemetry & OCR) and features an interactive webapp simulator."),
+     
+    ("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", "💾", "SQL Pipeline & Sandbox", 
+     "Documents the Star Schema architecture and provides a live BigQuery SQL environment for data auditing."),
+     
+    ("pages/0202_Target_and_Feature_Engineering.py", "⚙️", "Feature Engineering", 
+     "Explains stateful feature creation and includes an interactive timelapse playback of the expert's decision logic."),
+     
+    ("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", "🛑", "Optimal Stopping", 
+     "Analyzes market volatility, opportunity flow, and calculates the Net Expected Value for optimal search boundaries."),
+     
+    ("pages/0302_Causal_Inference.py", "🔍", "Causal Inference", 
+     "Audits payout stability, prediction errors, and mathematically formalizes the platform's fraud prevention mechanisms."),
+     
+    ("pages/0401_Unsupervised_Learning.py", "🗺️", "Unsupervised Learning", 
+     "Utilizes PCA and K-Means for economic archetyping, alongside HDBSCAN for topological discovery and geo-remediation."),
+     
+    ("pages/0501_XGB_Coliseum.py", "⚔️", "XGBoost Tournament", 
+     "An interactive coliseum comparing the decision-making of the human agent against hierarchical AI models."),
+     
+    ("pages/0601_O1_NLP1.py", "⚡", "The Quest to (O)1: NLP", 
+     "A real-time diagnostic pipeline contrasting Cloud API latency against a custom local neural engine for spatial inference."),
+     
+    ("pages/0602_cGAN_Engine.py", "🏭", "cGAN Keras Engine", 
+     "The Generative Forge: dynamically synthesizes hyper-realistic ride-hailing demand from a 1M-row neural manifold."),
+     
+    ("pages/0603_Network_Graph.py", "🔭", "Network Graph Analysis", 
+     "Analyzes the urban geofence using network graph theory to observe topological centrality and dynamic capital flows."),
+     
+    ("pages/0604_Markov_Fleet_Sim_Dashboard.py", "🤖", "Markov Fleet Simulator", 
+     "A tactical fleet deployment simulator using a Markov Decision Process for sequential routing and demand absorption.")
+]
+
+# Create a 3-column grid layout for visually stunning, concise cards
+st.write("") # Spacer
+cols = st.columns(3)
+
+for i, (path, icon, title, desc) in enumerate(modules):
+    with cols[i % 3]:
+        with st.container(border=True):
+            # Inject the hidden marker so the CSS knows to style this specific container
+            st.markdown("<span class='nav-card'></span>", unsafe_allow_html=True)
+            st.markdown(f"#### {icon} {title}")
+            st.markdown(f"<p style='font-size: 0.85rem; color: #555; height: 60px;'>{desc}</p>", unsafe_allow_html=True)
+            st.page_link(path, label="Explore Module", use_container_width=True)
+
 st.markdown("---")
 
-# --- 6. THE 4 PILLARS OF PIENZA ---
-st.markdown("### The Framework Architecture")
-p1, p2, p3, p4 = st.columns(4)
+# --- 8. CALL TO ACTION (The LLM Ingestion Gateway) ---
+st.markdown("""
+<style>
+.ingestion-panel {
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 40px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+.ingestion-panel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    border-color: #21918c;
+}
+.ingestion-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #21918c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+.ingestion-heading {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #121212;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+.ingestion-body {
+    font-size: 0.9rem;
+    color: #555555;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+.ingestion-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #21918c;
+    color: #ffffff !important;
+    padding: 12px 28px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+.ingestion-action:hover {
+    background-color: #1a7576;
+}
+</style>
 
-with p1:
-    st.markdown("#### 1. Forensic Engineering")
-    st.write("Transmuting raw OCR captures and GPS telemetry into an idempotent, relational SSoT (Single Source of Truth).")
-    if st.button("Explore Pipeline", key="btn_p1", use_container_width=True):
-        st.switch_page("pages/0101_Acquisition_and_Ground_Truth.py") 
+<div class="ingestion-panel">
+    <div class="ingestion-title">LLM Knowledge Base</div>
+    <div class="ingestion-heading">Interact with the AI</div>
+    <div class="ingestion-body">
+        100 pages of deep learning and market physics is a lot of reading. Download the PDF, feed it to your favorite LLM, and get the executive summary on demand.
+    </div>
+    <a href="main.pdf" class="ingestion-action" download>
+        📥 Download PDF
+    </a>
+</div>
+""", unsafe_allow_html=True)
 
-with p2:
-    st.markdown("#### 2. Decision Science")
-    st.write("Causal analysis of the Agent's decision boundary: Sunk Costs, Optimal Stopping, and the Fraud Prevention Response.")
-    if st.button("Explore Statistics", key="btn_p2", use_container_width=True):
-        st.switch_page("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py") 
 
-with p3:
-    st.markdown("#### 3. Supervised Imitation")
-    st.write("**Real-Data Cloning.** Encoding the expert policy via XGBoost hierarchical classification with 90%+ recall.")
-    if st.button("Explore ML Model", key="btn_p3", use_container_width=True):
-        st.switch_page("pages/0405_XGB_Coliseum.py") 
 
-with p4:
-    st.markdown("#### 4. Generative Moonshots")
-    st.write("Scaling the study via cGANs to synthesize a 1M-row manifold, enabling the construction of the Mobility Tensor.")
-    if st.button("Explore Synthesis", key="btn_p4", use_container_width=True):
-        st.switch_page("pages/0610_cGAN_Engine.py") 
+
 
 # --- 7. FOOTER ---
 st.markdown("---")

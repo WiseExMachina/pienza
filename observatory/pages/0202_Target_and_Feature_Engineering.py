@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.sidebar import build_sidebar
+
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-build_sidebar()
+
 
 # ==========================================
 # CUSTOM FONT & SIZE INJECTION (SAFE VERSION)

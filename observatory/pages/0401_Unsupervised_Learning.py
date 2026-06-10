@@ -1,6 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
-from utils.sidebar import build_sidebar
+
 
 # ==============================================================================
 # 1. CONFIGURACIÓN DE PÁGINA Y CSS (PANTALLA COMPLETA + HEADER)
@@ -41,7 +41,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-build_sidebar()
+
 
 # ==========================================
 # PHASE 4: INTRODUCTION (Non-Collapsible)

@@ -5,12 +5,12 @@ import joblib
 import time
 import io
 from google.cloud import storage
-from utils.sidebar import build_sidebar
+
 
 # ==============================================================================
 # 1. CONFIGURACIÓN, ESTÉTICA Y QUANTUM SYNC (BLOQUE MAESTRO UNIFICADO)
 # ==============================================================================
-st.set_page_config(layout="wide", page_title="Pienza Coliseum")
+st.set_page_config(layout="wide", page_title="XGBoost Tournament: Human vs AI")
 
 # --- A. EL SNIPER SCRIPT (VERSIÓN FORCE CENTER) ---
 quantum_scroll_js = """
@@ -97,7 +97,7 @@ st.markdown(base_css, unsafe_allow_html=True)
 st.markdown(hover_css, unsafe_allow_html=True)
 st.markdown(quantum_scroll_js, unsafe_allow_html=True)
 
-build_sidebar()
+
 
 # ==============================================================================
 # 2. LÓGICA DE DATOS Y ESTADO

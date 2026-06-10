@@ -3,7 +3,7 @@ import pandas as pd
 from google.cloud import bigquery
 from pathlib import Path
 import os
-from utils.sidebar import build_sidebar
+
 
 # ==========================================
 # PAGE CONFIGURATION (NEW Wins)
@@ -16,7 +16,7 @@ st.set_page_config(
 
 OPUS_TEAL = '#21918c'
 
-build_sidebar()
+
 
 # ==========================================
 # CUSTOM FONT & CSS INJECTION (Merged)

@@ -6,7 +6,7 @@ import seaborn as sns
 from google.cloud import bigquery
 from pathlib import Path
 import plotly.graph_objects as go
-from utils.sidebar import build_sidebar
+
 
 
 # 1. SETUP CLIENTE (Conectando a tu pienza_mini)
@@ -60,7 +60,7 @@ st.title("Causal Inference: Revisiting the Initial Hypothesis")
 st.markdown(f"**<span style='color:{OPUS_TEAL}; font-size:1.2rem;'>Motion to Explore! ...Proceed</span>**", unsafe_allow_html=True)
 st.set_page_config(layout="wide")
 
-build_sidebar()
+
 
 # Create the tabs (Cognitive Load = Minimized)
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
