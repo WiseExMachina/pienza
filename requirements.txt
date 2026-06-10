@@ -1,17 +1,56 @@
-# --- NEURAL ENGINE (FORZANDO CPU & COMPATIBILIDAD) ---
+# ==========================================
+# 1. SYSTEM & NEURAL ENGINES (CPU OPTIMIZED)
+# ==========================================
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.4.0+cpu
 torchvision==0.19.0+cpu
 torchaudio==2.4.0+cpu
+tensorflow-cpu
 numpy<2.0.0
 
-# --- CORE DATA ENGINE ---
+# ==========================================
+# 2. CORE DATA ENGINE & STORAGE
+# ==========================================
 pandas
 scipy
 SQLAlchemy
 pyarrow
+joblib
+db-dtypes
+gcsfs
+requests
 
-# --- NLP & SEMANTICS ---
+# ==========================================
+# 3. MACHINE LEARNING & STATS
+# ==========================================
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+statsmodels
+hdbscan
+umap-learn
+optuna
+shap
+dtreeviz
+ml_dtypes
+
+# ==========================================
+# 4. GEOSPATIAL & GRAPH (CDMX STACK)
+# ==========================================
+geopandas
+shapely
+rtree
+pyproj
+contextily
+h3>=4.0.0
+keplergl
+alphashape
+networkx>=3.0
+python-louvain
+folium
+
+# ==========================================
+# 5. NLP & SEMANTICS
+# ==========================================
 transformers
 pysentimiento
 emoji
@@ -20,94 +59,36 @@ textblob
 regex
 gensim
 
-# --- MACHINE LEARNING & STATS ---
-scikit-learn
-statsmodels
-umap-learn
-xgboost
-optuna
-shap
-hdbscan
-
-# --- GEOSPATIAL (CDMX STACK) ---
-geopandas
-contextily
-pyproj
-shapely
-h3>=4.0.0
-keplergl
-folium
-alphashape
-
-# --- CLOUD & BIG DATA (GCP) ---
+# ==========================================
+# 6. CLOUD INFRASTRUCTURE (GCP)
+# ==========================================
 google-cloud-storage
 google-cloud-bigquery
 google-cloud-bigquery-storage
 pandas-gbq
-
-# --- VISUALIZATION & JUPYTER ---
-matplotlib
-seaborn
-plotly
-wordcloud
-nbformat
-ipykernel
-ipywidgets
-graphviz
-
-# --- OTROS ---
-pyjokes
-
-
-
-
-ml_dtypes
-dtreeviz
-pyspark==3.5.1
-findspark
-rtree
-networkx>=3.0
-python-louvain
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 gspread
 
-
-
-
-
-
-
-
-
-# copiado de rama app-streamlit
-
---extra-index-url https://download.pytorch.org/whl/cpu
-
-db-dtypes
-geopandas
-google-cloud-bigquery
-google-cloud-storage
-joblib
-keplergl
-matplotlib
-networkx
-numpy
-pandas
-plotly
-pyarrow
-regex
-requests
-scikit-learn>=1.3.0
-seaborn
-shapely
-shap
+# ==========================================
+# 7. OBSERVATORY UI (STREAMLIT)
+# ==========================================
 streamlit
 streamlit-keplergl
 streamlit-pdf-viewer
-tensorflow-cpu
-torch
-transformers
-xgboost>=2.0.0
-gcsfs
+matplotlib
+seaborn
+plotly
+wordcloud
+graphviz
+
+# ==========================================
+# 8. UTILITIES & JUPYTER
+# ==========================================
+nbformat
+ipykernel
+ipywidgets
+pyjokes
+findspark
+pyspark==3.5.1

@@ -1,27 +1,18 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-bin/
-lib/
-develop-eggs/
-dist/
-eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
+# ==========================================
+# 1. SECURITY & ENVIRONMENT (CRITICAL)
+# ==========================================
+.env
+*.env
+service-account.json
+**/service-account.json
+.streamlit/
+/secrets/
 
-# Jupyter Notebooks
-.ipynb_checkpoints
-*/.ipynb_checkpoints/*
-checkpoint_*.ipynb
-
-# Data and Large Files (Crucial for DS)
+# ==========================================
+# 2. DATA & LARGE FILES (DATA SCIENCE HYGIENE)
+# ==========================================
+*.db
+*.db-journal
 *.csv
 *.parquet
 *.jsonl
@@ -31,48 +22,20 @@ checkpoint_*.ipynb
 *.h5
 *.pkl
 *.npy
-
-# LaTeX
-*.aux
-*.fdb_latexmk
-*.fls
-*.log
-*.synctex.gz
-*.toc
-*.pdf
-
-# Environment
-.env
-
-
-basic_commands.md
-/data
-/assets
-/secrets
-
-============
-=======
-======
-# copiado de rama app-streamlit
-========
-=======
-======
+/data/
+/assets/
+/observatory/assets/
 
 # ==========================================
-# SECURITY: NEVER COMMIT THESE FILES
+# 3. JUPYTER & SCRATCHPADS
 # ==========================================
-service-account.json
-.env
-.streamlit/
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+checkpoint_*.ipynb
+/observatory/jupyter_scratchpad/
 
 # ==========================================
-# LOCAL EXECUTABLES & NOTES
-# ==========================================
-cloudflared
-basic_commands.md
-
-# ==========================================
-# PYTHON & SYSTEM TRASH
+# 4. PYTHON & SYSTEM TRASH
 # ==========================================
 __pycache__/
 *.py[cod]
@@ -81,13 +44,28 @@ __pycache__/
 node_modules/
 venv/
 .venv/
-.env/
+bin/
+lib/
+lib64/
+dist/
+wheels/
+*.egg-info/
 
 # ==========================================
-# LOCAL DATA
+# 5. LATEX BUILD ARTIFACTS
 # ==========================================
-*.db
-*.db-journal
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.pdf
 
-/observatory/jupyter_scratchpad
-/observatory/assets
+# ==========================================
+# 6. LOCAL TOOLS & NOTES
+# ==========================================
+cloudflared
+basic_commands.md
+pienza_full_history*.txt
+pienza_full_codebase.txt
