@@ -1,0 +1,185 @@
+\documentclass[10pt, letterpaper]{article}
+
+% --- CONFIGURACIÓN DE FUENTE: CRIMSON PRO LIGHT ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[light]{CrimsonPro} % Carga Crimson Pro con peso ligero
+\usepackage[defaultmono]{inconsolata} % Para que el código (listings) siga siendo legible
+\usepackage[bottom]{footmisc}
+
+% --- MONOSPACE FONT (For Code) ---
+\usepackage{inconsolata} % A cleaner mono font for your listings
+
+% --- PAQUETES ---
+% --- CHARACTER ENCODING & FONTS ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} % Ensures Computer Modern renders sharply
+
+% --- PAGE LAYOUT ---
+\usepackage{geometry}
+\geometry{margin=1in}
+
+% --- MATHEMATICS (The Rigor) ---
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
+\usepackage{mathtools} % For advanced math alignment
+
+% --- TABLES (The Data) ---
+\usepackage{booktabs}   % For professional horizontal rules (\toprule, etc.)
+\usepackage{tabularx}   % For auto-wrapping tables
+\usepackage{array}      % For custom column types
+\usepackage{multirow}   % For merging rows in tables
+
+% --- GRAPHICS & COLOR ---
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}      % Allows using [H] to force image placement
+\usepackage{caption}
+\usepackage{subcaption} % For side-by-side images
+
+\usepackage{parskip}
+\usepackage{subcaption}
+
+% --- CODE SNIPPETS (The Engineering) ---
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    captionpos=b,
+    commentstyle=\color{green!40!black},
+    keywordstyle=\color{blue}
+}
+
+% --- LINKS & REFERENCES ---
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+
+% --- LISTS & DESCRIPTIONS ---
+\usepackage{enumitem}   % For controlling spacing in lists and descriptions
+
+% --- MISC TOOLS ---
+\usepackage{csquotes}   % For professional quotation marks
+\usepackage{microtype}  % Improves typography (kerning and spacing)
+\usepackage{underscore} % To help with underscores in text (though \_ is safer)
+\usepackage{tikz}
+% --- PROJECT SPECIFIC COMMANDS ---
+\newcommand{\wip}[1]{\textcolor{red}{\textbf{[PENDING UPDATE]} #1}}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, shadows}
+
+
+
+
+
+% --- CONFIGURACIÓN DE ENCABEZADOS (FANCYHDR) ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} % Limpia los encabezados por defecto
+
+% Línea horizontal arriba
+\renewcommand{\headrulewidth}{0.4pt} 
+
+% Título de la sección en la parte superior derecha (en chiquito)
+\fancyhead[R]{\small \textit{\nouppercase{\leftmark}}}
+
+% Número de página en la parte inferior derecha
+\fancyfoot[R]{\thepage}
+
+% Ajuste para que la primera página de cada sección también tenga el encabezado
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[R]{\small \textit{\nouppercase{\leftmark}}}
+  \fancyfoot[R]{\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+}
+
+
+\setcounter{secnumdepth}{0} % 0 turns off numbers for sections, subsections, etc.
+
+
+
+% --- METADATOS ---
+\title{\textbf{10:10:01, A Decision Science and ML Framework to navigate the Ride-Hailing dynamics of Mexico City}\\ \large From Field Acquisition to Generative Simulation}
+\author{Bernardo Lozano Wise}
+\date{\today}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent This document serves as the chronological laboratory report and technical foundation for Project Pienza. It documents the evolution from $N=1$ ground-truth data acquisition through rigorous data engineering, exploratory analysis, and supervised cloning, culminating in the deployment of Generative Adversarial Networks (GANs) for market simulation.
+
+\vspace{0.4cm}
+\noindent \textbf{Disclaimer:} Project \texttt{Pienza} and all associated materials, including this document and its analyses, are the product of an independent academic and research initiative. This work is intended solely for demonstration as a data science portfolio project. All source data has undergone a multi-layered anonymization protocol to protect privacy and obfuscate proprietary information. The content, models, and insights presented herein are for illustrative and educational purposes and are not intended for, nor should they be used for, any commercial, financial, or operational business activities.
+
+\vspace{0.4cm}
+\noindent \textbf{Keywords:} Behavioral Economics, Imitation Learning, XGBoost, Generative Adversarial Networks (GANs), Stochastic Modeling, Data Engineering, Optimal Stopping, Geospatial Telemetry, El semáforo de Palmas.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% --- INYECCIÓN DE LOS MÓDULOS ---
+% Aquí el compilador "jala" el texto de los otros archivos.
+% Si quieres apagar una sección para compilar más rápido, comenta la línea con %
+
+\input{00_introduction}
+\newpage
+
+
+
+
+\input{01_acquisition}
+\newpage
+
+
+
+
+
+
+
+
+\input{02_engineering}
+\newpage
+
+
+
+
+
+\input{03_eda}
+\newpage
+
+\input{04_clustering}
+\newpage
+
+\input{05_supervised}
+\newpage
+
+\input{06_gan_sim}
+\newpage
+
+\input{07_conclusion}
+\newpage
+
+% --- REFERENCIAS Y APÉNDICES ---
+
+\newpage
+\input{98_glossary}
+
+\newpage
+\appendix % Este comando cambia la numeración de 1, 2, 3 a A, B, C
+\input{99_appendix}
+
+
+\end{document}
+
+
+

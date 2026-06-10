@@ -3,6 +3,7 @@ import pandas as pd
 from google.cloud import bigquery
 from pathlib import Path
 import os
+from utils.sidebar import build_sidebar
 
 # ==========================================
 # PAGE CONFIGURATION (NEW Wins)
@@ -14,6 +15,8 @@ st.set_page_config(
 )
 
 OPUS_TEAL = '#21918c'
+
+build_sidebar()
 
 # ==========================================
 # CUSTOM FONT & CSS INJECTION (Merged)
@@ -73,7 +76,7 @@ st.markdown("""
 # ==========================================
 @st.cache_resource
 def get_bq_client():
-    json_path = Path(__file__).resolve().parent.parent / "service-account.json"
+    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
     return bigquery.Client.from_service_account_json(json_path)
 
 try:
