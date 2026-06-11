@@ -60,7 +60,7 @@ wheels/
 *.log
 *.synctex.gz
 *.toc
-*.pdf
+
 
 # ==========================================
 # 6. LOCAL TOOLS & NOTES
