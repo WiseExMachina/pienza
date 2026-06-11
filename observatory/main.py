@@ -10,6 +10,7 @@ def build_sidebar():
         
         # Resolve path dynamically for home page and subpages
         st.page_link("main.py", label="Home")
+        st.page_link("pages/0002_found2.py", label="Found2")
         st.page_link("pages/0001_Foundations_and_Architecture.py", label="Foundations & Architecture")
         st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
         st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")

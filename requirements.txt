@@ -92,3 +92,8 @@ ipywidgets
 pyjokes
 findspark
 pyspark==3.5.1
+
+
+
+
+streamlit-carousel
