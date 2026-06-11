@@ -10,17 +10,14 @@ def build_sidebar():
         
         # Resolve path dynamically for home page and subpages
         st.page_link("main.py", label="Home")
-        st.page_link("pages/0101_Project_Strategy_and_Scope.py", label="Project Strategy and Scope")
-        st.page_link("pages/0102_Acquisition_and_Ground_Truth.py", label="Acquisition and Ground Truth")
+        st.page_link("pages/0001_Foundations_and_Architecture.py", label="Foundations & Architecture")
         st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
-        st.page_link("pages/0202_Target_and_Feature_Engineering.py", label="Target and Feature Engineering")
         st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
         st.page_link("pages/0302_Causal_Inference.py", label="Causal Inference")
-        st.page_link("pages/0401_Unsupervised_Learning.py", label="Unsupervised Learning")
         st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
         st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
         st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
-        st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topoligcal")
+        st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
         st.page_link("pages/0604_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
 
         st.markdown("---")
@@ -98,7 +95,6 @@ st.markdown("""
     /* --- 2. TAMAÑO DE LAS PAGES EN EL SIDEBAR --- */
     [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
         font-size: 12px !important; /* <-- CAMBIA ESTE NÚMERO A TU GUSTO */
-        /* font-weight: 600 !important; Opcional: descomenta esto si las quieres en negritas */
     }
 
     .block-container { padding-top: 2rem; }
@@ -145,7 +141,6 @@ st.markdown("""
 <style>
 .bento-grid {
     display: grid;
-    /* Ajusta minmax para que las tarjetas se adapten al ancho completo de la pantalla */
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 15px;
     margin-top: 10px; 
@@ -221,8 +216,6 @@ try:
     with open("/workspaces/pienza/observatory/assets/kepler_3D.html", 'r', encoding='utf-8') as f:
         html_data = f.read()
         
-    # Mantenemos el CSS de fuerza blanca por si las moscas, 
-    # pero ya no necesitamos el div contenedor externo.
     force_white_css = "<style>body { background-color: white !important; }</style>"
     components.html(force_white_css + html_data, height=600)
     
@@ -232,12 +225,11 @@ except FileNotFoundError:
 st.caption("Manifold Visualization: 44 HDBSCAN clusters defining the primary decision playground. Height represents offer density; color encodes topological gravity wells. Clusters are highlighted against the Agent's hand-crafted polygons representing the operational zone theatre.")
 
 
-
 # --- 6. NAVIGATE THE OBSERVATORY ---
 st.markdown("### The Observatory Architecture")
 st.markdown("Navigate through the core modules of the Pienza digital twin.")
 
-# Inject the Bento Aesthetic CSS targeting our specific containers with high specificity (!important)
+# Inject the Bento Aesthetic CSS targeting our specific containers with high specificity
 st.markdown("""
 <style>
 /* 1. ESTILO BASE DE LA TARJETA (Mimic de ingestion-panel) */
@@ -290,28 +282,19 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a p {
 </style>
 """, unsafe_allow_html=True)
 
-# Exact original order, with a real summary of what the code actually does
+# 9-Module List for the 3x3 Grid
 modules = [
-    ("pages/0101_Project_Strategy_and_Scope.py", "🎯", "Strategy and Scope", 
-     "Defines the bottom-up research strategy, project constraints, and the iterative development roadmap."),
-     
-    ("pages/0102_Acquisition_and_Ground_Truth.py", "📡", "Acquisition & Ground Truth", 
-     "Details the dual-engine field data ingestion (Telemetry & OCR) and features an interactive webapp simulator."),
+    ("pages/0001_Foundations_and_Architecture.py", "🏗️", "Foundations & Architecture", 
+     "Bottom-up strategy, dual-engine field acquisition, and stateful feature engineering cascade."),
      
     ("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", "💾", "SQL Pipeline & Sandbox", 
      "Documents the Star Schema architecture and provides a live BigQuery SQL environment for data auditing."),
-     
-    ("pages/0202_Target_and_Feature_Engineering.py", "⚙️", "Feature Engineering", 
-     "Explains stateful feature creation and includes an interactive timelapse playback of the expert's decision logic."),
      
     ("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", "🛑", "Optimal Stopping", 
      "Analyzes market volatility, opportunity flow, and calculates the Net Expected Value for optimal search boundaries."),
      
     ("pages/0302_Causal_Inference.py", "🔍", "Causal Inference", 
      "Audits payout stability, prediction errors, and mathematically formalizes the platform's fraud prevention mechanisms."),
-     
-    ("pages/0401_Unsupervised_Learning.py", "🗺️", "Unsupervised Learning", 
-     "Utilizes PCA and K-Means for economic archetyping, alongside HDBSCAN for topological discovery and geo-remediation."),
      
     ("pages/0501_XGB_Coliseum.py", "⚔️", "XGBoost Tournament", 
      "An interactive coliseum comparing the decision-making of the human agent against hierarchical AI models."),
@@ -411,10 +394,6 @@ st.markdown("""
     </a>
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
 
 # --- 7. FOOTER ---
 st.markdown("---")
