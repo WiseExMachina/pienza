@@ -69,3 +69,6 @@ cloudflared
 basic_commands.md
 pienza_full_history*.txt
 pienza_full_codebase.txt
+
+.keep_alive_dummy.txt
+notes.md

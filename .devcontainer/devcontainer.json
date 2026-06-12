@@ -9,6 +9,9 @@
   "postCreateCommand": "sudo rm -f /etc/apt/sources.list.d/yarn.list && sudo apt-get update && sudo apt-get install -y openjdk-17-jdk-headless libgdal-dev libproj-dev g++ python3-dev && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*",
 
   "customizations": {
+    "codespaces": {
+      "idleTimeout": "120m"
+    },
     "vscode": {
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
