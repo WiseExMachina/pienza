@@ -10,10 +10,7 @@ def build_sidebar():
         
         # Resolve path dynamically for home page and subpages
         st.page_link("main.py", label="Home")
-        st.page_link("pages/0000_mock.py", label="WIP mock")
-        st.page_link("pages/0002_found2.py", label="Found2")
-        st.page_link("pages/0001_Foundations_and_Architecture.py", label="Foundations & Architecture")
-        st.page_link("pages/0202_Target_and_Feature_Engineering.py", label="Feature Store")
+        st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
         st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
         st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
         st.page_link("pages/0302_Causal_Inference.py", label="Causal Inference")
@@ -22,7 +19,13 @@ def build_sidebar():
         st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
         st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
         st.page_link("pages/0604_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
-
+        st.markdown("Archive")
+        st.page_link("pages/0101_Project_Strategy_and_Scope.py", label="Project Strategy and Scope")
+        st.page_link("pages/0102_Acquisition_and_Ground_Truth.py", label="Acquisition and Ground Truth")
+        st.page_link("pages/0000_mock.py", label="WIP mock")
+        st.page_link("pages/0002_found2.py", label="Found2")
+        st.page_link("pages/0001_Foundations_and_Architecture.py", label="Foundations & Architecture")
+        st.page_link("pages/0202_Target_and_Feature_Engineering.py", label="Targe and Feat")
         st.markdown("---")
         st.markdown("**Author:** Bernardo Lozano Wise")
         st.markdown("**Domain:** Autonomous AV Simulation")
