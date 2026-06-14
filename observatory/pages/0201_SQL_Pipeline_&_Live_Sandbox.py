@@ -3,6 +3,7 @@ import pandas as pd
 from google.cloud import bigquery
 from pathlib import Path
 import os
+from components.styles import GLOBAL_CSS
 
 
 # ==========================================
@@ -14,61 +15,27 @@ st.set_page_config(
     layout="wide"
 )
 
-OPUS_TEAL = '#21918c'
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
-
-
-# ==========================================
-# CUSTOM FONT & CSS INJECTION (Merged)
-# ==========================================
+# Page-specific overrides
 st.markdown("""
-    <style>
-        /* Import Crimson Pro (Serif) and Inter (Sans-Serif) from Google Fonts */
-        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,200..900&family=Inter:wght@400;600;700&display=swap');
-        
-        /* Padding Adjustment from Current */
-        .block-container { padding-top: 2rem; }
-
-        /* 1. Body Text (Crimson Pro) - Target semantic content tags only! */
-        p, li, td, th {
-            font-family: 'Crimson Pro', serif !important;
-            font-size: 18px !important;  
-            line-height: 1.6 !important; 
-        }
-
-        /* 2. Headers Base Setup (Inter) */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Inter', sans-serif !important;
-            font-weight: 600 !important;
-        }
-
-        /* 2a. Individual Header Sizes */
-        h1 { font-size: 38px !important; } 
-        h2 { font-size: 28px !important; } 
-        h3 { font-size: 22px !important; } 
-
-        /* 3. Expander Headers (Force them to match H3 Inter styling) */
-        [data-testid="stExpander"] details summary p {
-            font-family: 'Inter', sans-serif !important;
-            font-weight: 600 !important;
-            font-size: 16px !important;
-        }
-
-        /* 4. Code Blocks & Terminal (Monospace) */
-        code, pre {
-            font-family: 'Courier New', Courier, monospace !important;
-            font-size: 15px !important; 
-        }
-
-        /* 5. SQL Sandbox Text Area (From Current) */
-        .stTextArea textarea {
-            font-family: 'Courier New', Courier, monospace !important;
-            background-color: #f0f2f6 !important; 
-            color: #121212 !important; 
-            border-left: 4px solid #21918c !important;
-            font-size: 13px !important;
-        }
-    </style>
+<style>
+[data-testid="stExpander"] details summary p {
+    font-weight: 600 !important;
+    font-size: 16px !important;
+}
+code, pre {
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 15px !important;
+}
+.stTextArea textarea {
+    font-family: 'Courier New', Courier, monospace !important;
+    background-color: #f0f2f6 !important;
+    color: #121212 !important;
+    border-left: 4px solid #21918c !important;
+    font-size: 13px !important;
+}
+</style>
 """, unsafe_allow_html=True)
 
 # ==========================================
@@ -94,14 +61,8 @@ def run_query(query_string):
 
 # --- 3. HEADER ---
 st.title("SQL Pipeline & Live Sandbox")
-st.markdown(f"**<span style='color:{OPUS_TEAL}; font-size:1.2rem;'>Point of Order! ...Proceed</span>**", unsafe_allow_html=True)
+st.markdown("**<span style='color:#21918c; font-size:1.2rem;'>Point of Order! ...Proceed</span>**", unsafe_allow_html=True)
 
-
-st.markdown("""
-Once the offer stream was enriched with context, it was necessary to anchor these decision events to the **"Official Truth"** of the platform’s ledgers. This required a rigorous reconciliation campaign to validate financial outcomes and account for discrepancies in transaction status.
-""")
-
-import streamlit as st
 
 st.markdown("""
 Once the offer stream was enriched with context, it was necessary to anchor these decision events to the **"Official Truth"** of the platform’s ledgers. This required a rigorous reconciliation campaign to validate financial outcomes and account for discrepancies in transaction status.
@@ -141,8 +102,6 @@ with st.expander("Official Ledger Integration & Reconciliation Audit", expanded=
     """)
 
 
-import streamlit as st
-
 # ==========================================
 # PHASE 2D: STAR SCHEMA DESIGN (Collapsible Section)
 # ==========================================
@@ -163,8 +122,6 @@ with st.expander("Star Schema Design: Normalization and Relational Logic", expan
     """)
 
 
-import streamlit as st
-
 # ==========================================
 # PHASE 2D: CIRCULAR AVOIDANCE (Collapsible Section)
 # ==========================================
@@ -183,8 +140,6 @@ with st.expander("Circular Avoidance: The Linear Financial Chain", expanded=Fals
 
 
 
-import streamlit as st
-
 # ==========================================
 # PHASE 2D: IDEMPOTENT ETL PIPELINE (Collapsible Section)
 # ==========================================
@@ -200,8 +155,6 @@ with st.expander("Idempotent ETL Pipeline: Tabula Rasa", expanded=False):
 
 
 
-
-import streamlit as st
 
 # ==========================================
 # PHASE 2D: SQL VIEW ARCHITECTURE (Collapsible Section)

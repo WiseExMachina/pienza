@@ -2,7 +2,7 @@ GLOBAL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
-html, body, [class*="css"], h1, h2, h3, h4, h5, h6, p, span {
+html, body, [class*="css"], h1, h2, h3, h4, h5, h6, p {
     font-family: 'Inter', sans-serif !important;
 }
 
@@ -55,6 +55,7 @@ h4 {
     background: #ffffff;
     border: 1px solid #eaeaea;
     border-radius: 12px;
+    padding: 20px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0,0,0,0.02);
 }
