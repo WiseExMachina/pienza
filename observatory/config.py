@@ -1,0 +1,6 @@
+ACCENT = "#21918c"
+ACCENT_DARK = "#1a7576"
+PAGE_TITLE = "Project Pienza | Digital Twin"
+PDF_PATH = "assets/Pienza_Papers.pdf"
+GITHUB_URL = "https://github.com/your-repo"
+AUTHOR = "Bernardo Lozano Wise"

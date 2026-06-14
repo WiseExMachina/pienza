@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+from components.styles import GLOBAL_CSS
 
 
 # --- 0. SIDEBAR INTEGRADA ---
@@ -26,7 +27,7 @@ def build_sidebar():
         st.page_link("pages/9000_mock.py", label="WIP mock")
         st.page_link("pages/9000_found2.py", label="Found2")
         st.page_link("pages/9000_Foundations_and_Architecture.py", label="Foundations & Architecture")
-        st.page_link("pages/9000_Target_and_Feature_Engineering.py", label="Targe and Feat")
+        st.page_link("pages/9000_Target_and_Feature_Engineering.py", label="Target and Feature Engineering")
         st.markdown("---")
         st.markdown("**Author:** Bernardo Lozano Wise")
         st.markdown("**Domain:** Autonomous AV Simulation")
@@ -61,65 +62,7 @@ st.set_page_config(
 build_sidebar()
 
 
-# Custom CSS for "Industrial-Grade" Paper Look (Strictly Inter)
-st.markdown("""
-   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
-
-    /* Main Typography - Enforce Inter globally */
-    html, body, [class*="css"], h1, h2, h3, h4, h5, h6, p, span {
-        font-family: 'Inter', sans-serif !important;
-    }
-    
-    /* --- 1. TAMAÑO DEL HEADER PRINCIPAL --- */
-    h1 { 
-        font-size: 36px !important; /* <-- CAMBIA ESTE NÚMERO A TU GUSTO */
-        font-weight: 400 !important; 
-        color: #121212; 
-        letter-spacing: -1px; 
-    }
-            
-    h2 { 
-        color: #21918c;
-        font-size: 30px !important;
-        font-weight: 300 !important; 
-        margin-top: -10px; 
-    }
-            
-    h3 { 
-        color: #21918c;
-        font-size: 26px !important;
-        font-weight: 400 !important; 
-        margin-top: -10px; 
-    }
-    
-    h4 { 
-        color: #21918c;
-        font-weight: 100 !important; 
-        margin-top: -10px; 
-    }
-    
-    /* --- 2. TAMAÑO DE LAS PAGES EN EL SIDEBAR --- */
-    [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
-        font-size: 12px !important; /* <-- CAMBIA ESTE NÚMERO A TU GUSTO */
-    }
-
-    .block-container { padding-top: 2rem; }
-    
-    /* Executive KPI styling */
-    .kpi-box {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #21918c; 
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-    }
-
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    </style>
-    """, unsafe_allow_html=True)
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 
 # --- 3. HERO HEADER ---
@@ -145,48 +88,6 @@ Ultimately, Pienza bridges the gap between human behavioral cloning and autonomo
 st.write("") # Spacer
 
 st.markdown("""
-<style>
-.bento-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-    margin-top: 10px; 
-}
-.bento-card {
-    background: #ffffff;
-    border: 1px solid #eaeaea;
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-}
-.bento-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    border-color: #21918c;
-}
-.bento-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #121212;
-    line-height: 1.1;
-    letter-spacing: -1px;
-    margin-bottom: 5px;
-}
-.bento-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #21918c;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-.bento-desc {
-    font-size: 0.8rem;
-    color: #555;
-    line-height: 1.4;
-}
-</style>
 
 <div class="bento-grid">
     <div class="bento-card">
@@ -291,7 +192,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a p {
 
 # 9-Module List for the 3x3 Grid
 modules = [
-    ("pages/0001_Foundations_and_Architecture.py", "🏗️", "Foundations & Architecture", 
+    ("pages/0002_Foundations.py", "🏗️", "Foundations & Architecture",
      "Bottom-up strategy, dual-engine field acquisition, and stateful feature engineering cascade."),
      
     ("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", "💾", "SQL Pipeline & Sandbox", 
@@ -336,60 +237,6 @@ st.markdown("---")
 
 # --- 8. CALL TO ACTION (The LLM Ingestion Gateway) ---
 st.markdown("""
-<style>
-.ingestion-panel {
-    background: #ffffff;
-    border: 1px solid #eaeaea;
-    border-radius: 12px;
-    padding: 30px;
-    margin: 40px 0;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-}
-.ingestion-panel:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
-    border-color: #21918c;
-}
-.ingestion-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #21918c;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
-}
-.ingestion-heading {
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: #121212;
-    letter-spacing: -0.5px;
-    margin-bottom: 12px;
-}
-.ingestion-body {
-    font-size: 0.9rem;
-    color: #555555;
-    line-height: 1.5;
-    margin-bottom: 24px;
-}
-.ingestion-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #21918c;
-    color: #ffffff !important;
-    padding: 12px 28px;
-    border-radius: 6px;
-    text-decoration: none !important;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-.ingestion-action:hover {
-    background-color: #1a7576;
-}
-</style>
-
 <div class="ingestion-panel">
     <div class="ingestion-title">LLM Knowledge Base</div>
     <div class="ingestion-heading">Interact with the AI</div>

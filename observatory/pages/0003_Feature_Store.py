@@ -1,4 +1,5 @@
 import streamlit as st
+from components.styles import GLOBAL_CSS
 import streamlit.components.v1 as components
 import time
 import numpy as np
@@ -53,45 +54,7 @@ build_sidebar()
 # ─────────────────────────────────────────────
 # CSS
 # ─────────────────────────────────────────────
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
-html, body, [class*="css"], h1, h2, h3, h4, h5, h6, p, span {
-    font-family: 'Inter', sans-serif !important;
-}
-h1 { font-size: 36px !important; font-weight: 400 !important; color: #121212; letter-spacing: -1px; }
-h2 { color: #21918c; font-size: 30px !important; font-weight: 300 !important; margin-top: -10px; }
-h3 { color: #21918c; font-size: 26px !important; font-weight: 400 !important; margin-top: -10px; }
-.block-container { padding-top: 2rem; }
-.bento-card {
-    background: #ffffff;
-    border: 1px solid #eaeaea;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-}
-.bento-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-    border-color: #21918c;
-}
-.phase-badge {
-    display: inline-block;
-    background-color: #f0fafa;
-    color: #21918c;
-    border: 1px solid #21918c;
-    border-radius: 20px;
-    padding: 3px 14px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-[data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p { font-size: 12px !important; }
-</style>
-""", unsafe_allow_html=True)
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # HEADER
