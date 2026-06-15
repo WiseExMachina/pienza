@@ -471,7 +471,7 @@ with tab2:
     PHASES = [
         {
             "phase": "Phase 1", "label": "Acquisition & Ground Truth",
-            "arch_short": "Sheets",
+            "arch_short": "OCR<br>+<br>Sheets",
             "date_range": "Aug 22 – Oct 1, 2025",
             "detail": "High-fidelity manual capture of operational data via the bespoke GTS Webapp. Establishment of the target variable and the primary contextual ride attributes.",
             "bullets": ["GTS Webapp", "Dual OCR Engine", "Target variable definition", "Ride attributes schema"],
@@ -534,8 +534,37 @@ with tab2:
     COLORS = ["#0d4a47", "#21918c", "#2db3ad", "#47c4be", "#6dcfca", "#9eddd9", "#c8eeec"]
 
     # ── Ribbon chart ──────────────────────────────────────────────────────
+    META_GROUPS = [
+        {
+            "label": "Acquisition", "start": "2025-08-22", "end": "2025-10-01",
+            "color": "#0d4a47",
+            "hover": "<b>Phase 1</b><br>Manual field capture via GTS Webapp",
+        },
+        {
+            "label": "Engineering /<br>Statistics", "start": "2025-10-02", "end": "2025-12-03",
+            "color": "#21918c",
+            "hover": "<b>Phases 2–3</b><br>Relational DB · ETL · Causal Inference",
+        },
+        {
+            "label": "Classical ML", "start": "2025-12-04", "end": "2026-01-12",
+            "color": "#2db3ad",
+            "hover": "<b>Phases 4–5</b><br>HDBSCAN geo-remediation · XGBoost imitation learning",
+        },
+        {
+            "label": "Deep Learning", "start": "2026-01-13", "end": "2026-03-31",
+            "color": "#47c4be",
+            "hover": "<b>Phase 6</b><br>O(1) NLP · cGAN · Mobility Tensor · MDP<br><i>† Iterative correction of past phases applied throughout</i>",
+        },
+        {
+            "label": "Streamlit", "start": "2026-04-01", "end": "2026-05-31",
+            "color": "#6dcfca",
+            "hover": "<b>Phase 7</b><br>Pienza Observatory — production deployment",
+        },
+    ]
+
     fig = go.Figure()
 
+    # Phase ribbon (y 0.35–0.65)
     for i, (_, row) in enumerate(df_phases.iterrows()):
         s = row["Start"].timestamp() * 1000
         e = row["End"].timestamp() * 1000
@@ -556,38 +585,51 @@ with tab2:
             showlegend=False,
         ))
         fig.add_annotation(
-            x=mid_ts, y=0.72, xref="x", yref="y",
+            x=mid_ts, y=0.50, xref="x", yref="y",
             text=f"<b>{row['phase']}</b>",
-            showarrow=False, font=dict(size=10, color="#121212"),
-            xanchor="center",
+            showarrow=False, font=dict(size=9, color="white"),
+            xanchor="center", yanchor="middle",
         )
         fig.add_annotation(
             x=mid_ts, y=0.22, xref="x", yref="y",
             text=row["arch_short"],
-            showarrow=False, font=dict(size=9, color="#21918c"),
+            showarrow=False, font=dict(size=8, color="#21918c"),
             xanchor="center",
         )
 
-    for ts, label in [("2025-10-02", "→ SQLite"), ("2026-01-13", "→ BigQuery")]:
-        fig.add_vline(
-            x=pd.Timestamp(ts).timestamp() * 1000,
-            line=dict(color="#aaa", width=1, dash="dash"),
-            annotation_text=label,
-            annotation_position="top left",
-            annotation_font=dict(size=9, color="#888"),
+    # Meta-group labels above ribbon — full-width line with centered text
+    for g in META_GROUPS:
+        gs = pd.Timestamp(g["start"]).timestamp() * 1000
+        ge = pd.Timestamp(g["end"]).timestamp() * 1000
+        gm = (gs + ge) / 2
+        fig.add_shape(
+            type="line",
+            x0=gs, x1=ge, y0=0.88, y1=0.88,
+            xref="x", yref="y",
+            line=dict(color="#bbb", width=1),
         )
+        fig.add_annotation(
+            x=gm, y=0.88, xref="x", yref="y",
+            text=f"<b>{g['label']}</b>",
+            showarrow=False,
+            font=dict(size=9, color="#555"),
+            xanchor="center", yanchor="middle",
+            bgcolor="white", borderpad=3,
+            hovertext=g["hover"],
+        )
+
 
     fig.update_layout(
         plot_bgcolor="white", paper_bgcolor="white",
-        height=220,
-        margin=dict(l=10, r=10, t=30, b=30),
+        height=260,
+        margin=dict(l=10, r=10, t=10, b=30),
         xaxis=dict(
             type="date", showgrid=False,
             tickformat="%b %Y", tickfont=dict(size=11, color="#555"),
             range=[pd.Timestamp("2025-08-15").timestamp()*1000,
                    pd.Timestamp("2026-06-01").timestamp()*1000],
         ),
-        yaxis=dict(visible=False, range=[0, 1]),
+        yaxis=dict(visible=False, range=[0.05, 1.05]),
         font=dict(family="Inter"),
     )
     st.plotly_chart(fig, use_container_width=True)
