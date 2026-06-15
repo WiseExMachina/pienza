@@ -12,7 +12,41 @@ from utils.bq_client import fetch_data_from_bq
 
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="cGAN Engine | Pienza", page_icon="🏭", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="cGAN Engine | Pienza", page_icon="🏭", layout="wide")
+
+# ─────────────────────────────────────────────
+# SIDEBAR
+# ─────────────────────────────────────────────
+def build_sidebar():
+    with st.sidebar:
+        st.markdown("Proyect Pienza")
+        st.markdown("---")
+        st.page_link("main.py", label="Home")
+        st.page_link("pages/0002_Foundations.py", label="Foundations")
+        st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
+        st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
+        st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
+        st.page_link("pages/0302_Causal_Inference.py", label="Causal Inference")
+        st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
+        st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
+        st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
+        st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
+        st.page_link("pages/0604_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
+        st.markdown("---")
+        st.markdown("**Author:** Bernardo Lozano Wise")
+        st.markdown("**Domain:** Autonomous AV Simulation")
+        st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
+        st.markdown("---")
+        try:
+            with open("assets/Pienza_Papers.pdf", "rb") as f:
+                pdf_data = f.read()
+            st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
+        except FileNotFoundError:
+            pass
+        st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
+        st.markdown("---")
+
+build_sidebar()
 
 
 
