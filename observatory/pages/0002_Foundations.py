@@ -1,6 +1,8 @@
 import datetime
 import time
 import pandas as pd
+import plotly.express as px
+import altair as alt
 import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
@@ -122,10 +124,10 @@ st.markdown("---")
 # ─────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📖 Intro & Timeline", "🔄 Data Ingestion Pipelines", "🎮 GTS Telemetry Simulator"])
+tab1, tab2, tab3, tab4 = st.tabs(["📖 Introduction", "📅 Timeline", "🔄 Data Ingestion Pipelines", "🎮 GTS Telemetry Simulator"])
 
 with tab1:
-    st.markdown("## Intro & Timeline")
+    st.markdown("## Introduction")
     st.markdown("""
 <div class="story-section">
   <span class="story-pill">Scope & Constraints</span>
@@ -194,7 +196,7 @@ with tab1:
 </div>
     """, unsafe_allow_html=True)
 
-with tab2:
+with tab3:
     st.markdown("## Data Ingestion Pipelines")
     st.markdown("""
     <div class="placeholder-card">
@@ -204,7 +206,7 @@ with tab2:
     </div>
     """, unsafe_allow_html=True)
 
-with tab3:
+with tab4:
     st.markdown("## GTS Telemetry Simulator")
     st.markdown("""
     This module simulates the **Engine 1** mobile experience. It demonstrates the "One-Touch" state transitions and the logic used to calculate operational KPIs in the field.
@@ -460,3 +462,195 @@ with tab3:
     """, unsafe_allow_html=True)
 
     st.caption("Simulator Version: GTS-4.0")
+
+with tab2:
+    import plotly.graph_objects as go
+
+    st.markdown("## Project Timeline")
+
+    PHASES = [
+        {
+            "phase": "Phase 1", "label": "Acquisition & Ground Truth",
+            "arch_short": "Sheets",
+            "date_range": "Aug 22 – Oct 1, 2025",
+            "detail": "High-fidelity manual capture of operational data via the bespoke GTS Webapp. Establishment of the target variable and the primary contextual ride attributes.",
+            "bullets": ["GTS Webapp", "Dual OCR Engine", "Target variable definition", "Ride attributes schema"],
+            "start": "2025-08-22", "end": "2025-10-01",
+        },
+        {
+            "phase": "Phase 2", "label": "Data Engineering & Architecture",
+            "arch_short": "SQLite<br>+<br>Colab",
+            "date_range": "Oct 2 – Nov 20, 2025",
+            "detail": "Transition to a relational database (pienza.db) and Star Schema design. Implementation of automated OCR pipelines and normalization protocols. Creation of the stateful engineered_features table.",
+            "bullets": ["Star Schema design", "Idempotent ETL pipeline", "OCR automation", "engineered_features table"],
+            "start": "2025-10-02", "end": "2025-11-20",
+        },
+        {
+            "phase": "Phase 3", "label": "Exploratory Analysis & Causal Inference",
+            "arch_short": "SQLite<br>+<br>Colab",
+            "date_range": "Nov 21 – Dec 3, 2025",
+            "detail": "Diagnostic audit of marketplace physics and rational search time boundaries. Causal modeling of baseline heteroscedasticity and quantification of the platform's inelastic Integrity Buffer.",
+            "bullets": ["Marketplace physics audit", "Optimal stopping boundary", "Integrity Buffer quantification", "Heteroscedasticity causal model"],
+            "start": "2025-11-21", "end": "2025-12-03",
+        },
+        {
+            "phase": "Phase 4", "label": "Unsupervised Learning & Geo-Remediation",
+            "arch_short": "SQLite<br>+<br>Colab",
+            "date_range": "Dec 4, 2025 – Jan 2, 2026",
+            "detail": "Application of HDBSCAN for zone discovery and surgical coordinate cleaning using hand-crafted heuristic polygons. Generation of the Silver Palette geo-semantic attributes.",
+            "bullets": ["HDBSCAN zone discovery", "Heuristic polygon cleaning", "Silver Palette attributes", "44 geo-semantic clusters"],
+            "start": "2025-12-04", "end": "2026-01-02",
+        },
+        {
+            "phase": "Phase 5", "label": "Supervised Imitation Learning",
+            "arch_short": "SQLite<br>+<br>Colab",
+            "date_range": "Jan 3 – Jan 12, 2026",
+            "detail": "Model evaluation tournament and implementation of the Cognitive Cascade hierarchical architecture for the champion model.",
+            "bullets": ["Model tournament", "Cognitive Cascade architecture", "Hierarchical XGBoost champion", "Binary + multiclass evaluation"],
+            "start": "2026-01-03", "end": "2026-01-12",
+        },
+        {
+            "phase": "Phase 6", "label": "Generative Moonshots",
+            "arch_short": "BigQuery<br>+<br>Colab",
+            "date_range": "Jan 13 – Mar 31, 2026",
+            "detail": "O(1) neural spatial inference and cGAN manifold synthesis. Formulation of the internal Mobility Tensor to establish the Markov Decision Process (MDP) baseline for autonomous routing.",
+            "bullets": ["O(1) NLP spatial inference", "cGAN · 1M-row synthesis", "Mobility Tensor formulation", "MDP scaffold for autonomy"],
+            "start": "2026-01-13", "end": "2026-03-31",
+        },
+        {
+            "phase": "Phase 7 ✦", "label": "Streamlit: Pienza Observatory",
+            "arch_short": "BigQuery<br>+<br>VS Code",
+            "date_range": "Apr 1, 2026 – present",
+            "detail": "Migration from Colab notebooks to a production-ready development environment. The research pipeline now runs entirely within GitHub Codespaces and VS Code — enabling live model interrogation, iterative Observatory builds, and a stable, reproducible workspace with full BigQuery connectivity.",
+            "bullets": ["GitHub Codespaces", "VS Code", "BigQuery live queries", "Streamlit Observatory"],
+            "start": "2026-04-01", "end": "2026-05-31",
+        },
+    ]
+
+    df_phases = pd.DataFrame(PHASES)
+    df_phases["Start"] = pd.to_datetime(df_phases["start"])
+    df_phases["End"]   = pd.to_datetime(df_phases["end"])
+
+    COLORS = ["#0d4a47", "#21918c", "#2db3ad", "#47c4be", "#6dcfca", "#9eddd9", "#c8eeec"]
+
+    # ── Ribbon chart ──────────────────────────────────────────────────────
+    fig = go.Figure()
+
+    for i, (_, row) in enumerate(df_phases.iterrows()):
+        s = row["Start"].timestamp() * 1000
+        e = row["End"].timestamp() * 1000
+        mid_ts = (s + e) / 2
+        fig.add_trace(go.Scatter(
+            x=[s, e, e, s, s],
+            y=[0.35, 0.35, 0.65, 0.65, 0.35],
+            fill="toself",
+            fillcolor=COLORS[i],
+            line=dict(color="white", width=2),
+            mode="lines",
+            hovertemplate=(
+                f"<b>{row['phase']}: {row['label']}</b><br>"
+                f"{row['date_range']}<br>"
+                f"Arch: {row['arch_short'].replace('<br>', ' ')}"
+                "<extra></extra>"
+            ),
+            showlegend=False,
+        ))
+        fig.add_annotation(
+            x=mid_ts, y=0.72, xref="x", yref="y",
+            text=f"<b>{row['phase']}</b>",
+            showarrow=False, font=dict(size=10, color="#121212"),
+            xanchor="center",
+        )
+        fig.add_annotation(
+            x=mid_ts, y=0.22, xref="x", yref="y",
+            text=row["arch_short"],
+            showarrow=False, font=dict(size=9, color="#21918c"),
+            xanchor="center",
+        )
+
+    for ts, label in [("2025-10-02", "→ SQLite"), ("2026-01-13", "→ BigQuery")]:
+        fig.add_vline(
+            x=pd.Timestamp(ts).timestamp() * 1000,
+            line=dict(color="#aaa", width=1, dash="dash"),
+            annotation_text=label,
+            annotation_position="top left",
+            annotation_font=dict(size=9, color="#888"),
+        )
+
+    fig.update_layout(
+        plot_bgcolor="white", paper_bgcolor="white",
+        height=220,
+        margin=dict(l=10, r=10, t=30, b=30),
+        xaxis=dict(
+            type="date", showgrid=False,
+            tickformat="%b %Y", tickfont=dict(size=11, color="#555"),
+            range=[pd.Timestamp("2025-08-15").timestamp()*1000,
+                   pd.Timestamp("2026-06-01").timestamp()*1000],
+        ),
+        yaxis=dict(visible=False, range=[0, 1]),
+        font=dict(family="Inter"),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ── Vertical story with arrows ────────────────────────────────────────
+    st.markdown("""
+<style>
+.phase-story { max-width: 760px; margin: 0 auto; }
+.phase-card {
+    display: flex; gap: 20px; align-items: flex-start;
+    background: #fff; border: 1px solid #e8e8e8;
+    border-left: 4px solid var(--phase-color);
+    border-radius: 10px; padding: 18px 20px;
+    margin: 0 0 0 0;
+}
+.phase-badge-num {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    background: var(--phase-color);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+}
+.phase-card-body { flex: 1; }
+.phase-card-title { font-weight: 700; font-size: 0.95rem; color: #121212; margin-bottom: 2px; }
+.phase-card-meta { font-size: 0.78rem; color: #888; margin-bottom: 8px; }
+.phase-card-meta .arch-tag {
+    display: inline-block; background: #f0faf9; color: #21918c;
+    border: 1px solid #c2e8e5; border-radius: 4px;
+    padding: 1px 6px; font-size: 0.72rem; font-weight: 600;
+    margin-left: 8px;
+}
+.phase-card-desc { font-size: 0.85rem; color: #555; line-height: 1.65; margin-bottom: 10px; }
+.phase-bullets { display: flex; flex-wrap: wrap; gap: 6px; }
+.phase-bullet {
+    background: #f5f5f5; border-radius: 20px;
+    padding: 3px 10px; font-size: 0.75rem; color: #444;
+}
+.phase-arrow {
+    text-align: center; color: #ccc; font-size: 22px;
+    margin: 6px 0; line-height: 1;
+    user-select: none;
+}
+</style>
+""", unsafe_allow_html=True)
+
+    phase_html = '<div class="phase-story">'
+    for i, (_, row) in enumerate(df_phases.iterrows()):
+        color = COLORS[i]
+        bullets_html = "".join(f'<span class="phase-bullet">{b}</span>' for b in row["bullets"])
+        phase_html += f"""
+<div class="phase-card" style="--phase-color:{color}">
+  <div class="phase-badge-num">{i+1}</div>
+  <div class="phase-card-body">
+    <div class="phase-card-title">{row['label']}</div>
+    <div class="phase-card-meta">{row['date_range']} <span class="arch-tag">{row['arch_short'].replace('<br>', ' ')}</span></div>
+    <div class="phase-card-desc">{row['detail']}</div>
+    <div class="phase-bullets">{bullets_html}</div>
+  </div>
+</div>
+"""
+        if i < len(df_phases) - 1:
+            phase_html += '<div class="phase-arrow">↓</div>'
+
+    phase_html += '</div>'
+    st.markdown(phase_html, unsafe_allow_html=True)
