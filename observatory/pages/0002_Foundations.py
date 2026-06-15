@@ -1,8 +1,6 @@
 import datetime
 import time
 import pandas as pd
-import plotly.express as px
-import altair as alt
 import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
@@ -14,7 +12,7 @@ st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon="
 # ─────────────────────────────────────────────
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Proyect Pienza")
+        st.markdown("Project Pienza")
         st.markdown("---")
         st.page_link("main.py", label="Home")
         st.page_link("pages/0002_Foundations.py", label="Foundations")
@@ -124,7 +122,7 @@ st.markdown("---")
 # ─────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(["📖 Introduction", "📅 Timeline", "🔄 Data Ingestion Pipelines", "🎮 GTS Telemetry Simulator"])
+tab1, tab2, tab3 = st.tabs(["📖 Introduction", "📅 Timeline", "🔄 Data Ingestion Pipelines"])
 
 with tab1:
     st.markdown("## Introduction")
@@ -132,7 +130,7 @@ with tab1:
 <div class="story-section">
   <span class="story-pill">Scope & Constraints</span>
   <p>
-    Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute agent control: the decision itself</strong>.<span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">Bounded by the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one inviolable constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span>
+    Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute agent control: the decision itself</strong>.<span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">Built alongside the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one strict constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span>
   </p>
 </div>
 
@@ -146,7 +144,7 @@ with tab1:
 <div class="story-section">
   <span class="story-pill">Pivot to Classification</span>
   <p>
-    Regression abandoned. Research objective redefined from <em>price prediction</em> to <em>behavior cloning</em>. Incorporating the Negative Class (rejected offers) resolved data scarcity and exposed the full decision boundary — enabling XGBoost to model the agent's non-linear acceptance policy.
+    With regression abandoned, the research objective redefined from <em>price prediction</em> to <em>behavior cloning</em>. Incorporating the Negative Class (rejected offers) resolved data scarcity and exposed the full decision boundary — enabling XGBoost to model the agent's non-linear acceptance policy.
   </p>
 </div>
 
@@ -198,243 +196,306 @@ with tab1:
 
 with tab3:
     st.markdown("## Data Ingestion Pipelines")
-    st.markdown("""
-    <div class="placeholder-card">
-        <span>🔄</span>
-        <strong>Placeholder — Data Ingestion Pipelines</strong><br/>
-        Architecture diagrams, pipeline schemas, and ingestion flow documentation will live here.
-    </div>
-    """, unsafe_allow_html=True)
+    subtab1, subtab2, subtab3 = st.tabs(["📋 Acquisition & Ground Truth", "🎮 GTS Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
 
-with tab4:
-    st.markdown("## GTS Telemetry Simulator")
-    st.markdown("""
-    This module simulates the **Engine 1** mobile experience. It demonstrates the "One-Touch" state transitions and the logic used to calculate operational KPIs in the field.
-    """)
-
-    # ── SESSION STATE ────────────────────────────────────────────────────────
-    if 'sim_active' not in st.session_state:
-        st.session_state.sim_active = False
-    if 'sim_log' not in st.session_state:
-        st.session_state.sim_log = []
-    if 'start_time_dt' not in st.session_state:
-        st.session_state.start_time_dt = None
-    if 'show_t1' not in st.session_state:
-        st.session_state.show_t1 = False
-    if 'show_t4' not in st.session_state:
-        st.session_state.show_t4 = False
-    if 'show_summary' not in st.session_state:
-        st.session_state.show_summary = False
-
-    # ── LOGIC ────────────────────────────────────────────────────────────────
-    def log_sim_event(status, ride_id, upfront=0.0, realized=0.0):
-        now_utc = datetime.datetime.now(datetime.timezone.utc)
-        now_cdmx = now_utc - datetime.timedelta(hours=6)
-        st.session_state.sim_log.insert(0, {
-            "raw_ts": time.time(),
-            "serverTimestamp (MEX)": now_cdmx.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            "clientTimestamp (UTC)": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "rideID": ride_id,
-            "eventType": status,
-            "latitude": 19.4326,
-            "longitude": -99.1332,
-            "addressText": "Zócalo, Mexico City",
-            "upfrontFare": float(upfront),
-            "realizedFare": float(realized)
-        })
-
-    def calculate_summary():
-        if not st.session_state.sim_log:
-            return None
-        df = pd.DataFrame(st.session_state.sim_log).sort_values("raw_ts")
-        total_up = df["upfrontFare"].sum()
-        total_re = df["realizedFare"].sum()
-        spread = (total_re / total_up) * 100 if total_up > 0 else 0
-        durs = {"Looking": 0, "Driving": 0, "Waiting": 0, "On Ride": 0}
-        for i in range(len(df) - 1):
-            delta = df.iloc[i + 1]["raw_ts"] - df.iloc[i]["raw_ts"]
-            etype = df.iloc[i]["eventType"]
-            if "T0" in etype:   durs["Looking"] += delta
-            elif "T1" in etype: durs["Driving"] += delta
-            elif "T2" in etype: durs["Waiting"] += delta
-            elif "T3" in etype: durs["On Ride"] += delta
-        return {"up": total_up, "re": total_re, "spread": spread, "times": durs}
-
-    # ── JS: color buttons + style the column as the phone frame ─────────────
-    components.html("""
-    <script>
-    function applyStyles() {
-        const doc = window.parent.document;
-
-        // 1. Color T0–T4 buttons by text
-        doc.querySelectorAll('button').forEach(btn => {
-            const t = btn.innerText.trim();
-            if      (t.startsWith('T0:')) { btn.style.setProperty('background-color','#007BFF','important'); btn.style.setProperty('color','white','important'); }
-            else if (t.startsWith('T1:')) { btn.style.setProperty('background-color','#FFC107','important'); btn.style.setProperty('color','black','important'); }
-            else if (t.startsWith('T2:')) { btn.style.setProperty('background-color','#FD7E14','important'); btn.style.setProperty('color','white','important'); }
-            else if (t.startsWith('T3:')) { btn.style.setProperty('background-color','#17A2B8','important'); btn.style.setProperty('color','white','important'); }
-            else if (t.startsWith('T4:')) { btn.style.setProperty('background-color','#28A745','important'); btn.style.setProperty('color','white','important'); }
-            else if (t.startsWith('■')) { btn.style.setProperty('background-color','#adb5bd','important'); btn.style.setProperty('color','white','important'); }
-        });
-
-        // 2. Find the stColumn containing T0 and style it as the phone frame
-        const t0 = Array.from(doc.querySelectorAll('button')).find(b => b.innerText.trim().startsWith('T0:'));
-        if (t0) {
-            let col = t0;
-            while (col && col.getAttribute('data-testid') !== 'stColumn') col = col.parentElement;
-            if (col) {
-                col.style.setProperty('background', 'white', 'important');
-                col.style.setProperty('border', '7px solid #1a1a1a', 'important');
-                col.style.setProperty('border-radius', '28px', 'important');
-                col.style.setProperty('box-shadow', '0 18px 40px rgba(0,0,0,0.18)', 'important');
-                col.style.setProperty('padding', '0 14px 20px', 'important');
-                col.style.setProperty('max-width', '390px', 'important');
-                col.style.setProperty('margin', '0 auto', 'important');
-            }
-        }
-    }
-    setTimeout(applyStyles, 150);
-    setInterval(applyStyles, 800);
-    </script>
-    """, height=0)
-
-    # ── UI ───────────────────────────────────────────────────────────────────
-    active = st.session_state.sim_active
-    col_l, col_m, col_r = st.columns([0.7, 2, 0.7])
-
-    with col_m:
-        # Notch + header at top of the phone-framed column
+    with subtab1:
         st.markdown("""
-        <div class="sim-notch"></div>
-        <div class="sim-header">Geotimestamps GTS-4</div>
-        """, unsafe_allow_html=True)
+<div class="story-section">
+  <span class="story-pill">Acquisition Context</span>
+  <p>
+    Project Pienza models the decision policy of an expert agent rather than a system in a learning phase. Prior to data collection, the subject had completed 24 months of field operations, concluding the <em>Exploration</em> stage of the Reinforcement Learning cycle. Utilizing the framework of Hopfield Networks, the agent's decision policy is modeled as a "cooled" system settled into a stable local minimum — an <em>attractor state</em>. This equilibrium represents an optimization contingent on the agent's specific constraints: geographic preferences, risk tolerance, and physical endurance. The resulting dataset provides a high-fidelity record of a <strong>converged exploitation policy</strong>.
+  </p>
+  <p>
+    Project Pienza utilizes a proprietary, <strong>dual-engine acquisition ecosystem</strong> to overcome the data sparsity inherent in third-party platform exports. The primary acquisition campaign was executed over a strict 6-week observation window (August 22 – October 1, 2025), digitizing the agent's operational reality in real-time.
+  </p>
+</div>
+""", unsafe_allow_html=True)
 
-        # Session control
-        if not active:
-            if st.button("▶  Start Session", type="primary", use_container_width=True):
-                st.session_state.sim_active = True
-                st.session_state.start_time_dt = time.time()
-                st.session_state.sim_log = []
-                st.rerun()
-        else:
-            if st.button("■  End Session", use_container_width=True):
-                st.session_state.sim_active = False
-                st.session_state.show_summary = True
-                st.rerun()
+        with st.expander("Engine 1 — Operational Telemetry: GTS Webapp", expanded=True):
+            st.markdown("""
+To establish the ground truth of completed missions, a bespoke Progressive Web Application (PWA) designated as the **Geotimestamps (GTS) Webapp** was deployed. The interface was optimized for low-cognitive-load fieldwork, functioning as a "One-Touch Timestamping" instrument while maintaining resilience through a production-grade stack (Netlify Frontend, Google Sheets Backend).
 
-        # Timer — live when active, static placeholder when not
-        if active:
-            components.html(f"""
-            <div id="timer-display" style="font-family:'Courier New',monospace;font-size:22px;font-weight:bold;
-                 color:#dc3545;text-align:center;margin:8px 0;background:#fff5f5;
-                 padding:6px;border-radius:10px;border:1px solid #ffc1c1;">00:00:00:000</div>
-            <script>
-            (function() {{
-                const start = {st.session_state.start_time_dt} * 1000;
-                const el = document.getElementById('timer-display');
-                function update() {{
-                    const d = Date.now() - start;
-                    const h = Math.floor(d/3600000).toString().padStart(2,'0');
-                    const m = Math.floor((d%3600000)/60000).toString().padStart(2,'0');
-                    const s = Math.floor((d%60000)/1000).toString().padStart(2,'0');
-                    const ms = Math.floor(d%1000).toString().padStart(3,'0');
-                    el.innerHTML = h+":"+m+":"+s+":"+ms;
-                    requestAnimationFrame(update);
-                }}
-                update();
-            }})();
-            </script>
-            """, height=60)
-        else:
-            st.markdown("""<div style="font-family:'Courier New',monospace;font-size:22px;font-weight:bold;
-                color:#ccc;text-align:center;margin:8px 0;background:#fafafa;
-                padding:6px;border-radius:10px;border:1px solid #eee;">
-                00:00:00:000</div>""", unsafe_allow_html=True)
+**Lifecycle Mapping Protocol (T0–T4).** The system logs five critical state transitions with geospatial precision:
 
-        # Ride ID + T0–T4 — always visible, disabled until session starts
-        default_ride_id = datetime.datetime.now().strftime("%y%m%d") + "-01"
-        ride_id = st.text_input("Daily Ride ID:", value=default_ride_id, disabled=not active)
+| Event | State | Capture |
+|---|---|---|
+| T0 | Search — idle, seeking offers | Timestamp + coordinates |
+| T1 | Acceptance — offer accepted, en route | Quoted upfront fare |
+| T2 | Arrival — at pickup, waiting | Timestamp + coordinates |
+| T3 | In-Progress — mission started | Timestamp |
+| T4 | Completion — mission finalized | Realized net fare |
 
-        if st.button("T0: Looking for rides", disabled=not active, use_container_width=True):
-            log_sim_event("T0: Looking for rides", ride_id)
+**Output (`trip_events`):** A verified timeline of physical state transitions and realized financial outcomes (N ≈ 350 completed trips).
+            """)
 
-        if st.button("T1: Ride Accepted, Driving to Pickup", disabled=not active, use_container_width=True):
-            st.session_state.show_t1 = not st.session_state.show_t1
-        if st.session_state.show_t1 and active:
-            with st.form("form_t1", clear_on_submit=True):
-                u_fare_raw = st.text_input("Upfront Fare ($)", placeholder="e.g. 85")
-                if st.form_submit_button("Confirm T1", use_container_width=True):
-                    log_sim_event("T1: Ride Accepted, Driving to Pickup", ride_id, upfront=float(u_fare_raw or 0))
-                    st.session_state.show_t1 = False
-                    st.rerun()
+        with st.expander("Engine 2 — Total Offer Stream: OCR Pipeline", expanded=True):
+            st.markdown("""
+To neutralize **Survivorship Bias**, the system must capture the full decision boundary — specifically the Rejected Offers (*The Negative Class*). As market infrastructure provides no native access to historical offer logs, a custom "Optical State Archival" architecture was deployed.
 
-        if st.button("T2: Waiting for passenger", disabled=not active, use_container_width=True):
-            log_sim_event("T2: Waiting for passenger", ride_id)
+The acquisition interface utilized an iOS device configured with an **Assistive Touch Macro**. This enabled a single-gesture capture protocol (The "Manual Cookie") that simultaneously acknowledged the offer cognitively and secured the raw visual data digitally.
 
-        if st.button("T3: Ride Started", disabled=not active, use_container_width=True):
-            log_sim_event("T3: Ride Started", ride_id)
+Three operational mandates enforced statistical representativeness:
 
-        if st.button("T4: Ride completed", disabled=not active, use_container_width=True):
-            st.session_state.show_t4 = not st.session_state.show_t4
-        if st.session_state.show_t4 and active:
-            with st.form("form_t4", clear_on_submit=True):
-                r_fare_raw = st.text_input("Realized Fare ($)", placeholder="e.g. 72")
-                if st.form_submit_button("Confirm T4", use_container_width=True):
-                    log_sim_event("T4: Ride completed", ride_id, realized=float(r_fare_raw or 0))
-                    st.session_state.show_t4 = False
-                    st.rerun()
+1. **Full Spectrum Capture (Zero Filters):** All system-level destination filters and product category filters (Premium / Mid-tier / X) were disabled — capturing the unfiltered "True Market" liquidity.
+2. **Safety-Driven Random Sampling:** Offers occurring during high-cognitive-load maneuvers were intentionally skipped. This data loss is classified as **Missing Completely at Random (MCAR)**, introducing no systemic bias.
+3. **The "Driver-First" Learning Curve:** A Warm-Up period (Week 1) resulted in a small cluster of "Ghost Offers" — completed missions without source image artifacts. These were handled programmatically in the Engineering Phase.
 
-        # Home indicator — bottom of phone frame
-        st.markdown('<div class="sim-home"></div>', unsafe_allow_html=True)
+The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual assets into structured data. The system prompt enforces strict scope limitations, instructing the model to ignore navigation metadata outside the central offer card.
 
-    # Post-session summary — modal dialog
-    @st.dialog("Session Summary")
-    def show_summary():
-        stats = calculate_summary()
-        if stats:
-            st.write(f"**Total Upfront:** ${stats['up']:.2f}")
-            st.write(f"**Total Realized:** ${stats['re']:.2f}")
-            st.write(f"**Net Spread:** {stats['spread']:.2f}%")
-            st.divider()
-            for k, v in stats['times'].items():
-                st.write(f"⏱ **{k}:** {time.strftime('%H:%M:%S', time.gmtime(v))}")
-            st.divider()
-            if st.button("Clear Log", use_container_width=True):
-                st.session_state.sim_log = []
-                st.rerun()
+**Output (`offers`):** Total universe of opportunities including the critical Negative Class (N ≈ 4,700 total offers).
+            """)
 
-    if not active and st.session_state.sim_log and st.session_state.show_summary:
-        st.session_state.show_summary = False
-        show_summary()
+        st.markdown("""
+<div class="story-section">
+  <span class="story-pill">Post-Session Reconciliation Protocol</span>
+  <p>
+    At acquisition time, both engines exist as separate, unlinked entities. A rigorous post-session protocol was enforced immediately upon the completion of each fieldwork shift:
+  </p>
+  <ol>
+    <li><strong>Telemetry Consolidation (GTS):</strong> Raw, long-format event logs were processed into a wide-format session ledger — pruning duplicates and cancelled events, and enabling immediate calculation of session-level KPIs such as <em>Net Spread</em> and <em>Accumulated Deadhead</em>.</li>
+    <li><strong>High-Fidelity Cognitive Backtagging:</strong> The Agent manually reviewed and tagged every rejected offer from that session to populate the multiclass target variable (<code>reason_primary</code>). Executing this task same-day was imperative to capture the specific, contextual nuance of the decision before operational memory decay occurred.</li>
+  </ol>
+  <p>In the subsequent engineering phase, the two disparate records were unified into a SQL-queryable relational schema.</p>
+</div>
+""", unsafe_allow_html=True)
 
-    # Live telemetry table
-    if st.session_state.sim_log:
-        st.markdown("#### Real-time Telemetry Buffer (Backend)")
-        df_table = pd.DataFrame(st.session_state.sim_log).drop(columns=['raw_ts'])
-        st.dataframe(df_table, use_container_width=True, hide_index=True, height=180)
+    with subtab2:
+        st.markdown("## GTS Telemetry Simulator")
+        st.markdown("""
+    This module simulates the **Engine 1** mobile experience. It demonstrates the "One-Touch" state transitions and the logic used to calculate operational KPIs in the field.
+        """)
+
+        # ── SESSION STATE ────────────────────────────────────────────────────────
+        if 'sim_active' not in st.session_state:
+            st.session_state.sim_active = False
+        if 'sim_log' not in st.session_state:
+            st.session_state.sim_log = []
+        if 'start_time_dt' not in st.session_state:
+            st.session_state.start_time_dt = None
+        if 'show_t1' not in st.session_state:
+            st.session_state.show_t1 = False
+        if 'show_t4' not in st.session_state:
+            st.session_state.show_t4 = False
+        if 'show_summary' not in st.session_state:
+            st.session_state.show_summary = False
+
+        # ── LOGIC ────────────────────────────────────────────────────────────────
+        def log_sim_event(status, ride_id, upfront=0.0, realized=0.0):
+            now_utc = datetime.datetime.now(datetime.timezone.utc)
+            now_cdmx = now_utc - datetime.timedelta(hours=6)
+            st.session_state.sim_log.insert(0, {
+                "raw_ts": time.time(),
+                "serverTimestamp (MEX)": now_cdmx.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                "clientTimestamp (UTC)": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "rideID": ride_id,
+                "eventType": status,
+                "latitude": 19.4326,
+                "longitude": -99.1332,
+                "addressText": "Zócalo, Mexico City",
+                "upfrontFare": float(upfront),
+                "realizedFare": float(realized)
+            })
+
+        def calculate_summary():
+            if not st.session_state.sim_log:
+                return None
+            df = pd.DataFrame(st.session_state.sim_log).sort_values("raw_ts")
+            total_up = df["upfrontFare"].sum()
+            total_re = df["realizedFare"].sum()
+            spread = (total_re / total_up) * 100 if total_up > 0 else 0
+            durs = {"Looking": 0, "Driving": 0, "Waiting": 0, "On Ride": 0}
+            for i in range(len(df) - 1):
+                delta = df.iloc[i + 1]["raw_ts"] - df.iloc[i]["raw_ts"]
+                etype = df.iloc[i]["eventType"]
+                if "T0" in etype:   durs["Looking"] += delta
+                elif "T1" in etype: durs["Driving"] += delta
+                elif "T2" in etype: durs["Waiting"] += delta
+                elif "T3" in etype: durs["On Ride"] += delta
+            return {"up": total_up, "re": total_re, "spread": spread, "times": durs}
+
+        # ── JS: color buttons + style the column as the phone frame ─────────────
         components.html("""
         <script>
-        function forceScrollbar() {
+        function applyStyles() {
             const doc = window.parent.document;
-            doc.querySelectorAll('[data-testid="stDataFrame"] *').forEach(el => {
-                const style = window.parent.getComputedStyle(el);
-                if (style.overflowX === 'auto' || style.overflowX === 'hidden') {
-                    el.style.setProperty('overflow-x', 'scroll', 'important');
-                    el.style.setProperty('scrollbar-width', 'thin', 'important');
-                    el.style.setProperty('scrollbar-color', '#21918c #f1f1f1', 'important');
-                }
+
+            // 1. Color T0–T4 buttons by text
+            doc.querySelectorAll('button').forEach(btn => {
+                const t = btn.innerText.trim();
+                if      (t.startsWith('T0:')) { btn.style.setProperty('background-color','#007BFF','important'); btn.style.setProperty('color','white','important'); }
+                else if (t.startsWith('T1:')) { btn.style.setProperty('background-color','#FFC107','important'); btn.style.setProperty('color','black','important'); }
+                else if (t.startsWith('T2:')) { btn.style.setProperty('background-color','#FD7E14','important'); btn.style.setProperty('color','white','important'); }
+                else if (t.startsWith('T3:')) { btn.style.setProperty('background-color','#17A2B8','important'); btn.style.setProperty('color','white','important'); }
+                else if (t.startsWith('T4:')) { btn.style.setProperty('background-color','#28A745','important'); btn.style.setProperty('color','white','important'); }
+                else if (t.startsWith('■')) { btn.style.setProperty('background-color','#adb5bd','important'); btn.style.setProperty('color','white','important'); }
             });
+
+            // 2. Find the stColumn containing T0 and style it as the phone frame
+            const t0 = Array.from(doc.querySelectorAll('button')).find(b => b.innerText.trim().startsWith('T0:'));
+            if (t0) {
+                let col = t0;
+                while (col && col.getAttribute('data-testid') !== 'stColumn') col = col.parentElement;
+                if (col) {
+                    col.style.setProperty('background', 'white', 'important');
+                    col.style.setProperty('border', '7px solid #1a1a1a', 'important');
+                    col.style.setProperty('border-radius', '28px', 'important');
+                    col.style.setProperty('box-shadow', '0 18px 40px rgba(0,0,0,0.18)', 'important');
+                    col.style.setProperty('padding', '0 14px 20px', 'important');
+                    col.style.setProperty('max-width', '390px', 'important');
+                    col.style.setProperty('margin', '0 auto', 'important');
+                }
+            }
         }
-        setTimeout(forceScrollbar, 300);
-        setTimeout(forceScrollbar, 800);
+        setTimeout(applyStyles, 150);
+        setInterval(applyStyles, 800);
         </script>
         """, height=0)
 
-    st.divider()
+        # ── UI ───────────────────────────────────────────────────────────────────
+        active = st.session_state.sim_active
+        col_l, col_m, col_r = st.columns([0.7, 2, 0.7])
 
-    # ── OPERATIONAL NOTES ────────────────────────────────────────────────────
-    st.markdown("## Operational Resilience & Edge Case Notes")
-    st.markdown("""
+        with col_m:
+            # Notch + header at top of the phone-framed column
+            st.markdown("""
+            <div class="sim-notch"></div>
+            <div class="sim-header">Geotimestamps GTS-4</div>
+            """, unsafe_allow_html=True)
+
+            # Session control
+            if not active:
+                if st.button("▶  Start Session", type="primary", use_container_width=True):
+                    st.session_state.sim_active = True
+                    st.session_state.start_time_dt = time.time()
+                    st.session_state.sim_log = []
+                    st.rerun()
+            else:
+                if st.button("■  End Session", use_container_width=True):
+                    st.session_state.sim_active = False
+                    st.session_state.show_summary = True
+                    st.rerun()
+
+            # Timer — live when active, static placeholder when not
+            if active:
+                components.html(f"""
+                <div id="timer-display" style="font-family:'Courier New',monospace;font-size:22px;font-weight:bold;
+                     color:#dc3545;text-align:center;margin:8px 0;background:#fff5f5;
+                     padding:6px;border-radius:10px;border:1px solid #ffc1c1;">00:00:00:000</div>
+                <script>
+                (function() {{
+                    const start = {st.session_state.start_time_dt} * 1000;
+                    const el = document.getElementById('timer-display');
+                    function update() {{
+                        const d = Date.now() - start;
+                        const h = Math.floor(d/3600000).toString().padStart(2,'0');
+                        const m = Math.floor((d%3600000)/60000).toString().padStart(2,'0');
+                        const s = Math.floor((d%60000)/1000).toString().padStart(2,'0');
+                        const ms = Math.floor(d%1000).toString().padStart(3,'0');
+                        el.innerHTML = h+":"+m+":"+s+":"+ms;
+                        requestAnimationFrame(update);
+                    }}
+                    update();
+                }})();
+                </script>
+                """, height=60)
+            else:
+                st.markdown("""<div style="font-family:'Courier New',monospace;font-size:22px;font-weight:bold;
+                    color:#ccc;text-align:center;margin:8px 0;background:#fafafa;
+                    padding:6px;border-radius:10px;border:1px solid #eee;">
+                    00:00:00:000</div>""", unsafe_allow_html=True)
+
+            # Ride ID + T0–T4 — always visible, disabled until session starts
+            default_ride_id = datetime.datetime.now().strftime("%y%m%d") + "-01"
+            ride_id = st.text_input("Daily Ride ID:", value=default_ride_id, disabled=not active)
+
+            if st.button("T0: Looking for rides", disabled=not active, use_container_width=True):
+                log_sim_event("T0: Looking for rides", ride_id)
+
+            if st.button("T1: Ride Accepted, Driving to Pickup", disabled=not active, use_container_width=True):
+                st.session_state.show_t1 = not st.session_state.show_t1
+            if st.session_state.show_t1 and active:
+                with st.form("form_t1", clear_on_submit=True):
+                    u_fare_raw = st.text_input("Upfront Fare ($)", placeholder="e.g. 85")
+                    if st.form_submit_button("Confirm T1", use_container_width=True):
+                        log_sim_event("T1: Ride Accepted, Driving to Pickup", ride_id, upfront=float(u_fare_raw or 0))
+                        st.session_state.show_t1 = False
+                        st.rerun()
+
+            if st.button("T2: Waiting for passenger", disabled=not active, use_container_width=True):
+                log_sim_event("T2: Waiting for passenger", ride_id)
+
+            if st.button("T3: Ride Started", disabled=not active, use_container_width=True):
+                log_sim_event("T3: Ride Started", ride_id)
+
+            if st.button("T4: Ride completed", disabled=not active, use_container_width=True):
+                st.session_state.show_t4 = not st.session_state.show_t4
+            if st.session_state.show_t4 and active:
+                with st.form("form_t4", clear_on_submit=True):
+                    r_fare_raw = st.text_input("Realized Fare ($)", placeholder="e.g. 72")
+                    if st.form_submit_button("Confirm T4", use_container_width=True):
+                        log_sim_event("T4: Ride completed", ride_id, realized=float(r_fare_raw or 0))
+                        st.session_state.show_t4 = False
+                        st.rerun()
+
+            # Home indicator — bottom of phone frame
+            st.markdown('<div class="sim-home"></div>', unsafe_allow_html=True)
+
+        # Post-session summary — modal dialog
+        @st.dialog("Session Summary")
+        def show_summary():
+            stats = calculate_summary()
+            if stats:
+                st.write(f"**Total Upfront:** ${stats['up']:.2f}")
+                st.write(f"**Total Realized:** ${stats['re']:.2f}")
+                st.write(f"**Net Spread:** {stats['spread']:.2f}%")
+                st.divider()
+                for k, v in stats['times'].items():
+                    st.write(f"⏱ **{k}:** {time.strftime('%H:%M:%S', time.gmtime(v))}")
+                st.divider()
+                if st.button("Clear Log", use_container_width=True):
+                    st.session_state.sim_log = []
+                    st.rerun()
+
+        if not active and st.session_state.sim_log and st.session_state.show_summary:
+            st.session_state.show_summary = False
+            show_summary()
+
+        # Live telemetry table
+        if st.session_state.sim_log:
+            st.markdown("#### Real-time Telemetry Buffer (Backend)")
+            df_table = pd.DataFrame(st.session_state.sim_log).drop(columns=['raw_ts'])
+            st.dataframe(df_table, use_container_width=True, hide_index=True, height=180)
+            components.html("""
+            <script>
+            function forceScrollbar() {
+                const doc = window.parent.document;
+                doc.querySelectorAll('[data-testid="stDataFrame"] *').forEach(el => {
+                    const style = window.parent.getComputedStyle(el);
+                    if (style.overflowX === 'auto' || style.overflowX === 'hidden') {
+                        el.style.setProperty('overflow-x', 'scroll', 'important');
+                        el.style.setProperty('scrollbar-width', 'thin', 'important');
+                        el.style.setProperty('scrollbar-color', '#21918c #f1f1f1', 'important');
+                    }
+                });
+            }
+            setTimeout(forceScrollbar, 300);
+            setTimeout(forceScrollbar, 800);
+            </script>
+            """, height=0)
+
+        st.divider()
+        st.markdown("## Operational Resilience & Edge Case Notes")
+        st.markdown("""
+<div class="story-section">
+  <span class="story-pill">Stateful Persistence (v4.0)</span>
+  <p>The GTS Webapp implements a <strong>Stateful LocalStorage Manager</strong> and an <strong>Offline-First Queue System</strong>. Every state transition is written to local storage before the network sync attempt — guaranteeing zero data loss during connectivity drops, tunnel blackouts, or app backgrounding mid-ride.</p>
+</div>
+
+<div class="story-section">
+  <span class="story-pill">Asynchronous Geospatial Enrichment</span>
+  <p>A client-side pipeline orchestrates the <code>navigator.geolocation</code> API with reverse-geocoding services. Every T0–T4 event is enriched with high-precision coordinates and a human-readable address string <em>prior</em> to persistence — decoupling location capture from UI interaction to avoid blocking the driver's workflow.</p>
+</div>
+
 <div class="story-section">
   <span class="story-pill">Atomic Persistence</span>
   <p>Data is not "dumped" in a single batch at the end of a session. Every state transition (T0–T4) is captured as an atomic event and queued immediately for backend synchronization. Even if a session is never formally ended, every captured data point is preserved.</p>
@@ -457,11 +518,186 @@ with tab4:
 
 <div class="story-section">
   <span class="story-pill">Temporal Fidelity</span>
-  <p>The system captures natural "Idle Gaps" between T4 (Completion) and the subsequent T0 (New Search). If a chained offer was accepted, the next state after T4 would be T1 rather than T0 — the exact acceptance timestamp is lost in the main log but captured by the OCR Engine via screenshot.</p>
+  <p>The system captures natural "Idle Gaps" between T4 (Completion) and the subsequent T0 (New Search). If a chained offer was accepted, the next state after T4 would be T1 rather than T0 — the exact acceptance timestamp is lost in the main log but captured by the OCR Engine.</p>
 </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    st.caption("Simulator Version: GTS-4.0")
+        st.caption("Simulator Version: GTS-4.0")
+
+    with subtab3:
+        st.markdown("## Engine 2: Gemini OCR Pipeline")
+        st.markdown("""
+<div class="story-section">
+  <span class="story-pill">Raw Capture</span>
+  <p>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. Navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>
+</div>
+""", unsafe_allow_html=True)
+
+        # ── Offer data ─────────────────────────────────────────────
+        OFFERS = [
+            {
+                "fare": "$██.██", "product": "UberX", "eta": "█ min", "dist": "█.█ km",
+                "pickup": "████████████", "dropoff": "██████████████████",
+                "surge": False, "confidence": 0.97, "warnings": [],
+                "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████, Col. ████████, CDMX",\n  "dropoff_address":  "████████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.97,\n  "parse_warnings":   []\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"██████, CDMX"',  "██████",    "VARCHAR",  "geocode_pending"),
+                    ("dropoff_address", '"██████, CDMX"',  "██████",    "VARCHAR",  "—"),
+                    ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "fare": "$███.██", "product": "Comfort", "eta": "██ min", "dist": "██.█ km",
+                "pickup": "██████████████", "dropoff": "████████████",
+                "surge": True, "confidence": 0.94, "warnings": ["surge_detected"],
+                "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "Comfort",\n  "pickup_address":   "████████████████, Col. ████, CDMX",\n  "dropoff_address":  "████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  true,\n  "ocr_confidence":   0.94,\n  "parse_warnings":   ["surge_detected"]\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$███.██"',       "███.██",    "FLOAT",    "surge_flag"),
+                    ("product_type",    '"Comfort"',       "comfort",   "VARCHAR",  "—"),
+                    ("pickup_address",  '"████████, CDMX"',"████████",  "VARCHAR",  "—"),
+                    ("dropoff_address", '"████████, CDMX"',"████████",  "VARCHAR",  "geocode_pending"),
+                    ("pickup_eta_min",  "██",              "██",        "INT",      "high_eta_warning"),
+                    ("surge_indicator", "true",            "1",         "BOOL→INT", "surge_flag"),
+                ],
+            },
+            {
+                "fare": "$██.██", "product": "UberX", "eta": "█ min", "dist": "█.█ km",
+                "pickup": "█████████", "dropoff": "███████████████",
+                "surge": False, "confidence": 0.99, "warnings": [],
+                "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "█████████, Col. ████████, CDMX",\n  "dropoff_address":  "███████████████, Col. ████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.99,\n  "parse_warnings":   []\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"█████████, CDMX"',"█████████","VARCHAR",  "—"),
+                    ("dropoff_address", '"███████, CDMX"', "███████",   "VARCHAR",  "—"),
+                    ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "fare": "$████.██", "product": "Premier", "eta": "██ min", "dist": "██.█ km",
+                "pickup": "████████████████", "dropoff": "██████████████████████",
+                "surge": False, "confidence": 0.91, "warnings": ["low_confidence_address"],
+                "ocr_json": '{\n  "upfront_fare_raw": "$████.██",\n  "product_type":     "Premier",\n  "pickup_address":   "████████████████, Col. ████████, CDMX",\n  "dropoff_address":  "██████████████████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.91,\n  "parse_warnings":   ["low_confidence_address"]\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$████.██"',      "████.██",   "FLOAT",    "—"),
+                    ("product_type",    '"Premier"',       "premier",   "VARCHAR",  "—"),
+                    ("pickup_address",  '"████████, CDMX"',"████████",  "VARCHAR",  "—"),
+                    ("dropoff_address", '"██████, CDMX"',  "██████",    "VARCHAR",  "low_conf_geocode"),
+                    ("pickup_eta_min",  "██",              "██",        "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "fare": "$██.██", "product": "UberX", "eta": "█ min", "dist": "█.█ km",
+                "pickup": "███████████", "dropoff": "█████████████",
+                "surge": False, "confidence": 0.98, "warnings": [],
+                "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "███████████, Col. ████, CDMX",\n  "dropoff_address":  "█████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.98,\n  "parse_warnings":   []\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"███████, CDMX"', "███████",   "VARCHAR",  "—"),
+                    ("dropoff_address", '"█████████, CDMX"',"█████████","VARCHAR",  "geocode_pending"),
+                    ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+        ]
+
+        if "ocr_slide" not in st.session_state:
+            st.session_state.ocr_slide = 0
+
+        n = len(OFFERS)
+        idx = st.session_state.ocr_slide
+        offer = OFFERS[idx]
+
+        # ── Arrow navigation + card ────────────────────────────────
+        col_prev, col_card, col_next = st.columns([0.08, 1, 0.08])
+
+        with col_prev:
+            st.markdown("<div style='height:80px'></div>", unsafe_allow_html=True)
+            if st.button("‹", key="ocr_prev", disabled=(idx == 0)):
+                st.session_state.ocr_slide -= 1
+                st.rerun()
+
+        with col_card:
+            surge_badge = '<span style="background:#ef4444;color:white;font-size:9px;padding:2px 6px;border-radius:4px;margin-left:6px;">SURGE</span>' if offer["surge"] else ""
+            warn_color = "#f59e0b" if offer["warnings"] else "#4ade80"
+            st.markdown(f"""
+<style>
+.ocr-card {{
+    background: #1a1a2e; border-radius: 20px; padding: 22px 24px;
+    color: #fff; max-width: 340px; margin: 0 auto;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    font-family: Inter, sans-serif;
+}}
+.ocr-card .app-logo {{ font-size: 10px; opacity: 0.45; text-transform: uppercase;
+    letter-spacing: 1.5px; margin-bottom: 12px; }}
+.ocr-card .fare {{ font-size: 32px; font-weight: 800; color: {warn_color}; margin-bottom: 2px; }}
+.ocr-card .fare-label {{ font-size: 10px; opacity: 0.5; margin-bottom: 14px; }}
+.ocr-card .route-row {{ display: flex; align-items: center; gap: 10px;
+    font-size: 12px; margin-bottom: 8px; opacity: 0.8; }}
+.ocr-card .dot {{ width: 9px; height: 9px; border-radius: 50%;
+    background: #21918c; flex-shrink: 0; }}
+.ocr-card .dot.end {{ background: #f87171; }}
+.ocr-card .obf {{ background: rgba(255,255,255,0.1); border-radius: 3px;
+    color: transparent; user-select: none; }}
+.ocr-card .meta-row {{ display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; opacity: 0.5; margin-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; }}
+.ocr-card .badge {{ background: rgba(255,255,255,0.08); border-radius: 6px;
+    padding: 3px 8px; font-size: 10px; }}
+.ocr-counter {{ text-align: center; font-size: 11px; color: #aaa;
+    margin-top: 8px; font-family: Inter, sans-serif; }}
+</style>
+<div class="ocr-card">
+  <div class="app-logo">◉ Platform &nbsp;|&nbsp; Offer #{idx+1}</div>
+  <div class="fare">{offer['fare']}{surge_badge}</div>
+  <div class="fare-label">Upfront fare</div>
+  <div class="route-row"><div class="dot"></div><span class="obf">{offer['pickup']}</span></div>
+  <div class="route-row"><div class="dot end"></div><span class="obf">{offer['dropoff']}</span></div>
+  <div class="meta-row">
+    <span>⏱ {offer['eta']}</span>
+    <span>📍 {offer['dist']}</span>
+    <span class="badge">{offer['product']}</span>
+  </div>
+</div>
+<div class="ocr-counter">{idx+1} / {n}</div>
+""", unsafe_allow_html=True)
+
+        with col_next:
+            st.markdown("<div style='height:80px'></div>", unsafe_allow_html=True)
+            if st.button("›", key="ocr_next", disabled=(idx == n - 1)):
+                st.session_state.ocr_slide += 1
+                st.rerun()
+
+        # ── Step 1: Raw OCR ────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("""
+<div class="story-section">
+  <span class="story-pill">Step 1 — Raw Gemini Vision Output</span>
+  <p>The Gemini Pro Vision API receives the raw screenshot and returns a structured JSON. The prompt constrains scope to the central offer card only — navigation chrome and status bar are explicitly excluded.</p>
+</div>
+""", unsafe_allow_html=True)
+        st.code(offer["ocr_json"], language="json")
+
+        # ── Step 2: Post-RGG ───────────────────────────────────────
+        st.markdown("---")
+        st.markdown("""
+<div class="story-section">
+  <span class="story-pill">Step 2 — Post-RGG Cleaning (pre-SQL)</span>
+  <p>A regex + heuristic normalization layer (RGG) strips currency symbols, casts types, flags anomalies, and resolves address ambiguities before the record is written to <code>pienza.db</code>.</p>
+</div>
+""", unsafe_allow_html=True)
+        cleaned_df = pd.DataFrame(
+            offer["cleaned"],
+            columns=["field", "raw_value", "cleaned_value", "dtype", "flag"]
+        )
+        st.dataframe(cleaned_df, use_container_width=True, hide_index=True)
+        st.caption(f"Offer {idx+1}/{n} · Confidence: {offer['confidence']:.0%} · Warnings: {offer['warnings'] or 'none'} · RGG = Regex + Gemini + Geo-resolver")
 
 with tab2:
     import plotly.graph_objects as go
@@ -520,7 +756,7 @@ with tab2:
         {
             "phase": "Phase 7 ✦", "label": "Streamlit: Pienza Observatory",
             "arch_short": "BigQuery<br>+<br>VS Code",
-            "date_range": "Apr 1, 2026 – present",
+            "date_range": "Apr 1, 2026 – May, 31 2026",
             "detail": "Migration from Colab notebooks to a production-ready development environment. The research pipeline now runs entirely within GitHub Codespaces and VS Code — enabling live model interrogation, iterative Observatory builds, and a stable, reproducible workspace with full BigQuery connectivity.",
             "bullets": ["GitHub Codespaces", "VS Code", "BigQuery live queries", "Streamlit Observatory"],
             "start": "2026-04-01", "end": "2026-05-31",
