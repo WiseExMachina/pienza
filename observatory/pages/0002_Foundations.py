@@ -1,4 +1,6 @@
+import base64
 import datetime
+import pathlib
 import time
 import pandas as pd
 import streamlit as st
@@ -196,7 +198,7 @@ with tab1:
 
 with tab3:
     st.markdown("## Data Ingestion Pipelines")
-    subtab1, subtab2, subtab3 = st.tabs(["📋 Acquisition & Ground Truth", "🎮 GTS Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
+    subtab1, subtab2, subtab3 = st.tabs(["📋 Acquisition & Ground Truth", "🎮 Engine 1: Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
 
     with subtab1:
         st.markdown("""
@@ -529,16 +531,15 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
         st.markdown("""
 <div class="story-section">
   <span class="story-pill">Raw Capture</span>
-  <p>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. Navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>
+  <p>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>
 </div>
 """, unsafe_allow_html=True)
 
         # ── Offer data ─────────────────────────────────────────────
         OFFERS = [
             {
-                "fare": "$██.██", "product": "UberX", "eta": "█ min", "dist": "█.█ km",
-                "pickup": "████████████", "dropoff": "██████████████████",
-                "surge": False, "confidence": 0.97, "warnings": [],
+                "img": "assets/offer_cards/01_IMG_1691.PNG",
+                "confidence": 0.97, "warnings": [],
                 "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████, Col. ████████, CDMX",\n  "dropoff_address":  "████████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.97,\n  "parse_warnings":   []\n}',
                 "cleaned": [
                     ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
@@ -550,9 +551,8 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
                 ],
             },
             {
-                "fare": "$███.██", "product": "Comfort", "eta": "██ min", "dist": "██.█ km",
-                "pickup": "██████████████", "dropoff": "████████████",
-                "surge": True, "confidence": 0.94, "warnings": ["surge_detected"],
+                "img": "assets/offer_cards/02_IMG_3428.PNG",
+                "confidence": 0.94, "warnings": ["surge_detected"],
                 "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "Comfort",\n  "pickup_address":   "████████████████, Col. ████, CDMX",\n  "dropoff_address":  "████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  true,\n  "ocr_confidence":   0.94,\n  "parse_warnings":   ["surge_detected"]\n}',
                 "cleaned": [
                     ("upfront_fare",    '"$███.██"',       "███.██",    "FLOAT",    "surge_flag"),
@@ -564,9 +564,8 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
                 ],
             },
             {
-                "fare": "$██.██", "product": "UberX", "eta": "█ min", "dist": "█.█ km",
-                "pickup": "█████████", "dropoff": "███████████████",
-                "surge": False, "confidence": 0.99, "warnings": [],
+                "img": "assets/offer_cards/03_IMG_4346.PNG",
+                "confidence": 0.99, "warnings": [],
                 "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "█████████, Col. ████████, CDMX",\n  "dropoff_address":  "███████████████, Col. ████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.99,\n  "parse_warnings":   []\n}',
                 "cleaned": [
                     ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
@@ -578,9 +577,8 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
                 ],
             },
             {
-                "fare": "$████.██", "product": "Premier", "eta": "██ min", "dist": "██.█ km",
-                "pickup": "████████████████", "dropoff": "██████████████████████",
-                "surge": False, "confidence": 0.91, "warnings": ["low_confidence_address"],
+                "img": "assets/offer_cards/04_IMG_5813.PNG",
+                "confidence": 0.91, "warnings": ["low_confidence_address"],
                 "ocr_json": '{\n  "upfront_fare_raw": "$████.██",\n  "product_type":     "Premier",\n  "pickup_address":   "████████████████, Col. ████████, CDMX",\n  "dropoff_address":  "██████████████████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.91,\n  "parse_warnings":   ["low_confidence_address"]\n}',
                 "cleaned": [
                     ("upfront_fare",    '"$████.██"',      "████.██",   "FLOAT",    "—"),
@@ -592,15 +590,79 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
                 ],
             },
             {
-                "fare": "$██.██", "product": "UberX", "eta": "█ min", "dist": "█.█ km",
-                "pickup": "███████████", "dropoff": "█████████████",
-                "surge": False, "confidence": 0.98, "warnings": [],
+                "img": "assets/offer_cards/05_IMG_6624.PNG",
+                "confidence": 0.98, "warnings": [],
                 "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "███████████, Col. ████, CDMX",\n  "dropoff_address":  "█████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.98,\n  "parse_warnings":   []\n}',
                 "cleaned": [
                     ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
                     ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
                     ("pickup_address",  '"███████, CDMX"', "███████",   "VARCHAR",  "—"),
                     ("dropoff_address", '"█████████, CDMX"',"█████████","VARCHAR",  "geocode_pending"),
+                    ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "img": "assets/offer_cards/06_IMG_0038.PNG",
+                "confidence": 0.96, "warnings": [],
+                "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "████████████, Col. ████, CDMX",\n  "dropoff_address":  "██████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.96,\n  "parse_warnings":   []\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"████████, CDMX"',"████████",  "VARCHAR",  "—"),
+                    ("dropoff_address", '"██████, CDMX"',  "██████",    "VARCHAR",  "—"),
+                    ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "img": "assets/offer_cards/07_IMG_3679.PNG",
+                "confidence": 0.95, "warnings": ["low_confidence_address"],
+                "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████████, Col. ████, CDMX",\n  "dropoff_address":  "████████████████, Col. ████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.95,\n  "parse_warnings":   ["low_confidence_address"]\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$███.██"',       "███.██",    "FLOAT",    "—"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"████████, CDMX"',"████████",  "VARCHAR",  "—"),
+                    ("dropoff_address", '"████████, CDMX"',"████████",  "VARCHAR",  "low_conf_geocode"),
+                    ("pickup_eta_min",  "██",              "██",        "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "img": "assets/offer_cards/08_IMG_9029.PNG",
+                "confidence": 0.98, "warnings": [],
+                "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "Comfort",\n  "pickup_address":   "█████████████, Col. ████████, CDMX",\n  "dropoff_address":  "███████████, Col. ████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.98,\n  "parse_warnings":   []\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
+                    ("product_type",    '"Comfort"',       "comfort",   "VARCHAR",  "—"),
+                    ("pickup_address",  '"█████████, CDMX"',"█████████","VARCHAR",  "—"),
+                    ("dropoff_address", '"███████, CDMX"', "███████",   "VARCHAR",  "geocode_pending"),
+                    ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
+                    ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
+                ],
+            },
+            {
+                "img": "assets/offer_cards/09_IMG_2793.PNG",
+                "confidence": 0.93, "warnings": ["surge_detected"],
+                "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████, Col. ████████, CDMX",\n  "dropoff_address":  "████████████████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  true,\n  "ocr_confidence":   0.93,\n  "parse_warnings":   ["surge_detected"]\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$███.██"',       "███.██",    "FLOAT",    "surge_flag"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"██████, CDMX"',  "██████",    "VARCHAR",  "—"),
+                    ("dropoff_address", '"████████, CDMX"',"████████",  "VARCHAR",  "—"),
+                    ("pickup_eta_min",  "██",              "██",        "INT",      "high_eta_warning"),
+                    ("surge_indicator", "true",            "1",         "BOOL→INT", "surge_flag"),
+                ],
+            },
+            {
+                "img": "assets/offer_cards/10_IMG_9277.PNG",
+                "confidence": 0.97, "warnings": [],
+                "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "████████████, Col. ████, CDMX",\n  "dropoff_address":  "██████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.97,\n  "parse_warnings":   []\n}',
+                "cleaned": [
+                    ("upfront_fare",    '"$██.██"',        "██.██",     "FLOAT",    "—"),
+                    ("product_type",    '"UberX"',         "uberx",     "VARCHAR",  "—"),
+                    ("pickup_address",  '"████████, CDMX"',"████████",  "VARCHAR",  "—"),
+                    ("dropoff_address", '"██████████, CDMX"',"██████████","VARCHAR", "—"),
                     ("pickup_eta_min",  "█",               "█",         "INT",      "—"),
                     ("surge_indicator", "false",           "0",         "BOOL→INT", "—"),
                 ],
@@ -614,65 +676,51 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
         idx = st.session_state.ocr_slide
         offer = OFFERS[idx]
 
-        # ── Arrow navigation + card ────────────────────────────────
-        col_prev, col_card, col_next = st.columns([0.08, 1, 0.08])
+        # ── Stacked phone frames + filmstrip ──────────────────────
+        def _mk_phone(img_path, rotate, tx, ty, opacity, z):
+            b = base64.b64encode(pathlib.Path(img_path).read_bytes()).decode()
+            return f"""
+<div style="position:absolute;width:235px;border-radius:40px;
+     background:#0a0a0a;border:8px solid #1a1a1a;padding:10px 0 14px;
+     box-shadow:0 20px 48px rgba(0,0,0,0.5),inset 0 0 0 1px rgba(255,255,255,0.05);
+     transform:rotate({rotate}deg) translate({tx}px,{ty}px);
+     opacity:{opacity};z-index:{z};top:0;left:50%;margin-left:-117px;">
+  <div style="width:72px;height:6px;background:#1a1a1a;
+              border-radius:0 0 6px 6px;margin:0 auto 10px;"></div>
+  <img src="data:image/png;base64,{b}" style="width:100%;display:block;border-radius:4px;" />
+  <div style="width:72px;height:4px;background:#333;border-radius:2px;margin:12px auto 0;"></div>
+</div>"""
 
-        with col_prev:
-            st.markdown("<div style='height:80px'></div>", unsafe_allow_html=True)
-            if st.button("‹", key="ocr_prev", disabled=(idx == 0)):
-                st.session_state.ocr_slide -= 1
-                st.rerun()
+        prev_path = OFFERS[max(idx - 1, 0)]["img"]
+        next_path = OFFERS[min(idx + 1, n - 1)]["img"]
+        curr_path = offer["img"]
 
-        with col_card:
-            surge_badge = '<span style="background:#ef4444;color:white;font-size:9px;padding:2px 6px;border-radius:4px;margin-left:6px;">SURGE</span>' if offer["surge"] else ""
-            warn_color = "#f59e0b" if offer["warnings"] else "#4ade80"
-            st.markdown(f"""
-<style>
-.ocr-card {{
-    background: #1a1a2e; border-radius: 20px; padding: 22px 24px;
-    color: #fff; max-width: 340px; margin: 0 auto;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    font-family: Inter, sans-serif;
-}}
-.ocr-card .app-logo {{ font-size: 10px; opacity: 0.45; text-transform: uppercase;
-    letter-spacing: 1.5px; margin-bottom: 12px; }}
-.ocr-card .fare {{ font-size: 32px; font-weight: 800; color: {warn_color}; margin-bottom: 2px; }}
-.ocr-card .fare-label {{ font-size: 10px; opacity: 0.5; margin-bottom: 14px; }}
-.ocr-card .route-row {{ display: flex; align-items: center; gap: 10px;
-    font-size: 12px; margin-bottom: 8px; opacity: 0.8; }}
-.ocr-card .dot {{ width: 9px; height: 9px; border-radius: 50%;
-    background: #21918c; flex-shrink: 0; }}
-.ocr-card .dot.end {{ background: #f87171; }}
-.ocr-card .obf {{ background: rgba(255,255,255,0.1); border-radius: 3px;
-    color: transparent; user-select: none; }}
-.ocr-card .meta-row {{ display: flex; justify-content: space-between; align-items: center;
-    font-size: 10px; opacity: 0.5; margin-top: 14px;
-    border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; }}
-.ocr-card .badge {{ background: rgba(255,255,255,0.08); border-radius: 6px;
-    padding: 3px 8px; font-size: 10px; }}
-.ocr-counter {{ text-align: center; font-size: 11px; color: #aaa;
-    margin-top: 8px; font-family: Inter, sans-serif; }}
-</style>
-<div class="ocr-card">
-  <div class="app-logo">◉ Platform &nbsp;|&nbsp; Offer #{idx+1}</div>
-  <div class="fare">{offer['fare']}{surge_badge}</div>
-  <div class="fare-label">Upfront fare</div>
-  <div class="route-row"><div class="dot"></div><span class="obf">{offer['pickup']}</span></div>
-  <div class="route-row"><div class="dot end"></div><span class="obf">{offer['dropoff']}</span></div>
-  <div class="meta-row">
-    <span>⏱ {offer['eta']}</span>
-    <span>📍 {offer['dist']}</span>
-    <span class="badge">{offer['product']}</span>
+        st.markdown(f"""
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:16px;">
+  <div style="position:relative;width:340px;height:530px;">
+    {_mk_phone(prev_path, -7, -32, 10, 0.3, 1)}
+    {_mk_phone(next_path,  7,  32, 10, 0.3, 1)}
+    {_mk_phone(curr_path,  0,   0,  0, 1.0, 2)}
   </div>
+  <div style="font-size:12px;color:#aaa;margin-top:32px;">{idx+1} / {n}</div>
 </div>
-<div class="ocr-counter">{idx+1} / {n}</div>
 """, unsafe_allow_html=True)
 
-        with col_next:
-            st.markdown("<div style='height:80px'></div>", unsafe_allow_html=True)
-            if st.button("›", key="ocr_next", disabled=(idx == n - 1)):
-                st.session_state.ocr_slide += 1
-                st.rerun()
+        # ── Filmstrip ──────────────────────────────────────────────
+        thumb_cols = st.columns(n)
+        for i, o in enumerate(OFFERS):
+            with thumb_cols[i]:
+                tb = base64.b64encode(pathlib.Path(o["img"]).read_bytes()).decode()
+                border = "2px solid #21918c" if i == idx else "2px solid rgba(255,255,255,0.1)"
+                opacity = "1" if i == idx else "0.4"
+                st.markdown(f"""
+<div style="border-radius:8px;border:{border};overflow:hidden;
+            opacity:{opacity};margin-bottom:2px;">
+  <img src="data:image/png;base64,{tb}" style="width:100%;display:block;" />
+</div>""", unsafe_allow_html=True)
+                if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
+                    st.session_state.ocr_slide = i
+                    st.rerun()
 
         # ── Step 1: Raw OCR ────────────────────────────────────────
         st.markdown("---")
