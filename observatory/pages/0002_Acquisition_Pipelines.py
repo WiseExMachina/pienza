@@ -131,7 +131,20 @@ button[data-testid="baseButton-secondary"].nav-carousel:hover {
 # ─────────────────────────────────────────────
 st.markdown("# Acquisition Pipelines")
 
-st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>Project Pienza utilizes a proprietary, <strong>dual-engine acquisition ecosystem</strong> to overcome the data sparsity inherent in third-party platform exports. The primary acquisition campaign was executed over a strict 6-week observation window (August 22 – October 1, 2025), digitizing the agent's operational reality in real-time.</p>", unsafe_allow_html=True)
+st.markdown("""
+<style>
+.fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; }
+.fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }
+</style>
+<p style='color:#555;font-size:0.9rem;line-height:1.7'>
+To overcome the data sparsity inherent in third-party platform exports, the agent had to
+<em style='margin-left:4px;margin-right:4px;'>go get it</em> — and architected a proprietary,
+<strong>dual-engine acquisition ecosystem.</strong> This was executed over a strict 6-week
+observation window (August 22 – October 1, 2025), digitizing the agent's operational reality
+in real-time.<span class="fn-wrap fn-below"><span class="fn-mark">†</span><span class="fn-tooltip">The resulting dataset does not model the total ride-hailing universe of Mexico City — it is a strictly constrained mirror of the Agent's Operational Reality. The Agent never altered his heuristics to capture more data, so it reflects only his specific times and zones of operation.</span></span>
+</p>
+""", unsafe_allow_html=True)
+
 
 subtab2, subtab3 = st.tabs(["🎮 Engine 1: GTS Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
 
@@ -400,12 +413,7 @@ with subtab2:
 
 with subtab3:
     st.markdown("## Engine 2: Gemini OCR Pipeline")
-    st.markdown("""
-<div class="story-section">
-  <span class="story-pill">Raw Capture</span>
-  <p>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>", unsafe_allow_html=True)
 
     # ── Offer data ─────────────────────────────────────────────
     OFFERS = [
