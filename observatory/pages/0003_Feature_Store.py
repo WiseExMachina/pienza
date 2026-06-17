@@ -95,6 +95,33 @@ st.markdown("""
 .chip-wrap:hover .chip-tip { visibility: visible; opacity: 1; }
 .feat-count { font-size: 0.72rem; color: #aaa; font-weight: 600; margin-left: 10px; }
 
+/* ── Profitability Funnel cascade ── */
+.funnel-wrap  { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 0; }
+.funnel-intro { font-size: 0.77rem; color: #444; line-height: 1.55; padding: 10px 14px;
+                background: #f5f5f5; border: 1px solid #e5e5e5; border-radius: 7px;
+                margin-bottom: 10px; }
+.funnel-tier  { background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 12px 16px; }
+.funnel-tier-final { }
+.funnel-tier-label  { font-size: 0.73rem; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 0.8px; color: #21918c; margin-bottom: 2px; }
+.funnel-tier-formula { font-size: 0.75rem; color: #1a1a1a; font-family: 'Courier New', monospace; margin-bottom: 8px; }
+.funnel-row   { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0;
+                border-bottom: 1px solid #f5f5f5; }
+.funnel-row:last-child { border-bottom: none; }
+.funnel-id    { color: #21918c; font-weight: 700; font-family: 'Courier New', monospace;
+                font-size: 0.67rem; width: 34px; flex-shrink: 0; padding-top: 2px; }
+.funnel-main  { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.funnel-name-line { display: flex; align-items: center; gap: 8px; }
+.funnel-name  { color: #1a1a1a; font-weight: 600; font-size: 0.83rem; }
+.funnel-type  { font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+                color: #94a3b8; background: #f1f5f9; padding: 1px 5px; border-radius: 3px; }
+.funnel-desc  { font-size: 0.73rem; color: #666; line-height: 1.4; }
+.funnel-trans { display: flex; align-items: center; gap: 10px; padding: 5px 0 5px 14px; }
+.funnel-trans-label { font-size: 0.71rem; font-weight: 600; color: #555;
+                      background: #f8f8f8; border: 1px solid #e5e5e5;
+                      border-radius: 4px; padding: 2px 8px; }
+.funnel-arrow { font-size: 0.80rem; color: #21918c; }
+
 /* layer transition arrows */
 .step-connector { display: flex; align-items: center; gap: 0; margin: 16px 0; }
 .step-conn-spine { width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 0; }
@@ -299,22 +326,18 @@ silver_schema = {
         {"id": "S10", "type": "Float", "name": "cycle_rolling_avg_spread",   "desc": "Temporally-safe rolling average of the Upfront/Realized fare delta."},
         {"id": "S11", "type": "Float", "name": "cycle_cum_net_earnings",     "desc": "Cumulative realized income for the session."},
     ],
-    "💹 Base Profitability": [
+    "💹 Profitability Funnel": [
         {"id": "S12", "type": "Float",        "name": "eph_direct",                    "desc": "Raw EPH (Upfront Fare / Est Trip Time). The platform's raw signal."},
         {"id": "S13", "type": "Float / Cat",  "name": "eph_direct_index / label",      "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
         {"id": "S14", "type": "Float",        "name": "eph_operational",               "desc": "True EPH adding Pickup Time. First reality check on the platform signal."},
         {"id": "S15", "type": "Float / Cat",  "name": "eph_operational_index / label", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
         {"id": "S16", "type": "Boolean",      "name": "is_operational_downgrade",      "desc": "True if offer flips from Premium (Direct EPH) to Discount (Operational EPH)."},
-    ],
-    "🤖 Predictive (ML)": [
         {"id": "S17", "type": "Float",       "name": "eph_realized_ML",               "desc": "Predicted EPH adjusting for historical spread. No future leakage."},
         {"id": "S18", "type": "Float / Cat", "name": "eph_realized_index / label_ML", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
         {"id": "S19", "type": "Boolean",     "name": "is_spread_downgrade_ML",        "desc": "True if spread adjustment kills North Star EPH target ($200 MXN/hr)."},
         {"id": "S20", "type": "Float",       "name": "eph_complete_ML",               "desc": "Holistic EPH: Predicted Fare / Total Cycle Time. True yield signal."},
         {"id": "S21", "type": "Float / Cat", "name": "eph_complete_index / label_ML", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
         {"id": "S22", "type": "Boolean",     "name": "is_total_cycle_downgrade_ML",   "desc": "True if final outcome was a downgrade vs EPH realized."},
-    ],
-    "🔬 Exploratory (EDA)": [
         {"id": "S23", "type": "Float",       "name": "eph_realized_EDA",               "desc": "Actual EPH using finalized Realized Fare. Post-facto — firewalled from ML."},
         {"id": "S24", "type": "Float / Cat", "name": "eph_realized_index / label_EDA", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
         {"id": "S25", "type": "Boolean",     "name": "is_spread_downgrade_EDA",        "desc": "True if actual payment lowered yield below the North Star."},
@@ -322,7 +345,7 @@ silver_schema = {
         {"id": "S27", "type": "Float / Cat", "name": "eph_complete_index / label_EDA", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
         {"id": "S28", "type": "Boolean",     "name": "is_total_cycle_downgrade_EDA",   "desc": "True if final outcome was a downgrade vs EPH realized."},
     ],
-    "🧭 Strategic Context": [
+    "🧭 Context": [
         {"id": "S29", "type": "Float",       "name": "home_vector_alignment",    "desc": "Cosine Similarity (-1 to 1) of dropoff vector relative to Home Base."},
         {"id": "S30", "type": "Boolean",     "name": "pickup/dropoff_ambiguity", "desc": "Binary flags for low-confidence geospatial coordinates."},
         {"id": "S31", "type": "Categorical", "name": "day_type / time_block",    "categories": ["—TBD—"]},
@@ -380,6 +403,69 @@ def _render_table_b(features):
         </div>"""
     return f"<div class='tb-wrap'>{rows}</div>"
 
+def _render_funnel(features):
+    def _row(fid, name, type_label, desc):
+        return f"""<div class='funnel-row'>
+            <span class='funnel-id'>{fid}</span>
+            <div class='funnel-main'>
+                <div class='funnel-name-line'><span class='funnel-name'>{name}</span><span class='funnel-type'>{type_label}</span></div>
+                <div class='funnel-desc'>{desc}</div>
+            </div>
+        </div>"""
+
+    def _trans(label):
+        return f"<div class='funnel-trans'><span class='funnel-trans-label'>{label}</span><span class='funnel-arrow'>↓</span></div>"
+
+    intro = """<div class='funnel-intro'>
+        Each offer is audited across four successive EPH checkpoints — Earnings Per Hour —
+        each adding a layer of operational cost to the denominator. The reference target is
+        <strong>$200 MXN/hr</strong>: the agent's North Star. This funnel quantifies the
+        <em>Information Asymmetry gap</em> where high-nominal offers may resolve as low-yield operations.
+    </div>"""
+
+    t1 = f"""<div class='funnel-tier'>
+      <div class='funnel-tier-label'>Tier 1 · Direct EPH</div>
+      <div class='funnel-tier-formula'>Upfront Fare ÷ Est Trip Time</div>
+      {_row('S12','eph_direct','Float','Platform raw signal — the quoted fare divided by estimated trip time.')}
+      {_row('S13','eph_direct_index','Float','EPH ÷ $200 MXN/hr — 1.0 = exactly at target · &gt;1.0 = above · &lt;1.0 = below.')}
+      {_row('S13','label','Categorical','Binary outcome of the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+    </div>"""
+
+    t2 = f"""<div class='funnel-tier'>
+      <div class='funnel-tier-label'>Tier 2 · Operational EPH</div>
+      <div class='funnel-tier-formula'>Upfront Fare ÷ (Est Time + Pickup Time)</div>
+      {_row('S14','eph_operational','Float','First reality check — adds uncompensated pickup time to the cost denominator.')}
+      {_row('S15','eph_operational_index','Float','EPH ÷ $200 MXN/hr — 1.0 = exactly at target · &gt;1.0 = above · &lt;1.0 = below.')}
+      {_row('S15','label','Categorical','Binary outcome of the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+    </div>"""
+
+    t3 = f"""<div class='funnel-tier'>
+      <div class='funnel-tier-label'>Tier 3 · Realized EPH</div>
+      <div class='funnel-tier-formula'>Adjusted Fare ÷ Est Trip Time</div>
+      {_row('S17','eph_realized','Float','Corrects the fare for historical spread between quoted and received payment.')}
+      {_row('S18','eph_realized_index','Float','EPH ÷ $200 MXN/hr — 1.0 = exactly at target · &gt;1.0 = above · &lt;1.0 = below.')}
+      {_row('S18','label','Categorical','Binary outcome of the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+    </div>"""
+
+    t4 = f"""<div class='funnel-tier funnel-tier-final'>
+      <div class='funnel-tier-label'>Tier 4 · Complete EPH</div>
+      <div class='funnel-tier-formula'>Adjusted Fare ÷ Total Cycle Time  (Est Trip + Pickup + Deadhead Looking for Rides + Deadhead Waiting for Passenger)</div>
+      {_row('S20','eph_complete','Float','Holistic yield — divides adjusted fare by the full uncompensated cycle cost.')}
+      {_row('S21','eph_complete_index','Float','EPH ÷ $200 MXN/hr — 1.0 = exactly at target · &gt;1.0 = above · &lt;1.0 = below.')}
+      {_row('S21','label','Categorical','Binary outcome of the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+    </div>"""
+
+    return f"""<div class='funnel-wrap'>
+      {intro}
+      {t1}
+      {_trans('+ Pickup Time')}
+      {t2}
+      {_trans('+ Spread Correction  (Quoted → Realized Fare)')}
+      {t3}
+      {_trans('+ Full Cycle Cost  (Pickup + Deadhead Looking for Rides + Deadhead Waiting for Passenger)')}
+      {t4}
+    </div>"""
+
 def _render_connector():
     st.markdown("""
     <div class='step-connector'>
@@ -391,7 +477,7 @@ def _render_connector():
     </div>
     """, unsafe_allow_html=True)
 
-def _render_step(circle_color, label, count, why, schema, radio_key, table_fn):
+def _render_step(circle_color, label, count, why, schema, radio_key, table_fn, domain_renderers=None):
     st.markdown(f"""
     <div class='step-row'>
       <div class='step-spine'>
@@ -409,7 +495,8 @@ def _render_step(circle_color, label, count, why, schema, radio_key, table_fn):
     label_to_domain = dict(zip(labels, domains))
     selected_label = st.pills("", labels, default=labels[0], key=radio_key, label_visibility="collapsed")
     selected = label_to_domain[selected_label or labels[0]]
-    st.markdown(table_fn(schema[selected]), unsafe_allow_html=True)
+    renderer = (domain_renderers or {}).get(selected, table_fn)
+    st.markdown(renderer(schema[selected]), unsafe_allow_html=True)
     st.markdown("</div></div>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
@@ -438,6 +525,7 @@ with pipeline_tab:
         schema=silver_schema,
         radio_key="silver_domain",
         table_fn=_render_table_b,
+        domain_renderers={"💹 Profitability Funnel": _render_funnel},
     )
 
     _render_connector()
