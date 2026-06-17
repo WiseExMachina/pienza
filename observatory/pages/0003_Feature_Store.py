@@ -73,24 +73,84 @@ st.markdown("""
                display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
 .step-line   { width: 2px; background: rgba(150,150,150,0.2); flex: 1; min-height: 16px; }
 .step-body   { flex: 1; padding: 0 0 32px 12px; }
-.step-label  { font-size: 11px; font-weight: 700; letter-spacing: 1px;
+.step-label  { font-size: 17px; font-weight: 700; letter-spacing: 1px;
                text-transform: uppercase; margin-bottom: 2px; padding-top: 6px; }
 .step-why    { font-size: 0.85rem; color: #777; line-height: 1.6; margin-bottom: 14px; }
 
-/* feature table */
-.feat-table  { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-.feat-table th { color: #aaa; font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
-                 letter-spacing: 0.6px; padding: 0 10px 6px 0; border-bottom: 1px solid #eee; }
-.feat-table td { padding: 7px 10px 7px 0; border-bottom: 1px solid #f5f5f5; vertical-align: top; color: #444; }
-.feat-table td:first-child { color: #21918c; font-weight: 700; width: 46px; }
-.feat-table td:nth-child(2) { font-weight: 600; color: #1a1a1a; width: 220px; font-size: 0.78rem; }
-.type-badge  { display: inline-block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-               letter-spacing: 0.4px; padding: 1px 6px; border-radius: 4px;
-               background: #f1f5f9; color: #64748b; }
-.cat-chip    { display: inline-block; font-size: 0.68rem; font-weight: 600;
-               padding: 2px 7px; border-radius: 10px; margin: 2px 3px 2px 0;
-               background: #f0fdf9; color: #0f766e; border: 1px solid #99f6e4; }
-.feat-count  { font-size: 0.72rem; color: #aaa; font-weight: 600; margin-left: 10px; }
+/* shared chips */
+.cat-chip { display: inline-block; font-size: 0.68rem; font-weight: 600;
+            padding: 2px 7px; border-radius: 10px; margin: 2px 3px 2px 0;
+            background: #f0fdf9; color: #0f766e; border: 1px solid #99f6e4; }
+.feat-count { font-size: 0.72rem; color: #aaa; font-weight: 600; margin-left: 10px; }
+
+/* ── Style A (Bronze): 2-line rows, mono ID badge ── */
+.ta-wrap { width: 100%; margin-top: 4px; }
+.ta-row  { display: flex; gap: 16px; align-items: flex-start;
+           padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.ta-row:last-child { border-bottom: none; }
+.ta-id   { font-family: 'Courier New', monospace; font-size: 0.65rem; font-weight: 700;
+           color: #21918c; background: #f0fdf9; border: 1px solid #99f6e4;
+           border-radius: 4px; padding: 2px 6px; white-space: nowrap; flex-shrink: 0; }
+.ta-main { flex: 1; }
+.ta-top  { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.ta-name { font-size: 0.82rem; font-weight: 600; color: #1a1a1a; }
+.ta-badge { font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.4px; padding: 1px 6px; border-radius: 4px;
+            background: #f1f5f9; color: #64748b; }
+.ta-desc { font-size: 0.75rem; color: #888; line-height: 1.5; }
+
+/* ── Style B (Silver): left-accent card rows ── */
+.tb-wrap { width: 100%; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+.tb-card { background: #fff; border-left: 3px solid #21918c; border-radius: 0 6px 6px 0;
+           padding: 6px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+           transition: box-shadow 0.2s, transform 0.2s; }
+.tb-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.07); transform: translateX(2px); }
+.tb-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.tb-id   { font-family: 'Courier New', monospace; font-size: 0.6rem; font-weight: 700;
+           color: #94a3b8; }
+.tb-badge { font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.4px; padding: 1px 5px; border-radius: 4px;
+            background: #f1f5f9; color: #64748b; }
+.tb-name { font-size: 0.8rem; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+.tb-desc { font-size: 0.72rem; color: #777; line-height: 1.45; }
+
+/* ── Style C (Gold): zebra + teal ID column ── */
+.tc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 4px; }
+.tc-table th { font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+               letter-spacing: 0.6px; color: #aaa; padding: 0 12px 6px 0;
+               border-bottom: 2px solid #eee; }
+.tc-table th:first-child { padding-left: 10px; }
+.tc-table tr:nth-child(even) td { background: #fafafa; }
+.tc-table tr:nth-child(odd)  td { background: #ffffff; }
+.tc-table td { padding: 8px 12px 8px 0; vertical-align: top; color: #444;
+               border-bottom: 1px solid #f0f0f0; }
+.tc-id   { color: #21918c !important; font-family: 'Courier New', monospace;
+           font-weight: 700; font-size: 0.7rem; background: #f0fdf9 !important;
+           padding-left: 10px !important; width: 50px; }
+.tc-name { font-weight: 600; color: #1a1a1a !important; width: 200px; }
+.tc-type { color: #21918c; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+
+/* domain pills — st.pills styling */
+[data-testid="stPills"] { margin-bottom: 10px; }
+[data-testid="stPills"] > label { display: none; }
+[data-testid="stPills"] [role="option"] {
+    font-size: 0.62rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    padding: 3px 12px !important;
+    border-radius: 20px !important;
+    border: 1px solid #21918c !important;
+    background: #f0fafa !important;
+    color: #21918c !important;
+    transition: background 0.15s, color 0.15s;
+}
+[data-testid="stPills"] [role="option"]:hover {
+    background: #e0f5f5 !important;
+}
+[data-testid="stPills"] [role="option"][aria-selected="true"] {
+    background: #21918c !important;
+    color: #ffffff !important;
+}
 </style>
 <div class="stepper-wrap">
 """, unsafe_allow_html=True)
@@ -107,7 +167,7 @@ bronze_schema = {
     ],
     "🚗 Physics": [
         {"id": "F04", "type": "Float",      "name": "upfront_fare",         "desc": "Financial baseline offered for the mission prior to adjustments."},
-        {"id": "F05", "type": "Categorical","name": "product_category",     "categories": ["UberX", "Comfort", "Black", "Envíos", "Flash", "—TBD—"]},
+        {"id": "F05", "type": "Categorical","name": "product_category",     "categories": ["x", "comfort", "business_comfort", "black", "planet", "pet", "envíos"]},
         {"id": "F06", "type": "Integer",   "name": "time_to_pickup_sec",    "desc": "Estimated logistical time to reach the pickup coordinate."},
         {"id": "F07", "type": "Float",     "name": "dist_to_pickup_km",     "desc": "Logistical distance to reach the pickup coordinate."},
         {"id": "F08", "type": "Integer",   "name": "est_trip_time_sec",     "desc": "Estimated duration of the actual rider trip."},
@@ -224,27 +284,49 @@ gold_schema = {
 def _feature_count(schema):
     return sum(len(v) for v in schema.values())
 
-def _render_table(features):
+def _content(f):
+    cats = f.get("categories")
+    if cats:
+        return "".join(f"<span class='cat-chip'>{c}</span>" for c in cats)
+    return f.get("desc", "")
+
+def _render_table_a(features):
     rows = ""
     for f in features:
-        cats = f.get("categories")
-        desc = f.get("desc", "")
-        if cats:
-            content = "".join(f"<span class='cat-chip'>{c}</span>" for c in cats)
-        else:
-            content = f"<span style='color:#666'>{desc}</span>"
+        rows += f"""<div class='ta-row'>
+            <span class='ta-id'>{f['id']}</span>
+            <div class='ta-main'>
+                <div class='ta-top'><span class='ta-name'>{f['name']}</span><span class='ta-badge'>{f['type']}</span></div>
+                <div class='ta-desc'>{_content(f)}</div>
+            </div>
+        </div>"""
+    return f"<div class='ta-wrap'>{rows}</div>"
+
+def _render_table_b(features):
+    rows = ""
+    for f in features:
+        rows += f"""<div class='tb-card'>
+            <div class='tb-meta'><span class='tb-id'>{f['id']}</span><span class='tb-badge'>{f['type']}</span></div>
+            <div class='tb-name'>{f['name']}</div>
+            <div class='tb-desc'>{_content(f)}</div>
+        </div>"""
+    return f"<div class='tb-wrap'>{rows}</div>"
+
+def _render_table_c(features):
+    rows = ""
+    for f in features:
         rows += f"""<tr>
-            <td>{f['id']}</td>
-            <td>{f['name']}</td>
-            <td><span class='type-badge'>{f['type']}</span></td>
-            <td>{content}</td>
+            <td class='tc-id'>{f['id']}</td>
+            <td class='tc-name'>{f['name']}</td>
+            <td class='tc-type'>{f['type']}</td>
+            <td>{_content(f)}</td>
         </tr>"""
-    return f"""<table class='feat-table'>
+    return f"""<table class='tc-table'>
         <thead><tr><th>ID</th><th>Feature</th><th>Type</th><th>Values / Description</th></tr></thead>
         <tbody>{rows}</tbody>
     </table>"""
 
-def _render_step(circle_color, label, count, why, schema, domain_key, radio_key):
+def _render_step(circle_color, label, count, why, schema, domain_key, radio_key, table_fn):
     st.markdown(f"""
     <div class='step-row'>
       <div class='step-spine'>
@@ -256,16 +338,19 @@ def _render_step(circle_color, label, count, why, schema, domain_key, radio_key)
         <div class='step-why'>{why}</div>
     """, unsafe_allow_html=True)
 
+    import re
     domains = list(schema.keys())
-    selected = st.radio("", domains, horizontal=True, key=radio_key, label_visibility="collapsed")
-    st.markdown(_render_table(schema[selected]), unsafe_allow_html=True)
-
+    labels = [re.sub(r'^[^\w]+\s*', '', d).strip() for d in domains]
+    label_to_domain = dict(zip(labels, domains))
+    selected_label = st.pills("", labels, default=labels[0], key=radio_key, label_visibility="collapsed")
+    selected = label_to_domain[selected_label or labels[0]]
+    st.markdown(table_fn(schema[selected]), unsafe_allow_html=True)
     st.markdown("</div></div>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────
-pipeline_tab, sim_tab, bronze_tab, silver_tab, gold_tab = st.tabs(["🗂️ Feature Pipeline", "🎮 Simulator", "🥉 Bronze", "🥈 Silver", "🥇 Gold"])
+pipeline_tab, flat_tab, sim_tab, bronze_tab, silver_tab, gold_tab = st.tabs(["🗂️ Feature Pipeline", "📋 Flat View", "🎮 Simulator", "🥉 Bronze", "🥈 Silver", "🥇 Gold"])
 
 with pipeline_tab:
     _render_step(
@@ -276,6 +361,7 @@ with pipeline_tab:
         schema=bronze_schema,
         domain_key="bronze",
         radio_key="bronze_domain",
+        table_fn=_render_table_b,
     )
 
     _render_step(
@@ -286,16 +372,65 @@ with pipeline_tab:
         schema=silver_schema,
         domain_key="silver",
         radio_key="silver_domain",
+        table_fn=_render_table_b,
     )
 
     _render_step(
         circle_color="#b8860b",
-        label="Gold · Silver Palette (Spatial + Volatility)",
+        label="Gold · Spatial + Volatility",
         count=_feature_count(gold_schema),
         why="Causal analysis in Phase 3 revealed the ex-ante traffic index is a poor proxy for operational risk. This layer adds H3 spatial indexing and a volatility suite derived from the 2 min/km market baseline — the final predictive signal layer.",
         schema=gold_schema,
         domain_key="gold",
         radio_key="gold_domain",
+        table_fn=_render_table_b,
+    )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ═══════════════════════════════════════════════
+# FLAT VIEW: Stepper + combined tables, no domain radio
+# ═══════════════════════════════════════════════
+with flat_tab:
+    st.markdown("""
+    <div class="stepper-wrap">
+    """, unsafe_allow_html=True)
+
+    def _render_flat_step(circle_color, label, count, why, schema):
+        all_features = [f for features in schema.values() for f in features]
+        st.markdown(f"""
+        <div class='step-row'>
+          <div class='step-spine'>
+            <div class='step-circle' style='background:{circle_color}'>{label[0]}</div>
+            <div class='step-line'></div>
+          </div>
+          <div class='step-body'>
+            <div class='step-label' style='color:{circle_color}'>{label} <span class='feat-count'>· {count} features</span></div>
+            <div class='step-why'>{why}</div>
+        """, unsafe_allow_html=True)
+        st.markdown(_render_table_b(all_features), unsafe_allow_html=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
+
+    _render_flat_step(
+        circle_color="#cd7f32",
+        label="Bronze · Raw Canonical Schema",
+        count=_feature_count(bronze_schema),
+        why="Direct output of the OCR pipeline: offer physics, geospatial coordinates, incentive flags, rider profile, and the decision label. No derivations — the contract between raw data and the engineering layer.",
+        schema=bronze_schema,
+    )
+    _render_flat_step(
+        circle_color="#94a3b8",
+        label="Silver · Stateful Engineered Features",
+        count=_feature_count(silver_schema),
+        why="Session-dependent features computed by a sequential state machine. Captures market pressure, agent fatigue, yield trajectory, and operational EPH variants. Strict no-look-ahead rule: _ML features use only data available at decision time; _EDA features are firewalled.",
+        schema=silver_schema,
+    )
+    _render_flat_step(
+        circle_color="#b8860b",
+        label="Gold · Silver Palette (Spatial + Volatility)",
+        count=_feature_count(gold_schema),
+        why="Causal analysis in Phase 3 revealed the ex-ante traffic index is a poor proxy for operational risk. This layer adds H3 spatial indexing and a volatility suite derived from the 2 min/km market baseline — the final predictive signal layer.",
+        schema=gold_schema,
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
