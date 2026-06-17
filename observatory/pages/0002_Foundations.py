@@ -1,11 +1,13 @@
 import base64
 import datetime
+import json
 import pathlib
 import time
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
+from utils.bq_client import fetch_data_from_bq
 
 st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon="🏗️")
 
@@ -110,6 +112,17 @@ div.stButton > button, div[data-testid="stPopover"] > button {
 .summary-card {
     background-color: #f8f9fa; border: 1px solid #ddd;
     border-radius: 12px; padding: 15px; margin-top: 15px;
+}
+button[data-testid="baseButton-secondary"].nav-carousel {
+    border: 1.5px solid rgba(33,145,140,0.7) !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #21918c !important;
+    font-size: 18px !important;
+    padding: 6px 20px !important;
+}
+button[data-testid="baseButton-secondary"].nav-carousel:hover {
+    background: rgba(33,145,140,0.12) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -676,6 +689,17 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
         idx = st.session_state.ocr_slide
         offer = OFFERS[idx]
 
+        def _nav_buttons(key_suffix):
+            _gap1, _c1, _c2, _gap2 = st.columns([3, 1, 1, 3])
+            with _c1:
+                if st.button("←", key=f"nav_prev_{key_suffix}", disabled=(idx == 0), use_container_width=True):
+                    st.session_state.ocr_slide = idx - 1
+                    st.rerun()
+            with _c2:
+                if st.button("→", key=f"nav_next_{key_suffix}", disabled=(idx == n - 1), use_container_width=True):
+                    st.session_state.ocr_slide = idx + 1
+                    st.rerun()
+
         # ── Stacked phone frames + filmstrip ──────────────────────
         def _mk_phone(img_path, rotate, tx, ty, opacity, z):
             b = base64.b64encode(pathlib.Path(img_path).read_bytes()).decode()
@@ -722,30 +746,313 @@ The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual a
                     st.session_state.ocr_slide = i
                     st.rerun()
 
-        # ── Step 1: Raw OCR ────────────────────────────────────────
-        st.markdown("---")
-        st.markdown("""
-<div class="story-section">
-  <span class="story-pill">Step 1 — Raw Gemini Vision Output</span>
-  <p>The Gemini Pro Vision API receives the raw screenshot and returns a structured JSON. The prompt constrains scope to the central offer card only — navigation chrome and status bar are explicitly excluded.</p>
-</div>
-""", unsafe_allow_html=True)
-        st.code(offer["ocr_json"], language="json")
+        # ── BQ: fetch raw_offers_ocr for carousel images ───────────
+        img_filenames = [pathlib.Path(o["img"]).name for o in OFFERS]
+        # Strip leading "XX_" prefix to match BQ image_filename values
+        bq_filenames  = [f.split("_", 1)[1] for f in img_filenames]
+        bq_list       = ", ".join(f"'{v}'" for v in bq_filenames)
 
-        # ── Step 2: Post-RGG ───────────────────────────────────────
-        st.markdown("---")
+        df_ocr = fetch_data_from_bq(f"""
+            SELECT *
+            FROM `645009831643.pienza_mini.raw_offers_ocr`
+            WHERE image_filename IN ({bq_list})
+        """)
+
+        # Map each carousel position back to its BQ row
+        curr_filename = bq_filenames[idx]
+        if not df_ocr.empty and curr_filename in df_ocr["image_filename"].values:
+            ocr_row = df_ocr[df_ocr["image_filename"] == curr_filename].iloc[0]
+            ocr_dict = ocr_row.to_dict()
+        else:
+            ocr_row  = None
+            ocr_dict = {}
+
+        # ── Stepper CSS ────────────────────────────────────────────
         st.markdown("""
-<div class="story-section">
-  <span class="story-pill">Step 2 — Post-RGG Cleaning (pre-SQL)</span>
-  <p>A regex + heuristic normalization layer (RGG) strips currency symbols, casts types, flags anomalies, and resolves address ambiguities before the record is written to <code>pienza.db</code>.</p>
+<style>
+.stepper-wrap { margin-top: 28px; }
+.step-row { display: flex; gap: 0; align-items: stretch; margin-bottom: 0; }
+.step-spine {
+    display: flex; flex-direction: column; align-items: center;
+    width: 40px; flex-shrink: 0;
+}
+.step-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #21918c; color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; z-index: 1;
+}
+.step-line {
+    width: 2px; background: rgba(33,145,140,0.25);
+    flex: 1; min-height: 12px;
+}
+.step-line-cap { width: 2px; height: 14px; background: transparent; }
+.step-body { flex: 1; padding: 0 0 0 12px; padding-bottom: 8px; }
+.step-title {
+    font-size: 13px; font-weight: 700; color: #21918c;
+    letter-spacing: 0.4px; margin-bottom: 4px; padding-top: 4px;
+}
+.step-desc {
+    font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
+}
+.step-final .step-line { background: transparent; }
+</style>
+<div class="stepper-wrap">
+""", unsafe_allow_html=True)
+
+        # ── Step 1: Raw OCR ────────────────────────────────────────
+        st.markdown("""
+<div class="step-row">
+  <div class="step-spine">
+    <div class="step-circle">1</div>
+    <div class="step-line"></div>
+  </div>
+  <div class="step-body">
+    <div class="step-title">Raw Gemini Pro Vision Output</div>
+    <div class="step-desc">Screenshots were batch-processed via the <strong style="color:#cbd5e1;">Google Gemini Pro Vision API</strong>. Despite rigorous prompt engineering, each batch produced slightly different formatting — making the normalization layer in Step 2 non-trivial.</div>
+  </div>
 </div>
 """, unsafe_allow_html=True)
-        cleaned_df = pd.DataFrame(
-            offer["cleaned"],
-            columns=["field", "raw_value", "cleaned_value", "dtype", "flag"]
-        )
-        st.dataframe(cleaned_df, use_container_width=True, hide_index=True)
-        st.caption(f"Offer {idx+1}/{n} · Confidence: {offer['confidence']:.0%} · Warnings: {offer['warnings'] or 'none'} · RGG = Regex + Gemini + Geo-resolver")
+        import re as _re
+
+        def _obf_fare(v):
+            """Replace upfront fare digits with ██ blocks."""
+            if v is None:
+                return v
+            return _re.sub(r'\d', '█', str(v))
+
+        def _obf_address(v):
+            """Mask street number (non-5-digit numbers) in address; preserve zip codes."""
+            if v is None:
+                return v
+            return _re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', '████', str(v), count=1)
+
+        def _obf_hash(v):
+            """Truncate hash to 12 chars + ellipsis."""
+            if v is None:
+                return v
+            s = str(v)
+            return s[:12] + "..." if len(s) > 12 else s
+
+        def _obf_latlon(v):
+            """Keep ##.## and mask remaining decimals."""
+            if v is None:
+                return v
+            s = str(v)
+            dot = s.find(".")
+            if dot == -1:
+                return s
+            return s[:dot + 3] + "████"
+
+        _gap, _content = st.columns([1, 11])
+        with _content:
+            if ocr_dict:
+                col_order = [
+                    "ocr_id", "image_filename", "time_taken", "ride_type",
+                    "upfront_fare", "pickup_details", "pickup_address",
+                    "trip_details", "dropoff_address", "rider_rating", "special_note",
+                ]
+                ordered = {k: ocr_dict[k] for k in col_order if k in ocr_dict}
+                ordered.update({k: v for k, v in ocr_dict.items() if k not in ordered})
+
+                ordered["upfront_fare"]    = _obf_fare(ordered.get("upfront_fare"))
+                ordered["pickup_address"]  = _obf_address(ordered.get("pickup_address"))
+                ordered["dropoff_address"] = _obf_address(ordered.get("dropoff_address"))
+
+                st.code(json.dumps(ordered, indent=2, default=str, ensure_ascii=False), language="json")
+            else:
+                st.warning(f"No BQ record found for `{curr_filename}`")
+            _nav_buttons("s1")
+
+        # ── Step 2: Canonical offers row (denormalized) ────────────
+        st.markdown("""
+<div class="step-row">
+  <div class="step-spine">
+    <div class="step-circle">2</div>
+    <div class="step-line"></div>
+  </div>
+  <div class="step-body">
+    <div class="step-title">Canonical Offer Record</div>
+    <div class="step-desc">The cleaned record as it lives in <code style="color:#94a3b8;">pienza.db</code> — raw strings cast to typed fields, currency symbols stripped, incentive flags parsed. Denormalized here for explainability; in the actual database it is normalized across lookup tables. Coordinates resolved via the <strong style="color:#cbd5e1;">Google Maps Geocoding API</strong>.</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+        df_offers = fetch_data_from_bq(f"""
+            SELECT
+                o.offer_id, o.session_fk, o.image_content_hash, o.offer_timestamp,
+                o.upfront_fare,
+                p.category_name AS product_category,
+                o.time_to_pickup_sec, o.dist_to_pickup_km,
+                o.est_trip_time_sec, o.est_trip_dist_km,
+                o.pickup_address, o.dropoff_address,
+                o.pickup_lat, o.pickup_lon, o.dropoff_lat, o.dropoff_lon,
+                o.is_surge, o.surge_amount,
+                o.is_turbo_plus, o.turbo_plus_amount,
+                o.is_reservation, o.reservation_amount,
+                o.is_priority, o.priority_amount,
+                o.is_exclusive, o.is_vip, o.is_identity_verified,
+                o.is_long_trip, o.is_multiple_destinations, o.is_teens,
+                o.rider_star_rating, o.rider_trip_count
+            FROM `645009831643.pienza_mini.offers` o
+            LEFT JOIN `645009831643.pienza_mini.product_category` p
+                ON o.product_category_fk = p.product_category_id
+            LEFT JOIN `645009831643.pienza_mini.raw_offers_ocr` r
+                ON o.ocr_fk = r.ocr_id
+            WHERE r.image_filename = '{curr_filename}'
+            LIMIT 1
+        """)
+
+        df_dtypes = fetch_data_from_bq("""
+            SELECT column_name, data_type
+            FROM `645009831643.pienza_mini.INFORMATION_SCHEMA.COLUMNS`
+            WHERE table_name = 'offers'
+        """)
+
+        _gap, _content = st.columns([1, 11])
+        with _content:
+            if not df_offers.empty:
+                dtype_map = dict(zip(df_dtypes["column_name"], df_dtypes["data_type"]))
+                dtype_map["product_category"]   = "STRING"
+                dtype_map["image_content_hash"] = "STRING"
+
+                dtypes_row = {col: dtype_map.get(col, "—") for col in df_offers.columns}
+                values_row = df_offers.iloc[0].to_dict()
+
+                values_row["upfront_fare"]       = _obf_fare(values_row.get("upfront_fare"))
+                values_row["pickup_address"]     = _obf_address(values_row.get("pickup_address"))
+                values_row["dropoff_address"]    = _obf_address(values_row.get("dropoff_address"))
+                values_row["image_content_hash"] = _obf_hash(values_row.get("image_content_hash"))
+                for _col in ("pickup_lat", "pickup_lon", "dropoff_lat", "dropoff_lon"):
+                    values_row[_col] = _obf_latlon(values_row.get(_col))
+
+                display_df = pd.DataFrame([dtypes_row, values_row], index=["dtype", "value"])
+                st.dataframe(display_df, use_container_width=True)
+
+                st.markdown("""
+<div style="border-left:4px solid #21918c;background:rgba(33,145,140,0.07);
+            border-radius:0 10px 10px 0;padding:14px 18px;margin-top:20px;
+            display:flex;gap:14px;align-items:flex-start;">
+  <span style="font-size:22px;line-height:1;">💡</span>
+  <div>
+    <div style="font-size:11px;font-weight:700;color:#21918c;letter-spacing:1px;
+                text-transform:uppercase;margin-bottom:4px;">Did You Know?</div>
+    <div style="font-size:13px;color:#334155;line-height:1.7;">
+      The OCR pipeline initially extracted only an <strong>HH:MM string</strong>, making offer deduplication impossible.
+      Second-level granularity was achieved via a Python script that extracted standard <strong>EXIF metadata</strong>
+      from the screenshots, enabling unique <strong>SHA-256 fingerprinting</strong> and downstream velocity-based features.
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+            else:
+                st.warning(f"No canonical offer record found for `{curr_filename}`")
+            _nav_buttons("s2")
+
+        # ── Step 3: Geo-Semantic Enrichment (Silver Palette) ────────────
+        st.markdown("""
+<div class="step-row">
+  <div class="step-spine">
+    <div class="step-circle">3</div>
+    <div class="step-line"></div>
+  </div>
+  <div class="step-body">
+    <div class="step-title">Geo-Semantic Enrichment</div>
+    <div class="step-desc">Raw lat/lon at full precision act as a surrogate index and cause overfitting. Coordinates were bucketed into three zone representations — heuristic polygons, H3 hexagons, and HDBSCAN clusters — ready for Supervised Learning.</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+        df_silver = fetch_data_from_bq(f"""
+            SELECT
+                sp.dropoff_polygon_name,
+                sp.dropoff_h3_hex_id,
+                sp.dropoff_hdbscan_name
+            FROM `645009831643.pienza_mini.silver_palette` sp
+            JOIN `645009831643.pienza_mini.offers` o
+                ON sp.offer_id = o.offer_id
+            JOIN `645009831643.pienza_mini.raw_offers_ocr` r
+                ON o.ocr_fk = r.ocr_id
+            WHERE r.image_filename = '{curr_filename}'
+            LIMIT 1
+        """)
+
+        _gap, _content = st.columns([1, 11])
+        with _content:
+            if not df_silver.empty:
+                sv = df_silver.iloc[0].to_dict()
+                silver_display = pd.DataFrame([{
+                    "polygon_zone": sv.get("dropoff_polygon_name", "—"),
+                    "h3_hex_id (Res 9)":    sv.get("dropoff_h3_hex_id",    "—"),
+                    "hdbscan_cluster": sv.get("dropoff_hdbscan_name", "—"),
+                }])
+                st.dataframe(silver_display, use_container_width=True, hide_index=True)
+            else:
+                st.warning(f"No Silver Palette record found for `{curr_filename}`")
+            _nav_buttons("s3")
+
+        # ── Dropoff transformation pipeline ────────────────────────────
+        st.markdown("""
+<div class="step-row step-final">
+  <div class="step-spine">
+    <div class="step-circle" style="background:#0e7490;">↓</div>
+    <div class="step-line" style="background:transparent;"></div>
+  </div>
+  <div class="step-body">
+    <div class="step-title" style="color:#0e7490;">Dropoff Field — End-to-End Transformation</div>
+    <div class="step-desc">How a single dropoff field evolves from raw OCR string to geo-semantic zone.</div>
+  </div>
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+        raw_dropoff  = ocr_dict.get("dropoff_address", "—") if ocr_dict else "—"
+        lat_val      = values_row.get("dropoff_lat",  "—") if not df_offers.empty else "—"
+        lon_val      = values_row.get("dropoff_lon",  "—") if not df_offers.empty else "—"
+        poly_zone    = sv.get("dropoff_polygon_name", "—") if not df_silver.empty else "—"
+        h3_hex       = sv.get("dropoff_h3_hex_id",   "—") if not df_silver.empty else "—"
+        hdbscan_name = sv.get("dropoff_hdbscan_name","—") if not df_silver.empty else "—"
+
+        _gap, _content = st.columns([1, 11])
+        with _content:
+            st.markdown(f"""
+<table style="width:100%;border-collapse:collapse;font-size:13px;">
+  <thead>
+    <tr>
+      <th style="width:22%;text-align:left;padding:8px 12px;
+                 border-bottom:2px solid rgba(33,145,140,0.4);
+                 color:#21918c;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Stage</th>
+      <th style="text-align:left;padding:8px 12px;
+                 border-bottom:2px solid rgba(33,145,140,0.4);
+                 color:#21918c;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+      <td style="padding:9px 12px;color:#94a3b8;white-space:nowrap;">① Raw OCR</td>
+      <td style="padding:9px 12px;font-family:monospace;color:#94a3b8;">{_obf_address(raw_dropoff)}</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+      <td style="padding:9px 12px;color:#94a3b8;white-space:nowrap;">② Lat / Lon</td>
+      <td style="padding:9px 12px;font-family:monospace;color:#94a3b8;">{_obf_latlon(lat_val)}, {_obf_latlon(lon_val)}</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+      <td style="padding:9px 12px;color:#94a3b8;white-space:nowrap;">③ Polygon zone</td>
+      <td style="padding:9px 12px;color:#94a3b8;">{poly_zone}</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+      <td style="padding:9px 12px;color:#94a3b8;white-space:nowrap;">③ H3 hex ID <span style="font-size:11px;color:#64748b;">(Res 9)</span></td>
+      <td style="padding:9px 12px;font-family:monospace;color:#94a3b8;">{h3_hex}</td>
+    </tr>
+    <tr>
+      <td style="padding:9px 12px;color:#94a3b8;white-space:nowrap;">③ HDBSCAN cluster</td>
+      <td style="padding:9px 12px;color:#94a3b8;">{hdbscan_name}</td>
+    </tr>
+  </tbody>
+</table>
+""", unsafe_allow_html=True)
+            _nav_buttons("s4")
 
 with tab2:
     import plotly.graph_objects as go
