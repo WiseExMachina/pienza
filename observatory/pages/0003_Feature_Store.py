@@ -72,16 +72,34 @@ st.markdown("""
                color: #fff; font-size: 12px; font-weight: 700;
                display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
 .step-line   { width: 2px; background: rgba(150,150,150,0.2); flex: 1; min-height: 16px; }
-.step-body   { flex: 1; padding: 0 0 32px 12px; }
+.step-body   { flex: 1; padding: 0 0 48px 12px; }
 .step-label  { font-size: 17px; font-weight: 700; letter-spacing: 1px;
                text-transform: uppercase; margin-bottom: 2px; padding-top: 6px; }
-.step-why    { font-size: 0.85rem; color: #777; line-height: 1.6; margin-bottom: 14px; }
+.step-why    { font-size: 0.85rem; color: #777; line-height: 1.6; margin-bottom: 4px; }
 
 /* shared chips */
-.cat-chip { display: inline-block; font-size: 0.68rem; font-weight: 600;
-            padding: 2px 7px; border-radius: 10px; margin: 2px 3px 2px 0;
-            background: #f0fdf9; color: #0f766e; border: 1px solid #99f6e4; }
+.cat-chip { display: inline-block; font-size: 0.65rem; font-weight: 600;
+            padding: 2px 7px; border-radius: 3px; margin: 2px 3px 2px 0;
+            background: #f4f4f5; color: #52525b; border: 1px solid #d4d4d8; }
+.chip-wrap { display: inline-block; position: relative; }
+.chip-wrap .cat-chip { cursor: help; border-bottom: 1px dotted #21918c; }
+.chip-tip  { visibility: hidden; opacity: 0; width: 260px;
+             background: #fff; color: #555; font-size: 0.76rem; line-height: 1.5;
+             border: 1px solid #21918c; border-radius: 8px; padding: 9px 13px;
+             position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%);
+             box-shadow: 0 4px 14px rgba(0,0,0,0.10); transition: opacity 0.2s ease;
+             z-index: 9999; pointer-events: none; }
+.chip-tip::after { content: ""; position: absolute; top: 100%; left: 50%;
+                   transform: translateX(-50%); border: 6px solid transparent;
+                   border-top-color: #21918c; }
+.chip-wrap:hover .chip-tip { visibility: visible; opacity: 1; }
 .feat-count { font-size: 0.72rem; color: #aaa; font-weight: 600; margin-left: 10px; }
+
+/* layer transition arrows */
+.step-connector { display: flex; align-items: center; gap: 0; margin: 16px 0; }
+.step-conn-spine { width: 44px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 0; }
+.step-conn-line  { width: 2px; height: 20px; background: rgba(150,150,150,0.2); }
+.step-conn-arrow { font-size: 0.7rem; color: #21918c; line-height: 1; }
 
 /* ── Style A (Bronze): 2-line rows, mono ID badge ── */
 .ta-wrap { width: 100%; margin-top: 4px; }
@@ -113,6 +131,22 @@ st.markdown("""
             background: #f1f5f9; color: #64748b; }
 .tb-name { font-size: 0.8rem; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
 .tb-desc { font-size: 0.72rem; color: #777; line-height: 1.45; }
+.tb-warn-wrap { display: inline-block; position: relative; margin-left: 7px; vertical-align: middle; }
+.tb-warn-badge { display: inline-flex; align-items: center; justify-content: center;
+                 width: 16px; height: 16px; border-radius: 50%;
+                 background: #fef3c7; border: 1px solid #f59e0b;
+                 color: #b45309; font-size: 0.6rem; font-weight: 800;
+                 cursor: help; line-height: 1; }
+.tb-warn-tip { visibility: hidden; opacity: 0; width: 280px;
+               background: #fffbeb; color: #78350f; font-size: 0.74rem; line-height: 1.5;
+               border: 1px solid #f59e0b; border-radius: 8px; padding: 9px 13px;
+               position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%);
+               box-shadow: 0 4px 14px rgba(0,0,0,0.10); transition: opacity 0.2s ease;
+               z-index: 9999; pointer-events: none; }
+.tb-warn-tip::after { content: ""; position: absolute; top: 100%; left: 50%;
+                      transform: translateX(-50%); border: 6px solid transparent;
+                      border-top-color: #f59e0b; }
+.tb-warn-wrap:hover .tb-warn-tip { visibility: visible; opacity: 1; }
 
 /* ── Style C (Gold): zebra + teal ID column ── */
 .tc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 4px; }
@@ -131,7 +165,8 @@ st.markdown("""
 .tc-type { color: #21918c; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
 
 /* domain pills — st.pills styling */
-[data-testid="stPills"] { margin-bottom: 10px; }
+[data-testid="stPills"] { margin-bottom: 6px; }
+[data-testid="stElementContainer"]:has([data-testid="stPills"]) { margin-top: -1.8rem !important; }
 [data-testid="stPills"] > label { display: none; }
 [data-testid="stPills"] [role="option"] {
     font-size: 0.62rem !important;
@@ -174,42 +209,75 @@ bronze_schema = {
         {"id": "F09", "type": "Float",     "name": "est_trip_dist_km",      "desc": "Estimated distance of the actual rider trip."},
     ],
     "📍 Geospatial": [
-        {"id": "F10", "type": "String",         "name": "pickup_address",          "desc": "Raw localized string of the pickup location."},
-        {"id": "F11", "type": "String",         "name": "dropoff_address",         "desc": "Raw localized string of the dropoff location."},
-        {"id": "F12", "type": "GeoPoint",       "name": "pickup_lat/lon",          "desc": "Absolute spatial coordinates for the mission start."},
-        {"id": "F13", "type": "GeoPoint",       "name": "dropoff_lat/lon",         "desc": "Absolute spatial coordinates for the mission end."},
-        {"id": "F14", "type": "Vector (Float)", "name": "inferred_agent_vector",   "desc": "Composite vector: lat/lon, bearing, speed_mps."},
-        {"id": "F15", "type": "Categorical",    "name": "interpolation_quality",   "categories": ["High", "Medium", "Low", "Imputed"]},
-        {"id": "F16", "type": "Boolean",        "name": "is_imputed",              "desc": "Flag: coordinates were algorithmically filled."},
+        {"id": "F10", "type": "String",   "name": "pickup_address",  "desc": "Raw localized string of the pickup location."},
+        {"id": "F11", "type": "String",   "name": "dropoff_address", "desc": "Raw localized string of the dropoff location."},
+        {"id": "F12", "type": "GeoPoint", "name": "pickup_lat/lon",  "desc": "Absolute spatial coordinates for the mission start."},
+        {"id": "F13", "type": "GeoPoint", "name": "dropoff_lat/lon", "desc": "Absolute spatial coordinates for the mission end."},
     ],
     "💰 Incentives": [
-        {"id": "F17", "type": "Boolean", "name": "is_surge",            "desc": "Flag for active dynamic pricing."},
-        {"id": "F18", "type": "Float",   "name": "surge_amount",        "desc": "Absolute monetary value of the surge."},
-        {"id": "F19", "type": "Boolean", "name": "is_turbo_plus",       "desc": "Flag for strategic platform bonuses."},
-        {"id": "F20", "type": "Float",   "name": "turbo_plus_amount",   "desc": "Absolute monetary value of the bonus."},
-        {"id": "F21", "type": "Boolean", "name": "is_reservation",      "desc": "Flag: pre-scheduled mission."},
-        {"id": "F22", "type": "Float",   "name": "reservation_amount",  "desc": "Premium monetary value of the reservation."},
-        {"id": "F23", "type": "Boolean", "name": "is_priority",         "desc": "Flag for high-demand priority routing."},
-        {"id": "F24", "type": "Float",   "name": "priority_amount",     "desc": "Monetary value of the priority fee."},
+        {"id": "F14", "type": "Boolean", "name": "is_surge",            "desc": "Flag for active dynamic pricing."},
+        {"id": "F15", "type": "Float",   "name": "surge_amount",        "desc": "Absolute monetary value of the surge."},
+        {"id": "F16", "type": "Boolean", "name": "is_turbo_plus",       "desc": "Flag for strategic platform bonuses."},
+        {"id": "F17", "type": "Float",   "name": "turbo_plus_amount",   "desc": "Absolute monetary value of the bonus."},
+        {"id": "F18", "type": "Boolean", "name": "is_reservation",      "desc": "Flag: pre-scheduled mission."},
+        {"id": "F19", "type": "Float",   "name": "reservation_amount",  "desc": "Premium monetary value of the reservation."},
+        {"id": "F20", "type": "Boolean", "name": "is_priority",         "desc": "Flag for high-demand priority routing."},
+        {"id": "F21", "type": "Float",   "name": "priority_amount",     "desc": "Monetary value of the priority fee."},
     ],
     "🚩 Service Flags": [
-        {"id": "F25", "type": "Boolean", "name": "is_exclusive",             "desc": "Client tiering flag for exclusive routing."},
-        {"id": "F26", "type": "Boolean", "name": "is_vip",                   "desc": "Client tiering flag for VIP status accounts."},
-        {"id": "F27", "type": "Boolean", "name": "is_identity_verified",     "desc": "Security flag confirming rider documentation."},
-        {"id": "F28", "type": "Boolean", "name": "is_long_trip",             "desc": "Complexity flag for extended duration missions."},
-        {"id": "F29", "type": "Boolean", "name": "is_multiple_destinations", "desc": "Complexity flag for multi-stop routing."},
-        {"id": "F30", "type": "Boolean", "name": "is_teens",                 "desc": "Flag: registered minor account."},
+        {"id": "F22", "type": "Boolean", "name": "is_exclusive",             "desc": "Client tiering flag for exclusive routing."},
+        {"id": "F23", "type": "Boolean", "name": "is_vip",                   "desc": "Client tiering flag for VIP status accounts."},
+        {"id": "F24", "type": "Boolean", "name": "is_identity_verified",     "desc": "Security flag confirming rider documentation."},
+        {"id": "F25", "type": "Boolean", "name": "is_long_trip",             "desc": "Complexity flag for extended duration missions."},
+        {"id": "F26", "type": "Boolean", "name": "is_multiple_destinations", "desc": "Complexity flag for multi-stop routing."},
+        {"id": "F27", "type": "Boolean", "name": "is_teens",                 "desc": "Flag: registered minor account."},
     ],
     "👤 Rider Profile": [
-        {"id": "F31", "type": "Float",   "name": "rider_star_rating", "desc": "Aggregated historical rating of the account."},
-        {"id": "F32", "type": "Integer", "name": "rider_trip_count",  "desc": "Total historical missions completed by the account."},
+        {"id": "F28", "type": "Float",   "name": "rider_star_rating", "desc": "Aggregated historical rating of the account."},
+        {"id": "F29", "type": "Integer", "name": "rider_trip_count",  "desc": "Total historical missions completed by the account."},
     ],
     "⚖️ Decision": [
-        {"id": "F33", "type": "Categorical", "name": "offer_action",              "categories": ["Accept", "Reject", "Timeout"]},
-        {"id": "F34", "type": "Categorical", "name": "reason_primary",            "categories": ["—TBD—"]},
-        {"id": "F35", "type": "Categorical", "name": "heuristic_flag",            "categories": ["—TBD—"]},
-        {"id": "F36", "type": "Categorical", "name": "driver_state_at_request",   "categories": ["—TBD—"]},
-        {"id": "F37", "type": "Categorical", "name": "outcome",                   "categories": ["—TBD—"]},
+        {"id": "F30", "type": "Categorical", "name": "offer_action",              "categories": ["Accepted", "Reject"],
+         "tips": {"Accepted": "The <strong>ACCEPTED</strong> class captures intent, not just completion. It includes rides where the offer was accepted but the mission later timed out or was cancelled before completion."}},
+        {"id": "F31", "type": "Categorical", "name": "reason_primary",
+         "categories": ["dropoff_non_operational", "dropoff_proxy", "low_profitability", "long_pickup_time", "strategic_mismatch", "expected_value_gamble", "NULL"],
+         "tips": {
+             "dropoff_non_operational": "Destination lies within a pre-defined zone outside the operational area.",
+             "dropoff_proxy":           "Destination is outside the primary zone but acceptable if aligned with a homecoming vector toward <em>Anzures</em>.",
+             "low_profitability":       "Offer fails baseline EPH requirements relative to estimated duration.",
+             "long_pickup_time":        "Uncompensated pickup time exceeds tolerance; threshold relaxes during extreme gridlock.",
+             "strategic_mismatch":      "High-value offer rejected due to unfavorable routing context (e.g., <em>Santa Fe → Polanco</em> during Friday peak gridlock).",
+             "expected_value_gamble":   "Viable offer rejected based on the probabilistic expectation of a superior imminent event.",
+             "NULL":                    "Absence of objection — signals an accepted offer. No rejection reason is assigned.",
+         }},
+        {"id": "F32", "type": "Categorical", "name": "heuristic_flag",
+         "warning": "During an ablation study, these flags were determined to be a proxy for the target labels — and therefore a form of <strong>data leakage</strong>. They were dropped from the final model.",
+         "categories": ["deadhead_risk", "long_ride_risk", "dropoff_uncertain", "obj_end_session", "friday_gridlock", "system_error", "market_anomaly", "protest_anomaly"],
+         "tips": {
+             "deadhead_risk":    "Short-duration offers with a high probability of immediate return to an idle search state.",
+             "long_ride_risk":   "Trips &gt;45 min where high traffic volatility creates risk of uncompensated time.",
+             "dropoff_uncertain":"Destinations with high geospatial entropy/ambiguity.",
+             "obj_end_session":  "Intent to terminate the work shift; prioritizes homecoming vector alignment over intrinsic EPH.",
+             "friday_gridlock":  "Friday-specific regime; prioritizes egress from high-friction density sectors (<em>Polanco</em>).",
+             "system_error":     "Physically impossible platform time-estimates (e.g., 20 min predicted time from Vistahermosa to Polanco during morning traffic).",
+             "market_anomaly":   "Non-standard offer physics (e.g., operational outliers near National Holidays).",
+             "protest_anomaly":  "External socio-political shocks (marches, road closures) disrupting standard market flow.",
+         }},
+        {"id": "F33", "type": "Categorical", "name": "driver_state_at_request",
+         "categories": ["idle", "on_trip"],
+         "tips": {
+             "idle":    "<strong>Open offer.</strong> Agent received the request while in an idle search state. Acceptance threshold is governed purely by offer economics.",
+             "on_trip": "<strong>Chained offer.</strong> Agent received the request while already on an active mission. A primary driver of the acceptance threshold — the agent evaluates the incoming offer against the residual value of the current trip.",
+         }},
+        {"id": "F34", "type": "Categorical", "name": "outcome",
+         "categories": ["completed", "rider_canceled", "driver_canceled", "system_failure", "NULL"],
+         "tips": {
+             "completed":      "Transaction successfully finalized.",
+             "rider_canceled": "External termination by passenger post-acceptance.",
+             "driver_canceled":"Agent-initiated termination due to post-acceptance friction.",
+             "system_failure": "Offers intended for acceptance but lost due to operational capture latency. Strategically mapped as <strong>ACCEPTED</strong> for model training to reflect the agent's true policy.",
+             "NULL":           "Implicit state for rejected offers — no operational outcome generated.",
+         }},
     ],
 }
 
@@ -287,46 +355,43 @@ def _feature_count(schema):
 def _content(f):
     cats = f.get("categories")
     if cats:
-        return "".join(f"<span class='cat-chip'>{c}</span>" for c in cats)
+        tips = f.get("tips", {})
+        out = ""
+        for c in cats:
+            if c in tips:
+                out += f"<span class='chip-wrap'><span class='cat-chip'>{c}</span><span class='chip-tip'>{tips[c]}</span></span>"
+            else:
+                out += f"<span class='cat-chip'>{c}</span>"
+        return out
     return f.get("desc", "")
-
-def _render_table_a(features):
-    rows = ""
-    for f in features:
-        rows += f"""<div class='ta-row'>
-            <span class='ta-id'>{f['id']}</span>
-            <div class='ta-main'>
-                <div class='ta-top'><span class='ta-name'>{f['name']}</span><span class='ta-badge'>{f['type']}</span></div>
-                <div class='ta-desc'>{_content(f)}</div>
-            </div>
-        </div>"""
-    return f"<div class='ta-wrap'>{rows}</div>"
 
 def _render_table_b(features):
     rows = ""
     for f in features:
+        warn = f.get("warning", "")
+        warn_html = f"""<span class='tb-warn-wrap'>
+            <span class='tb-warn-badge'>!</span>
+            <span class='tb-warn-tip'>{warn}</span>
+        </span>""" if warn else ""
         rows += f"""<div class='tb-card'>
             <div class='tb-meta'><span class='tb-id'>{f['id']}</span><span class='tb-badge'>{f['type']}</span></div>
-            <div class='tb-name'>{f['name']}</div>
+            <div class='tb-name'>{f['name']}{warn_html}</div>
             <div class='tb-desc'>{_content(f)}</div>
         </div>"""
     return f"<div class='tb-wrap'>{rows}</div>"
 
-def _render_table_c(features):
-    rows = ""
-    for f in features:
-        rows += f"""<tr>
-            <td class='tc-id'>{f['id']}</td>
-            <td class='tc-name'>{f['name']}</td>
-            <td class='tc-type'>{f['type']}</td>
-            <td>{_content(f)}</td>
-        </tr>"""
-    return f"""<table class='tc-table'>
-        <thead><tr><th>ID</th><th>Feature</th><th>Type</th><th>Values / Description</th></tr></thead>
-        <tbody>{rows}</tbody>
-    </table>"""
+def _render_connector():
+    st.markdown("""
+    <div class='step-connector'>
+      <div class='step-conn-spine'>
+        <div class='step-conn-line'></div>
+        <div class='step-conn-arrow'>▼</div>
+        <div class='step-conn-line'></div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-def _render_step(circle_color, label, count, why, schema, domain_key, radio_key, table_fn):
+def _render_step(circle_color, label, count, why, schema, radio_key, table_fn):
     st.markdown(f"""
     <div class='step-row'>
       <div class='step-spine'>
@@ -350,7 +415,7 @@ def _render_step(circle_color, label, count, why, schema, domain_key, radio_key,
 # ─────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────
-pipeline_tab, flat_tab, sim_tab, bronze_tab, silver_tab, gold_tab = st.tabs(["🗂️ Feature Pipeline", "📋 Flat View", "🎮 Simulator", "🥉 Bronze", "🥈 Silver", "🥇 Gold"])
+pipeline_tab, sim_tab = st.tabs(["🗂️ Feature Pipeline", "🎮 Simulator"])
 
 with pipeline_tab:
     _render_step(
@@ -359,10 +424,11 @@ with pipeline_tab:
         count=_feature_count(bronze_schema),
         why="Direct output of the OCR pipeline: offer physics, geospatial coordinates, incentive flags, rider profile, and the decision label. No derivations — the contract between raw data and the engineering layer.",
         schema=bronze_schema,
-        domain_key="bronze",
         radio_key="bronze_domain",
         table_fn=_render_table_b,
     )
+
+    _render_connector()
 
     _render_step(
         circle_color="#94a3b8",
@@ -370,10 +436,11 @@ with pipeline_tab:
         count=_feature_count(silver_schema),
         why="Session-dependent features computed by a sequential state machine. Captures market pressure, agent fatigue, yield trajectory, and operational EPH variants. Strict no-look-ahead rule: _ML features use only data available at decision time; _EDA features are firewalled.",
         schema=silver_schema,
-        domain_key="silver",
         radio_key="silver_domain",
         table_fn=_render_table_b,
     )
+
+    _render_connector()
 
     _render_step(
         circle_color="#b8860b",
@@ -381,59 +448,12 @@ with pipeline_tab:
         count=_feature_count(gold_schema),
         why="Causal analysis in Phase 3 revealed the ex-ante traffic index is a poor proxy for operational risk. This layer adds H3 spatial indexing and a volatility suite derived from the 2 min/km market baseline — the final predictive signal layer.",
         schema=gold_schema,
-        domain_key="gold",
         radio_key="gold_domain",
         table_fn=_render_table_b,
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════
-# FLAT VIEW: Stepper + combined tables, no domain radio
-# ═══════════════════════════════════════════════
-with flat_tab:
-    st.markdown("""
-    <div class="stepper-wrap">
-    """, unsafe_allow_html=True)
-
-    def _render_flat_step(circle_color, label, count, why, schema):
-        all_features = [f for features in schema.values() for f in features]
-        st.markdown(f"""
-        <div class='step-row'>
-          <div class='step-spine'>
-            <div class='step-circle' style='background:{circle_color}'>{label[0]}</div>
-            <div class='step-line'></div>
-          </div>
-          <div class='step-body'>
-            <div class='step-label' style='color:{circle_color}'>{label} <span class='feat-count'>· {count} features</span></div>
-            <div class='step-why'>{why}</div>
-        """, unsafe_allow_html=True)
-        st.markdown(_render_table_b(all_features), unsafe_allow_html=True)
-        st.markdown("</div></div>", unsafe_allow_html=True)
-
-    _render_flat_step(
-        circle_color="#cd7f32",
-        label="Bronze · Raw Canonical Schema",
-        count=_feature_count(bronze_schema),
-        why="Direct output of the OCR pipeline: offer physics, geospatial coordinates, incentive flags, rider profile, and the decision label. No derivations — the contract between raw data and the engineering layer.",
-        schema=bronze_schema,
-    )
-    _render_flat_step(
-        circle_color="#94a3b8",
-        label="Silver · Stateful Engineered Features",
-        count=_feature_count(silver_schema),
-        why="Session-dependent features computed by a sequential state machine. Captures market pressure, agent fatigue, yield trajectory, and operational EPH variants. Strict no-look-ahead rule: _ML features use only data available at decision time; _EDA features are firewalled.",
-        schema=silver_schema,
-    )
-    _render_flat_step(
-        circle_color="#b8860b",
-        label="Gold · Silver Palette (Spatial + Volatility)",
-        count=_feature_count(gold_schema),
-        why="Causal analysis in Phase 3 revealed the ex-ante traffic index is a poor proxy for operational risk. This layer adds H3 spatial indexing and a volatility suite derived from the 2 min/km market baseline — the final predictive signal layer.",
-        schema=gold_schema,
-    )
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("<div style='background:#FFFF00;border:3px solid #FFD700;padding:12px 18px;margin-top:32px;font-size:0.85rem;font-weight:700;color:#000;'>⚠️ PENDING: reduce gap between step description and domain pills — Streamlit internal element container spacing not overridable via CSS in v1.58. FIX ME BEFORE SHIPPING.</div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════
 # SIMULATOR: Session Playback (Inference in Motion)
@@ -567,72 +587,3 @@ with sim_tab:
         with brain_card.container(border=True):
             st.write("Initializing state machine...")
 
-# ═══════════════════════════════════════════════
-# BRONZE BENTO
-# ═══════════════════════════════════════════════
-with bronze_tab:
-    st.write("")
-    st.markdown("<span class='phase-badge'>Data Dictionary</span>", unsafe_allow_html=True)
-    st.markdown("### Canonical Offers Schema")
-    st.write("")
-
-    _bento_domain_tabs = st.tabs(["⏱️ Temporal","🚗 Physics","📍 Geospatial","💰 Incentives","🚩 Service Flags","👤 Rider Profile","⚖️ Decision"])
-
-    def _bento_card(f):
-        cats = f.get("categories")
-        content = "".join(f"<span class='cat-chip'>{c}</span>" for c in cats) if cats else f"<div style='font-size:0.8rem;color:#555;line-height:1.5'>{f.get('desc','')}</div>"
-        return f"""<div class="bento-card" style="margin-bottom:24px;min-height:155px;padding:20px 24px;">
-            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
-                <span style="color:#21918c;">{f['id']}</span>
-                <span style="color:#eaeaea;margin:0 6px;">|</span>
-                <span style="color:#888;">{f['type']}</span>
-            </div>
-            <div style="font-size:1.05rem;font-weight:700;color:#121212;margin-bottom:10px;border-bottom:1px solid #f5f5f5;padding-bottom:10px;">{f['name']}</div>
-            {content}
-        </div>"""
-
-    for tab, (domain, features) in zip(_bento_domain_tabs, bronze_schema.items()):
-        with tab:
-            st.write("<br>", unsafe_allow_html=True)
-            cols = st.columns(3)
-            for idx, f in enumerate(features):
-                with cols[idx % 3]:
-                    st.markdown(_bento_card(f), unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════
-# SILVER BENTO
-# ═══════════════════════════════════════════════
-with silver_tab:
-    st.write("")
-    st.markdown("<span class='phase-badge'>Stateful Intelligence · Phase 2C</span>", unsafe_allow_html=True)
-    st.markdown("### Canonical Stateful Features")
-    st.write("")
-
-    _silver_bento_tabs = st.tabs(["📡 Market Pressure","🚦 Supply & Traffic","🧠 Internal State","💹 Base Profitability","🤖 Predictive (ML)","🔬 Exploratory (EDA)","🧭 Strategic Context"])
-
-    for tab, (domain, features) in zip(_silver_bento_tabs, silver_schema.items()):
-        with tab:
-            st.write("<br>", unsafe_allow_html=True)
-            cols = st.columns(3)
-            for idx, f in enumerate(features):
-                with cols[idx % 3]:
-                    st.markdown(_bento_card(f), unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════
-# GOLD BENTO
-# ═══════════════════════════════════════════════
-with gold_tab:
-    st.write("")
-    st.markdown("<span class='phase-badge'>Volatility Suite · Phase 5</span>", unsafe_allow_html=True)
-    st.markdown("### Silver Palette: Final Feature Layer")
-    st.write("")
-
-    _gold_bento_tabs = st.tabs(["📍 Spatial Index","🌊 Volatility Suite"])
-
-    for tab, (domain, features) in zip(_gold_bento_tabs, gold_schema.items()):
-        with tab:
-            st.write("<br>", unsafe_allow_html=True)
-            cols = st.columns(3)
-            for idx, f in enumerate(features):
-                with cols[idx % 3]:
-                    st.markdown(_bento_card(f), unsafe_allow_html=True)
