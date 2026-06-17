@@ -11,7 +11,8 @@ def build_sidebar():
         
         # Resolve path dynamically for home page and subpages
         st.page_link("main.py", label="Home")
-        st.page_link("pages/0002_Foundations.py", label="Foundations")
+        st.page_link("pages/0001_Foundations.py", label="Foundations")
+        st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines")
         st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
         st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
         st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
@@ -192,8 +193,10 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a p {
 
 # 9-Module List for the 3x3 Grid
 modules = [
-    ("pages/0002_Foundations.py", "🏗️", "Foundations & Architecture",
-     "Bottom-up strategy, dual-engine field acquisition, and stateful feature engineering cascade."),
+    ("pages/0001_Foundations.py", "🏗️", "Foundations & Architecture",
+     "Bottom-up strategy, pivot to classification, and the target variable definition."),
+    ("pages/0002_Acquisition_Pipelines.py", "🔄", "Acquisition Pipelines",
+     "Dual-engine data collection: GTS Telemetry Simulator and Gemini OCR Pipeline with live BigQuery output."),
      
     ("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", "💾", "SQL Pipeline & Sandbox", 
      "Documents the Star Schema architecture and provides a live BigQuery SQL environment for data auditing."),
