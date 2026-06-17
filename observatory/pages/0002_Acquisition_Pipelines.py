@@ -129,79 +129,15 @@ button[data-testid="baseButton-secondary"].nav-carousel:hover {
 # ─────────────────────────────────────────────
 # HEADER
 # ─────────────────────────────────────────────
-st.markdown("# Data Ingestion Pipelines")
-st.markdown("Dual-engine acquisition ecosystem: GTS Telemetry Simulator and Gemini OCR Pipeline.")
-st.markdown("---")
+st.markdown("# Acquisition Pipelines")
 
-st.markdown("## Data Ingestion Pipelines")
-subtab1, subtab2, subtab3 = st.tabs(["📋 Acquisition & Ground Truth", "🎮 Engine 1: Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
+st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>Project Pienza utilizes a proprietary, <strong>dual-engine acquisition ecosystem</strong> to overcome the data sparsity inherent in third-party platform exports. The primary acquisition campaign was executed over a strict 6-week observation window (August 22 – October 1, 2025), digitizing the agent's operational reality in real-time.</p>", unsafe_allow_html=True)
 
-with subtab1:
-    st.markdown("""
-<div class="story-section">
-  <span class="story-pill">Acquisition Context</span>
-  <p>
-Project Pienza models the decision policy of an expert agent rather than a system in a learning phase. Prior to data collection, the subject had completed 24 months of field operations, concluding the <em>Exploration</em> stage of the Reinforcement Learning cycle. Utilizing the framework of Hopfield Networks, the agent's decision policy is modeled as a "cooled" system settled into a stable local minimum — an <em>attractor state</em>. This equilibrium represents an optimization contingent on the agent's specific constraints: geographic preferences, risk tolerance, and physical endurance. The resulting dataset provides a high-fidelity record of a <strong>converged exploitation policy</strong>.
-  </p>
-  <p>
-Project Pienza utilizes a proprietary, <strong>dual-engine acquisition ecosystem</strong> to overcome the data sparsity inherent in third-party platform exports. The primary acquisition campaign was executed over a strict 6-week observation window (August 22 – October 1, 2025), digitizing the agent's operational reality in real-time.
-  </p>
-</div>
-""", unsafe_allow_html=True)
-
-    with st.expander("Engine 1 — Operational Telemetry: GTS Webapp", expanded=True):
-        st.markdown("""
-To establish the ground truth of completed missions, a bespoke Progressive Web Application (PWA) designated as the **Geotimestamps (GTS) Webapp** was deployed. The interface was optimized for low-cognitive-load fieldwork, functioning as a "One-Touch Timestamping" instrument while maintaining resilience through a production-grade stack (Netlify Frontend, Google Sheets Backend).
-
-**Lifecycle Mapping Protocol (T0–T4).** The system logs five critical state transitions with geospatial precision:
-
-| Event | State | Capture |
-|---|---|---|
-| T0 | Search — idle, seeking offers | Timestamp + coordinates |
-| T1 | Acceptance — offer accepted, en route | Quoted upfront fare |
-| T2 | Arrival — at pickup, waiting | Timestamp + coordinates |
-| T3 | In-Progress — mission started | Timestamp |
-| T4 | Completion — mission finalized | Realized net fare |
-
-**Output (`trip_events`):** A verified timeline of physical state transitions and realized financial outcomes (N ≈ 350 completed trips).
-        """)
-
-    with st.expander("Engine 2 — Total Offer Stream: OCR Pipeline", expanded=True):
-        st.markdown("""
-To neutralize **Survivorship Bias**, the system must capture the full decision boundary — specifically the Rejected Offers (*The Negative Class*). As market infrastructure provides no native access to historical offer logs, a custom "Optical State Archival" architecture was deployed.
-
-The acquisition interface utilized an iOS device configured with an **Assistive Touch Macro**. This enabled a single-gesture capture protocol (The "Manual Cookie") that simultaneously acknowledged the offer cognitively and secured the raw visual data digitally.
-
-Three operational mandates enforced statistical representativeness:
-
-1. **Full Spectrum Capture (Zero Filters):** All system-level destination filters and product category filters (Premium / Mid-tier / X) were disabled — capturing the unfiltered "True Market" liquidity.
-2. **Safety-Driven Random Sampling:** Offers occurring during high-cognitive-load maneuvers were intentionally skipped. This data loss is classified as **Missing Completely at Random (MCAR)**, introducing no systemic bias.
-3. **The "Driver-First" Learning Curve:** A Warm-Up period (Week 1) resulted in a small cluster of "Ghost Offers" — completed missions without source image artifacts. These were handled programmatically in the Engineering Phase.
-
-The pipeline utilizes the **Google Gemini Pro Vision API** to transform visual assets into structured data. The system prompt enforces strict scope limitations, instructing the model to ignore navigation metadata outside the central offer card.
-
-**Output (`offers`):** Total universe of opportunities including the critical Negative Class (N ≈ 4,700 total offers).
-        """)
-
-    st.markdown("""
-<div class="story-section">
-  <span class="story-pill">Post-Session Reconciliation Protocol</span>
-  <p>
-At acquisition time, both engines exist as separate, unlinked entities. A rigorous post-session protocol was enforced immediately upon the completion of each fieldwork shift:
-  </p>
-  <ol>
-<li><strong>Telemetry Consolidation (GTS):</strong> Raw, long-format event logs were processed into a wide-format session ledger — pruning duplicates and cancelled events, and enabling immediate calculation of session-level KPIs such as <em>Net Spread</em> and <em>Accumulated Deadhead</em>.</li>
-<li><strong>High-Fidelity Cognitive Backtagging:</strong> The Agent manually reviewed and tagged every rejected offer from that session to populate the multiclass target variable (<code>reason_primary</code>). Executing this task same-day was imperative to capture the specific, contextual nuance of the decision before operational memory decay occurred.</li>
-  </ol>
-  <p>In the subsequent engineering phase, the two disparate records were unified into a SQL-queryable relational schema.</p>
-</div>
-""", unsafe_allow_html=True)
+subtab2, subtab3 = st.tabs(["🎮 Engine 1: GTS Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
 
 with subtab2:
-    st.markdown("## GTS Telemetry Simulator")
-    st.markdown("""
-This module simulates the **Engine 1** mobile experience. It demonstrates the "One-Touch" state transitions and the logic used to calculate operational KPIs in the field.
-    """)
+    st.markdown("## Engine 1: GTS Telemetry Simulator")
+    st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>This module simulates the <strong>Engine 1</strong> mobile experience. It demonstrates the \"One-Touch\" state transitions and the logic used to calculate operational KPIs in the field. Press <strong>Start Session</strong> and walk through each event — the log and KPIs update in real time.</p>", unsafe_allow_html=True)
 
     # ── SESSION STATE ────────────────────────────────────────────────────────
     if 'sim_active' not in st.session_state:
