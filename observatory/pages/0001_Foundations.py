@@ -146,7 +146,7 @@ with tab1:
 <div class="story-section">
   <span class="story-pill">Scope & Constraints</span>
   <p>
-    Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute agent control: the decision itself</strong>.<span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">Built alongside the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one strict constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span>
+    Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute agent control: the decision itself</strong>.<span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">Built alongside the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one strict constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span> The boundary condition is scale and generalizability — one agent, one city, one behavioral profile. That is a scope constraint, not a methodological flaw: the dataset's value derives precisely from the depth of a single subject's documented cognitive intent across 4,700 decisions.
   </p>
 </div>
 
@@ -208,6 +208,10 @@ with tab1:
     <div class="target-desc">Absence of objection signals an accepted offer.</div>
   </div>
 </div>
+
+<div style="background:#f0faf9;border-left:3px solid #21918c;border-radius:6px;padding:12px 16px;margin-top:16px;font-size:0.85rem;color:#333;line-height:1.65;">
+  <strong>High-Fidelity Cognitive Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable (<code>reason_primary</code>). Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
+</div>
     """, unsafe_allow_html=True)
 
 with tab2:
@@ -220,16 +224,16 @@ with tab2:
             "phase": "Phase 1", "label": "Acquisition & Ground Truth",
             "arch_short": "OCR<br>+<br>Sheets",
             "date_range": "Aug 22 – Oct 1, 2025",
-            "detail": "High-fidelity manual capture of operational data via the bespoke GTS Webapp. Establishment of the target variable and the primary contextual ride attributes.",
-            "bullets": ["GTS Webapp", "Dual OCR Engine", "Target variable definition", "Ride attributes schema"],
+            "detail": "Implementation of the dual-engine acquisition pipeline. Definition of the ride attributes schema and target variable taxonomy. Manual same-day backtagging of 4,700 offers to populate reason_primary.",
+            "bullets": ["GTS Webapp", "OCR automation", "Target variable definition", "Ride attributes schema"],
             "start": "2025-08-22", "end": "2025-10-01",
         },
         {
             "phase": "Phase 2", "label": "Data Engineering & Architecture",
             "arch_short": "SQLite<br>+<br>Colab",
             "date_range": "Oct 2 – Nov 20, 2025",
-            "detail": "Transition to a relational database (pienza.db) and Star Schema design. Implementation of automated OCR pipelines and normalization protocols. Creation of the stateful engineered_features table.",
-            "bullets": ["Star Schema design", "Idempotent ETL pipeline", "OCR automation", "engineered_features table"],
+            "detail": "Transition to a relational database (pienza.db) and Star Schema design. Implementation of normalization protocols and idempotent ETL pipelines. Creation of the stateful engineered_features table.",
+            "bullets": ["Star Schema design", "Idempotent ETL pipeline", "Normalization protocols", "engineered_features table"],
             "start": "2025-10-02", "end": "2025-11-20",
         },
         {
@@ -244,8 +248,8 @@ with tab2:
             "phase": "Phase 4", "label": "Unsupervised Learning & Geo-Remediation",
             "arch_short": "SQLite<br>+<br>Colab",
             "date_range": "Dec 4, 2025 – Jan 2, 2026",
-            "detail": "Application of HDBSCAN for zone discovery and surgical coordinate cleaning using hand-crafted heuristic polygons. Generation of the Silver Palette geo-semantic attributes.",
-            "bullets": ["HDBSCAN zone discovery", "Heuristic polygon cleaning", "Silver Palette attributes", "44 geo-semantic clusters"],
+            "detail": "Application of HDBSCAN for zone discovery and surgical coordinate cleaning using hand-crafted heuristic polygons. Generation of the volatility suite and geo-semantic attributes.",
+            "bullets": ["HDBSCAN zone discovery", "Heuristic polygon cleaning", "Volatility Suite", "44 geo-semantic clusters"],
             "start": "2025-12-04", "end": "2026-01-02",
         },
         {
