@@ -3,6 +3,9 @@ from components.styles import GLOBAL_CSS
 import streamlit.components.v1 as components
 import time
 import numpy as np
+import pandas as pd
+import re
+from utils.bq_client import fetch_data_from_bq
 
 st.set_page_config(layout="wide", page_title="Feature Store | Pienza", page_icon="🗄️")
 
@@ -349,7 +352,7 @@ silver_schema = {
         {"id": "S31", "type": "Boolean",     "name": "is_total_cycle_downgrade_EDA",   "desc": "True if final outcome was a downgrade vs EPH realized."},
     ],
     "🧭 Context": [
-        {"id": "S32", "type": "Float",       "name": "home_vector_alignment",    "desc": "Cosine Similarity (-1 to 1) of dropoff vector relative to Home Base."},
+        {"id": "S32", "type": "Float",       "name": "home_vector_alignment_score",    "desc": "Cosine Similarity (-1 to 1) of dropoff vector relative to Home Base."},
         {"id": "S33–S34", "type": "Boolean",     "name": "pickup/dropoff_ambiguity", "desc": "Binary flags for low-confidence geospatial coordinates. One per endpoint."},
         {"id": "S35", "type": "Int64",       "name": "hour_of_day",       "desc": "Hour of the offer timestamp (5–22). Consecutive integer representing active operating hours."},
         {"id": "S36", "type": "Categorical", "name": "day_type",         "categories": ["morning", "afternoon", "evening", "night"]},
@@ -507,7 +510,7 @@ def _render_step(circle_color, label, count, why, schema, radio_key, table_fn, d
 # ─────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────
-pipeline_tab, sim_tab = st.tabs(["🗂️ Feature Pipeline", "🎮 Simulator"])
+pipeline_tab, pb_tab = st.tabs(["🗂️ Feature Pipeline", "▶ Session Playback"])
 
 with pipeline_tab:
     _render_step(
@@ -549,134 +552,429 @@ with pipeline_tab:
     st.markdown("<div style='background:#FFFF00;border:3px solid #FFD700;padding:12px 18px;margin-top:32px;font-size:0.85rem;font-weight:700;color:#000;'>⚠️ PENDING: reduce gap between step description and domain pills — Streamlit internal element container spacing not overridable via CSS in v1.58. FIX ME BEFORE SHIPPING.</div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════
-# SIMULATOR: Session Playback (Inference in Motion)
+# SESSION PLAYBACK
 # ═══════════════════════════════════════════════
-with sim_tab:
-    st.write("")
-    st.markdown("<span class='phase-badge'>Inference in Motion</span>", unsafe_allow_html=True)
-    st.markdown("### Session Playback: The Expert Cockpit")
-    st.markdown("""
-    To understand how **Contextual** and **Stateful** features drive behavior, we must view them in sequence.
-    Average sessions contain **60–90 offers** with only **4–6 acceptances**.
+with pb_tab:
+    _NORTH_STAR = 200.0
 
-    Select a session and hit **Start Timelapse** to see the agent's decision logic evolve as fatigue, traffic, and sunk costs accumulate.
-    """)
-    st.write("")
+    def _obf_fare(v):
+        if v is None or str(v) in ("None", "nan", ""):
+            return "—"
+        return re.sub(r'\d', '█', f"{float(v):.0f}")
 
-    ctrl_col1, ctrl_col2, ctrl_col3 = st.columns([2, 2, 1])
-    with ctrl_col1:
-        sim_session = st.selectbox("Field Session", ["Shift_042 (Friday PM)", "Shift_089 (Rainy Monday)"])
-    with ctrl_col2:
-        play_speed = st.select_slider(
-            "Playback Speed (seconds per offer)",
-            options=[0.1, 0.5, 1.0, 2.0],
-            value=0.5
+    def _obf_address(v):
+        if v is None or str(v) in ("None", "nan", ""):
+            return "—"
+        return re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', '████', str(v), count=1)
+
+    def _obf_eph(v):
+        """Keep leading digit(s), mask last 2 — e.g. 217 → 2██, 87 → 8█, 9 → █."""
+        s = f"{int(float(v))}"
+        if len(s) > 2:
+            return s[:-2] + "██"
+        elif len(s) == 2:
+            return s[0] + "█"
+        return "█"
+
+    @st.cache_data(ttl=3600)
+    def _pb_sessions():
+        return fetch_data_from_bq("""
+            SELECT
+                ml.session_fk,
+                COUNT(*)                                                        AS offer_count,
+                SUM(CASE WHEN oa.offer_action_description = 'accepted' THEN 1 ELSE 0 END) AS accepted_count,
+                MIN(ml.offer_timestamp)                                         AS session_start
+            FROM `645009831643.pienza_mini.v_ML_Supervised` ml
+            LEFT JOIN `645009831643.pienza_mini.offer_action` oa
+                   ON oa.offer_action_id = ml.offer_action_fk
+            WHERE ml.session_fk IS NOT NULL
+            GROUP BY ml.session_fk
+            ORDER BY session_start
+        """)
+
+    @st.cache_data(ttl=3600)
+    def _pb_offers(sid):
+        return fetch_data_from_bq(f"""
+            SELECT
+                ml.offer_timestamp, ml.upfront_fare,
+                ml.est_trip_time_sec, ml.est_trip_dist_km,
+                ml.time_to_pickup_sec, ml.dist_to_pickup_km,
+                ml.pickup_address, ml.dropoff_address,
+                ml.is_surge, ml.surge_amount, ml.is_turbo_plus, ml.turbo_plus_amount,
+                ml.traffic_index_base_120, ml.time_since_last_offer, ml.offer_density_60sec,
+                ml.consecutive_rejects, ml.total_accumulated_deadhead_sec,
+                ml.cycle_rolling_avg_spread, ml.cycle_cumulative_net_earnings,
+                ml.home_vector_alignment_score, ml.pickup_ambiguity, ml.dropoff_ambiguity,
+                ml.eph_direct, ml.eph_operational, ml.is_operational_downgrade,
+                ml.eph_realized_ML, ml.eph_complete_ML,
+                ml.is_spread_downgrade_ML, ml.is_total_cycle_downgrade_ML,
+                ml.day_of_week, ml.time_of_day_block, ml.day_type,
+                ml.dropoff_polygon_name, ml.dropoff_h3_hex_id,
+                oa.offer_action_description  AS str_action,
+                pc.category_name             AS str_product,
+                rp.reason_primary_description AS str_reason,
+                ds.driver_state_at_request_description AS str_driver_state
+            FROM `645009831643.pienza_mini.v_ML_Supervised` ml
+            LEFT JOIN `645009831643.pienza_mini.offer_action` oa
+                   ON oa.offer_action_id = ml.offer_action_fk
+            LEFT JOIN `645009831643.pienza_mini.product_category` pc
+                   ON pc.product_category_id = ml.product_category_fk
+            LEFT JOIN `645009831643.pienza_mini.reason_primary` rp
+                   ON rp.reason_primary_id = ml.reason_primary_fk
+            LEFT JOIN `645009831643.pienza_mini.driver_state_at_request` ds
+                   ON ds.driver_state_at_request_id = ml.driver_state_at_request_fk
+            WHERE ml.session_fk = '{sid}'
+            ORDER BY ml.offer_timestamp
+        """)
+
+    # ── Session state init ──
+    for _k, _v in [("pb_sid", None), ("pb_df", None), ("pb_idx", 0)]:
+        if _k not in st.session_state:
+            st.session_state[_k] = _v
+
+    # ── Header ──
+    st.markdown("<span class='phase-badge'>Real Data</span>", unsafe_allow_html=True)
+    st.markdown("### Session Playback")
+    st.markdown(
+        "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:820px;'>"
+        "Step through a real field session offer by offer. Each card shows exactly what the platform "
+        "presented and what the state machine computed at that moment in the session. "
+        "Decide for yourself — then reveal what the agent actually did.</p>",
+        unsafe_allow_html=True
+    )
+
+    # ── Session picker ──
+    df_sess = _pb_sessions()
+    if df_sess is None or df_sess.empty:
+        st.error("Could not load sessions from BigQuery.")
+        st.stop()
+
+    def _sess_label(r):
+        ts  = str(r.get("session_start", ""))[:10]
+        n   = int(r.get("offer_count", 0))
+        a   = int(r.get("accepted_count", 0))
+        pct = f"{a/n*100:.0f}%" if n > 0 else "—"
+        return f"{r['session_fk']}  ·  {ts}  ·  {n} offers  ·  {a} accepted ({pct})"
+
+    sess_labels  = df_sess.apply(_sess_label, axis=1).tolist()
+    sess_ids     = df_sess["session_fk"].tolist()
+    label_to_id  = dict(zip(sess_labels, sess_ids))
+
+    sel_label = st.selectbox("Session", sess_labels, key="pb_sess_select", label_visibility="collapsed")
+    sel_id    = label_to_id[sel_label]
+
+    if sel_id != st.session_state.pb_sid:
+        st.session_state.pb_sid = sel_id
+        st.session_state.pb_df  = _pb_offers(sel_id)
+        st.session_state.pb_idx = 0
+        st.session_state.pop("pb_jump", None)
+        st.rerun()
+
+    if st.session_state.pb_df is None or st.session_state.pb_df.empty:
+        st.warning("No offers found for this session.")
+        st.stop()
+
+    df    = st.session_state.pb_df
+    idx   = st.session_state.pb_idx
+    total = len(df)
+
+    # ── Session complete ──
+    if idx >= total:
+        acc_mask  = df["str_action"].str.lower().str.startswith("accept").fillna(False)
+        accepted  = int(acc_mask.sum())
+        rejected  = total - accepted
+
+        # Pull final-row state machine values (last offer = end-of-session state)
+        last       = df.iloc[-1]
+        deadhead   = float(last.get("total_accumulated_deadhead_sec") or 0)
+        earnings   = float(last.get("cycle_cumulative_net_earnings")  or 0)
+        spread     = float(last.get("cycle_rolling_avg_spread")       or 0)
+        max_consec = int(df["consecutive_rejects"].fillna(0).max())
+
+        # Session duration
+        try:
+            t0  = pd.to_datetime(df["offer_timestamp"].iloc[0])
+            t1  = pd.to_datetime(df["offer_timestamp"].iloc[-1])
+            dur = int((t1 - t0).total_seconds())
+        except Exception:
+            dur = None
+
+        # EPH averages (accepted offers only)
+        acc_df = df[acc_mask]
+        eph_d_avg = acc_df["eph_direct"].dropna().mean()    if "eph_direct"    in df.columns else None
+        eph_o_avg = acc_df["eph_operational"].dropna().mean() if "eph_operational" in df.columns else None
+
+        def _hms_s(sec):
+            if sec is None: return "—"
+            s = int(sec); h, r = divmod(s, 3600); m, s = divmod(r, 60)
+            return f"{h:02d}:{m:02d}:{s:02d}"
+
+        st.markdown("<span class='phase-badge'>Session Complete</span>", unsafe_allow_html=True)
+        st.markdown("### Session Summary")
+
+        # Row 1 — decision KPIs
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Total Offers",      total)
+        c2.metric("Accepted",          f"{accepted}  ({accepted/total*100:.0f}%)")
+        c3.metric("Rejected",          rejected)
+        c4.metric("Max Consec. Rejects", max_consec)
+
+        st.markdown("---")
+
+        # Row 2 — state machine KPIs
+        c5, c6, c7, c8 = st.columns(4)
+        c5.metric("Acc. Deadhead",       _hms_s(deadhead))
+        c6.metric("Session Duration",    _hms_s(dur))
+        c7.metric("Cumulative Earnings", f"${_obf_eph(earnings)} MXN")
+        c8.metric("Avg Spread Ratio",    f"{spread:.3f}" if spread else "—")
+
+        st.markdown("---")
+
+        # Row 3 — EPH averages (accepted offers only)
+        c9, c10, _, _ = st.columns(4)
+        c9.metric("Avg Direct EPH",      f"${_obf_eph(eph_d_avg)}/hr" if eph_d_avg else "—")
+        c10.metric("Avg Operational EPH", f"${_obf_eph(eph_o_avg)}/hr" if eph_o_avg else "—")
+
+        st.markdown(
+            "<div style='border-left:4px solid #f59e0b;background:#fffbeb;padding:12px 16px;"
+            "border-radius:0 7px 7px 0;font-size:0.82rem;color:#78350f;line-height:1.7;margin-top:8px;'>"
+            "<strong>⚠ Snapshot caveat — by design</strong><br>"
+            "These figures reflect the state machine at the timestamp of the <em>last offer presented</em>, "
+            "not the true end of the session. Deadhead, earnings, and session duration do <strong>not</strong> "
+            "include time or income accrued after completing the final accepted ride. This is intentional: the state machine was engineered as an <strong>ML feature pipeline</strong>. "
+            "The model's decision boundary is the accept/reject moment — so the input vector is defined "
+            "strictly <em>before</em> the last outcome is known."
+            "</div>",
+            unsafe_allow_html=True
         )
-    with ctrl_col3:
-        st.write("")
-        st.write("")
-        run_sim = st.button("🚀 Start Timelapse", use_container_width=True)
+        st.markdown("")
+        if st.button("↺ Replay Session", key="pb_restart", use_container_width=False):
+            st.session_state.pb_idx = 0
+            st.session_state.pop("pb_jump", None)
+            st.rerun()
+        st.stop()
 
-    st.write("")
+    row = df.iloc[idx]
 
-    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-    with col_m1:
-        m_fatigue = st.empty()
-    with col_m2:
-        m_deadhead = st.empty()
-    with col_m3:
-        m_earnings = st.empty()
-    with col_m4:
-        m_traffic = st.empty()
+    # If a button fired last render, apply its target to the slider key NOW
+    # (must happen before st.slider is instantiated)
+    _nav = st.session_state.pop("_pb_nav", None)
+    if _nav is not None:
+        st.session_state["pb_jump"] = _nav
 
-    st.markdown("---")
+    # ── Slider (jump to any offer) ──
+    jump = st.slider("", min_value=1, max_value=total, key="pb_jump",
+                     label_visibility="collapsed")
+    if jump - 1 != idx:
+        st.session_state.pb_idx = jump - 1
+        st.rerun()
 
-    col_offer, col_brain = st.columns(2)
-    with col_offer:
-        st.subheader("📲 Naked Physics")
-        st.caption("What the Platform Presents")
-        naked_card = st.empty()
-    with col_brain:
-        st.subheader("🧠 Expert Brain")
-        st.caption("Contextual & Stateful Reality")
-        brain_card = st.empty()
+    # ── Navigation buttons (centered) ──
+    _, nb1, nb2, nb3, _ = st.columns([2, 1.2, 1.2, 1.2, 2])
+    with nb1:
+        if st.button("← Back", key="pb_back_btn", use_container_width=True, disabled=(idx == 0)):
+            st.session_state.pb_idx  = idx - 1
+            st.session_state["_pb_nav"] = idx     # consumed next render, before slider
+            st.rerun()
+    with nb2:
+        nxt_label = "→ Next" if idx < total - 1 else "→ Summary"
+        if st.button(nxt_label, key="pb_next_btn", use_container_width=True):
+            st.session_state.pb_idx  = idx + 1
+            st.session_state["_pb_nav"] = idx + 2
+            st.rerun()
+    with nb3:
+        if st.button("↺ Restart", key="pb_restart_btn", use_container_width=True):
+            st.session_state.pb_idx  = 0
+            st.session_state.pop("pb_jump", None)
+            st.session_state["_pb_nav"] = 1
+            st.rerun()
 
-    verdict_banner = st.empty()
+    st.markdown(
+        f"<div style='font-size:0.78rem;color:#888;margin-bottom:14px;margin-top:4px;'>"
+        f"Offer <strong style='color:#1a1a1a;'>{idx+1}</strong> of {total} &nbsp;·&nbsp; "
+        f"{str(row.get('day_type','') or '')} &nbsp;·&nbsp; "
+        f"{str(row.get('time_of_day_block','') or '')} &nbsp;·&nbsp; "
+        f"{str(row.get('day_of_week','') or '')}"
+        f"</div>",
+        unsafe_allow_html=True
+    )
 
-    if run_sim:
-        import numpy as np
-        import time
-        total_offers = 60
-        accept_indices = [12, 28, 45, 58]
+    # ── Main columns ──
+    offer_col, sm_col = st.columns(2, gap="large")
 
-        for i in range(total_offers):
-            progress = i / total_offers
-            deadhead_accum = i * 42
-            pocket_money = len([idx for idx in accept_indices if idx < i]) * 165
-            current_traffic = 1.1 + (np.sin(i / 10) * 0.4)
+    def _v(val, fmt="{}", fb="—"):
+        try:
+            return fmt.format(val) if val is not None and str(val) not in ("None","nan","") else fb
+        except Exception:
+            return fb
 
-            m_fatigue.metric("Shift Progress", f"{int(progress * 100)}%", delta=f"{i}/60")
-            m_deadhead.metric("Sunk Cost (Deadhead)", f"{deadhead_accum}s", delta="Accumulating")
-            m_earnings.metric("Net Earnings", f"${pocket_money} MXN")
-            m_traffic.metric("Market Friction", f"{current_traffic:.2f}x",
-                             delta="Gridlock" if current_traffic > 1.3 else "Fluid")
+    def _hms(sec):
+        if sec is None or str(sec) in ("None", "nan", ""):
+            return "—"
+        s = int(float(sec))
+        h, r = divmod(abs(s), 3600)
+        m, s = divmod(r, 60)
+        return f"{h:02d}:{m:02d}:{s:02d}"
 
-            is_premium = i % 7 == 0
-            fare = np.random.randint(85, 380)
+    with offer_col:
+        st.markdown("**Platform Offer** *(what was presented)*")
 
-            if i in accept_indices:
-                decision = "ACCEPT"
-                reason = "Optimal Yield / Home Vector Fit"
-                bg_color = "#1db954"
-            else:
-                decision = "REJECT"
-                if progress < 0.3:
-                    reason = "Low Profitability"
-                elif current_traffic > 1.3:
-                    reason = "Gridlock: Traffic Index Violation"
-                elif progress > 0.8:
-                    reason = "Strategic Mismatch (Non-Homecoming)"
-                else:
-                    reason = "Expected Value Gamble"
-                bg_color = "#e91e63"
+        bonuses = []
+        if row.get("is_surge"):      bonuses.append(f"+${_v(row.get('surge_amount'), '{:.0f}')} Surge")
+        if row.get("is_turbo_plus"): bonuses.append(f"+${_v(row.get('turbo_plus_amount'), '{:.0f}')} Turbo+")
+        bonus_html = " ".join(
+            f"<span style='background:#fef3c7;color:#92400e;border:1px solid #fde68a;"
+            f"border-radius:3px;font-size:0.62rem;font-weight:700;padding:1px 6px;'>{b}</span>"
+            for b in bonuses
+        )
 
-            with naked_card.container(border=True):
-                st.markdown(f"### {'💎 Uber Black' if is_premium else '🚗 UberX'}")
-                st.write(f"**Upfront Fare:** ${fare} MXN")
-                st.write(f"**Trip Duration:** {np.random.randint(12, 45)} mins")
-                st.write(f"**Distance:** {np.random.randint(4, 18)} km")
+        _raw_pickup  = _obf_address(row.get("pickup_address"))
+        _raw_dropoff = _obf_address(row.get("dropoff_address"))
+        pickup_str   = (_raw_pickup[:38]  + "…") if len(_raw_pickup)  > 38 else _raw_pickup
+        dropoff_str  = (_raw_dropoff[:38] + "…") if len(_raw_dropoff) > 38 else _raw_dropoff
+        product_name = re.sub(r"(?i)uberx\b", "X", _v(row.get("str_product"), "{}", "Unknown"))
 
-            with brain_card.container(border=True):
-                st.write(f"🚦 **Traffic Index:** {current_traffic:.2f} (120s/km baseline)")
-                st.write(f"🏠 **Home Alignment:** {0.1 + progress:.2f} (Anzures Vector)")
-                st.write("---")
-                st.write("**Active Heuristic Flags:**")
-                if progress > 0.8:
-                    st.warning("⚠️ `obj_end_session` ACTIVE")
-                if current_traffic > 1.4:
-                    st.error("🛑 `friday_gridlock` TRIGGERED")
-                if i % 4 == 0:
-                    st.info("📉 `deadhead_risk` DETECTED")
+        # decision vars (used below offer card)
+        action   = str(row.get("str_action", "—") or "—")
+        reason   = str(row.get("str_reason",  "—") or "—")
+        acc      = action.lower().startswith("accept")
+        d_emoji  = "✅" if acc else "❌"
+        d_bg     = "#e8f8f1" if acc else "#fdf2f2"
+        d_border = "#21918c" if acc else "#e05252"
+        d_clr    = "#21918c" if acc else "#e05252"
+        d_label  = "Accepted" if acc else action.capitalize()
+        reason_line = (
+            f"<span style='font-size:0.78rem;color:#555;margin-left:10px;'>"
+            f"<strong>reason:</strong> {reason}</span>"
+            if reason not in ("—", "NULL", "None", "nan") else ""
+        )
 
-            verdict_banner.markdown(f"""
-                <div style="background-color: {bg_color}; padding: 30px; border-radius: 15px; text-align: center; margin-top: 16px;">
-                    <h1 style="color: white; font-family: Inter; font-weight: 700; margin: 0; letter-spacing: 2px;">{decision}</h1>
-                    <p style="color: white; font-size: 18px; margin: 10px 0 0 0;">{reason}</p>
-                </div>
-            """, unsafe_allow_html=True)
+        ts = str(row.get('offer_timestamp', '') or '')[:19]
 
-            time.sleep(play_speed)
+        _no_screenshot = all(
+            row.get(f) is None or str(row.get(f)) in ("None", "nan", "")
+            for f in ("upfront_fare", "time_to_pickup_sec", "est_trip_time_sec")
+        )
+        if _no_screenshot:
+            st.markdown(
+                "<div style='background:#fefce8;border:2px solid #facc15;border-radius:7px;"
+                "padding:8px 14px;font-size:0.8rem;color:#713f12;font-weight:600;margin-bottom:8px;'>"
+                "📷 No screenshot was captured for this offer — platform fields unavailable."
+                "</div>",
+                unsafe_allow_html=True
+            )
 
-        st.balloons()
-        st.success("🏁 Session Complete. 60 Offers Filtered | 4 Missions Authorized.")
+        st.markdown(f"""
+        <div style='border:1px solid #eaeaea;border-radius:10px;padding:16px;background:#fff;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;'>
+            <div style='font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>
+              {product_name} {bonus_html}
+            </div>
+            <div style='font-size:0.65rem;font-family:monospace;color:#aaa;font-weight:400;'>{ts}</div>
+          </div>
+          <div style='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;'>
+            <div>
+              <div style='font-size:0.6rem;color:#bbb;font-weight:700;text-transform:uppercase;margin-bottom:2px;'>Upfront Fare</div>
+              <div style='font-size:1.5rem;font-weight:800;color:#1a1a1a;'>${ _obf_fare(row.get('upfront_fare')) }<span style='font-size:0.75rem;font-weight:400;color:#aaa;'> MXN</span></div>
+            </div>
+            <div>
+              <div style='font-size:0.6rem;color:#bbb;font-weight:700;text-transform:uppercase;margin-bottom:2px;'>Driver State</div>
+              <div style='font-size:1.0rem;font-weight:600;color:#1a1a1a;'>{_v(row.get('str_driver_state'))}</div>
+            </div>
+            <div>
+              <div style='font-size:0.6rem;color:#bbb;font-weight:700;text-transform:uppercase;margin-bottom:2px;'>Pickup</div>
+              <div style='font-size:0.95rem;font-weight:600;color:#1a1a1a;'>{_hms(row.get('time_to_pickup_sec'))} &nbsp;<span style='color:#aaa;font-size:0.75rem;'>/ {_v(row.get('dist_to_pickup_km'),'{:.1f}')} km</span></div>
+            </div>
+            <div>
+              <div style='font-size:0.6rem;color:#bbb;font-weight:700;text-transform:uppercase;margin-bottom:2px;'>Est Trip</div>
+              <div style='font-size:0.95rem;font-weight:600;color:#1a1a1a;'>{_hms(row.get('est_trip_time_sec'))} &nbsp;<span style='color:#aaa;font-size:0.75rem;'>/ {_v(row.get('est_trip_dist_km'),'{:.1f}')} km</span></div>
+            </div>
+          </div>
+          <div style='font-size:0.7rem;color:#666;border-top:1px solid #f5f5f5;padding-top:8px;line-height:1.8;'>
+            <div>📍 {pickup_str}</div>
+            <div>🏁 {dropoff_str}</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    else:
-        m_fatigue.metric("Shift Progress", "--")
-        m_deadhead.metric("Sunk Cost", "--")
-        m_earnings.metric("Net Earnings", "--")
-        m_traffic.metric("Market Friction", "--")
-        with naked_card.container(border=True):
-            st.write("Waiting for telemetry stream...")
-        with brain_card.container(border=True):
-            st.write("Initializing state machine...")
+
+    with sm_col:
+        st.markdown("**State Machine Context** *(at decision time)*")
+
+        deadhead    = float(row.get("total_accumulated_deadhead_sec") or 0)
+        consec      = int(row.get("consecutive_rejects") or 0)
+        earnings    = float(row.get("cycle_cumulative_net_earnings") or 0)
+        spread      = float(row.get("cycle_rolling_avg_spread") or 1.0)
+        traffic     = float(row.get("traffic_index_base_120") or 1.0)
+        home_v      = row.get("home_vector_alignment_score")
+        since_last  = row.get("time_since_last_offer")
+        accepted_so_far = int(
+            df.iloc[:idx]["str_action"].str.lower().str.startswith("accept").fillna(False).sum()
+        )
+
+        cr_color = "#e05252" if consec >= 5 else "#f59e0b" if consec >= 3 else "#1a1a1a"
+        ti_color = "#e05252" if traffic > 1.2 else "#f59e0b" if traffic > 1.05 else "#21918c"
+
+        def _stat(label, value, color="#1a1a1a"):
+            return (f"<div style='border:1px solid #eaeaea;border-radius:7px;padding:7px 10px;text-align:center;'>"
+                    f"<div style='font-size:0.58rem;color:#bbb;font-weight:700;text-transform:uppercase;'>{label}</div>"
+                    f"<div style='font-size:0.88rem;font-weight:700;color:{color};'>{value}</div>"
+                    f"</div>")
+
+        st.html(
+            "<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;'>" +
+            _stat("Acc. Deadhead", _hms(deadhead)) +
+            _stat("Since Last Offer",  _hms(since_last)) +
+            _stat("Consec. Rejects",   consec,          cr_color) +
+            _stat("Accepted",          accepted_so_far) +
+            _stat("Cum Earnings",       f"${_obf_eph(earnings)}") +
+            _stat("Spread Ratio",      f"{spread:.3f}") +
+            _stat("Traffic Index",     f"{traffic:.2f}x", ti_color) +
+            _stat("Home Vector Score", f"{float(home_v):.2f}" if home_v is not None else "—") +
+            "</div>"
+        )
+
+        # EPH funnel (precomputed from view)
+        def _eph_row(title, formula, eph_val, downgrade=False):
+            if eph_val is None or str(eph_val) in ("None", "nan", ""):
+                return (f"<div style='border:1px solid #f0f0f0;border-radius:7px;padding:7px 12px;"
+                        f"margin-bottom:5px;color:#ccc;font-size:0.7rem;'>{title} — N/A</div>")
+            v    = float(eph_val)
+            ix   = v / _NORTH_STAR
+            lbl  = "Premium" if ix >= 1.0 else "Discount"
+            clr  = "#21918c" if ix >= 1.0 else "#e05252"
+            dg   = ("<span style='font-size:0.6rem;color:#f59e0b;margin-left:5px;'>⚠ downgrade</span>"
+                    if downgrade else "")
+            return f"""<div style='border:1px solid #eaeaea;border-radius:7px;padding:7px 12px;margin-bottom:5px;background:#fff;'>
+              <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;'>
+                <span style='font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#21918c;'>{title}</span>
+                <span style='font-size:0.6rem;color:#bbb;font-family:monospace;'>{formula}</span>
+              </div>
+              <div style='display:flex;align-items:center;gap:8px;'>
+                <span style='font-size:0.98rem;font-weight:700;color:#1a1a1a;'>${_obf_eph(v)}<span style='font-size:0.64rem;font-weight:400;color:#aaa;'> /hr</span></span>
+                <span style='font-size:0.74rem;font-weight:700;color:{clr};'>{ix:.1f}x</span>
+                <span style='font-size:0.63rem;font-weight:700;color:#fff;background:{clr};padding:1px 6px;border-radius:3px;'>{lbl}</span>
+                {dg}
+              </div>
+            </div>"""
+
+        st.html(
+            _eph_row("T1 · Direct",      "Fare ÷ Trip",                     row.get("eph_direct")) +
+            _eph_row("T2 · Operational", "Fare ÷ (Trip+Pickup)",            row.get("eph_operational"),  bool(row.get("is_operational_downgrade"))) +
+            _eph_row("T3 · Realized",    f"Fare×{spread:.2f} ÷ Trip",      row.get("eph_realized_ML"), bool(row.get("is_spread_downgrade_ML"))) +
+            _eph_row("T4 · Complete",    f"Fare×{spread:.2f} ÷ Cycle",     row.get("eph_complete_ML"), bool(row.get("is_total_cycle_downgrade_ML")))
+        )
+
+    # ── Decision (below both columns, centered) ──
+    st.markdown("**Decision** *(what the agent decided)*")
+    _, d_col, _ = st.columns([1, 3, 1])
+    with d_col:
+        st.html(
+            f"<div style='background:{d_bg};border:2px solid {d_border};border-radius:10px;"
+            f"padding:12px 24px;display:flex;align-items:center;justify-content:center;gap:12px;'>"
+            f"<span style='font-size:1.15rem;font-weight:700;color:{d_clr};'>{d_emoji} {d_label}</span>"
+            f"{reason_line}</div>"
+        )
+
+
 
