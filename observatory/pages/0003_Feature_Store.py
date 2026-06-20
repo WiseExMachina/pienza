@@ -316,62 +316,61 @@ bronze_schema = {
 
 silver_schema = {
     "📡 Market Pressure": [
-        {"id": "S01", "type": "Float",   "name": "time_since_last_offer",    "desc": "Seconds elapsed since previous request. Proxy for market silence."},
-        {"id": "S02–S05", "type": "Integer", "name": "offer_density_[10-180]sec","desc": "Rolling counts of offers across 10, 30, 60, and 180s windows."},
-        {"id": "S06", "type": "Integer", "name": "consecutive_rejects",      "desc": "Stateful counter resetting on acceptance. Proxy for patience threshold."},
+        {"id": "F35", "type": "Float",   "name": "time_since_last_offer",    "desc": "Seconds elapsed since previous request. Proxy for market silence."},
+        {"id": "F36–F39", "type": "Integer", "name": "offer_density_[10-180]sec","desc": "Rolling counts of offers across 10, 30, 60, and 180s windows."},
+        {"id": "F40", "type": "Integer", "name": "consecutive_rejects",      "desc": "Stateful counter resetting on acceptance. Proxy for patience threshold."},
     ],
     "🚦 Supply & Traffic": [
-        {"id": "S07", "type": "Float", "name": "traffic_index_base_120",  "desc": "(Est Trip Time ÷ Est Trip Dist) ÷ 120. Baseline 120 s/km = 5 km in 10 min under ideal conditions. Index = 1.0 means no friction; &gt;1.0 means slower than baseline (congestion)."},
-        {"id": "S08", "type": "Float", "name": "cycle_avg_dtp_km",        "desc": "Mean Distance-to-Pickup in current cycle. High = low local supply."},
-        {"id": "S09", "type": "Float", "name": "cycle_std_dtp_km",        "desc": "Standard deviation of Distance-to-Piickup. Measures supply volatility across the session."},
-        {"id": "S10", "type": "Float", "name": "cycle_ttp_dtp_ratio",     "desc": "Ratio of Pickup Time to Pickup Distance. Localized traffic proxy."},
-        {"id": "S11", "type": "Float", "name": "dispatch_lead_time_sec",  "desc": "Time remaining on active trip when next offer is received (chained logic)."},
+        {"id": "F41", "type": "Float", "name": "traffic_index_base_120",  "desc": "(Est Trip Time ÷ Est Trip Dist) ÷ 120. Baseline 120 s/km = 5 km in 10 min under ideal conditions. Index = 1.0 means no friction; &gt;1.0 means slower than baseline (congestion)."},
+        {"id": "F42", "type": "Float", "name": "cycle_avg_dtp_km",        "desc": "Mean Distance-to-Pickup in current cycle. High = low local supply."},
+        {"id": "F43", "type": "Float", "name": "cycle_std_dtp_km",        "desc": "Standard deviation of Distance-to-Pickup. Measures supply volatility across the session."},
+        {"id": "F44", "type": "Float", "name": "cycle_ttp_dtp_ratio",     "desc": "Ratio of Pickup Time to Pickup Distance. Localized traffic proxy."},
+        {"id": "F45", "type": "Float", "name": "dispatch_lead_time_sec",  "desc": "Time remaining on active trip when next offer is received (chained logic)."},
     ],
     "🧠 Internal State": [
-        {"id": "S12", "type": "Float", "name": "total_acc_deadhead_sec",     "desc": "Cumulative unpaid seconds (Search + Pickup + Waiting) in current cycle."},
-        {"id": "S13", "type": "Float", "name": "cycle_rolling_avg_spread",   "desc": "Temporally-safe rolling average of the Upfront/Realized fare delta."},
-        {"id": "S14", "type": "Float", "name": "cycle_cum_net_earnings",     "desc": "Cumulative realized income for the session."},
+        {"id": "F46", "type": "Float", "name": "total_acc_deadhead_sec",     "desc": "Cumulative unpaid seconds (Search + Pickup + Waiting) in current cycle."},
+        {"id": "F47", "type": "Float", "name": "cycle_rolling_avg_spread",   "desc": "Temporally-safe rolling average of the Upfront/Realized fare delta."},
+        {"id": "F48", "type": "Float", "name": "cycle_cum_net_earnings",     "desc": "Cumulative realized income for the session."},
     ],
     "💹 Profitability Funnel": [
-        {"id": "S15", "type": "Float",        "name": "eph_direct",                    "desc": "Raw EPH (Upfront Fare / Est Trip Time). The platform's raw signal."},
-        {"id": "S16", "type": "Float / Cat",  "name": "eph_direct_index / label",      "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
-        {"id": "S17", "type": "Float",        "name": "eph_operational",               "desc": "True EPH adding Pickup Time. First reality check on the platform signal."},
-        {"id": "S18", "type": "Float / Cat",  "name": "eph_operational_index / label", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
-        {"id": "S19", "type": "Boolean",      "name": "is_operational_downgrade",      "desc": "True if offer flips from Premium (Direct EPH) to Discount (Operational EPH)."},
-        {"id": "S20", "type": "Float",       "name": "eph_realized_ML",               "desc": "Predicted EPH adjusting for historical spread. No future leakage."},
-        {"id": "S21", "type": "Float / Cat", "name": "eph_realized_index / label_ML", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
-        {"id": "S22", "type": "Boolean",     "name": "is_spread_downgrade_ML",        "desc": "True if spread adjustment kills North Star EPH target ($200 MXN/hr)."},
-        {"id": "S23", "type": "Float",       "name": "eph_complete_ML",               "desc": "Holistic EPH: Predicted Fare / Total Cycle Time. True yield signal."},
-        {"id": "S24", "type": "Float / Cat", "name": "eph_complete_index / label_ML", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
-        {"id": "S25", "type": "Boolean",     "name": "is_total_cycle_downgrade_ML",   "desc": "True if final outcome was a downgrade vs EPH realized."},
-        {"id": "S26", "type": "Float",       "name": "eph_realized_EDA",               "desc": "Actual EPH using finalized Realized Fare. Post-facto — firewalled from ML."},
-        {"id": "S27", "type": "Float / Cat", "name": "eph_realized_index / label_EDA", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
-        {"id": "S28", "type": "Boolean",     "name": "is_spread_downgrade_EDA",        "desc": "True if actual payment lowered yield below the North Star."},
-        {"id": "S29", "type": "Float",       "name": "eph_complete_EDA",               "desc": "Absolute Truth EPH: Actual Fare / Actual Total Time. Ground truth yield."},
-        {"id": "S30", "type": "Float / Cat", "name": "eph_complete_index / label_EDA", "desc": "Normalized score.", "categories": ["Premium", "Discount"]},
-        {"id": "S31", "type": "Boolean",     "name": "is_total_cycle_downgrade_EDA",   "desc": "True if final outcome was a downgrade vs EPH realized."},
+        {"id": "F49", "type": "Float",       "name": "eph_direct",              "desc": "Raw EPH (Upfront Fare / Est Trip Time). The platform's raw signal."},
+        {"id": "F50", "type": "Float",       "name": "eph_direct_index",        "desc": "Normalized score: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above = Premium; below = Discount."},
+        {"id": "F51", "type": "Categorical", "name": "eph_direct_label",        "desc": "Binary classification derived from the index.", "categories": ["Premium", "Discount"]},
+        {"id": "F52", "type": "Float",       "name": "eph_operational",         "desc": "True EPH adding Pickup Time. First reality check on the platform signal."},
+        {"id": "F53", "type": "Float",       "name": "eph_operational_index",   "desc": "Normalized score: EPH ÷ $200 MXN/hr."},
+        {"id": "F54", "type": "Categorical", "name": "eph_operational_label",   "desc": "Binary classification derived from the index.", "categories": ["Premium", "Discount"]},
+        {"id": "F55", "type": "Float",       "name": "eph_realized",            "desc": "Predicted EPH adjusting for historical spread. No future leakage."},
+        {"id": "F56", "type": "Float",       "name": "eph_realized_index",      "desc": "Normalized score: EPH ÷ $200 MXN/hr."},
+        {"id": "F57", "type": "Categorical", "name": "eph_realized_label",      "desc": "Binary classification derived from the index.", "categories": ["Premium", "Discount"]},
+        {"id": "F58", "type": "Float",       "name": "eph_complete",            "desc": "Holistic EPH: Predicted Fare / Total Cycle Time. True yield signal."},
+        {"id": "F59", "type": "Float",       "name": "eph_complete_index",      "desc": "Normalized score: EPH ÷ $200 MXN/hr."},
+        {"id": "F60", "type": "Categorical", "name": "eph_complete_label",      "desc": "Binary classification derived from the index.", "categories": ["Premium", "Discount"]},
     ],
     "🧭 Context": [
-        {"id": "S32", "type": "Float",       "name": "home_vector_alignment_score",    "desc": "Cosine Similarity (-1 to 1) of dropoff vector relative to Home Base."},
-        {"id": "S33–S34", "type": "Boolean",     "name": "pickup/dropoff_ambiguity", "desc": "Binary flags for low-confidence geospatial coordinates. One per endpoint."},
-        {"id": "S35", "type": "Int64",       "name": "hour_of_day",       "desc": "Hour of the offer timestamp (5–22). Consecutive integer representing active operating hours."},
-        {"id": "S36", "type": "Categorical", "name": "day_type",         "categories": ["morning", "afternoon", "evening", "night"]},
-        {"id": "S37", "type": "Categorical", "name": "time_of_day_block", "categories": ["weekday", "friday", "weekend"]},
+        {"id": "F61", "type": "Float",       "name": "home_vector_alignment_score", "desc": "Cosine Similarity (-1 to 1) of dropoff vector relative to Home Base."},
+        {"id": "F62–F63", "type": "Boolean", "name": "pickup/dropoff_ambiguity",    "desc": "Binary flags for low-confidence geospatial coordinates. One per endpoint."},
+        {"id": "F64", "type": "Int64",       "name": "hour_of_day",                "desc": "Hour of the offer timestamp (5–22). Consecutive integer representing active operating hours."},
+        {"id": "F65", "type": "Categorical", "name": "day_of_week",               "categories": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]},
+        {"id": "F66", "type": "Categorical", "name": "day_type",                  "categories": ["weekday", "friday", "weekend"]},
+        {"id": "F67", "type": "Categorical", "name": "time_of_day_block",         "categories": ["morning", "afternoon", "evening", "night"]},
     ],
 }
 
 gold_schema = {
     "📍 Spatial Index": [
-        {"id": "G01", "type": "Integer", "name": "pickup_polygon_id",    "desc": "Hand-crafted operational zone polygon containing the pickup coordinate."},
-        {"id": "G02", "type": "Text",    "name": "pickup_h3_hex_id",     "desc": "Uber H3 hexagonal grid cell ID (Res 9) for the pickup location."},
-        {"id": "G03", "type": "Integer", "name": "dropoff_polygon_id",   "desc": "Hand-crafted operational zone polygon containing the dropoff coordinate."},
-        {"id": "G04", "type": "Text",    "name": "dropoff_h3_hex_id",    "desc": "Uber H3 hexagonal grid cell ID (Res 9) for the dropoff location."},
-        {"id": "G05", "type": "Integer", "name": "dropoff_hdbscan_id",   "desc": "HDBSCAN cluster ID — one of 44 machine-discovered demand hubs."},
+        {"id": "F68", "type": "Integer", "name": "pickup_polygon_id",      "desc": "Hand-crafted operational zone polygon containing the pickup coordinate."},
+        {"id": "F69", "type": "String",  "name": "pickup_polygon_name",    "desc": "Human-readable name of the pickup micro-zone."},
+        {"id": "F70", "type": "Text",    "name": "pickup_h3_hex_id",       "desc": "Uber H3 hexagonal grid cell ID (Res 9) for the pickup location."},
+        {"id": "F71", "type": "Integer", "name": "dropoff_polygon_id",     "desc": "Hand-crafted operational zone polygon containing the dropoff coordinate."},
+        {"id": "F72", "type": "String",  "name": "dropoff_polygon_name",   "desc": "Human-readable name of the dropoff micro-zone."},
+        {"id": "F73", "type": "Text",    "name": "dropoff_h3_hex_id",      "desc": "Uber H3 hexagonal grid cell ID (Res 9) for the dropoff location."},
+        {"id": "F74", "type": "Integer", "name": "dropoff_hdbscan_id",     "desc": "HDBSCAN cluster ID — one of 44 machine-discovered demand hubs."},
+        {"id": "F75", "type": "String",  "name": "dropoff_hdbscan_name",   "desc": "Human-readable name of the HDBSCAN cluster."},
     ],
     "🌊 Volatility Suite": [
-        {"id": "G06", "type": "Float", "name": "realized_traffic_index",       "desc": "(Realized Trip Time ÷ Est Trip Dist) ÷ 120. Computed post-facto and only for completed missions — reflects what actually happened on the road, not the platform's estimate. Serves as the anchor for all subsequent rolling features in this suite."},
-        {"id": "G07", "type": "Float", "name": "historical_rolling_avg_traffic_index", "desc": "Session-level rolling average of realized_traffic_index across all completed missions prior to the current offer."},
-        {"id": "G08", "type": "Float", "name": "traffic_volatility_index",     "desc": "The difference between the platform's expected traffic (the \"promise\") and the agent's recent historical traffic performance (historical_rolling_avg_traffic_index). Quantifies the predictive error of the algorithm at the moment an offer is presented."},
+        {"id": "F76", "type": "Float", "name": "realized_traffic_index",              "desc": "(Realized Trip Time ÷ Est Trip Dist) ÷ 120. Computed post-facto and only for completed missions — reflects what actually happened on the road, not the platform's estimate. Serves as the anchor for all subsequent rolling features in this suite."},
+        {"id": "F77", "type": "Float", "name": "historical_rolling_avg_traffic_index","desc": "Session-level rolling average of realized_traffic_index across all completed missions prior to the current offer."},
+        {"id": "F78", "type": "Float", "name": "traffic_volatility_index",            "desc": "The difference between the platform's expected traffic (the \"promise\") and the agent's recent historical traffic performance (historical_rolling_avg_traffic_index). Quantifies the predictive error of the algorithm at the moment an offer is presented."},
     ],
 }
 
@@ -434,33 +433,33 @@ def _render_funnel(features):
     t1 = f"""<div class='funnel-tier'>
       <div class='funnel-tier-label'>Tier 1 · Direct EPH</div>
       <div class='funnel-tier-formula'>Upfront Fare ÷ Est Trip Time</div>
-      {_row('S15','eph_direct','Float','Platform raw signal — the quoted fare divided by estimated trip time.')}
-      {_row('S16','eph_direct_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
-      {_row('S16','eph_direct_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+      {_row('F49','eph_direct','Float','Platform raw signal — the quoted fare divided by estimated trip time.')}
+      {_row('F50','eph_direct_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
+      {_row('F51','eph_direct_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
     </div>"""
 
     t2 = f"""<div class='funnel-tier'>
       <div class='funnel-tier-label'>Tier 2 · Operational EPH</div>
       <div class='funnel-tier-formula'>Upfront Fare ÷ (Est Time + Pickup Time)</div>
-      {_row('S17','eph_operational','Float','First reality check — adds uncompensated pickup time to the cost denominator.')}
-      {_row('S18','eph_operational_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
-      {_row('S18','eph_operational_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+      {_row('F52','eph_operational','Float','First reality check — adds uncompensated pickup time to the cost denominator.')}
+      {_row('F53','eph_operational_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
+      {_row('F54','eph_operational_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
     </div>"""
 
     t3 = f"""<div class='funnel-tier'>
       <div class='funnel-tier-label'>Tier 3 · Realized EPH</div>
       <div class='funnel-tier-formula'>Adjusted Fare ÷ Est Trip Time</div>
-      {_row('S20','eph_realized','Float',"Rolling feature — corrects the quoted fare using the historical spread observed across all rides completed prior to this offer. Updates only after a ride is fully completed, never mid-trip, ensuring zero leakage. Captures the agent's recent financial performance as a behavioral signal.")}
-      {_row('S21','eph_realized_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
-      {_row('S21','eph_realized_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+      {_row('F55','eph_realized','Float',"Rolling feature — corrects the quoted fare using the historical spread observed across all rides completed prior to this offer. Updates only after a ride is fully completed, never mid-trip, ensuring zero leakage. Captures the agent's recent financial performance as a behavioral signal.")}
+      {_row('F56','eph_realized_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
+      {_row('F57','eph_realized_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
     </div>"""
 
     t4 = f"""<div class='funnel-tier funnel-tier-final'>
       <div class='funnel-tier-label'>Tier 4 · Complete EPH</div>
       <div class='funnel-tier-formula'>Adjusted Fare ÷ Total Cycle Time  (Est Trip + Pickup + Deadhead Looking for Rides + Deadhead Waiting for Passenger)</div>
-      {_row('S23','eph_complete','Float','Same rolling logic as Tier 3 — updates only after ride completion, no leakage — but the denominator now carries the full accumulated deadhead cost of the cycle, making this the most conservative and complete yield signal available at decision time.')}
-      {_row('S24','eph_complete_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
-      {_row('S24','eph_complete_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
+      {_row('F58','eph_complete','Float','Same rolling logic as Tier 3 — updates only after ride completion, no leakage — but the denominator now carries the full accumulated deadhead cost of the cycle, making this the most conservative and complete yield signal available at decision time.')}
+      {_row('F59','eph_complete_index','Float','Ratio: EPH ÷ $200 MXN/hr. Exactly 1.0 = at target; above 1.0 = Premium; below 1.0 = Discount.')}
+      {_row('F60','eph_complete_label','Categorical','Binary classification derived from the index → <span class="cat-chip">Premium</span><span class="cat-chip">Discount</span>')}
     </div>"""
 
     return f"""<div class='funnel-wrap'>
@@ -528,7 +527,7 @@ with pipeline_tab:
     _render_step(
         circle_color="#94a3b8",
         label="Silver · Stateful Engineered Features",
-        count=37,
+        count=33,
         why="Session-dependent features computed by a sequential state machine. Captures market pressure, agent fatigue, yield trajectory, and operational EPH variants. Strict no-look-ahead rule: _ML features use only data available at decision time; _EDA features are firewalled.",
         schema=silver_schema,
         radio_key="silver_domain",
@@ -975,6 +974,8 @@ with pb_tab:
             f"<span style='font-size:1.15rem;font-weight:700;color:{d_clr};'>{d_emoji} {d_label}</span>"
             f"{reason_line}</div>"
         )
+
+    st.markdown("<div style='background:#FFFF00;border:3px solid #FFD700;padding:12px 18px;margin-top:32px;font-size:0.85rem;font-weight:700;color:#000;'>⚠️ PENDING: Select Sessions to Display — filter/search UI not yet implemented. | No screenshot flag — yellow flag for missing platform offer fields is not firing correctly; rule logic pending fix. | State machine context cards — add tooltip/hover to each metric card.</div>", unsafe_allow_html=True)
 
 
 
