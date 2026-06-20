@@ -14,7 +14,7 @@ def build_sidebar():
         st.page_link("pages/0001_Foundations.py", label="Foundations")
         st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines")
         st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
-        st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
+        st.page_link("pages/0004_Exploratory_SQL_Sandbox.py", label="Exploratory SQL Sandbox")
         st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
         st.page_link("pages/0302_Causal_Inference.py", label="Causal Inference")
         st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
@@ -29,6 +29,7 @@ def build_sidebar():
         st.page_link("pages/9000_found2.py", label="Found2")
         st.page_link("pages/9000_Foundations_and_Architecture.py", label="Foundations & Architecture")
         st.page_link("pages/9000_Target_and_Feature_Engineering.py", label="Target and Feature Engineering")
+        st.page_link("pages/9000_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox (legacy)")
         st.markdown("---")
         st.markdown("**Author:** Bernardo Lozano Wise")
         st.markdown("**Domain:** Autonomous AV Simulation")
@@ -198,7 +199,7 @@ modules = [
     ("pages/0002_Acquisition_Pipelines.py", "🔄", "Acquisition Pipelines",
      "Dual-engine data collection: GTS Telemetry Simulator and Gemini OCR Pipeline with live BigQuery output."),
      
-    ("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", "💾", "SQL Pipeline & Sandbox", 
+    ("pages/0004_Exploratory_SQL_Sandbox.py", "🔍", "Exploratory SQL Sandbox", 
      "Documents the Star Schema architecture and provides a live BigQuery SQL environment for data auditing."),
      
     ("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", "🛑", "Optimal Stopping", 

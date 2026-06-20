@@ -22,7 +22,7 @@ def build_sidebar():
         st.page_link("pages/0001_Foundations.py", label="Foundations")
         st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines")
         st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
-        st.page_link("pages/0201_SQL_Pipeline_&_Live_Sandbox.py", label="SQL Pipeline & Live Sandbox")
+        st.page_link("pages/0004_Exploratory_SQL_Sandbox.py", label="Exploratory SQL Sandbox")
         st.page_link("pages/0301_Optimal_Stopping_&_The_Efficient_Frontier.py", label="Optimal Stopping & The Efficient Frontier")
         st.page_link("pages/0302_Causal_Inference.py", label="Causal Inference")
         st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
