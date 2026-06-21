@@ -147,6 +147,15 @@ this module is complete.
 
 st.write("")
 
+with st.expander("Relational Schema — full ERD (Vertabelo / RedGate)", expanded=False):
+    erd_path = Path(__file__).resolve().parent.parent / "assets" / "Pienza_ERD.png"
+    if erd_path.exists():
+        st.image(str(erd_path), use_container_width=True, caption="Pienza — Definitive Star Schema")
+    else:
+        st.caption(f"ERD image not found at: {erd_path}")
+
+st.write("")
+
 tab_sandbox, tab_context = st.tabs(["🔍 SQL Sandbox", "🗂️ Data & Architecture"])
 
 # ─────────────────────────────────────────────
@@ -194,28 +203,267 @@ LIMIT 25;""",
 SELECT *
 FROM `{PROJECT}.{DATASET}.v_lifecycle_audit_accepted`
 LIMIT 25;""",
+
+        "Data Census": f"""-- Categorical census: action, product, rejection reason, outcome
+SELECT 'action'  AS dimension, oa.offer_action_description  AS label, COUNT(*) AS n
+FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
+LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa ON oa.offer_action_id = ml.offer_action_fk
+GROUP BY label
+
+UNION ALL
+
+SELECT 'product' AS dimension, pc.category_name AS label, COUNT(*) AS n
+FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
+LEFT JOIN `{PROJECT}.{DATASET}.product_category` pc ON pc.product_category_id = ml.product_category_fk
+GROUP BY label
+
+UNION ALL
+
+SELECT 'reason'  AS dimension, rp.reason_primary_description AS label, COUNT(*) AS n
+FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
+LEFT JOIN `{PROJECT}.{DATASET}.reason_primary` rp ON rp.reason_primary_id = ml.reason_primary_fk
+GROUP BY label
+
+UNION ALL
+
+SELECT 'outcome' AS dimension, oc.outcome_description AS label, COUNT(*) AS n
+FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
+LEFT JOIN `{PROJECT}.{DATASET}.outcome` oc ON oc.outcome_id = CAST(ml.outcome_fk AS INT64)
+GROUP BY label
+ORDER BY dimension, n DESC;""",
+
+        "Incentives": f"""-- Incentive structure: prevalence flags + amounts (surge, turbo+, reservation)
+SELECT
+    is_surge,        surge_amount,
+    is_turbo_plus,   turbo_plus_amount,
+    is_reservation,  reservation_amount
+FROM `{PROJECT}.{DATASET}.offers`;""",
     }
 
     selected = st.pills("", list(QUERIES.keys()), default=list(QUERIES.keys())[0],
                         key="sandbox_pill", label_visibility="collapsed")
 
-    if "sandbox_sql" not in st.session_state or st.session_state.get("_last_pill") != selected:
-        st.session_state.sandbox_sql = QUERIES[selected or list(QUERIES.keys())[0]]
-        st.session_state._last_pill = selected
+    active_pill = selected or list(QUERIES.keys())[0]
+    active_sql  = QUERIES[active_pill]
 
-    query_input = st.text_area("SQL Editor", key="sandbox_sql", height=210, label_visibility="collapsed")
+    with st.expander("View SQL", expanded=False):
+        st.code(active_sql, language="sql")
 
-    if st.button("▶ Execute", type="primary"):
-        if any(k in query_input.upper() for k in ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "CREATE", "MERGE"]):
-            st.error("Read-only mode — SELECT queries only.")
-        elif not _bq_ok:
-            st.error("BigQuery not connected.")
-        else:
-            with st.spinner("Querying pienza_mini…"):
-                df, err = run_query(query_input)
-                if err:
-                    st.error(f"SQL Error: {err}")
-                elif df is not None:
+    if not _bq_ok:
+        st.error("BigQuery not connected.")
+    else:
+        with st.spinner("Querying pienza_mini…"):
+            df, err = run_query(active_sql)
+            if err:
+                st.error(f"SQL Error: {err}")
+            elif df is not None:
+                if selected == "Data Census":
+                    import plotly.graph_objects as go
+                    import re as _re
+
+                    def _clean_label(s):
+                        if s is None:
+                            return s
+                        s = _re.sub(r'(?i)uber_?', '', str(s)).strip('_').strip()
+                        return s if s else str(s)
+
+                    df_action  = df[df["dimension"] == "action"].copy()
+                    df_product = df[df["dimension"] == "product"].copy()
+                    df_reason  = df[df["dimension"] == "reason"].copy()
+                    df_outcome = df[df["dimension"] == "outcome"].copy()
+
+                    df_product["label"] = df_product["label"].apply(_clean_label)
+                    df_reason["label"]  = df_reason["label"].apply(
+                        lambda v: "NaN (accepted)" if v is None or str(v) in ("None", "nan", "") else _clean_label(v)
+                    )
+                    df_outcome["label"] = df_outcome["label"].apply(
+                        lambda v: "NaN (rejected)" if v is None or str(v) in ("None", "nan", "") else _clean_label(v)
+                    )
+
+                    TEAL  = "#21918c"
+                    TEAL2 = "#2db3ad"
+                    GRAY  = "#94a3b8"
+
+                    CALLOUT = """
+<div style='border-left:4px solid #21918c;background:#f0faf9;border-radius:0 8px 8px 0;
+ padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
+  <strong>Class imbalance</strong> — The 93/7 split mirrors operational reality and was handled via
+  <strong>Stratified K-Fold</strong> and the <strong>Cognitive Cascade</strong> architecture.
+  <code>system_logic_failure</code> (5 records) was dropped downstream — pure noise, not a behavioral signal.
+</div>"""
+
+                    if selected == "Data Census":
+                        # ── A: Donut + 2 horizontal bars ──
+                        ACTION_COLORS = {"accepted": TEAL, "reject": GRAY}
+                        fig1 = go.Figure(go.Pie(
+                            labels=df_action["label"], values=df_action["n"],
+                            hole=0.55,
+                            marker_colors=[ACTION_COLORS.get(l, GRAY) for l in df_action["label"]],
+                            textinfo="percent", textfont_size=12,
+                            hovertemplate="%{label}: %{value:,} (%{percent})<extra></extra>",
+                        ))
+                        fig1.update_layout(
+                            title=dict(text="Accept vs. Reject", font_size=14, x=0.5, xanchor="center"),
+                            showlegend=True,
+                            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font_size=11),
+                            height=300,
+                            margin=dict(l=10, r=10, t=40, b=10),
+                            paper_bgcolor="white", font_family="Inter",
+                        )
+                        df_p = df_product.sort_values("n")
+                        fig2 = go.Figure(go.Bar(
+                            x=df_p["n"], y=df_p["label"], orientation="h",
+                            marker_color=TEAL,
+                            text=df_p["n"].apply(lambda v: f"{v:,}"), textposition="outside",
+                            hovertemplate="%{y}: %{x:,}<extra></extra>",
+                        ))
+                        fig2.update_layout(
+                            title=dict(text="Product Mix", font_size=14, x=0.5, xanchor="center"),
+                            xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_p["n"].max() * 1.25]),
+                            yaxis=dict(tickfont_size=11), height=300,
+                            margin=dict(l=10, r=20, t=40, b=10),
+                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        )
+                        df_r = df_reason[df_reason["label"].notna()].sort_values("n")
+                        fig3 = go.Figure(go.Bar(
+                            x=df_r["n"], y=df_r["label"], orientation="h",
+                            marker_color=TEAL2,
+                            text=df_r["n"].apply(lambda v: f"{v:,}"), textposition="outside",
+                            hovertemplate="%{y}: %{x:,}<extra></extra>",
+                        ))
+                        fig3.update_layout(
+                            title=dict(text="Rejection Reasons", font_size=14, x=0.5, xanchor="center"),
+                            xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_r["n"].max() * 1.25]),
+                            yaxis=dict(tickfont_size=11), height=320,
+                            margin=dict(l=10, r=20, t=40, b=10),
+                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        )
+                        df_o = df_outcome.sort_values("n")
+                        fig4 = go.Figure(go.Bar(
+                            x=df_o["n"], y=df_o["label"], orientation="h",
+                            marker_color=TEAL,
+                            text=df_o["n"].apply(lambda v: f"{v:,}"), textposition="outside",
+                            hovertemplate="%{y}: %{x:,}<extra></extra>",
+                        ))
+                        fig4.update_layout(
+                            title=dict(text="Accepted Class — Trip Outcomes", font_size=14, x=0.5, xanchor="center"),
+                            xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_o["n"].max() * 1.25]),
+                            yaxis=dict(tickfont_size=11), height=300,
+                            margin=dict(l=10, r=20, t=40, b=10),
+                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        )
+                        c1, c2 = st.columns(2)
+                        with c1: st.plotly_chart(fig1, use_container_width=True)
+                        with c2: st.plotly_chart(fig2, use_container_width=True)
+                        c3, c4 = st.columns(2)
+                        with c3: st.plotly_chart(fig3, use_container_width=True)
+                        with c4: st.plotly_chart(fig4, use_container_width=True)
+                        st.markdown(CALLOUT, unsafe_allow_html=True)
+
+                elif selected == "Incentives":
+                    import plotly.graph_objects as go
+                    import numpy as np
+
+                    TEAL  = "#21918c"
+                    TEAL2 = "#2db3ad"
+                    GRAY  = "#94a3b8"
+
+                    INCENTIVES = [
+                        ("is_surge",       "surge_amount",       "Surge"),
+                        ("is_turbo_plus",  "turbo_plus_amount",  "Turbo+"),
+                        ("is_reservation", "reservation_amount", "Reservation"),
+                    ]
+                    COLORS = [TEAL, TEAL2, "#5a9e9a"]
+
+                    # ── CHART 1: Grouped prevalence bars (present vs absent per incentive) ──
+                    st.markdown("<p style='font-weight:600;font-size:1rem;margin:8px 0 4px'>Prevalence — present vs. absent for each incentive type</p>", unsafe_allow_html=True)
+                    total = len(df)
+                    inc_labels = [l for _, _, l in INCENTIVES]
+                    pct_present = []
+                    pct_absent  = []
+                    hover_present = []
+                    hover_absent  = []
+                    for (flag, _, label), color in zip(INCENTIVES, COLORS):
+                        active = int(df[flag].sum()) if flag in df.columns else 0
+                        pct_present.append(round(active / total * 100, 1))
+                        pct_absent.append(round((total - active) / total * 100, 1))
+                        hover_present.append(f"{label} present: {active:,} ({active/total*100:.1f}%)")
+                        hover_absent.append(f"{label} absent: {total-active:,} ({(total-active)/total*100:.1f}%)")
+                    fig1 = go.Figure()
+                    fig1.add_trace(go.Bar(
+                        name="Present", x=inc_labels, y=pct_present,
+                        marker_color=TEAL,
+                        text=[f"{v:.1f}%" for v in pct_present], textposition="outside",
+                        hovertext=hover_present, hoverinfo="text",
+                    ))
+                    fig1.add_trace(go.Bar(
+                        name="Absent", x=inc_labels, y=pct_absent,
+                        marker_color=GRAY,
+                        text=[f"{v:.1f}%" for v in pct_absent], textposition="outside",
+                        hovertext=hover_absent, hoverinfo="text",
+                    ))
+                    fig1.update_layout(
+                        barmode="group", height=300,
+                        margin=dict(l=10, r=10, t=10, b=10),
+                        paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font_size=11),
+                        yaxis=dict(showgrid=False, showticklabels=False, range=[0, 120]),
+                        xaxis=dict(tickfont_size=12),
+                    )
+                    st.plotly_chart(fig1, use_container_width=True)
+
+                    # ── CHART 2: Box plots of amounts when active ──
+                    st.markdown("<p style='font-weight:600;font-size:1rem;margin:16px 0 4px'>Amount — distribution when incentive was active (MXN)</p>", unsafe_allow_html=True)
+                    fig2 = go.Figure()
+                    for (flag, amt_col, label), color in zip(INCENTIVES, COLORS):
+                        vals = df.loc[df[flag] == 1, amt_col].dropna().tolist() if flag in df.columns else []
+                        if vals:
+                            fig2.add_trace(go.Box(
+                                y=vals, name=label,
+                                marker_color=color, line_color="#1a6b67",
+                                boxmean=True,
+                                hovertemplate="%{y:.1f} MXN<extra>" + label + "</extra>",
+                            ))
+                    fig2.update_layout(
+                        height=320, showlegend=False,
+                        margin=dict(l=10, r=10, t=10, b=10),
+                        paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        yaxis=dict(title="MXN", gridcolor="#f0f0f0"),
+                        xaxis=dict(tickfont_size=12),
+                    )
+                    st.plotly_chart(fig2, use_container_width=True)
+
+                    # ── CHART 3: Co-occurrence heatmap ──
+                    st.markdown("<p style='font-weight:600;font-size:1rem;margin:16px 0 4px'>Co-occurrence — how often incentives appear together</p>", unsafe_allow_html=True)
+                    flags = [f for f, _, _ in INCENTIVES]
+                    labels = [l for _, _, l in INCENTIVES]
+                    matrix = []
+                    for f1 in flags:
+                        row = []
+                        for f2 in flags:
+                            count = int(((df[f1] == 1) & (df[f2] == 1)).sum()) if f1 in df.columns and f2 in df.columns else 0
+                            row.append(count)
+                        matrix.append(row)
+                    fig3 = go.Figure(go.Heatmap(
+                        z=matrix, x=labels, y=labels,
+                        colorscale=[[0, "#f0faf9"], [1, TEAL]],
+                        text=[[f"{v:,}" for v in row] for row in matrix],
+                        texttemplate="%{text}", textfont=dict(size=14),
+                        showscale=False,
+                        hovertemplate="%{y} ∩ %{x}: %{z:,} offers<extra></extra>",
+                    ))
+                    fig3.update_layout(
+                        height=280,
+                        margin=dict(l=10, r=10, t=10, b=10),
+                        paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        xaxis=dict(tickfont_size=12),
+                        yaxis=dict(tickfont_size=12, autorange="reversed"),
+                    )
+                    col_h, _ = st.columns([1, 1])
+                    with col_h:
+                        st.plotly_chart(fig3, use_container_width=True)
+
+                else:
                     st.success(f"{len(df):,} rows returned.")
                     st.dataframe(df, use_container_width=True)
 
@@ -351,11 +599,3 @@ with tab_context:
 </div>
 """, unsafe_allow_html=True)
 
-    st.write("")
-
-    with st.expander("Relational Schema — full ERD (Vertabelo / RedGate)", expanded=False):
-        erd_path = Path(__file__).resolve().parent.parent / "assets" / "Pienza_ERD.png"
-        if erd_path.exists():
-            st.image(str(erd_path), use_container_width=True, caption="Pienza — Definitive Star Schema")
-        else:
-            st.caption(f"ERD image not found at: {erd_path}")
