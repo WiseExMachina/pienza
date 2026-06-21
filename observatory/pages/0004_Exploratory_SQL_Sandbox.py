@@ -245,6 +245,17 @@ SELECT traffic_index_base_120, hour_of_day
 FROM `{PROJECT}.{DATASET}.v_ML_Supervised`
 WHERE traffic_index_base_120 IS NOT NULL;""",
 
+        "Home Vector": f"""-- Strategic alignment: direction of each offer relative to home base
+-- Score range: -1.0 (directly away) to +1.0 (directly toward home)
+SELECT
+    home_vector_alignment_score,
+    session_progress_ratio,
+    oa.offer_action_description AS action
+FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
+LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa ON oa.offer_action_id = ml.offer_action_fk
+WHERE home_vector_alignment_score IS NOT NULL
+  AND session_progress_ratio IS NOT NULL;""",
+
         "Profitability Funnel": f"""-- EPH funnel: from platform promise to holistic reality
 -- eph_direct = upfront fare / estimated ride time
 -- eph_operational = adds pickup time to denominator
@@ -600,6 +611,138 @@ WHERE ml.eph_direct IS NOT NULL
   driver was actually betting on when accepting or rejecting an offer.
 </div>""", unsafe_allow_html=True)
 
+                elif selected == "Home Vector":
+                    import altair as alt
+                    import pandas as pd
+
+                    TEAL = "#21918c"
+                    GRAY = "#94a3b8"
+
+                    scores = df["home_vector_alignment_score"].dropna().values
+                    total  = len(scores)
+
+                    homeward = int((scores >  0.5).sum())
+                    neutral  = int(((scores >= -0.5) & (scores <= 0.5)).sum())
+                    away     = int((scores < -0.5).sum())
+
+                    # ── Metric cards ──
+                    cards = [
+                        ("Away",      "< -0.5",          away,     "#78716c","Offers pulling the driver further from home"),
+                        ("Neutral",   "-0.5 to +0.5",    neutral,  "#64748b","Offers with no strong directional bias"),
+                        ("Homeward",  "> 0.5",           homeward, TEAL,    "Offers moving the driver toward home base"),
+                    ]
+                    c1, c2, c3 = st.columns(3)
+                    for col, (label, rng, n, color, desc) in zip([c1, c2, c3], cards):
+                        pct = n / total * 100
+                        with col:
+                            st.markdown(f"""
+<div style='background:#fff;border:1px solid #e2e8f0;border-top:3px solid {color};
+     border-radius:8px;padding:14px 16px;'>
+  <div style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
+       color:#94a3b8;margin-bottom:4px;'>{rng}</div>
+  <div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:8px;'>{label}</div>
+  <div style='font-size:1.55rem;font-weight:800;color:{color};line-height:1;'>{pct:.1f}%</div>
+  <div style='font-size:0.68rem;color:#94a3b8;margin-top:3px;'>{n:,} of {total:,} offers</div>
+  <div style='font-size:0.68rem;color:#b0bec5;margin-top:5px;line-height:1.4;'>{desc}</div>
+</div>""", unsafe_allow_html=True)
+
+                    st.write("")
+
+                    # ── Altair histogram + KDE + zone bands ──
+                    df_vec = df[["home_vector_alignment_score"]].dropna().rename(
+                        columns={"home_vector_alignment_score": "score"}
+                    )
+
+                    # Zone band rectangles
+                    zones = pd.DataFrame([
+                        {"x1": -1.0, "x2": -0.5, "zone": "Away",     "color": "#fee2e2"},
+                        {"x1": -0.5, "x2":  0.5, "zone": "Neutral",  "color": "#f8fafc"},
+                        {"x1":  0.5, "x2":  1.0, "zone": "Homeward", "color": "#ccfbf1"},
+                    ])
+                    band = alt.Chart(zones).mark_rect(opacity=0.5).encode(
+                        x=alt.X("x1:Q", scale=alt.Scale(domain=[-1.1, 1.1])),
+                        x2="x2:Q",
+                        color=alt.Color("color:N", scale=None, legend=None),
+                    )
+
+                    # Histogram
+                    hist = alt.Chart(df_vec).mark_bar(
+                        color=TEAL, opacity=0.55, binSpacing=1,
+                    ).encode(
+                        x=alt.X("score:Q", bin=alt.Bin(step=0.05),
+                                title="Alignment Score  (−1.0 = away · 0 = neutral · +1.0 = home)",
+                                scale=alt.Scale(domain=[-1.1, 1.1]),
+                                axis=alt.Axis(tickCount=9, labelFontSize=11, titleFontSize=12,
+                                              grid=False)),
+                        y=alt.Y("count():Q", title="Offers",
+                                axis=alt.Axis(labelFontSize=11, titleFontSize=12, gridColor="#f0f0f0")),
+                        tooltip=[
+                            alt.Tooltip("score:Q", bin=alt.Bin(step=0.05), title="Score bin"),
+                            alt.Tooltip("count():Q", title="Offers"),
+                        ],
+                    )
+
+                    # KDE overlay (manual, secondary y via normalize)
+                    from scipy.stats import gaussian_kde as _kde
+                    x_grid = __import__("numpy").linspace(-1.1, 1.1, 400)
+                    y_kde  = _kde(scores, bw_method=0.15)(x_grid)
+                    # scale KDE to histogram counts
+                    bin_width = 0.05
+                    y_scaled  = y_kde * len(scores) * bin_width
+                    df_kde = pd.DataFrame({"score": x_grid, "density": y_scaled})
+                    kde_line = alt.Chart(df_kde).mark_line(
+                        color="#134e4a", strokeWidth=2, interpolate="monotone",
+                    ).encode(
+                        x="score:Q",
+                        y=alt.Y("density:Q", axis=None),
+                    )
+
+                    # Center rule at 0
+                    center = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(
+                        color="#334155", strokeWidth=1.5, opacity=0.6,
+                    ).encode(x="x:Q")
+
+                    # Zone labels
+                    zone_labels = pd.DataFrame([
+                        {"x": -0.75, "y": y_scaled.max() * 0.92, "text": "AWAY"},
+                        {"x":  0.0,  "y": y_scaled.max() * 0.92, "text": "NEUTRAL"},
+                        {"x":  0.75, "y": y_scaled.max() * 0.92, "text": "HOMEWARD"},
+                    ])
+                    labels = alt.Chart(zone_labels).mark_text(
+                        fontSize=10, fontWeight=700, opacity=0.55,
+                    ).encode(
+                        x="x:Q", y="y:Q", text="text:N",
+                        color=alt.Color("text:N", scale=alt.Scale(
+                            domain=["AWAY", "NEUTRAL", "HOMEWARD"],
+                            range=["#dc2626", "#64748b", "#21918c"],
+                        ), legend=None),
+                    )
+
+                    chart = (
+                        alt.layer(band, hist, kde_line, center, labels)
+                        .properties(
+                            title=alt.TitleParams(
+                                "Strategic Alignment — The Home Vector",
+                                fontSize=14, fontWeight=600, anchor="middle",
+                            ),
+                            height=380,
+                        )
+                        .configure_view(strokeWidth=0)
+                        .configure_title(font="Inter")
+                        .configure_axis(labelFont="Inter", titleFont="Inter")
+                        .interactive()
+                    )
+                    st.altair_chart(chart, use_container_width=True)
+
+
+                    st.markdown("""
+<div style='border-left:4px solid #21918c;background:#f0faf9;border-radius:0 8px 8px 0;
+     padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
+  <strong>What is the Home Vector?</strong> Each offer is scored by how closely its dropoff direction
+  aligns with the driver's home base. <em>+1.0</em> means the ride moves the driver directly
+  homeward; <em>−1.0</em> means it pulls them directly away.
+</div>""", unsafe_allow_html=True)
+
                 elif selected == "Profitability Funnel":
                     import plotly.graph_objects as go
                     import numpy as np
@@ -710,7 +853,8 @@ WHERE ml.eph_direct IS NOT NULL
                     df_long["Stage"] = df_long["col"].map(col_to_label)
 
                     # ── Build KDE manually → long dataframe ──
-                    x_grid = np.linspace(0, df_long["eph"].max() * 1.05, 500)
+                    x_max  = float(np.percentile(df_long["eph"].dropna().values, 99))
+                    x_grid = np.linspace(0, x_max, 600)
                     kde_rows = []
                     median_rows = []
                     for col, label, *_ in STAGES:
@@ -722,7 +866,10 @@ WHERE ml.eph_direct IS NOT NULL
                             kde_rows.append({"Stage": label, "eph": xi, "density": yi})
                         median_rows.append({"Stage": label, "median": float(np.median(vals))})
                     df_kde     = pd.DataFrame(kde_rows)
-                    df_medians = pd.DataFrame(median_rows)
+                    df_medians = pd.DataFrame([
+                        {"Stage": s, "eph": m} for s, m in
+                        [(r["Stage"], r["median"]) for r in median_rows]
+                    ])
 
                     # ── Chart 1: KDE ──
                     area = alt.Chart(df_kde).mark_area(
@@ -747,7 +894,7 @@ WHERE ml.eph_direct IS NOT NULL
                     median_rules = alt.Chart(df_medians).mark_rule(
                         strokeDash=[4, 3], strokeWidth=1.2, opacity=0.65,
                     ).encode(
-                        x="median:Q",
+                        x="eph:Q",
                         color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
                         tooltip=[
                             alt.Tooltip("Stage:N", title="Stage"),
@@ -763,7 +910,7 @@ WHERE ml.eph_direct IS NOT NULL
                         .properties(
                             title=alt.TitleParams("EPH Density — Platform Promise to Full Cost",
                                                   fontSize=14, fontWeight=600, anchor="middle"),
-                            height=300,
+                            height=420,
                         )
                         .configure_view(strokeWidth=0)
                         .configure_title(font="Inter", fontSize=14)
