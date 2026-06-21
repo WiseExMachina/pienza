@@ -3,7 +3,7 @@ from pathlib import Path
 from google.cloud import bigquery
 from components.styles import GLOBAL_CSS
 
-st.set_page_config(page_title="Exploratory SQL Sandbox | Pienza", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon="🔍", layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
@@ -118,7 +118,7 @@ except Exception as _e:
 # ─────────────────────────────────────────────
 # HEADER + BRIDGE
 # ─────────────────────────────────────────────
-st.markdown("# Exploratory SQL Sandbox")
+st.markdown("# Data Census (The Basics)")
 st.markdown("""
 <p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;'>
 With the Feature Store fully defined, the project reconciled every offer against the platform's official
@@ -138,11 +138,6 @@ The financial chain is strictly linear — no circular references, truth flows o
   <div class='chain-arrow'><span class='chain-rel'>1:1</span><span class='chain-glyph'>-></span></div>
   <div class='chain-node'>activity_earnings</div>
 </div>
-<p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;margin-top:14px;'>
-Use the sandbox below to run your own queries against <code>pienza_mini</code> and explore the dataset
-directly. The preset queries cover data lineage checkpoints — the full EDA suite will be added once
-this module is complete.
-</p>
 """, unsafe_allow_html=True)
 
 st.write("")
@@ -153,6 +148,14 @@ with st.expander("Relational Schema — full ERD (Vertabelo / RedGate)", expande
         st.image(str(erd_path), use_container_width=True, caption="Pienza — Definitive Star Schema")
     else:
         st.caption(f"ERD image not found at: {erd_path}")
+
+st.markdown("""
+<p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;margin-top:14px;'>
+The pills below surface the first layer of exploratory analysis — categorical counts, incentive structures,
+traffic patterns, and financial profiles across the ~4,700 collected offers. This is the baseline census:
+what the dataset looks like before any modelling assumptions are applied.
+</p>
+""", unsafe_allow_html=True)
 
 st.write("")
 
@@ -586,13 +589,14 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                 df_t = df[
                     (df["hour_of_day"] >= hour_range[0]) &
                     (df["hour_of_day"] <= hour_range[1])
-                ]
-                vals = df_t["traffic_index_base_120"].dropna().values
-                total = len(vals)
+                ].copy()
 
-                if total == 0:
+                if len(df_t) == 0:
                     st.warning("No data for selected hour range.")
                 else:
+                    vals = df_t["traffic_index_base_120"].dropna().values
+                    total = len(vals)
+
                     # ── CHART 1: Histogram ──
                     counts, bin_edges = np.histogram(vals, bins=50)
                     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
@@ -645,7 +649,8 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                     with c1: st.plotly_chart(fig1, use_container_width=True)
                     with c2: st.plotly_chart(fig2, use_container_width=True)
 
-                    legend_items = "".join([
+                    # ── Metric keys ──
+                    key_items = "".join([
                         f"""<div style='display:flex;align-items:center;gap:6px;white-space:nowrap;'>
                           <div style='width:10px;height:10px;border-radius:2px;background:{color};flex-shrink:0;'></div>
                           <span style='font-size:0.78rem;color:#334155;'><strong>{label}</strong> — {anchor}</span>
@@ -653,25 +658,17 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                         for (_, _, label, anchor), color in zip(CLASSES, CLASS_COLORS)
                     ])
                     st.markdown(
-                        f"<div style='display:flex;flex-wrap:wrap;justify-content:center;gap:12px 24px;"
-                        f"padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{legend_items}</div>",
+                        f"<div style='display:flex;flex-wrap:wrap;gap:10px 28px;"
+                        f"padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{key_items}</div>",
                         unsafe_allow_html=True)
 
                     st.markdown("""
 <div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
  padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
-  <strong>Note:</strong> These charts reflect the <em>expected</em> traffic conditions shown on the offer card at the moment of decision.
-  Realized traffic — what people in Mexico City actually experience — is generally worse.
+  These figures reflect the <em>expected</em> traffic conditions shown on the offer card at the moment of decision.
+  Realized traffic — what drivers in Mexico City actually experience — is generally worse.
 </div>""", unsafe_allow_html=True)
 
-                    st.markdown("""
-<div style='border:3px solid #FFD700;background:#FFFF00;border-radius:8px;
- padding:14px 18px;margin-top:12px;font-size:0.82rem;color:#1a1a1a;line-height:1.65;'>
-  <strong>🚧 Coming soon — Traffic Volatility</strong><br>
-  Expected conditions are only half the story. The Gold-layer <code>traffic_volatility_index</code> captures
-  how unpredictable conditions were relative to the historical baseline — completing the picture of what the
-  driver was actually betting on when accepting or rejecting an offer.
-</div>""", unsafe_allow_html=True)
 
             elif active_pill == "Home Vector":
                 import altair as alt
@@ -808,15 +805,12 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                 import re as _re
 
                 TEAL  = "#21918c"
-                TEAL2 = "#2db3ad"
-                TEAL3 = "#5a9e9a"
-                GRAY  = "#94a3b8"
 
                 STAGES = [
-                    ("eph_direct",       "Direct",       TEAL,  "Platform promise",      "Upfront fare ÷ estimated ride time"),
-                    ("eph_operational",  "Operational",  TEAL2, "+ Pickup time",          "Adds dead time driving to the passenger"),
-                    ("eph_realized_EDA", "Realized",     TEAL3, "+ Spread correction",    "What was actually settled vs. the quoted fare"),
-                    ("eph_complete_EDA", "Complete",     GRAY,  "+ Full cost accounting", "Pickup + spread + unpaid kilometers"),
+                    ("eph_direct",       "Direct",       "#99d5d1", "Platform promise",      "Upfront fare ÷ estimated ride time"),
+                    ("eph_operational",  "Operational",  "#2db3ad", "+ Pickup time",          "Adds dead time driving to the passenger"),
+                    ("eph_realized_EDA", "Realized",     "#21918c", "+ Spread correction",    "What was actually settled vs. the quoted fare"),
+                    ("eph_complete_EDA", "Complete",     "#0a4a47", "+ Full cost accounting", "Pickup + spread + unpaid kilometers"),
                 ]
 
                 # ── Product category filter ──
@@ -876,7 +870,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                         f"<div style='font-size:0.72rem;font-weight:600;"
                         f"color:{'#ef4444' if delta < 0 else TEAL};margin-top:6px;'>"
                         f"{delta:+.0f} MXN/hr</div>"
-                    ) if delta is not None else ""
+                    ) if delta is not None else "<div style='font-size:0.72rem;font-weight:600;color:#cbd5e1;margin-top:6px;'>-- MXN/hr</div>"
                     with card_cols[i]:
                         st.markdown(f"""
 <div style='background:#fff;border:1px solid #e2e8f0;border-top:3px solid {color};
@@ -892,17 +886,23 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
 
                 st.write("")
 
-                import altair as alt
                 import pandas as pd
-                from scipy.stats import gaussian_kde as _kde
 
-                STAGE_ORDER = ["Direct", "Operational", "Realized", "Complete"]
-                COLOR_SCALE = alt.Scale(
-                    domain=STAGE_ORDER,
-                    range=[TEAL, TEAL2, TEAL3, GRAY],
-                )
+                STAGE_ORDER  = ["Direct", "Operational", "Realized", "Complete"]
+                STAGE_COLORS = {
+                    "Direct":      "#99d5d1",
+                    "Operational": "#2db3ad",
+                    "Realized":    "#21918c",
+                    "Complete":    "#0a4a47",
+                }
+                STAGE_CONTEXT = {
+                    "Direct":      "Upfront Fare ÷ Est. Trip Time",
+                    "Operational": "Upfront Fare ÷ (Pickup + Est. Trip Time)",
+                    "Realized":    "Realized Fare ÷ Est. Trip Time",
+                    "Complete":    "Realized Fare ÷ (Total Deadhead + Est. Trip Time)",
+                }
 
-                # ── Melt to long format (for box plots) ──
+                # ── Melt to long format ──
                 col_to_label = {col: label for col, label, *_ in STAGES}
                 df_long = (
                     df_f[[c for c, *_ in STAGES]]
@@ -910,190 +910,147 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                     .dropna()
                 )
                 df_long["Stage"] = df_long["col"].map(col_to_label)
+                # cap at 99th pct for display
+                _cap = float(np.percentile(df_long["eph"].values, 99))
+                df_long = df_long[df_long["eph"] <= _cap]
 
-                # ── Build KDE manually → long dataframe ──
-                x_max  = float(np.percentile(df_long["eph"].dropna().values, 99))
-                x_grid = np.linspace(0, x_max, 600)
-                kde_rows = []
-                median_rows = []
-                for col, label, *_ in STAGES:
-                    vals = df_f[col].dropna().values
-                    if len(vals) < 2:
-                        continue
-                    y = _kde(vals, bw_method=0.18)(x_grid)
-                    for xi, yi in zip(x_grid, y):
-                        kde_rows.append({"Stage": label, "eph": xi, "density": yi})
-                    median_rows.append({"Stage": label, "median": float(np.median(vals))})
-                df_kde     = pd.DataFrame(kde_rows)
-                df_medians = pd.DataFrame([
-                    {"Stage": s, "eph": m} for s, m in
-                    [(r["Stage"], r["median"]) for r in median_rows]
-                ])
+                # ── Violin + strip chart (Plotly, vertical) ──
+                fig = go.Figure()
 
-                # ── Chart 1: KDE ──
-                area = alt.Chart(df_kde).mark_area(
-                    opacity=0.1, interpolate="monotone",
-                ).encode(
-                    x=alt.X("eph:Q", title="MXN / hr",
-                            axis=alt.Axis(grid=True, gridColor="#f0f0f0", tickCount=8,
-                                          labelFontSize=11, titleFontSize=12)),
-                    y=alt.Y("density:Q", title=None, axis=None),
-                    color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER,
-                                    legend=alt.Legend(orient="top", title=None,
-                                                      labelFontSize=11, symbolSize=100,
-                                                      padding=10, columnPadding=16)),
-                )
-                line = alt.Chart(df_kde).mark_line(
-                    strokeWidth=2, interpolate="monotone",
-                ).encode(
-                    x="eph:Q",
-                    y="density:Q",
-                    color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
-                )
-                # ⚠️ PENDING FIX — KDE tooltip format (.2f) is ignored by Altair 6.2.1
-                # Root cause: format spec on Tooltip is silently dropped when the chart uses
-                # alt.layer() + multiple configure_*() calls. The layered chart's configure
-                # pipeline overrides or strips encoding-level tooltip formatting.
-                # Attempted fixes that did NOT work:
-                #   - alt.Tooltip("eph:Q", format=".2f") on mark_rule → ignored
-                #   - alt.Tooltip("median:Q", format=".2f") with renamed column → ignored
-                #   - Moving configure_* to individual sub-charts → breaks legend/axis styling
-                #   - Using formatType="number" alongside format → same result
-                # Next avenue to try: compute a pre-formatted string column and use :N instead of :Q
-                median_rules = alt.Chart(df_medians).mark_rule(
-                    strokeDash=[4, 3], strokeWidth=1.2, opacity=0.65,
-                ).encode(
-                    x="eph:Q",
-                    color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
-                    tooltip=[
-                        alt.Tooltip("Stage:N", title="Stage"),
-                        alt.Tooltip("eph:Q", format=".2f", title="Median MXN/hr"),  # format ignored — see note above
-                    ],
-                )
-                ref_rule = alt.Chart(pd.DataFrame({"x": [200]})).mark_rule(
-                    strokeDash=[6, 4], strokeWidth=1.5, color="#475569", opacity=0.7,
-                ).encode(x="x:Q")
+                for stage in STAGE_ORDER:
+                    vals = df_long[df_long["Stage"] == stage]["eph"].values
+                    color = STAGE_COLORS[stage]
 
-                kde_chart = (
-                    alt.layer(area, line, median_rules, ref_rule)
-                    .properties(
-                        title=alt.TitleParams("EPH Density — Platform Promise to Full Cost",
-                                              fontSize=14, fontWeight=600, anchor="middle"),
-                        height=420,
+                    fig.add_trace(go.Violin(
+                        y=vals,
+                        x=[stage] * len(vals),
+                        name=stage,
+                        fillcolor=color,
+                        opacity=0.22,
+                        line_color=color,
+                        line_width=1.5,
+                        points="all",
+                        jitter=0.35,
+                        pointpos=0,
+                        marker=dict(color=color, size=2, opacity=0.12),
+                        showlegend=False,
+                        hoveron="points+violins",
+                        hovertemplate="<b>%{x}</b><br>EPH: $%{y:.2f} MXN/hr<extra></extra>",
+                        spanmode="soft",
+                        box_visible=False,
+                        meanline_visible=False,
+                    ))
+
+                    # median badge
+                    med = float(np.median(vals))
+                    fig.add_annotation(
+                        x=stage, y=med,
+                        text=f"<b>${med:.0f}</b>",
+                        showarrow=False,
+                        xshift=42,
+                        font=dict(size=12, color=color, family="Inter"),
+                        bgcolor="white",
+                        bordercolor=color,
+                        borderwidth=1,
+                        borderpad=3,
                     )
-                    .configure_view(strokeWidth=0)
-                    .configure_title(font="Inter", fontSize=14)
-                    .configure_axis(labelFont="Inter", titleFont="Inter")
-                    .configure_legend(labelFont="Inter")
-                    .interactive()
-                )
-                st.altair_chart(kde_chart, use_container_width=True)
-
-                # ── Chart 2: Manual box plots (layered primitives for full tooltip control) ──
-                box_stats = []
-                for col, label, color, *_ in STAGES:
-                    vals = df_f[col].dropna().values
-                    if len(vals) < 4:
-                        continue
-                    q1, med, q3 = float(np.percentile(vals, 25)), float(np.median(vals)), float(np.percentile(vals, 75))
-                    iqr = q3 - q1
-                    lo = float(max(vals.min(), q1 - 1.5 * iqr))
-                    hi = float(min(vals.max(), q3 + 1.5 * iqr))
-                    box_stats.append({"Stage": label, "q1": q1, "median": med, "q3": q3,
-                                      "lower": lo, "upper": hi})
-                df_box = pd.DataFrame(box_stats)
-
-                _y  = alt.Y("Stage:N", sort=STAGE_ORDER, title=None,
-                            axis=alt.Axis(labelFontSize=12))
-                _c  = alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None)
-                _tt = [
-                    alt.Tooltip("Stage:N",  title="Stage"),
-                    alt.Tooltip("median:Q", title="Median",     format=".2f"),
-                    alt.Tooltip("q1:Q",     title="Q1",         format=".2f"),
-                    alt.Tooltip("q3:Q",     title="Q3",         format=".2f"),
-                    alt.Tooltip("lower:Q",  title="Whisker lo", format=".2f"),
-                    alt.Tooltip("upper:Q",  title="Whisker hi", format=".2f"),
-                ]
-                _base = alt.Chart(df_box)
-
-                _whisker = _base.mark_rule(strokeWidth=1.4).encode(
-                    x=alt.X("lower:Q", title="MXN / hr",
-                            axis=alt.Axis(grid=True, gridColor="#f0f0f0",
-                                          tickCount=8, labelFontSize=11, titleFontSize=12)),
-                    x2="upper:Q",
-                    y=_y, color=_c, tooltip=_tt,
-                )
-                _box_bar = _base.mark_bar(size=22).encode(
-                    x=alt.X("q1:Q"), x2="q3:Q",
-                    y=_y, color=_c, tooltip=_tt,
-                )
-                _median_tick = _base.mark_tick(
-                    color="white", thickness=2, size=22,
-                ).encode(x=alt.X("median:Q"), y=_y, tooltip=_tt)
-                _whisker_lo = _base.mark_tick(strokeWidth=1.4, size=10).encode(
-                    x=alt.X("lower:Q"), y=_y, color=_c, tooltip=_tt,
-                )
-                _whisker_hi = _base.mark_tick(strokeWidth=1.4, size=10).encode(
-                    x=alt.X("upper:Q"), y=_y, color=_c, tooltip=_tt,
-                )
-
-                box_chart = (
-                    alt.layer(_whisker, _box_bar, _median_tick, _whisker_lo, _whisker_hi)
-                    .properties(
-                        title=alt.TitleParams("EPH Distribution — Stage by Stage",
-                                              fontSize=14, fontWeight=600, anchor="middle"),
-                        height=240,
+                    # context label below stage name
+                    fig.add_annotation(
+                        x=stage, y=-0.10,
+                        yref="paper",
+                        text=f"<i>{STAGE_CONTEXT[stage]}</i>",
+                        showarrow=False,
+                        font=dict(size=8, color="#888", family="Inter"),
+                        xanchor="center",
                     )
-                    .configure_view(strokeWidth=0)
-                    .configure_title(font="Inter", fontSize=14)
-                    .configure_axis(labelFont="Inter", titleFont="Inter")
-                    .interactive()
+
+                # Median legend box — top-right corner
+                fig.add_annotation(
+                    x=1.0, y=1.0,
+                    xref="paper", yref="paper",
+                    text="<b>$</b>  median",
+                    showarrow=False,
+                    xanchor="right", yanchor="top",
+                    font=dict(size=10, color="#21918c", family="Inter"),
+                    bgcolor="white",
+                    bordercolor="#21918c",
+                    borderwidth=1,
+                    borderpad=5,
                 )
-                st.altair_chart(box_chart, use_container_width=True)
+
+                # North Star reference line + label inside plot area
+                fig.add_hline(
+                    y=200,
+                    line_dash="dash", line_color="#475569", line_width=1.5,
+                    opacity=0.6,
+                )
+                fig.add_annotation(
+                    x=0.01, y=200,
+                    xref="paper", yref="y",
+                    text="<b>North Star $200 MXN/hr</b>",
+                    showarrow=False,
+                    xanchor="left",
+                    yshift=10,
+                    font=dict(size=9, color="#475569", family="Inter"),
+                )
+
+                fig.update_layout(
+                    height=520,
+                    margin=dict(l=20, r=40, t=50, b=80),
+                    paper_bgcolor="white",
+                    plot_bgcolor="white",
+                    hovermode="closest",
+                    xaxis=dict(
+                        categoryorder="array",
+                        categoryarray=STAGE_ORDER,
+                        tickfont=dict(family="Inter", size=12),
+                        showgrid=False,
+                        title=None,
+                    ),
+                    yaxis=dict(
+                        title="MXN / hr",
+                        gridcolor="#f0f0f0",
+                        zeroline=False,
+                        tickfont=dict(family="Inter", size=11),
+                        title_font=dict(family="Inter", size=12),
+                    ),
+                    violingap=0.4,
+                    violingroupgap=0,
+                )
+                st.plotly_chart(fig, use_container_width=True)
 
                 # ── Stage descriptors ──
                 desc_items = "".join([
                     f"""<div style='display:flex;align-items:flex-start;gap:8px;'>
-                      <div style='width:9px;height:9px;border-radius:2px;background:{color};
+                      <div style='width:9px;height:9px;border-radius:2px;background:{STAGE_COLORS[label]};
                            flex-shrink:0;margin-top:3px;'></div>
                       <span style='font-size:0.78rem;color:#334155;'>
                         <strong>{label}</strong> — {desc}
                       </span>
                     </div>"""
-                    for _, label, color, __, desc in STAGES
+                    for _, label, _, __, desc in STAGES
                 ])
                 st.markdown(
                     f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;"
                     f"padding:12px 16px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{desc_items}</div>",
                     unsafe_allow_html=True)
 
-                st.markdown("""
-<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
- padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
-  <strong>Reading the funnel:</strong> Each stage reveals more of the true hourly rate.
-  <em>Direct</em> is what the platform displays; <em>Complete</em> is what the driver actually earns per hour
-  of real time invested — including the unpaid kilometers driven to reach the passenger.<br><br>
-  <strong>Multiple peaks in the density?</strong> That is a <em>multimodal distribution</em> — the data contains
-  distinct clusters of trip types (short city runs, airport transfers, late-night surges) each forming its
-  own earnings band. Most visible in the <em>Black</em> category, where premium pricing creates
-  well-separated fare tiers.
-</div>""", unsafe_allow_html=True)
+                _north_star = 200
+                _pct = {}
+                for col, label, *_ in STAGES:
+                    vals = df_f[col].dropna().values
+                    _pct[label] = 100 * (vals > _north_star).sum() / len(vals) if len(vals) > 0 else 0
+                _drop = _pct["Direct"] - _pct["Complete"]
 
-                st.markdown("""
-<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
- padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
-  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
-    color:#cc6600;'>⚠ PENDING FIX — KDE tooltip decimal formatting</span><br><br>
-  Hovering over the median dashed lines in the KDE chart shows unformatted values (many decimals).
-  The <code>format=".2f"</code> spec on <code>alt.Tooltip</code> is silently ignored in Altair 6.2.1
-  when the chart is built with <code>alt.layer()</code> + multiple <code>configure_*()</code> calls —
-  the configure pipeline strips encoding-level tooltip formatting.<br><br>
-  <strong>Already tried:</strong> <code>format=".2f"</code> on rule tooltip · renamed column to
-  <code>median</code> · <code>formatType="number"</code> · moving <code>configure_*</code> to
-  sub-charts (breaks legend/axis styling).<br><br>
-  <strong>Next avenue:</strong> pre-format the median value as a string column and encode as <code>:N</code>
-  instead of <code>:Q</code> to bypass Altair's format resolution entirely.
-</div>""", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);"
+                    f"border-radius:0 8px 8px 0;padding:12px 16px;margin-top:8px;font-size:0.82rem;"
+                    f"color:#334155;line-height:1.8;'>"
+                    f"<strong>{_pct['Direct']:.1f}%</strong> of offers clear the $200 MXN/hr North Star at the "
+                    f"quoted rate. Accounting for pickup time, fare spread, and unpaid kilometers, "
+                    f"that figure drops to <strong>{_pct['Complete']:.1f}%</strong>."
+                    f"</div>",
+                    unsafe_allow_html=True)
 
             else:
                 st.success(f"{len(df):,} rows returned.")
