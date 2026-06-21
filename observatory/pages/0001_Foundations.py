@@ -209,7 +209,7 @@ with tab1:
   </div>
 </div>
 
-<div style="background:#f0faf9;border-left:3px solid #21918c;border-radius:6px;padding:12px 16px;margin-top:16px;font-size:0.85rem;color:#333;line-height:1.65;">
+<div style="background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:6px;padding:12px 16px;margin-top:16px;font-size:0.85rem;color:#333;line-height:1.65;">
   <strong>High-Fidelity Cognitive Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable (<code>reason_primary</code>). Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
 </div>
     """, unsafe_allow_html=True)
@@ -408,7 +408,7 @@ with tab2:
 .phase-card-title { font-weight: 700; font-size: 0.95rem; color: #121212; margin-bottom: 2px; }
 .phase-card-meta { font-size: 0.78rem; color: #888; margin-bottom: 8px; }
 .phase-card-meta .arch-tag {
-    display: inline-block; background: #f0faf9; color: #21918c;
+    display: inline-block; background: rgba(33,145,140,0.07); color: #21918c;
     border: 1px solid #c2e8e5; border-radius: 4px;
     padding: 1px 6px; font-size: 0.72rem; font-weight: 600;
     margin-left: 8px;

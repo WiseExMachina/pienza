@@ -11,7 +11,7 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Proyect Pienza")
+        st.markdown("Project Pienza")
         st.markdown("---")
         st.page_link("main.py", label="Home")
         st.page_link("pages/0001_Foundations.py", label="Foundations")
@@ -156,55 +156,10 @@ with st.expander("Relational Schema — full ERD (Vertabelo / RedGate)", expande
 
 st.write("")
 
-tab_sandbox, tab_context = st.tabs(["🔍 SQL Sandbox", "🗂️ Data & Architecture"])
 
-# ─────────────────────────────────────────────
-# TAB 1 — SQL SANDBOX
-# ─────────────────────────────────────────────
-with tab_sandbox:
-    st.markdown("<div class='sec-sub'>Pick a starting query or write your own. Read-only — SELECT statements only.</div>", unsafe_allow_html=True)
 
-    QUERIES = {
-        "Decision & Product Mix": f"""-- Decision and product-category distribution
-SELECT
-    oa.offer_action_description AS action,
-    pc.category_name            AS product,
-    COUNT(*)                    AS n,
-    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) AS pct
-FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
-LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa     ON oa.offer_action_id = ml.offer_action_fk
-LEFT JOIN `{PROJECT}.{DATASET}.product_category` pc ON pc.product_category_id = ml.product_category_fk
-GROUP BY 1, 2
-ORDER BY n DESC;""",
-
-        "Mission Dossier (EPH)": f"""-- Per-trip KPIs: spread, EPH tiers (the Golden Link)
-SELECT *
-FROM `{PROJECT}.{DATASET}.v_mission_dossier`
-LIMIT 25;""",
-
-        "ML Feature Vector": f"""-- Canonical ML view: full feature vector
-SELECT
-    ml.offer_id,
-    oa.offer_action_description AS str_action,
-    pc.category_name            AS str_product,
-    ml.eph_direct,
-    ml.eph_operational,
-    ml.eph_realized_ML,
-    ml.eph_complete_ML,
-    ml.consecutive_rejects,
-    ml.time_since_last_offer,
-    ml.cycle_cum_net_earnings
-FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
-LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa     ON oa.offer_action_id = ml.offer_action_fk
-LEFT JOIN `{PROJECT}.{DATASET}.product_category` pc ON pc.product_category_id = ml.product_category_fk
-LIMIT 25;""",
-
-        "Lifecycle Audit": f"""-- GTS timestamps vs. platform server logs (delta validation)
-SELECT *
-FROM `{PROJECT}.{DATASET}.v_lifecycle_audit_accepted`
-LIMIT 25;""",
-
-        "Data Census": f"""-- Categorical census: action, product, rejection reason, outcome
+QUERIES = {
+    "Decision & Product Mix": f"""-- Categorical census: action, product, rejection reason, outcome
 SELECT 'action'  AS dimension, oa.offer_action_description  AS label, COUNT(*) AS n
 FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
 LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa ON oa.offer_action_id = ml.offer_action_fk
@@ -232,598 +187,702 @@ LEFT JOIN `{PROJECT}.{DATASET}.outcome` oc ON oc.outcome_id = CAST(ml.outcome_fk
 GROUP BY label
 ORDER BY dimension, n DESC;""",
 
-        "Incentives": f"""-- Incentive structure: prevalence flags + amounts (surge, turbo+, reservation)
+    "Incentives": f"""-- Incentive structure: prevalence flags + amounts (surge, turbo+, reservation)
 SELECT
-    is_surge,        surge_amount,
-    is_turbo_plus,   turbo_plus_amount,
-    is_reservation,  reservation_amount
+is_surge,        surge_amount,
+is_turbo_plus,   turbo_plus_amount,
+is_reservation,  reservation_amount
 FROM `{PROJECT}.{DATASET}.offers`;""",
 
-        "Traffic Index": f"""-- Traffic Index by hour of day
+    "Traffic Index": f"""-- Traffic Index by hour of day
 -- 1.0 = baseline (2 min/km). Values >3.0 are CDMX gridlock territory.
 SELECT traffic_index_base_120, hour_of_day
 FROM `{PROJECT}.{DATASET}.v_ML_Supervised`
 WHERE traffic_index_base_120 IS NOT NULL;""",
 
-        "Home Vector": f"""-- Strategic alignment: direction of each offer relative to home base
+    "Home Vector": f"""-- Strategic alignment: direction of each offer relative to home base
 -- Score range: -1.0 (directly away) to +1.0 (directly toward home)
 SELECT
-    home_vector_alignment_score,
-    session_progress_ratio,
-    oa.offer_action_description AS action
+home_vector_alignment_score,
+session_progress_ratio,
+oa.offer_action_description AS action
 FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
 LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa ON oa.offer_action_id = ml.offer_action_fk
 WHERE home_vector_alignment_score IS NOT NULL
   AND session_progress_ratio IS NOT NULL;""",
 
-        "Profitability Funnel": f"""-- EPH funnel: from platform promise to holistic reality
+    "Profitability Funnel": f"""-- EPH funnel: from platform promise to holistic reality
 -- eph_direct = upfront fare / estimated ride time
 -- eph_operational = adds pickup time to denominator
 -- eph_realized_EDA = corrects for spread (what was actually paid)
 -- eph_complete_EDA = full cost: pickup + spread + dead miles
 SELECT
-    ml.eph_direct,
-    ml.eph_operational,
-    ml.eph_realized_EDA,
-    ml.eph_complete_EDA,
-    pc.category_name AS product
+ml.eph_direct,
+ml.eph_operational,
+ml.eph_realized_EDA,
+ml.eph_complete_EDA,
+pc.category_name AS product
 FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
 LEFT JOIN `{PROJECT}.{DATASET}.product_category` pc ON pc.product_category_id = ml.product_category_fk
 WHERE ml.eph_direct IS NOT NULL
   AND ml.eph_direct < 1000;""",
-    }
+}
 
-    selected = st.pills("", list(QUERIES.keys()), default=list(QUERIES.keys())[0],
-                        key="sandbox_pill", label_visibility="collapsed")
+selected = st.pills("", list(QUERIES.keys()), default=list(QUERIES.keys())[0],
+                    key="sandbox_pill", label_visibility="collapsed")
 
-    active_pill = selected or list(QUERIES.keys())[0]
-    active_sql  = QUERIES[active_pill]
+active_pill = selected or list(QUERIES.keys())[0]
+active_sql  = QUERIES[active_pill]
 
-    with st.expander("View SQL", expanded=False):
-        st.code(active_sql, language="sql")
+with st.expander("View SQL", expanded=False):
+    st.code(active_sql, language="sql")
 
-    if not _bq_ok:
-        st.error("BigQuery not connected.")
-    else:
-        with st.spinner("Querying pienza_mini…"):
-            df, err = run_query(active_sql)
-            if err:
-                st.error(f"SQL Error: {err}")
-            elif df is not None:
-                if selected == "Data Census":
-                    import plotly.graph_objects as go
-                    import re as _re
+if not _bq_ok:
+    st.error("BigQuery not connected.")
+else:
+    with st.spinner("Querying pienza_mini…"):
+        df, err = run_query(active_sql)
+        if err:
+            st.error(f"SQL Error: {err}")
+        elif df is not None:
+            if active_pill == "Decision & Product Mix":
+                import plotly.graph_objects as go
+                import re as _re
 
-                    def _clean_label(s):
-                        if s is None:
-                            return s
-                        s = _re.sub(r'(?i)uber_?', '', str(s)).strip('_').strip()
-                        return s if s else str(s)
+                def _clean_label(s):
+                    if s is None:
+                        return s
+                    s = _re.sub(r'(?i)uber_?', '', str(s)).strip('_').strip()
+                    return s if s else str(s)
 
-                    df_action  = df[df["dimension"] == "action"].copy()
-                    df_product = df[df["dimension"] == "product"].copy()
-                    df_reason  = df[df["dimension"] == "reason"].copy()
-                    df_outcome = df[df["dimension"] == "outcome"].copy()
+                df_action  = df[df["dimension"] == "action"].copy()
+                df_product = df[df["dimension"] == "product"].copy()
+                df_reason  = df[df["dimension"] == "reason"].copy()
+                df_outcome = df[df["dimension"] == "outcome"].copy()
 
-                    df_product["label"] = df_product["label"].apply(_clean_label)
-                    df_reason["label"]  = df_reason["label"].apply(
-                        lambda v: "NaN (accepted)" if v is None or str(v) in ("None", "nan", "") else _clean_label(v)
-                    )
-                    df_outcome["label"] = df_outcome["label"].apply(
-                        lambda v: "NaN (rejected)" if v is None or str(v) in ("None", "nan", "") else _clean_label(v)
-                    )
+                df_product["label"] = df_product["label"].apply(_clean_label)
+                df_reason["label"]  = df_reason["label"].apply(
+                    lambda v: "NaN (accepted)" if v is None or str(v) in ("None", "nan", "") else _clean_label(v)
+                )
+                df_outcome["label"] = df_outcome["label"].apply(
+                    lambda v: "NaN (rejected)" if v is None or str(v) in ("None", "nan", "") else _clean_label(v)
+                )
 
-                    TEAL  = "#21918c"
-                    TEAL2 = "#2db3ad"
-                    GRAY  = "#94a3b8"
+                TEAL  = "#21918c"
+                TEAL2 = "#2db3ad"
+                GRAY  = "#94a3b8"
 
-                    CALLOUT = """
-<div style='border-left:4px solid #21918c;background:#f0faf9;border-radius:0 8px 8px 0;
+                CALLOUT = """
+<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
  padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
   <strong>Class imbalance</strong> — The 93/7 split mirrors operational reality and was handled via
   <strong>Stratified K-Fold</strong> and the <strong>Cognitive Cascade</strong> architecture.
   <code>system_logic_failure</code> (5 records) was dropped downstream — pure noise, not a behavioral signal.
 </div>"""
 
-                    if selected == "Data Census":
-                        # ── A: Donut + 2 horizontal bars ──
-                        ACTION_COLORS = {"accepted": TEAL, "reject": GRAY}
-                        fig1 = go.Figure(go.Pie(
-                            labels=df_action["label"], values=df_action["n"],
-                            hole=0.55,
-                            marker_colors=[ACTION_COLORS.get(l, GRAY) for l in df_action["label"]],
-                            textinfo="percent", textfont_size=12,
-                            hovertemplate="%{label}: %{value:,} (%{percent})<extra></extra>",
-                        ))
-                        fig1.update_layout(
-                            title=dict(text="Accept vs. Reject", font_size=14, x=0.5, xanchor="center"),
-                            showlegend=True,
-                            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font_size=11),
-                            height=300,
-                            margin=dict(l=10, r=10, t=40, b=10),
-                            paper_bgcolor="white", font_family="Inter",
-                        )
-                        df_p = df_product.sort_values("n")
-                        fig2 = go.Figure(go.Bar(
-                            x=df_p["n"], y=df_p["label"], orientation="h",
-                            marker_color=TEAL,
-                            text=df_p["n"].apply(lambda v: f"{v:,}"), textposition="outside",
-                            hovertemplate="%{y}: %{x:,}<extra></extra>",
-                        ))
-                        fig2.update_layout(
-                            title=dict(text="Product Mix", font_size=14, x=0.5, xanchor="center"),
-                            xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_p["n"].max() * 1.25]),
-                            yaxis=dict(tickfont_size=11), height=300,
-                            margin=dict(l=10, r=20, t=40, b=10),
-                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                        )
-                        df_r = df_reason[df_reason["label"].notna()].sort_values("n")
-                        fig3 = go.Figure(go.Bar(
-                            x=df_r["n"], y=df_r["label"], orientation="h",
-                            marker_color=TEAL2,
-                            text=df_r["n"].apply(lambda v: f"{v:,}"), textposition="outside",
-                            hovertemplate="%{y}: %{x:,}<extra></extra>",
-                        ))
-                        fig3.update_layout(
-                            title=dict(text="Rejection Reasons", font_size=14, x=0.5, xanchor="center"),
-                            xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_r["n"].max() * 1.25]),
-                            yaxis=dict(tickfont_size=11), height=320,
-                            margin=dict(l=10, r=20, t=40, b=10),
-                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                        )
-                        df_o = df_outcome.sort_values("n")
-                        fig4 = go.Figure(go.Bar(
-                            x=df_o["n"], y=df_o["label"], orientation="h",
-                            marker_color=TEAL,
-                            text=df_o["n"].apply(lambda v: f"{v:,}"), textposition="outside",
-                            hovertemplate="%{y}: %{x:,}<extra></extra>",
-                        ))
-                        fig4.update_layout(
-                            title=dict(text="Accepted Class — Trip Outcomes", font_size=14, x=0.5, xanchor="center"),
-                            xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_o["n"].max() * 1.25]),
-                            yaxis=dict(tickfont_size=11), height=300,
-                            margin=dict(l=10, r=20, t=40, b=10),
-                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                        )
-                        c1, c2 = st.columns(2)
-                        with c1: st.plotly_chart(fig1, use_container_width=True)
-                        with c2: st.plotly_chart(fig2, use_container_width=True)
-                        c3, c4 = st.columns(2)
-                        with c3: st.plotly_chart(fig3, use_container_width=True)
-                        with c4: st.plotly_chart(fig4, use_container_width=True)
-                        st.markdown(CALLOUT, unsafe_allow_html=True)
+                # ── A: Donut + 2 horizontal bars ──
+                ACTION_COLORS = {"accepted": TEAL, "reject": GRAY}
+                fig1 = go.Figure(go.Pie(
+                    labels=df_action["label"], values=df_action["n"],
+                    hole=0.55,
+                    marker_colors=[ACTION_COLORS.get(l, GRAY) for l in df_action["label"]],
+                    textinfo="percent", textfont_size=12,
+                    hovertemplate="%{label}: %{value:,} (%{percent})<extra></extra>",
+                ))
+                fig1.update_layout(
+                    title=dict(text="Accept vs. Reject", font_size=14, x=0.5, xanchor="center"),
+                    showlegend=True,
+                    legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font_size=11),
+                    height=300,
+                    margin=dict(l=10, r=10, t=40, b=10),
+                    paper_bgcolor="white", font_family="Inter",
+                )
+                df_p = df_product.sort_values("n")
+                fig2 = go.Figure(go.Bar(
+                    x=df_p["n"], y=df_p["label"], orientation="h",
+                    marker_color=TEAL,
+                    text=df_p["n"].apply(lambda v: f"{v:,}"), textposition="outside",
+                    hovertemplate="%{y}: %{x:,}<extra></extra>",
+                ))
+                fig2.update_layout(
+                    title=dict(text="Product Mix", font_size=14, x=0.5, xanchor="center"),
+                    xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_p["n"].max() * 1.25]),
+                    yaxis=dict(tickfont_size=11), height=300,
+                    margin=dict(l=10, r=20, t=40, b=10),
+                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                )
+                df_r = df_reason[df_reason["label"].notna()].sort_values("n")
+                fig3 = go.Figure(go.Bar(
+                    x=df_r["n"], y=df_r["label"], orientation="h",
+                    marker_color=TEAL2,
+                    text=df_r["n"].apply(lambda v: f"{v:,}"), textposition="outside",
+                    hovertemplate="%{y}: %{x:,}<extra></extra>",
+                ))
+                fig3.update_layout(
+                    title=dict(text="Rejection Reasons", font_size=14, x=0.5, xanchor="center"),
+                    xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_r["n"].max() * 1.25]),
+                    yaxis=dict(tickfont_size=11), height=320,
+                    margin=dict(l=10, r=20, t=40, b=10),
+                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                )
+                df_o = df_outcome.sort_values("n")
+                fig4 = go.Figure(go.Bar(
+                    x=df_o["n"], y=df_o["label"], orientation="h",
+                    marker_color=TEAL,
+                    text=df_o["n"].apply(lambda v: f"{v:,}"), textposition="outside",
+                    hovertemplate="%{y}: %{x:,}<extra></extra>",
+                ))
+                fig4.update_layout(
+                    title=dict(text="Accepted Class — Trip Outcomes", font_size=14, x=0.5, xanchor="center"),
+                    xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_o["n"].max() * 1.25]),
+                    yaxis=dict(tickfont_size=11), height=300,
+                    margin=dict(l=10, r=20, t=40, b=10),
+                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                )
+                c1, c2 = st.columns(2)
+                with c1: st.plotly_chart(fig1, use_container_width=True)
+                with c2: st.plotly_chart(fig2, use_container_width=True)
+                c3, c4 = st.columns(2)
+                with c3: st.plotly_chart(fig3, use_container_width=True)
+                with c4: st.plotly_chart(fig4, use_container_width=True)
+                # ── Cell 16: Taxonomy of Decision ──
+                st.markdown(
+                    "<div style='font-size:0.9rem;font-weight:700;color:#334155;"
+                    "margin:16px 0 4px;'>Upfront Fare by reason_primary</div>",
+                    unsafe_allow_html=True)
 
-                elif selected == "Incentives":
-                    import plotly.graph_objects as go
-                    import numpy as np
+                import altair as alt
+                import numpy as _np16
+                import pandas as _pd16
 
-                    TEAL  = "#21918c"
-                    TEAL2 = "#2db3ad"
-                    GRAY  = "#94a3b8"
+                # Fetch fare + reason + action (single extra query, cached)
+                _sql16 = f"""
+SELECT upfront_fare,
+   oa.offer_action_description  AS action,
+   rp.reason_primary_description AS reason
+FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
+LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa   ON oa.offer_action_id = ml.offer_action_fk
+LEFT JOIN `{PROJECT}.{DATASET}.reason_primary` rp ON rp.reason_primary_id = ml.reason_primary_fk
+WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
+                _df16, _err16 = run_query(_sql16)
 
-                    INCENTIVES = [
-                        ("is_surge",       "surge_amount",       "Surge"),
-                        ("is_turbo_plus",  "turbo_plus_amount",  "Turbo+"),
-                        ("is_reservation", "reservation_amount", "Reservation"),
+                if _err16:
+                    st.warning(f"Taxonomy query failed: {_err16}")
+                elif _df16 is not None and not _df16.empty:
+                    # Exclude system_logic_failure
+                    _df16 = _df16[_df16["reason"] != "system_logic_failure"].copy()
+
+                    # Assign display label
+                    def _label16(row):
+                        if row["action"] == "accepted":
+                            return "NULL (accepted)"
+                        return row["reason"] if _pd16.notna(row["reason"]) else "unknown_reject"
+                    _df16["group"] = _df16.apply(_label16, axis=1)
+                    _df16["label_n"] = _df16["group"]
+
+                    # Sort rejections by median fare; ACCEPTED forced last
+                    _rej16 = _df16[_df16["group"] != "NULL (accepted)"]
+                    _sort_rej = _rej16.groupby("label_n")["upfront_fare"].median().sort_values().index.tolist()
+                    _acc_label = _df16[_df16["group"] == "NULL (accepted)"]["label_n"].unique()[0]
+                    _sort_order = _sort_rej + [_acc_label]
+
+                    # Palette: teal gradient, lightest at bottom, darkest (ACCEPTED) at top
+                    _TEAL_RAMP = ["#cceae8","#99d5d1","#66c0ba","#2db3ad","#21918c","#0e6b67","#0a4a47"]
+                    _n = len(_sort_order)
+                    _colors = [
+                        _TEAL_RAMP[int(i * (len(_TEAL_RAMP) - 1) / max(_n - 1, 1))]
+                        for i in range(_n)
                     ]
-                    COLORS = [TEAL, TEAL2, "#5a9e9a"]
 
-                    # ── CHART 1: Grouped prevalence bars (present vs absent per incentive) ──
-                    st.markdown("<p style='font-weight:600;font-size:1rem;margin:8px 0 4px'>Prevalence — present vs. absent for each incentive type</p>", unsafe_allow_html=True)
-                    total = len(df)
-                    inc_labels = [l for _, _, l in INCENTIVES]
-                    pct_present = []
-                    pct_absent  = []
-                    hover_present = []
-                    hover_absent  = []
-                    for (flag, _, label), color in zip(INCENTIVES, COLORS):
-                        active = int(df[flag].sum()) if flag in df.columns else 0
-                        pct_present.append(round(active / total * 100, 1))
-                        pct_absent.append(round((total - active) / total * 100, 1))
-                        hover_present.append(f"{label} present: {active:,} ({active/total*100:.1f}%)")
-                        hover_absent.append(f"{label} absent: {total-active:,} ({(total-active)/total*100:.1f}%)")
+                    # Build manual box stats
+                    _box16 = []
+                    for _lbl in _sort_order:
+                        _vals = _df16[_df16["label_n"] == _lbl]["upfront_fare"].dropna().values
+                        if len(_vals) < 4:
+                            continue
+                        _q1, _med, _q3 = float(_np16.percentile(_vals, 25)), float(_np16.median(_vals)), float(_np16.percentile(_vals, 75))
+                        _iqr = _q3 - _q1
+                        _box16.append({
+                            "label": _lbl,
+                            "q1": _q1, "median": _med, "q3": _q3,
+                            "lower": float(max(_vals.min(), _q1 - 1.5 * _iqr)),
+                            "upper": float(min(_vals.max(), _q3 + 1.5 * _iqr)),
+                            "n": len(_vals),
+                            "color": _colors[_sort_order.index(_lbl)],
+                        })
+                    _bdf16 = _pd16.DataFrame(_box16)
+                    _valid_order = [r["label"] for r in _box16]
+
+                    _c16  = alt.Color("label:N",
+                                      scale=alt.Scale(domain=_valid_order, range=[r["color"] for r in _box16]),
+                                      legend=None)
+                    _y16  = alt.Y("label:N", sort=_valid_order, title=None,
+                                  axis=alt.Axis(labelFontSize=11, labelLimit=300))
+                    _tt16 = [
+                        alt.Tooltip("label:N",  title="Group"),
+                        alt.Tooltip("n:Q",      title="N",          format=","),
+                        alt.Tooltip("median:Q", title="Median $",   format=".2f"),
+                        alt.Tooltip("q1:Q",     title="Q1 $",       format=".2f"),
+                        alt.Tooltip("q3:Q",     title="Q3 $",       format=".2f"),
+                        alt.Tooltip("lower:Q",  title="Whisker lo", format=".2f"),
+                        alt.Tooltip("upper:Q",  title="Whisker hi", format=".2f"),
+                    ]
+                    _ax16 = alt.Axis(grid=True, gridColor="#f0f0f0", tickCount=8,
+                                     labelFontSize=11, titleFontSize=12)
+                    _b16  = alt.Chart(_bdf16)
+                    _w16  = _b16.mark_rule(strokeWidth=1.4).encode(
+                        x=alt.X("lower:Q", title="Upfront Fare (MXN)", axis=_ax16),
+                        x2="upper:Q", y=_y16, color=_c16, tooltip=_tt16)
+                    _bb16 = _b16.mark_bar(size=22).encode(
+                        x=alt.X("q1:Q"), x2="q3:Q", y=_y16, color=_c16, tooltip=_tt16)
+                    _m16  = _b16.mark_tick(color="white", thickness=2, size=22).encode(
+                        x=alt.X("median:Q"), y=_y16, tooltip=_tt16)
+                    _lo16 = _b16.mark_tick(strokeWidth=1.4, size=10).encode(
+                        x=alt.X("lower:Q"), y=_y16, color=_c16, tooltip=_tt16)
+                    _hi16 = _b16.mark_tick(strokeWidth=1.4, size=10).encode(
+                        x=alt.X("upper:Q"), y=_y16, color=_c16, tooltip=_tt16)
+
+                    _chart16 = (
+                        alt.layer(_w16, _bb16, _m16, _lo16, _hi16)
+                        .properties(height=max(200, len(_valid_order) * 46))
+                        .configure_view(strokeWidth=0)
+                        .configure_axis(labelFont="Inter", titleFont="Inter")
+                        .interactive()
+                    )
+                    st.altair_chart(_chart16, use_container_width=True)
+
+
+                st.write("")
+                st.markdown(CALLOUT, unsafe_allow_html=True)
+
+            elif active_pill == "Incentives":
+                import plotly.graph_objects as go
+                import numpy as np
+
+                TEAL  = "#21918c"
+                TEAL2 = "#2db3ad"
+                GRAY  = "#94a3b8"
+
+                INCENTIVES = [
+                    ("is_surge",       "surge_amount",       "Surge"),
+                    ("is_turbo_plus",  "turbo_plus_amount",  "Turbo+"),
+                    ("is_reservation", "reservation_amount", "Reservation"),
+                ]
+                COLORS = [TEAL, TEAL2, "#5a9e9a"]
+
+                # ── CHART 1: Grouped prevalence bars (present vs absent per incentive) ──
+                st.markdown("<p style='font-weight:600;font-size:1rem;margin:8px 0 4px'>Prevalence — present vs. absent for each incentive type</p>", unsafe_allow_html=True)
+                total = len(df)
+                inc_labels = [l for _, _, l in INCENTIVES]
+                pct_present = []
+                pct_absent  = []
+                hover_present = []
+                hover_absent  = []
+                for (flag, _, label), color in zip(INCENTIVES, COLORS):
+                    active = int(df[flag].sum()) if flag in df.columns else 0
+                    pct_present.append(round(active / total * 100, 1))
+                    pct_absent.append(round((total - active) / total * 100, 1))
+                    hover_present.append(f"{label} present: {active:,} ({active/total*100:.1f}%)")
+                    hover_absent.append(f"{label} absent: {total-active:,} ({(total-active)/total*100:.1f}%)")
+                fig1 = go.Figure()
+                fig1.add_trace(go.Bar(
+                    name="Present", x=inc_labels, y=pct_present,
+                    marker_color=TEAL,
+                    text=[f"{v:.1f}%" for v in pct_present], textposition="outside",
+                    hovertext=hover_present, hoverinfo="text",
+                ))
+                fig1.add_trace(go.Bar(
+                    name="Absent", x=inc_labels, y=pct_absent,
+                    marker_color=GRAY,
+                    text=[f"{v:.1f}%" for v in pct_absent], textposition="outside",
+                    hovertext=hover_absent, hoverinfo="text",
+                ))
+                fig1.update_layout(
+                    barmode="group", height=300,
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font_size=11),
+                    yaxis=dict(showgrid=False, showticklabels=False, range=[0, 120]),
+                    xaxis=dict(tickfont_size=12),
+                )
+                st.plotly_chart(fig1, use_container_width=True)
+
+                # ── CHART 2: Box plots of amounts when active ──
+                st.markdown("<p style='font-weight:600;font-size:1rem;margin:16px 0 4px'>Amount — distribution when incentive was active (MXN)</p>", unsafe_allow_html=True)
+                fig2 = go.Figure()
+                for (flag, amt_col, label), color in zip(INCENTIVES, COLORS):
+                    vals = df.loc[df[flag] == 1, amt_col].dropna().tolist() if flag in df.columns else []
+                    if vals:
+                        fig2.add_trace(go.Box(
+                            y=vals, name=label,
+                            marker_color=color, line_color="#1a6b67",
+                            boxmean=True,
+                            hovertemplate="%{y:.1f} MXN<extra>" + label + "</extra>",
+                        ))
+                fig2.update_layout(
+                    height=320, showlegend=False,
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    yaxis=dict(title="MXN", gridcolor="#f0f0f0"),
+                    xaxis=dict(tickfont_size=12),
+                )
+                st.plotly_chart(fig2, use_container_width=True)
+
+                # ── CHART 3: Co-occurrence heatmap ──
+                st.markdown("<p style='font-weight:600;font-size:1rem;margin:16px 0 4px'>Co-occurrence — how often incentives appear together</p>", unsafe_allow_html=True)
+                flags = [f for f, _, _ in INCENTIVES]
+                labels = [l for _, _, l in INCENTIVES]
+                matrix = []
+                for f1 in flags:
+                    row = []
+                    for f2 in flags:
+                        count = int(((df[f1] == 1) & (df[f2] == 1)).sum()) if f1 in df.columns and f2 in df.columns else 0
+                        row.append(count)
+                    matrix.append(row)
+                fig3 = go.Figure(go.Heatmap(
+                    z=matrix, x=labels, y=labels,
+                    colorscale=[[0, "#f0faf9"], [1, TEAL]],
+                    text=[[f"{v:,}" for v in row] for row in matrix],
+                    texttemplate="%{text}", textfont=dict(size=14),
+                    showscale=False,
+                    hovertemplate="%{y} ∩ %{x}: %{z:,} offers<extra></extra>",
+                ))
+                fig3.update_layout(
+                    height=280,
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    xaxis=dict(tickfont_size=12),
+                    yaxis=dict(tickfont_size=12, autorange="reversed"),
+                )
+                col_h, _ = st.columns([1, 1])
+                with col_h:
+                    st.plotly_chart(fig3, use_container_width=True)
+
+            elif active_pill == "Traffic Index":
+                import plotly.graph_objects as go
+                import numpy as np
+
+                TEAL  = "#21918c"
+                TEAL2 = "#2db3ad"
+                TEAL3 = "#5a9e9a"
+                GRAY  = "#94a3b8"
+
+                CLASSES = [
+                    (None, 1.0,  "Super Fluid",  "10km in 15 min — Highway"),
+                    (1.0,  1.5,  "Normal",       "10km in 25 min — Flowing city"),
+                    (1.5,  2.0,  "Heavy",        "10km in 35 min — Dense traffic"),
+                    (2.0,  3.0,  "Gridlock",     "10km in 50 min — Crawling"),
+                    (3.0,  None, "Sólo en CDMX", "10km in >1 hour — Parking lot"),
+                ]
+                CLASS_COLORS = [TEAL, TEAL2, TEAL3, GRAY, "#475569"]
+
+                # ── Hour filter ──
+                all_hours = sorted(df["hour_of_day"].dropna().unique().astype(int).tolist())
+                hour_range = st.slider(
+                    "Filter by hour of day", min_value=int(min(all_hours)),
+                    max_value=int(max(all_hours)), value=(int(min(all_hours)), int(max(all_hours))),
+                    key="traffic_hour_slider",
+                )
+                df_t = df[
+                    (df["hour_of_day"] >= hour_range[0]) &
+                    (df["hour_of_day"] <= hour_range[1])
+                ]
+                vals = df_t["traffic_index_base_120"].dropna().values
+                total = len(vals)
+
+                if total == 0:
+                    st.warning("No data for selected hour range.")
+                else:
+                    # ── CHART 1: Histogram ──
+                    counts, bin_edges = np.histogram(vals, bins=50)
+                    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
                     fig1 = go.Figure()
                     fig1.add_trace(go.Bar(
-                        name="Present", x=inc_labels, y=pct_present,
-                        marker_color=TEAL,
-                        text=[f"{v:.1f}%" for v in pct_present], textposition="outside",
-                        hovertext=hover_present, hoverinfo="text",
+                        x=bin_centers, y=counts,
+                        marker_color=TEAL, opacity=0.8,
+                        hovertemplate="index %{x:.2f}: %{y:,} offers<extra></extra>",
                     ))
-                    fig1.add_trace(go.Bar(
-                        name="Absent", x=inc_labels, y=pct_absent,
-                        marker_color=GRAY,
-                        text=[f"{v:.1f}%" for v in pct_absent], textposition="outside",
-                        hovertext=hover_absent, hoverinfo="text",
-                    ))
+                    for tv, tl in zip([1.0, 1.5, 2.0, 3.0], ["Normal", "Heavy", "Gridlock", "Sólo en CDMX"]):
+                        fig1.add_vline(x=tv, line_dash="dash", line_color=GRAY, line_width=1.2,
+                                       annotation_text=tl, annotation_position="top",
+                                       annotation_font=dict(size=9, color="#64748b"))
                     fig1.update_layout(
-                        barmode="group", height=300,
-                        margin=dict(l=10, r=10, t=10, b=10),
-                        paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font_size=11),
-                        yaxis=dict(showgrid=False, showticklabels=False, range=[0, 120]),
-                        xaxis=dict(tickfont_size=12),
-                    )
-                    st.plotly_chart(fig1, use_container_width=True)
-
-                    # ── CHART 2: Box plots of amounts when active ──
-                    st.markdown("<p style='font-weight:600;font-size:1rem;margin:16px 0 4px'>Amount — distribution when incentive was active (MXN)</p>", unsafe_allow_html=True)
-                    fig2 = go.Figure()
-                    for (flag, amt_col, label), color in zip(INCENTIVES, COLORS):
-                        vals = df.loc[df[flag] == 1, amt_col].dropna().tolist() if flag in df.columns else []
-                        if vals:
-                            fig2.add_trace(go.Box(
-                                y=vals, name=label,
-                                marker_color=color, line_color="#1a6b67",
-                                boxmean=True,
-                                hovertemplate="%{y:.1f} MXN<extra>" + label + "</extra>",
-                            ))
-                    fig2.update_layout(
+                        title=dict(text="Traffic Index Distribution", font_size=14, x=0.5, xanchor="center"),
                         height=320, showlegend=False,
-                        margin=dict(l=10, r=10, t=10, b=10),
+                        margin=dict(l=10, r=10, t=50, b=10),
                         paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                        yaxis=dict(title="MXN", gridcolor="#f0f0f0"),
-                        xaxis=dict(tickfont_size=12),
+                        xaxis=dict(title="Traffic Index  (1.0 = 2 min/km baseline)", gridcolor="#f0f0f0"),
+                        yaxis=dict(title="Offers", gridcolor="#f0f0f0"),
                     )
-                    st.plotly_chart(fig2, use_container_width=True)
 
-                    # ── CHART 3: Co-occurrence heatmap ──
-                    st.markdown("<p style='font-weight:600;font-size:1rem;margin:16px 0 4px'>Co-occurrence — how often incentives appear together</p>", unsafe_allow_html=True)
-                    flags = [f for f, _, _ in INCENTIVES]
-                    labels = [l for _, _, l in INCENTIVES]
-                    matrix = []
-                    for f1 in flags:
-                        row = []
-                        for f2 in flags:
-                            count = int(((df[f1] == 1) & (df[f2] == 1)).sum()) if f1 in df.columns and f2 in df.columns else 0
-                            row.append(count)
-                        matrix.append(row)
-                    fig3 = go.Figure(go.Heatmap(
-                        z=matrix, x=labels, y=labels,
-                        colorscale=[[0, "#f0faf9"], [1, TEAL]],
-                        text=[[f"{v:,}" for v in row] for row in matrix],
-                        texttemplate="%{text}", textfont=dict(size=14),
-                        showscale=False,
-                        hovertemplate="%{y} ∩ %{x}: %{z:,} offers<extra></extra>",
+                    # ── CHART 2: Class breakdown ──
+                    sem_labels, sem_counts, sem_anchors = [], [], []
+                    for lo, hi, label, anchor in CLASSES:
+                        mask = np.ones(len(vals), dtype=bool)
+                        if lo is not None: mask &= (vals >= lo)
+                        if hi is not None: mask &= (vals < hi)
+                        sem_labels.append(label)
+                        sem_counts.append(int(mask.sum()))
+                        sem_anchors.append(anchor)
+
+                    fig2 = go.Figure(go.Bar(
+                        x=sem_labels, y=sem_counts,
+                        marker_color=CLASS_COLORS,
+                        text=[f"{n:,}  {n/total*100:.1f}%" for n in sem_counts],
+                        textposition="outside",
+                        hovertemplate="<b>%{x}</b><br>%{y:,} offers<extra></extra>",
                     ))
-                    fig3.update_layout(
-                        height=280,
-                        margin=dict(l=10, r=10, t=10, b=10),
+                    fig2.update_layout(
+                        title=dict(text="Operational Conditions", font_size=14, x=0.5, xanchor="center"),
+                        height=320, showlegend=False,
+                        margin=dict(l=10, r=10, t=50, b=10),
                         paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                        xaxis=dict(tickfont_size=12),
-                        yaxis=dict(tickfont_size=12, autorange="reversed"),
+                        yaxis=dict(showgrid=False, showticklabels=False, range=[0, max(sem_counts) * 1.3]),
+                        xaxis=dict(tickfont_size=11),
                     )
-                    col_h, _ = st.columns([1, 1])
-                    with col_h:
-                        st.plotly_chart(fig3, use_container_width=True)
 
-                elif selected == "Traffic Index":
-                    import plotly.graph_objects as go
-                    import numpy as np
+                    c1, c2 = st.columns(2)
+                    with c1: st.plotly_chart(fig1, use_container_width=True)
+                    with c2: st.plotly_chart(fig2, use_container_width=True)
 
-                    TEAL  = "#21918c"
-                    TEAL2 = "#2db3ad"
-                    TEAL3 = "#5a9e9a"
-                    GRAY  = "#94a3b8"
+                    legend_items = "".join([
+                        f"""<div style='display:flex;align-items:center;gap:6px;white-space:nowrap;'>
+                          <div style='width:10px;height:10px;border-radius:2px;background:{color};flex-shrink:0;'></div>
+                          <span style='font-size:0.78rem;color:#334155;'><strong>{label}</strong> — {anchor}</span>
+                        </div>"""
+                        for (_, _, label, anchor), color in zip(CLASSES, CLASS_COLORS)
+                    ])
+                    st.markdown(
+                        f"<div style='display:flex;flex-wrap:wrap;justify-content:center;gap:12px 24px;"
+                        f"padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{legend_items}</div>",
+                        unsafe_allow_html=True)
 
-                    CLASSES = [
-                        (None, 1.0,  "Super Fluid",  "10km in 15 min — Highway"),
-                        (1.0,  1.5,  "Normal",       "10km in 25 min — Flowing city"),
-                        (1.5,  2.0,  "Heavy",        "10km in 35 min — Dense traffic"),
-                        (2.0,  3.0,  "Gridlock",     "10km in 50 min — Crawling"),
-                        (3.0,  None, "Sólo en CDMX", "10km in >1 hour — Parking lot"),
-                    ]
-                    CLASS_COLORS = [TEAL, TEAL2, TEAL3, GRAY, "#475569"]
-
-                    # ── Hour filter ──
-                    all_hours = sorted(df["hour_of_day"].dropna().unique().astype(int).tolist())
-                    hour_range = st.slider(
-                        "Filter by hour of day", min_value=int(min(all_hours)),
-                        max_value=int(max(all_hours)), value=(int(min(all_hours)), int(max(all_hours))),
-                        key="traffic_hour_slider",
-                    )
-                    df_t = df[
-                        (df["hour_of_day"] >= hour_range[0]) &
-                        (df["hour_of_day"] <= hour_range[1])
-                    ]
-                    vals = df_t["traffic_index_base_120"].dropna().values
-                    total = len(vals)
-
-                    if total == 0:
-                        st.warning("No data for selected hour range.")
-                    else:
-                        # ── CHART 1: Histogram ──
-                        counts, bin_edges = np.histogram(vals, bins=50)
-                        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-                        fig1 = go.Figure()
-                        fig1.add_trace(go.Bar(
-                            x=bin_centers, y=counts,
-                            marker_color=TEAL, opacity=0.8,
-                            hovertemplate="index %{x:.2f}: %{y:,} offers<extra></extra>",
-                        ))
-                        for tv, tl in zip([1.0, 1.5, 2.0, 3.0], ["Normal", "Heavy", "Gridlock", "Sólo en CDMX"]):
-                            fig1.add_vline(x=tv, line_dash="dash", line_color=GRAY, line_width=1.2,
-                                           annotation_text=tl, annotation_position="top",
-                                           annotation_font=dict(size=9, color="#64748b"))
-                        fig1.update_layout(
-                            title=dict(text="Traffic Index Distribution", font_size=14, x=0.5, xanchor="center"),
-                            height=320, showlegend=False,
-                            margin=dict(l=10, r=10, t=50, b=10),
-                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                            xaxis=dict(title="Traffic Index  (1.0 = 2 min/km baseline)", gridcolor="#f0f0f0"),
-                            yaxis=dict(title="Offers", gridcolor="#f0f0f0"),
-                        )
-
-                        # ── CHART 2: Class breakdown ──
-                        sem_labels, sem_counts, sem_anchors = [], [], []
-                        for lo, hi, label, anchor in CLASSES:
-                            mask = np.ones(len(vals), dtype=bool)
-                            if lo is not None: mask &= (vals >= lo)
-                            if hi is not None: mask &= (vals < hi)
-                            sem_labels.append(label)
-                            sem_counts.append(int(mask.sum()))
-                            sem_anchors.append(anchor)
-
-                        fig2 = go.Figure(go.Bar(
-                            x=sem_labels, y=sem_counts,
-                            marker_color=CLASS_COLORS,
-                            text=[f"{n:,}  {n/total*100:.1f}%" for n in sem_counts],
-                            textposition="outside",
-                            hovertemplate="<b>%{x}</b><br>%{y:,} offers<extra></extra>",
-                        ))
-                        fig2.update_layout(
-                            title=dict(text="Operational Conditions", font_size=14, x=0.5, xanchor="center"),
-                            height=320, showlegend=False,
-                            margin=dict(l=10, r=10, t=50, b=10),
-                            paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
-                            yaxis=dict(showgrid=False, showticklabels=False, range=[0, max(sem_counts) * 1.3]),
-                            xaxis=dict(tickfont_size=11),
-                        )
-
-                        c1, c2 = st.columns(2)
-                        with c1: st.plotly_chart(fig1, use_container_width=True)
-                        with c2: st.plotly_chart(fig2, use_container_width=True)
-
-                        legend_items = "".join([
-                            f"""<div style='display:flex;align-items:center;gap:6px;white-space:nowrap;'>
-                              <div style='width:10px;height:10px;border-radius:2px;background:{color};flex-shrink:0;'></div>
-                              <span style='font-size:0.78rem;color:#334155;'><strong>{label}</strong> — {anchor}</span>
-                            </div>"""
-                            for (_, _, label, anchor), color in zip(CLASSES, CLASS_COLORS)
-                        ])
-                        st.markdown(
-                            f"<div style='display:flex;flex-wrap:wrap;justify-content:center;gap:12px 24px;"
-                            f"padding:10px 14px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{legend_items}</div>",
-                            unsafe_allow_html=True)
-
-                        st.markdown("""
-<div style='border-left:4px solid #21918c;background:#f0faf9;border-radius:0 8px 8px 0;
-     padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
+                    st.markdown("""
+<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
+ padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
   <strong>Note:</strong> These charts reflect the <em>expected</em> traffic conditions shown on the offer card at the moment of decision.
   Realized traffic — what people in Mexico City actually experience — is generally worse.
 </div>""", unsafe_allow_html=True)
 
-                        st.markdown("""
+                    st.markdown("""
 <div style='border:3px solid #FFD700;background:#FFFF00;border-radius:8px;
-     padding:14px 18px;margin-top:12px;font-size:0.82rem;color:#1a1a1a;line-height:1.65;'>
+ padding:14px 18px;margin-top:12px;font-size:0.82rem;color:#1a1a1a;line-height:1.65;'>
   <strong>🚧 Coming soon — Traffic Volatility</strong><br>
   Expected conditions are only half the story. The Gold-layer <code>traffic_volatility_index</code> captures
   how unpredictable conditions were relative to the historical baseline — completing the picture of what the
   driver was actually betting on when accepting or rejecting an offer.
 </div>""", unsafe_allow_html=True)
 
-                elif selected == "Home Vector":
-                    import altair as alt
-                    import pandas as pd
+            elif active_pill == "Home Vector":
+                import altair as alt
+                import pandas as pd
 
-                    TEAL = "#21918c"
-                    GRAY = "#94a3b8"
+                TEAL = "#21918c"
+                GRAY = "#94a3b8"
 
-                    scores = df["home_vector_alignment_score"].dropna().values
-                    total  = len(scores)
+                scores = df["home_vector_alignment_score"].dropna().values
+                total  = len(scores)
 
-                    homeward = int((scores >  0.5).sum())
-                    neutral  = int(((scores >= -0.5) & (scores <= 0.5)).sum())
-                    away     = int((scores < -0.5).sum())
+                homeward = int((scores >  0.5).sum())
+                neutral  = int(((scores >= -0.5) & (scores <= 0.5)).sum())
+                away     = int((scores < -0.5).sum())
 
-                    # ── Metric cards ──
-                    cards = [
-                        ("Away",      "< -0.5",          away,     "#78716c","Offers pulling the driver further from home"),
-                        ("Neutral",   "-0.5 to +0.5",    neutral,  "#64748b","Offers with no strong directional bias"),
-                        ("Homeward",  "> 0.5",           homeward, TEAL,    "Offers moving the driver toward home base"),
-                    ]
-                    c1, c2, c3 = st.columns(3)
-                    for col, (label, rng, n, color, desc) in zip([c1, c2, c3], cards):
-                        pct = n / total * 100
-                        with col:
-                            st.markdown(f"""
+                # ── Metric cards ──
+                cards = [
+                    ("Away",      "< -0.5",          away,     TEAL, "Offers pulling the driver further from home"),
+                    ("Neutral",   "-0.5 to +0.5",    neutral,  TEAL, "Offers with no strong directional bias"),
+                    ("Homeward",  "> 0.5",           homeward, TEAL, "Offers moving the driver toward home base"),
+                ]
+                c1, c2, c3 = st.columns(3)
+                for col, (label, rng, n, color, desc) in zip([c1, c2, c3], cards):
+                    pct = n / total * 100
+                    with col:
+                        st.markdown(f"""
 <div style='background:#fff;border:1px solid #e2e8f0;border-top:3px solid {color};
-     border-radius:8px;padding:14px 16px;'>
+ border-radius:8px;padding:14px 16px;'>
   <div style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
-       color:#94a3b8;margin-bottom:4px;'>{rng}</div>
+   color:#94a3b8;margin-bottom:4px;'>{rng}</div>
   <div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:8px;'>{label}</div>
   <div style='font-size:1.55rem;font-weight:800;color:{color};line-height:1;'>{pct:.1f}%</div>
   <div style='font-size:0.68rem;color:#94a3b8;margin-top:3px;'>{n:,} of {total:,} offers</div>
   <div style='font-size:0.68rem;color:#b0bec5;margin-top:5px;line-height:1.4;'>{desc}</div>
 </div>""", unsafe_allow_html=True)
 
-                    st.write("")
+                st.write("")
 
-                    # ── Altair histogram + KDE + zone bands ──
-                    df_vec = df[["home_vector_alignment_score"]].dropna().rename(
-                        columns={"home_vector_alignment_score": "score"}
+                # ── Altair histogram + KDE + zone bands ──
+                df_vec = df[["home_vector_alignment_score"]].dropna().rename(
+                    columns={"home_vector_alignment_score": "score"}
+                )
+
+                # Zone band rectangles
+                zones = pd.DataFrame([
+                    {"x1": -1.0, "x2": -0.5, "zone": "Away",     "color": "#fee2e2"},
+                    {"x1": -0.5, "x2":  0.5, "zone": "Neutral",  "color": "#f8fafc"},
+                    {"x1":  0.5, "x2":  1.0, "zone": "Homeward", "color": "#ccfbf1"},
+                ])
+                band = alt.Chart(zones).mark_rect(opacity=0.5, tooltip=None).encode(
+                    x=alt.X("x1:Q", scale=alt.Scale(domain=[-1.1, 1.1])),
+                    x2="x2:Q",
+                    color=alt.Color("color:N", scale=None, legend=None),
+                )
+
+                # Histogram
+                hist = alt.Chart(df_vec).mark_bar(
+                    color=TEAL, opacity=0.55, binSpacing=1,
+                ).encode(
+                    x=alt.X("score:Q", bin=alt.Bin(step=0.05),
+                            title="Alignment Score  (−1.0 = away · 0 = neutral · +1.0 = home)",
+                            scale=alt.Scale(domain=[-1.1, 1.1]),
+                            axis=alt.Axis(tickCount=9, labelFontSize=11, titleFontSize=12,
+                                          grid=False)),
+                    y=alt.Y("count():Q", title="Offers",
+                            axis=alt.Axis(labelFontSize=11, titleFontSize=12, gridColor="#f0f0f0")),
+                    tooltip=[alt.Tooltip("count():Q", title="Offers")],
+                )
+
+                # KDE overlay (manual, secondary y via normalize)
+                from scipy.stats import gaussian_kde as _kde
+                x_grid = __import__("numpy").linspace(-1.1, 1.1, 400)
+                y_kde  = _kde(scores, bw_method=0.15)(x_grid)
+                # scale KDE to histogram counts
+                bin_width = 0.05
+                y_scaled  = y_kde * len(scores) * bin_width
+                df_kde = pd.DataFrame({"score": x_grid, "density": y_scaled})
+                kde_line = alt.Chart(df_kde).mark_line(
+                    color="#134e4a", strokeWidth=2, interpolate="monotone",
+                ).encode(
+                    x="score:Q",
+                    y=alt.Y("density:Q", axis=None),
+                )
+
+                # Center rule at 0
+                center = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(
+                    color="#334155", strokeWidth=1.5, opacity=0.6,
+                ).encode(x="x:Q")
+
+                # Zone labels
+                zone_labels = pd.DataFrame([
+                    {"x": -0.75, "y": y_scaled.max() * 0.92, "text": "AWAY"},
+                    {"x":  0.0,  "y": y_scaled.max() * 0.92, "text": "NEUTRAL"},
+                    {"x":  0.75, "y": y_scaled.max() * 0.92, "text": "HOMEWARD"},
+                ])
+                labels = alt.Chart(zone_labels).mark_text(
+                    fontSize=10, fontWeight=700, opacity=0.55,
+                ).encode(
+                    x="x:Q", y="y:Q", text="text:N",
+                    color=alt.Color("text:N", scale=alt.Scale(
+                        domain=["AWAY", "NEUTRAL", "HOMEWARD"],
+                        range=["#dc2626", "#64748b", "#21918c"],
+                    ), legend=None),
+                )
+
+                chart = (
+                    alt.layer(band, hist, kde_line, center, labels)
+                    .properties(
+                        title=alt.TitleParams(
+                            "Home Vector Alignment Score",
+                            fontSize=14, fontWeight=600, anchor="middle",
+                        ),
+                        height=380,
                     )
-
-                    # Zone band rectangles
-                    zones = pd.DataFrame([
-                        {"x1": -1.0, "x2": -0.5, "zone": "Away",     "color": "#fee2e2"},
-                        {"x1": -0.5, "x2":  0.5, "zone": "Neutral",  "color": "#f8fafc"},
-                        {"x1":  0.5, "x2":  1.0, "zone": "Homeward", "color": "#ccfbf1"},
-                    ])
-                    band = alt.Chart(zones).mark_rect(opacity=0.5).encode(
-                        x=alt.X("x1:Q", scale=alt.Scale(domain=[-1.1, 1.1])),
-                        x2="x2:Q",
-                        color=alt.Color("color:N", scale=None, legend=None),
-                    )
-
-                    # Histogram
-                    hist = alt.Chart(df_vec).mark_bar(
-                        color=TEAL, opacity=0.55, binSpacing=1,
-                    ).encode(
-                        x=alt.X("score:Q", bin=alt.Bin(step=0.05),
-                                title="Alignment Score  (−1.0 = away · 0 = neutral · +1.0 = home)",
-                                scale=alt.Scale(domain=[-1.1, 1.1]),
-                                axis=alt.Axis(tickCount=9, labelFontSize=11, titleFontSize=12,
-                                              grid=False)),
-                        y=alt.Y("count():Q", title="Offers",
-                                axis=alt.Axis(labelFontSize=11, titleFontSize=12, gridColor="#f0f0f0")),
-                        tooltip=[
-                            alt.Tooltip("score:Q", bin=alt.Bin(step=0.05), title="Score bin"),
-                            alt.Tooltip("count():Q", title="Offers"),
-                        ],
-                    )
-
-                    # KDE overlay (manual, secondary y via normalize)
-                    from scipy.stats import gaussian_kde as _kde
-                    x_grid = __import__("numpy").linspace(-1.1, 1.1, 400)
-                    y_kde  = _kde(scores, bw_method=0.15)(x_grid)
-                    # scale KDE to histogram counts
-                    bin_width = 0.05
-                    y_scaled  = y_kde * len(scores) * bin_width
-                    df_kde = pd.DataFrame({"score": x_grid, "density": y_scaled})
-                    kde_line = alt.Chart(df_kde).mark_line(
-                        color="#134e4a", strokeWidth=2, interpolate="monotone",
-                    ).encode(
-                        x="score:Q",
-                        y=alt.Y("density:Q", axis=None),
-                    )
-
-                    # Center rule at 0
-                    center = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(
-                        color="#334155", strokeWidth=1.5, opacity=0.6,
-                    ).encode(x="x:Q")
-
-                    # Zone labels
-                    zone_labels = pd.DataFrame([
-                        {"x": -0.75, "y": y_scaled.max() * 0.92, "text": "AWAY"},
-                        {"x":  0.0,  "y": y_scaled.max() * 0.92, "text": "NEUTRAL"},
-                        {"x":  0.75, "y": y_scaled.max() * 0.92, "text": "HOMEWARD"},
-                    ])
-                    labels = alt.Chart(zone_labels).mark_text(
-                        fontSize=10, fontWeight=700, opacity=0.55,
-                    ).encode(
-                        x="x:Q", y="y:Q", text="text:N",
-                        color=alt.Color("text:N", scale=alt.Scale(
-                            domain=["AWAY", "NEUTRAL", "HOMEWARD"],
-                            range=["#dc2626", "#64748b", "#21918c"],
-                        ), legend=None),
-                    )
-
-                    chart = (
-                        alt.layer(band, hist, kde_line, center, labels)
-                        .properties(
-                            title=alt.TitleParams(
-                                "Strategic Alignment — The Home Vector",
-                                fontSize=14, fontWeight=600, anchor="middle",
-                            ),
-                            height=380,
-                        )
-                        .configure_view(strokeWidth=0)
-                        .configure_title(font="Inter")
-                        .configure_axis(labelFont="Inter", titleFont="Inter")
-                        .interactive()
-                    )
-                    st.altair_chart(chart, use_container_width=True)
+                    .configure_view(strokeWidth=0)
+                    .configure_title(font="Inter")
+                    .configure_axis(labelFont="Inter", titleFont="Inter")
+                    .interactive()
+                )
+                st.altair_chart(chart, use_container_width=True)
 
 
-                    st.markdown("""
-<div style='border-left:4px solid #21918c;background:#f0faf9;border-radius:0 8px 8px 0;
-     padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
+                st.markdown("""
+<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
+ padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
   <strong>What is the Home Vector?</strong> Each offer is scored by how closely its dropoff direction
   aligns with the driver's home base. <em>+1.0</em> means the ride moves the driver directly
   homeward; <em>−1.0</em> means it pulls them directly away.
 </div>""", unsafe_allow_html=True)
 
-                elif selected == "Profitability Funnel":
-                    import plotly.graph_objects as go
-                    import numpy as np
-                    import re as _re
+            elif active_pill == "Profitability Funnel":
+                import plotly.graph_objects as go
+                import numpy as np
+                import re as _re
 
-                    TEAL  = "#21918c"
-                    TEAL2 = "#2db3ad"
-                    TEAL3 = "#5a9e9a"
-                    GRAY  = "#94a3b8"
+                TEAL  = "#21918c"
+                TEAL2 = "#2db3ad"
+                TEAL3 = "#5a9e9a"
+                GRAY  = "#94a3b8"
 
-                    STAGES = [
-                        ("eph_direct",       "Direct",       TEAL,  "Platform promise",      "Upfront fare ÷ estimated ride time"),
-                        ("eph_operational",  "Operational",  TEAL2, "+ Pickup time",          "Adds dead time driving to the passenger"),
-                        ("eph_realized_EDA", "Realized",     TEAL3, "+ Spread correction",    "What was actually settled vs. the quoted fare"),
-                        ("eph_complete_EDA", "Complete",     GRAY,  "+ Full cost accounting", "Pickup + spread + unpaid kilometers"),
-                    ]
+                STAGES = [
+                    ("eph_direct",       "Direct",       TEAL,  "Platform promise",      "Upfront fare ÷ estimated ride time"),
+                    ("eph_operational",  "Operational",  TEAL2, "+ Pickup time",          "Adds dead time driving to the passenger"),
+                    ("eph_realized_EDA", "Realized",     TEAL3, "+ Spread correction",    "What was actually settled vs. the quoted fare"),
+                    ("eph_complete_EDA", "Complete",     GRAY,  "+ Full cost accounting", "Pickup + spread + unpaid kilometers"),
+                ]
 
-                    # ── Product category filter ──
-                    CAT_MAP = {}
-                    for raw in df["product"].dropna().unique():
-                        clean = _re.sub(r'(?i)uber_?', '', str(raw)).strip('_').strip().lower()
-                        if clean == "x":
-                            CAT_MAP[raw] = "x"
-                        elif clean in ("comfort", "business_comfort", "comfort business"):
-                            CAT_MAP[raw] = "mid-tier"
-                        elif clean == "black":
-                            CAT_MAP[raw] = "black"
-                    df["_cat"] = df["product"].map(CAT_MAP)
-                    df_filtered_all = df[df["_cat"].notna()].copy()
+                # ── Product category filter ──
+                CAT_MAP = {}
+                for raw in df["product"].dropna().unique():
+                    clean = _re.sub(r'(?i)uber_?', '', str(raw)).strip('_').strip().lower()
+                    if clean == "x":
+                        CAT_MAP[raw] = "x"
+                    elif clean in ("comfort", "business_comfort", "comfort business"):
+                        CAT_MAP[raw] = "mid-tier"
+                    elif clean == "black":
+                        CAT_MAP[raw] = "black"
+                df["_cat"] = df["product"].map(CAT_MAP)
+                df_filtered_all = df[df["_cat"].notna()].copy()
 
-                    cat_counts = df_filtered_all["_cat"].value_counts().to_dict()
-                    cat_options = ["All"] + [c for c in ["x", "mid-tier", "black"] if c in df_filtered_all["_cat"].unique()]
-                    cat_sel = st.pills("Product category", cat_options, default="All",
-                                       key="funnel_cat_pill", label_visibility="collapsed")
-                    if cat_sel and cat_sel != "All":
-                        df_f = df_filtered_all[df_filtered_all["_cat"] == cat_sel]
-                    else:
-                        df_f = df_filtered_all
+                cat_counts = df_filtered_all["_cat"].value_counts().to_dict()
+                cat_options = ["All"] + [c for c in ["x", "mid-tier", "black"] if c in df_filtered_all["_cat"].unique()]
+                cat_sel = st.pills("Product category", cat_options, default="All",
+                                   key="funnel_cat_pill", label_visibility="collapsed")
+                if cat_sel and cat_sel != "All":
+                    df_f = df_filtered_all[df_filtered_all["_cat"] == cat_sel]
+                else:
+                    df_f = df_filtered_all
 
-                    # ── Sample size badges ──
-                    total_n = len(df_filtered_all)
-                    badges = f"<span style='background:#f1f5f9;border:1px solid #e2e8f0;border-radius:20px;padding:3px 10px;font-size:0.72rem;color:#475569;margin-right:6px;'><strong>All</strong> — {total_n:,}</span>"
-                    for c in ["x", "mid-tier", "black"]:
-                        n = cat_counts.get(c, 0)
-                        active = cat_sel == c
-                        bg = "#f0faf9" if active else "#f1f5f9"
-                        border = "#21918c" if active else "#e2e8f0"
-                        badges += f"<span style='background:{bg};border:1px solid {border};border-radius:20px;padding:3px 10px;font-size:0.72rem;color:#475569;margin-right:6px;'><strong>{c}</strong> — {n:,}</span>"
-                    st.markdown(f"<div style='margin:4px 0 12px 0;'>{badges}</div>", unsafe_allow_html=True)
+                # ── Sample size badges ──
+                total_n = len(df_filtered_all)
+                badges = f"<span style='background:#f1f5f9;border:1px solid #e2e8f0;border-radius:20px;padding:3px 10px;font-size:0.72rem;color:#475569;margin-right:6px;'><strong>All</strong> — {total_n:,}</span>"
+                for c in ["x", "mid-tier", "black"]:
+                    n = cat_counts.get(c, 0)
+                    active = cat_sel == c
+                    bg = "rgba(33,145,140,0.07)" if active else "#f1f5f9"
+                    border = "#21918c" if active else "#e2e8f0"
+                    badges += f"<span style='background:{bg};border:1px solid {border};border-radius:20px;padding:3px 10px;font-size:0.72rem;color:#475569;margin-right:6px;'><strong>{c}</strong> — {n:,}</span>"
+                st.markdown(f"<div style='margin:4px 0 12px 0;'>{badges}</div>", unsafe_allow_html=True)
 
-                    # ── Compute stats per stage ──
-                    stats = []
-                    for col, label, color, tag, desc in STAGES:
-                        vals = df_f[col].dropna().values
-                        if len(vals) == 0:
-                            stats.append((label, color, tag, desc, 0, 0, 0, 0))
-                            continue
-                        stats.append((
-                            label, color, tag, desc,
-                            float(np.median(vals)),
-                            float(np.percentile(vals, 25)),
-                            float(np.percentile(vals, 75)),
-                            float(np.mean(vals)),
-                        ))
+                # ── Compute stats per stage ──
+                stats = []
+                for col, label, color, tag, desc in STAGES:
+                    vals = df_f[col].dropna().values
+                    if len(vals) == 0:
+                        stats.append((label, color, tag, desc, 0, 0, 0, 0))
+                        continue
+                    stats.append((
+                        label, color, tag, desc,
+                        float(np.median(vals)),
+                        float(np.percentile(vals, 25)),
+                        float(np.percentile(vals, 75)),
+                        float(np.mean(vals)),
+                    ))
 
-                    # ── Metric cards ──
-                    first_median = stats[0][4]
-                    card_cols = st.columns(4)
-                    for i, (label, color, tag, desc, median, q1, q3, mean) in enumerate(stats):
-                        delta = median - first_median if i > 0 else None
-                        delta_html = (
-                            f"<div style='font-size:0.72rem;font-weight:600;"
-                            f"color:{'#ef4444' if delta < 0 else TEAL};margin-top:6px;'>"
-                            f"{delta:+.0f} MXN/hr</div>"
-                        ) if delta is not None else ""
-                        with card_cols[i]:
-                            st.markdown(f"""
+                # ── Metric cards ──
+                first_median = stats[0][4]
+                card_cols = st.columns(4)
+                for i, (label, color, tag, desc, median, q1, q3, mean) in enumerate(stats):
+                    delta = median - first_median if i > 0 else None
+                    delta_html = (
+                        f"<div style='font-size:0.72rem;font-weight:600;"
+                        f"color:{'#ef4444' if delta < 0 else TEAL};margin-top:6px;'>"
+                        f"{delta:+.0f} MXN/hr</div>"
+                    ) if delta is not None else ""
+                    with card_cols[i]:
+                        st.markdown(f"""
 <div style='background:#fff;border:1px solid #e2e8f0;border-top:3px solid {color};
-     border-radius:8px;padding:14px 16px;'>
+ border-radius:8px;padding:14px 16px;'>
   <div style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
-       color:#94a3b8;margin-bottom:4px;'>{tag}</div>
+   color:#94a3b8;margin-bottom:4px;'>{tag}</div>
   <div style='font-size:0.82rem;font-weight:600;color:#334155;margin-bottom:8px;'>{label}</div>
   <div style='font-size:1.55rem;font-weight:800;color:{color};line-height:1;'>${median:.0f}</div>
   <div style='font-size:0.68rem;color:#94a3b8;margin-top:3px;'>median MXN/hr</div>
@@ -831,140 +890,186 @@ WHERE ml.eph_direct IS NOT NULL
   <div style='font-size:0.65rem;color:#b0bec5;margin-top:5px;'>IQR {q1:.0f} – {q3:.0f}</div>
 </div>""", unsafe_allow_html=True)
 
-                    st.write("")
+                st.write("")
 
-                    import altair as alt
-                    import pandas as pd
-                    from scipy.stats import gaussian_kde as _kde
+                import altair as alt
+                import pandas as pd
+                from scipy.stats import gaussian_kde as _kde
 
-                    STAGE_ORDER = ["Direct", "Operational", "Realized", "Complete"]
-                    COLOR_SCALE = alt.Scale(
-                        domain=STAGE_ORDER,
-                        range=[TEAL, TEAL2, TEAL3, GRAY],
+                STAGE_ORDER = ["Direct", "Operational", "Realized", "Complete"]
+                COLOR_SCALE = alt.Scale(
+                    domain=STAGE_ORDER,
+                    range=[TEAL, TEAL2, TEAL3, GRAY],
+                )
+
+                # ── Melt to long format (for box plots) ──
+                col_to_label = {col: label for col, label, *_ in STAGES}
+                df_long = (
+                    df_f[[c for c, *_ in STAGES]]
+                    .melt(var_name="col", value_name="eph")
+                    .dropna()
+                )
+                df_long["Stage"] = df_long["col"].map(col_to_label)
+
+                # ── Build KDE manually → long dataframe ──
+                x_max  = float(np.percentile(df_long["eph"].dropna().values, 99))
+                x_grid = np.linspace(0, x_max, 600)
+                kde_rows = []
+                median_rows = []
+                for col, label, *_ in STAGES:
+                    vals = df_f[col].dropna().values
+                    if len(vals) < 2:
+                        continue
+                    y = _kde(vals, bw_method=0.18)(x_grid)
+                    for xi, yi in zip(x_grid, y):
+                        kde_rows.append({"Stage": label, "eph": xi, "density": yi})
+                    median_rows.append({"Stage": label, "median": float(np.median(vals))})
+                df_kde     = pd.DataFrame(kde_rows)
+                df_medians = pd.DataFrame([
+                    {"Stage": s, "eph": m} for s, m in
+                    [(r["Stage"], r["median"]) for r in median_rows]
+                ])
+
+                # ── Chart 1: KDE ──
+                area = alt.Chart(df_kde).mark_area(
+                    opacity=0.1, interpolate="monotone",
+                ).encode(
+                    x=alt.X("eph:Q", title="MXN / hr",
+                            axis=alt.Axis(grid=True, gridColor="#f0f0f0", tickCount=8,
+                                          labelFontSize=11, titleFontSize=12)),
+                    y=alt.Y("density:Q", title=None, axis=None),
+                    color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER,
+                                    legend=alt.Legend(orient="top", title=None,
+                                                      labelFontSize=11, symbolSize=100,
+                                                      padding=10, columnPadding=16)),
+                )
+                line = alt.Chart(df_kde).mark_line(
+                    strokeWidth=2, interpolate="monotone",
+                ).encode(
+                    x="eph:Q",
+                    y="density:Q",
+                    color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
+                )
+                # ⚠️ PENDING FIX — KDE tooltip format (.2f) is ignored by Altair 6.2.1
+                # Root cause: format spec on Tooltip is silently dropped when the chart uses
+                # alt.layer() + multiple configure_*() calls. The layered chart's configure
+                # pipeline overrides or strips encoding-level tooltip formatting.
+                # Attempted fixes that did NOT work:
+                #   - alt.Tooltip("eph:Q", format=".2f") on mark_rule → ignored
+                #   - alt.Tooltip("median:Q", format=".2f") with renamed column → ignored
+                #   - Moving configure_* to individual sub-charts → breaks legend/axis styling
+                #   - Using formatType="number" alongside format → same result
+                # Next avenue to try: compute a pre-formatted string column and use :N instead of :Q
+                median_rules = alt.Chart(df_medians).mark_rule(
+                    strokeDash=[4, 3], strokeWidth=1.2, opacity=0.65,
+                ).encode(
+                    x="eph:Q",
+                    color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
+                    tooltip=[
+                        alt.Tooltip("Stage:N", title="Stage"),
+                        alt.Tooltip("eph:Q", format=".2f", title="Median MXN/hr"),  # format ignored — see note above
+                    ],
+                )
+                ref_rule = alt.Chart(pd.DataFrame({"x": [200]})).mark_rule(
+                    strokeDash=[6, 4], strokeWidth=1.5, color="#475569", opacity=0.7,
+                ).encode(x="x:Q")
+
+                kde_chart = (
+                    alt.layer(area, line, median_rules, ref_rule)
+                    .properties(
+                        title=alt.TitleParams("EPH Density — Platform Promise to Full Cost",
+                                              fontSize=14, fontWeight=600, anchor="middle"),
+                        height=420,
                     )
+                    .configure_view(strokeWidth=0)
+                    .configure_title(font="Inter", fontSize=14)
+                    .configure_axis(labelFont="Inter", titleFont="Inter")
+                    .configure_legend(labelFont="Inter")
+                    .interactive()
+                )
+                st.altair_chart(kde_chart, use_container_width=True)
 
-                    # ── Melt to long format (for box plots) ──
-                    col_to_label = {col: label for col, label, *_ in STAGES}
-                    df_long = (
-                        df_f[[c for c, *_ in STAGES]]
-                        .melt(var_name="col", value_name="eph")
-                        .dropna()
+                # ── Chart 2: Manual box plots (layered primitives for full tooltip control) ──
+                box_stats = []
+                for col, label, color, *_ in STAGES:
+                    vals = df_f[col].dropna().values
+                    if len(vals) < 4:
+                        continue
+                    q1, med, q3 = float(np.percentile(vals, 25)), float(np.median(vals)), float(np.percentile(vals, 75))
+                    iqr = q3 - q1
+                    lo = float(max(vals.min(), q1 - 1.5 * iqr))
+                    hi = float(min(vals.max(), q3 + 1.5 * iqr))
+                    box_stats.append({"Stage": label, "q1": q1, "median": med, "q3": q3,
+                                      "lower": lo, "upper": hi})
+                df_box = pd.DataFrame(box_stats)
+
+                _y  = alt.Y("Stage:N", sort=STAGE_ORDER, title=None,
+                            axis=alt.Axis(labelFontSize=12))
+                _c  = alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None)
+                _tt = [
+                    alt.Tooltip("Stage:N",  title="Stage"),
+                    alt.Tooltip("median:Q", title="Median",     format=".2f"),
+                    alt.Tooltip("q1:Q",     title="Q1",         format=".2f"),
+                    alt.Tooltip("q3:Q",     title="Q3",         format=".2f"),
+                    alt.Tooltip("lower:Q",  title="Whisker lo", format=".2f"),
+                    alt.Tooltip("upper:Q",  title="Whisker hi", format=".2f"),
+                ]
+                _base = alt.Chart(df_box)
+
+                _whisker = _base.mark_rule(strokeWidth=1.4).encode(
+                    x=alt.X("lower:Q", title="MXN / hr",
+                            axis=alt.Axis(grid=True, gridColor="#f0f0f0",
+                                          tickCount=8, labelFontSize=11, titleFontSize=12)),
+                    x2="upper:Q",
+                    y=_y, color=_c, tooltip=_tt,
+                )
+                _box_bar = _base.mark_bar(size=22).encode(
+                    x=alt.X("q1:Q"), x2="q3:Q",
+                    y=_y, color=_c, tooltip=_tt,
+                )
+                _median_tick = _base.mark_tick(
+                    color="white", thickness=2, size=22,
+                ).encode(x=alt.X("median:Q"), y=_y, tooltip=_tt)
+                _whisker_lo = _base.mark_tick(strokeWidth=1.4, size=10).encode(
+                    x=alt.X("lower:Q"), y=_y, color=_c, tooltip=_tt,
+                )
+                _whisker_hi = _base.mark_tick(strokeWidth=1.4, size=10).encode(
+                    x=alt.X("upper:Q"), y=_y, color=_c, tooltip=_tt,
+                )
+
+                box_chart = (
+                    alt.layer(_whisker, _box_bar, _median_tick, _whisker_lo, _whisker_hi)
+                    .properties(
+                        title=alt.TitleParams("EPH Distribution — Stage by Stage",
+                                              fontSize=14, fontWeight=600, anchor="middle"),
+                        height=240,
                     )
-                    df_long["Stage"] = df_long["col"].map(col_to_label)
+                    .configure_view(strokeWidth=0)
+                    .configure_title(font="Inter", fontSize=14)
+                    .configure_axis(labelFont="Inter", titleFont="Inter")
+                    .interactive()
+                )
+                st.altair_chart(box_chart, use_container_width=True)
 
-                    # ── Build KDE manually → long dataframe ──
-                    x_max  = float(np.percentile(df_long["eph"].dropna().values, 99))
-                    x_grid = np.linspace(0, x_max, 600)
-                    kde_rows = []
-                    median_rows = []
-                    for col, label, *_ in STAGES:
-                        vals = df_f[col].dropna().values
-                        if len(vals) < 2:
-                            continue
-                        y = _kde(vals, bw_method=0.18)(x_grid)
-                        for xi, yi in zip(x_grid, y):
-                            kde_rows.append({"Stage": label, "eph": xi, "density": yi})
-                        median_rows.append({"Stage": label, "median": float(np.median(vals))})
-                    df_kde     = pd.DataFrame(kde_rows)
-                    df_medians = pd.DataFrame([
-                        {"Stage": s, "eph": m} for s, m in
-                        [(r["Stage"], r["median"]) for r in median_rows]
-                    ])
+                # ── Stage descriptors ──
+                desc_items = "".join([
+                    f"""<div style='display:flex;align-items:flex-start;gap:8px;'>
+                      <div style='width:9px;height:9px;border-radius:2px;background:{color};
+                           flex-shrink:0;margin-top:3px;'></div>
+                      <span style='font-size:0.78rem;color:#334155;'>
+                        <strong>{label}</strong> — {desc}
+                      </span>
+                    </div>"""
+                    for _, label, color, __, desc in STAGES
+                ])
+                st.markdown(
+                    f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;"
+                    f"padding:12px 16px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{desc_items}</div>",
+                    unsafe_allow_html=True)
 
-                    # ── Chart 1: KDE ──
-                    area = alt.Chart(df_kde).mark_area(
-                        opacity=0.1, interpolate="monotone",
-                    ).encode(
-                        x=alt.X("eph:Q", title="MXN / hr",
-                                axis=alt.Axis(grid=True, gridColor="#f0f0f0", tickCount=8,
-                                              labelFontSize=11, titleFontSize=12)),
-                        y=alt.Y("density:Q", title=None, axis=None),
-                        color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER,
-                                        legend=alt.Legend(orient="top", title=None,
-                                                          labelFontSize=11, symbolSize=100,
-                                                          padding=10, columnPadding=16)),
-                    )
-                    line = alt.Chart(df_kde).mark_line(
-                        strokeWidth=2, interpolate="monotone",
-                    ).encode(
-                        x="eph:Q",
-                        y="density:Q",
-                        color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
-                    )
-                    median_rules = alt.Chart(df_medians).mark_rule(
-                        strokeDash=[4, 3], strokeWidth=1.2, opacity=0.65,
-                    ).encode(
-                        x="eph:Q",
-                        color=alt.Color("Stage:N", scale=COLOR_SCALE, sort=STAGE_ORDER, legend=None),
-                        tooltip=[
-                            alt.Tooltip("Stage:N", title="Stage"),
-                            alt.Tooltip("median:Q", format=".0f", title="Median MXN/hr"),
-                        ],
-                    )
-                    ref_rule = alt.Chart(pd.DataFrame({"x": [200]})).mark_rule(
-                        strokeDash=[6, 4], strokeWidth=1.5, color="#475569", opacity=0.7,
-                    ).encode(x="x:Q")
-
-                    kde_chart = (
-                        alt.layer(area, line, median_rules, ref_rule)
-                        .properties(
-                            title=alt.TitleParams("EPH Density — Platform Promise to Full Cost",
-                                                  fontSize=14, fontWeight=600, anchor="middle"),
-                            height=420,
-                        )
-                        .configure_view(strokeWidth=0)
-                        .configure_title(font="Inter", fontSize=14)
-                        .configure_axis(labelFont="Inter", titleFont="Inter")
-                        .configure_legend(labelFont="Inter")
-                        .interactive()
-                    )
-                    st.altair_chart(kde_chart, use_container_width=True)
-
-                    # ── Chart 2: Box plots ──
-                    box_chart = (
-                        alt.Chart(df_long)
-                        .mark_boxplot(outliers=False, size=28,
-                                      ticks=alt.MarkConfig(size=8))
-                        .encode(
-                            x=alt.X("eph:Q", title="MXN / hr",
-                                    axis=alt.Axis(grid=True, gridColor="#f0f0f0", tickCount=8,
-                                                  labelFontSize=11, titleFontSize=12)),
-                            y=alt.Y("Stage:N", sort=STAGE_ORDER, title=None,
-                                    axis=alt.Axis(labelFontSize=12)),
-                            color=alt.Color("Stage:N", scale=COLOR_SCALE,
-                                            sort=STAGE_ORDER, legend=None),
-                        )
-                        .properties(
-                            title=alt.TitleParams("EPH Distribution — Stage by Stage",
-                                                  fontSize=14, fontWeight=600, anchor="middle"),
-                            height=240,
-                        )
-                        .configure_view(strokeWidth=0)
-                        .configure_title(font="Inter", fontSize=14)
-                        .configure_axis(labelFont="Inter", titleFont="Inter")
-                        .interactive()
-                    )
-                    st.altair_chart(box_chart, use_container_width=True)
-
-                    # ── Stage descriptors ──
-                    desc_items = "".join([
-                        f"""<div style='display:flex;align-items:flex-start;gap:8px;'>
-                          <div style='width:9px;height:9px;border-radius:2px;background:{color};
-                               flex-shrink:0;margin-top:3px;'></div>
-                          <span style='font-size:0.78rem;color:#334155;'>
-                            <strong>{label}</strong> — {desc}
-                          </span>
-                        </div>"""
-                        for _, label, color, __, desc in STAGES
-                    ])
-                    st.markdown(
-                        f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:8px 32px;"
-                        f"padding:12px 16px;background:#f8f8f8;border-radius:8px;margin-bottom:10px;'>{desc_items}</div>",
-                        unsafe_allow_html=True)
-
-                    st.markdown("""
-<div style='border-left:4px solid #21918c;background:#f0faf9;border-radius:0 8px 8px 0;
-     padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
+                st.markdown("""
+<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
+ padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
   <strong>Reading the funnel:</strong> Each stage reveals more of the true hourly rate.
   <em>Direct</em> is what the platform displays; <em>Complete</em> is what the driver actually earns per hour
   of real time invested — including the unpaid kilometers driven to reach the passenger.<br><br>
@@ -974,139 +1079,22 @@ WHERE ml.eph_direct IS NOT NULL
   well-separated fare tiers.
 </div>""", unsafe_allow_html=True)
 
-                else:
-                    st.success(f"{len(df):,} rows returned.")
-                    st.dataframe(df, use_container_width=True)
+                st.markdown("""
+<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+ padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+    color:#cc6600;'>⚠ PENDING FIX — KDE tooltip decimal formatting</span><br><br>
+  Hovering over the median dashed lines in the KDE chart shows unformatted values (many decimals).
+  The <code>format=".2f"</code> spec on <code>alt.Tooltip</code> is silently ignored in Altair 6.2.1
+  when the chart is built with <code>alt.layer()</code> + multiple <code>configure_*()</code> calls —
+  the configure pipeline strips encoding-level tooltip formatting.<br><br>
+  <strong>Already tried:</strong> <code>format=".2f"</code> on rule tooltip · renamed column to
+  <code>median</code> · <code>formatType="number"</code> · moving <code>configure_*</code> to
+  sub-charts (breaks legend/axis styling).<br><br>
+  <strong>Next avenue:</strong> pre-format the median value as a string column and encode as <code>:N</code>
+  instead of <code>:Q</code> to bypass Altair's format resolution entirely.
+</div>""", unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────
-# TAB 2 — DATA & ARCHITECTURE
-# ─────────────────────────────────────────────
-with tab_context:
-
-    # Data Census
-    st.markdown("<div class='sec-head'>Data Census</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sec-sub'>Operational baseline, live from <code>pienza_mini</code>.</div>", unsafe_allow_html=True)
-
-    total_offers, accept_rate, n_sessions = "4,765", "7.26%", "—"
-
-    if _bq_ok:
-        census_sql = f"""
-        SELECT
-            COUNT(*)                                                       AS total_offers,
-            ROUND(COUNTIF(oa.offer_action_description = 'accepted') * 100.0 / COUNT(*), 2) AS accept_rate,
-            COUNT(DISTINCT ml.session_fk)                                  AS sessions
-        FROM `{PROJECT}.{DATASET}.v_ML_Supervised` ml
-        LEFT JOIN `{PROJECT}.{DATASET}.offer_action` oa ON oa.offer_action_id = ml.offer_action_fk
-        """
-        df_c, err_c = run_query(census_sql)
-        if df_c is not None and not df_c.empty:
-            r = df_c.iloc[0]
-            total_offers = f"{int(r['total_offers']):,}"
-            accept_rate  = f"{r['accept_rate']}%"
-            n_sessions   = f"{int(r['sessions']):,}"
-
-    st.markdown(f"""
-<div class="bento-grid">
-  <div class="bento-card">
-    <div class="bento-title">Telemetry Ledger</div>
-    <div class="bento-value">{total_offers}</div>
-    <div class="bento-desc">Total ride offers captured — accepted and rejected alike.</div>
-  </div>
-  <div class="bento-card">
-    <div class="bento-title">Accept Rate</div>
-    <div class="bento-value">{accept_rate}</div>
-    <div class="bento-desc">Share of offers the agent accepted. The rest is the survivorship-bias-free negative class.</div>
-  </div>
-  <div class="bento-card">
-    <div class="bento-title">Field Sessions</div>
-    <div class="bento-value">{n_sessions}</div>
-    <div class="bento-desc">Distinct driving sessions reconstructed from the telemetry stream.</div>
-  </div>
-  <div class="bento-card">
-    <div class="bento-title">Reconciliation</div>
-    <div class="bento-value">+/-1 MXN</div>
-    <div class="bento-desc">Validated tolerance between internal telemetry and the official bank settlement ledger.</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    if not _bq_ok:
-        st.caption(f"BigQuery unreachable — showing paper baseline. ({_bq_err})")
-
-    st.write("")
-    st.divider()
-
-    # ETL Lineage Stepper
-    st.markdown("<div class='sec-head'>Data Lineage &amp; ETL Architecture</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sec-sub'>How raw OCR events became a fully reconciled, ML-ready relational database.</div>", unsafe_allow_html=True)
-
-    def _step(letter, color, label, why, last=False):
-        line = "" if last else "<div class='step-line'></div>"
-        st.markdown(f"""
-    <div class='step-row'>
-      <div class='step-spine'>
-        <div class='step-circle' style='background:{color}'>{letter}</div>
-        {line}
-      </div>
-      <div class='step-body'>
-        <div class='step-label' style='color:{color}'>{label}</div>
-        <div class='step-why'>{why}</div>
-      </div>
-    </div>
-        """, unsafe_allow_html=True)
-
-    _step("L", "#21918c", "Official Ledger Integration",
-          "Two platform exports were ingested as the source of truth: <code>lifetime_trips</code> "
-          "(every trip state change — Request to Pickup to Dropoff) and <code>activity_earnings</code> "
-          "(the definitive net-payout settlement log).")
-
-    _step("R", "#21918c", "Reconciliation Audit · Outer Join",
-          "The platform logs only successful transactions; the OCR stream logs the agent's <em>intent</em>. "
-          "An Outer Join preserved System_Failure records absent from the official ledger — keeping them as valid "
-          "ML data points and neutralizing survivorship bias in the positive class. Validated to ±1 MXN with "
-          "GTS timestamps aligned to platform server logs.")
-
-    _step("G", "#b45309", "The Golden Link · 2-Engine Match",
-          "A matching cascade forged the join between <code>offers</code> and <code>trip_events</code>: "
-          "Tier 1 exact (date + fare), Tier 2 fuzzy (rounded fare), Tier 3 orphan (unique fare within 24h). "
-          "Edge-case Stolen Identity collisions were resolved by a manual remediation layer.")
-
-    _step("T", "#7c3aed", "Idempotent ETL · Tabula Rasa",
-          "Every run hard-deletes the binary, reinstantiates the schema from <code>schema.sql</code>, and fully "
-          "reloads — no incremental drift, no ghost data. A WAL checkpoint + <code>os.fsync</code> certify "
-          "<code>pienza.db</code> as Golden Master before migration to <code>pienza_mini</code> on BigQuery.",
-          last=True)
-
-    st.write("")
-
-    # Linear financial chain
-    st.markdown("<div style='font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#64748b;margin-bottom:6px;'>Linear Financial Chain · no circular references</div>", unsafe_allow_html=True)
-    st.markdown("""
-<div class='chain-flow'>
-  <div class='chain-node'>offers</div>
-  <div class='chain-arrow'><span class='chain-rel'>1:1</span><span class='chain-glyph'>-></span></div>
-  <div class='chain-node'>trip_events</div>
-  <div class='chain-arrow'><span class='chain-rel'>1:0..1</span><span class='chain-glyph'>-></span></div>
-  <div class='chain-node'>lifetime_trips</div>
-  <div class='chain-arrow'><span class='chain-rel'>1:1</span><span class='chain-glyph'>-></span></div>
-  <div class='chain-node'>activity_earnings</div>
-</div>
-<p style='font-size:0.8rem;color:#888;margin-top:4px;'>Truth flows strictly forward — from the behavioral trigger to the bank settlement — so financial outcomes never feed back into the decision context.</p>
-""", unsafe_allow_html=True)
-
-    st.write("")
-
-    # SQL View Architecture
-    st.markdown("<div style='font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#64748b;margin-bottom:6px;'>SQL View Architecture · the intelligence layer</div>", unsafe_allow_html=True)
-    st.markdown("""
-<div class='view-grid'>
-  <div class='view-card'><div class='view-name'>v_trip_funnel_wide</div><div class='view-desc'>Pivots the vertical event stream into one horizontal lifecycle row via MAX(CASE WHEN...).</div></div>
-  <div class='view-card'><div class='view-name'>v_trip_final_kpis</div><div class='view-desc'>The Physics of Profitability — durations, Spread %, and all EPH tiers.</div></div>
-  <div class='view-card'><div class='view-name'>v_mission_dossier</div><div class='view-desc'>The Golden Link: anchors every financial outcome to its originating offer_id.</div></div>
-  <div class='view-card'><div class='view-name'>v_broche_fks</div><div class='view-desc'>FK lineage audit across all six layers, OCR to Earnings.</div></div>
-  <div class='view-card'><div class='view-name'>v_offers_human</div><div class='view-desc'>Denormalized EDA surface — dimension tables resolved to readable labels.</div></div>
-  <div class='view-card'><div class='view-name'>v_lifecycle_audit_accepted</div><div class='view-desc'>GTS vs. platform timestamp deltas for accepted offers.</div></div>
-  <div class='view-card' style='border-color:#21918c;'><div class='view-name'>v_ML_Supervised</div><div class='view-desc'><strong>Canonical.</strong> The full ML feature vector — preferred over raw joins.</div></div>
-</div>
-""", unsafe_allow_html=True)
-
+            else:
+                st.success(f"{len(df):,} rows returned.")
+                st.dataframe(df, use_container_width=True)

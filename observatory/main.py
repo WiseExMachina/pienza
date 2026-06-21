@@ -6,7 +6,7 @@ from components.styles import GLOBAL_CSS
 # --- 0. SIDEBAR INTEGRADA ---
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Proyect Pienza")   
+        st.markdown("Project Pienza")   
         st.markdown("---")
         
         # Resolve path dynamically for home page and subpages

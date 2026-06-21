@@ -65,7 +65,7 @@ st.set_page_config(layout="wide")
 # ─────────────────────────────────────────────
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Proyect Pienza")
+        st.markdown("Project Pienza")
         st.markdown("---")
         st.page_link("main.py", label="Home")
         st.page_link("pages/0001_Foundations.py", label="Foundations")

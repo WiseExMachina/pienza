@@ -24,7 +24,7 @@ st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon="⚡", layo
 # ─────────────────────────────────────────────
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Proyect Pienza")
+        st.markdown("Project Pienza")
         st.markdown("---")
         st.page_link("main.py", label="Home")
         st.page_link("pages/0001_Foundations.py", label="Foundations")

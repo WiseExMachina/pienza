@@ -924,7 +924,7 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
     # ── Alternative UI mockups ────────────────────────────────────
     st.markdown("---")
     st.markdown("""
-<div style="background:rgba(33,145,140,0.08);border-left:4px solid #21918c;border-radius:0 10px 10px 0;
+<div style="background:rgba(33,145,140,0.07);border-left:4px solid #21918c;border-radius:0 10px 10px 0;
         padding:16px 20px;margin-top:24px;">
   <div style="font-size:12px;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">
 Alternative UI/UX Explorations
