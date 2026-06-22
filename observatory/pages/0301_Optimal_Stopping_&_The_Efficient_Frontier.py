@@ -89,10 +89,57 @@ def map_category(cat_name):
 # ==============================================================================
 st.markdown("# Optimal Stopping & The Efficient Frontier")
 st.markdown(
-    "<p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;'>"
-    "Mission Intake Architecture — modeling when to accept, when to wait, "
-    "and where the market breaks even."
+    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;'>"
+    "Optimal Stopping Theory (OST) addresses a single problem: given a sequential stream of transient options, when is the exact moment to commit? "
+    "In ride-hailing, every accepted offer locks the agent into a trajectory, while every rejection burns finite operational time. "
+    "The clock is a continuous financial penalty."
+    "</p>"
+    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;margin-top:10px;'>"
+    "The classical <em>Secretary Problem</em> provides a theoretical baseline: reject the first "
+    "1/e ≈ 37% of candidates, then accept the next observation exceeding all prior maximums. "
+    "This model, however, assumes a known population size, costless waiting, and a stationary distribution. "
+    "In field operations, idle time directly erodes EPH, and market quality shifts dynamically between sessions."
+    "</p>"
+    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;margin-top:10px;'>"
+    "Therefore, the operative metric is the <strong>Continuation Value (CV)</strong>. An offer is rejected only when "
+    "the expected return of continuing the search within a rational time window exceeds the immediate baseline:"
     "</p>",
+    unsafe_allow_html=True,
+)
+
+st.latex(r"CV(\tau) = p(\tau)\cdot EPH_{\text{target}} + (1-p(\tau))\cdot EPH_{\text{fallback}} - EPH_{\text{immediate}}")
+
+st.markdown(
+    "<p style='color:#888;font-size:0.78rem;line-height:1.6;max-width:820px;margin-top:4px;'>"
+    "where $p(\\tau)$ is the empirical probability of encountering a premium offer within search window $\\tau$, "
+    "conditional on the active market regime. The equilibrium point where $CV(\\tau) = 0$ defines the mathematical boundary of rational patience."
+    "</p>"
+    "<div style='margin-top:24px;'></div>"
+    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;'>"
+    "Deriving that boundary requires four sequential phases — each building on the last."
+    "</p>"
+    "<div style='display:flex;gap:12px;margin-top:20px;max-width:820px;flex-wrap:wrap;'>"
+    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 1</div>"
+    "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>Market Quality Index</div>"
+    "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Normalize offers across tiers into a single dimensionless quality score.</div>"
+    "</div>"
+    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 2</div>"
+    "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>Market Quadrants</div>"
+    "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Classify sessions by offer quality and arrival velocity into four regimes.</div>"
+    "</div>"
+    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 3</div>"
+    "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>The VEN Playbook</div>"
+    "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Compute CV(τ) per quadrant to derive rational search time boundaries.</div>"
+    "</div>"
+    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 4</div>"
+    "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>The Efficient Frontier</div>"
+    "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Map the Pareto boundary between selectivity and realized yield.</div>"
+    "</div>"
+    "</div>",
     unsafe_allow_html=True,
 )
 
@@ -224,6 +271,8 @@ df_playbook = df_playbook[
     ~df_playbook['reason_primary'].str.contains('dropoff_non_operational')
 ].copy()
 df_playbook['eph_real'] = (df_playbook['upfront_fare'] / df_playbook['est_trip_time_sec']) * 3600
+
+st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
 
 # ==============================================================================
 # TABS
