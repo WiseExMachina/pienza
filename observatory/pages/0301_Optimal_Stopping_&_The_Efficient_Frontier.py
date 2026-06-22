@@ -64,8 +64,8 @@ OPUS_TEXT   = '#121212'
 
 COLORS = {
     'Rich / Fast': '#21918c',   # primary teal
-    'Rich / Slow': '#2db3ad',   # lighter teal
-    'Poor / Fast': '#94a3b8',   # slate
+    'Rich / Slow': '#99d5d1',   # pale teal
+    'Poor / Fast': '#cbd5e1',   # light slate
     'Poor / Slow': '#64748b',   # dark slate
 }
 
@@ -185,6 +185,7 @@ df_core_money['mqi'] = df_core_money['eph_realized'] / df_core_money['category_a
 
 session_stats = df_core_money.groupby('session_fk').agg(
     velocity_median=('clean_wait', 'median'),
+    quality_median=('mqi', 'median'),
     quality_mean=('mqi', 'mean'),
     offer_count=('offer_id', 'count'),
     total_potential=('upfront_fare', 'sum'),
@@ -197,7 +198,7 @@ GLOBAL_VELOCITY = session_stats['velocity_median'].median()
 GLOBAL_QUALITY  = 1.0
 
 def get_quadrant(row):
-    is_rich = row['quality_mean'] >= GLOBAL_QUALITY
+    is_rich = row['quality_median'] >= GLOBAL_QUALITY
     is_fast = row['velocity_median'] <= GLOBAL_VELOCITY
     if is_rich and is_fast:      return 'Rich / Fast'
     if is_rich and not is_fast:  return 'Rich / Slow'
@@ -228,10 +229,10 @@ df_playbook['eph_real'] = (df_playbook['upfront_fare'] / df_playbook['est_trip_t
 # TABS
 # ==============================================================================
 tab1, tab2, tab3, tab4 = st.tabs([
-    "Phase 1 — Market Quality Index",
-    "Phase 2 — Market Quadrants",
-    "Phase 3 — The VEN Playbook",
-    "Phase 4 — The Efficient Frontier",
+    "Market Quality Index",
+    "Market Quadrants",
+    "The VEN Playbook",
+    "The Efficient Frontier",
 ])
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -433,13 +434,14 @@ by the quality and velocity of their offer flow.
 with tab2:
     st.markdown(
         "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>"
-        "Visualizing the Total Addressable Market (TAM) per session — the raw volume of money "
-        "that passed through the screen, contextualized by Market Quality (MQI) and Market Friction (wait times)."
+        "Each session was classified into one of four quadrants defined by two axes: "
+        "Market Quality (MQI) on the vertical, and Market Velocity — the median wait time between offers — on the horizontal. "
+        "Circle size represents the total gross potential value of the session."
         "</p>",
         unsafe_allow_html=True,
     )
 
-    with st.expander("🔍 Click here to view the live BigQuery SQL (Money Map Ingestion)"):
+    with st.expander("View SQL"):
         st.code(query_moneymap, language="sql")
 
     fig_money = go.Figure()
@@ -447,7 +449,7 @@ with tab2:
     for quad in ['Rich / Fast', 'Rich / Slow', 'Poor / Fast', 'Poor / Slow']:
         qd = session_stats[session_stats['Quadrant'] == quad]
         fig_money.add_trace(go.Scatter(
-            x=qd['velocity_median'], y=qd['quality_mean'],
+            x=qd['velocity_median'], y=qd['quality_median'],
             mode='markers', name=quad,
             marker=dict(
                 color=COLORS[quad],
@@ -468,8 +470,8 @@ with tab2:
             ),
         ))
 
-    y_max = session_stats['quality_mean'].max() * 1.05
-    y_min = session_stats['quality_mean'].min() * 0.95
+    y_max = session_stats['quality_median'].max() * 1.05
+    y_min = session_stats['quality_median'].min() * 0.95
     x_max = session_stats['velocity_median'].max() * 1.05
     x_min = max(0, session_stats['velocity_median'].min() - 10)
 
@@ -479,11 +481,10 @@ with tab2:
         autosize=True, height=620,
         plot_bgcolor="white", paper_bgcolor="white",
         font_family="Inter",
-        title=dict(text="Total Opportunity Value per Session (Gross Potential Earnings)",
-                   font=dict(size=14, color="#334155"), x=0.5, xanchor="center"),
+        title=dict(text="", font=dict(size=14, color="#334155")),
         xaxis_title=dict(text=f"Market Friction — Median Wait: {GLOBAL_VELOCITY:.0f}s",
                          font=dict(size=12, color="#334155")),
-        yaxis_title=dict(text="Market Quality (Mean MQI)", font=dict(size=12, color="#334155")),
+        yaxis_title=dict(text="Market Quality (Median MQI)", font=dict(size=12, color="#334155")),
         xaxis=dict(gridcolor="#f0f0f0", zeroline=False),
         yaxis=dict(gridcolor="#f0f0f0", zeroline=False),
         annotations=[
@@ -506,21 +507,77 @@ with tab2:
     )
     st.plotly_chart(fig_money, use_container_width=True)
 
-    st.markdown(
-        "<div style='font-size:0.9rem;font-weight:700;color:#334155;margin:16px 0 4px;'>"
-        "Financial Flow Census</div>",
-        unsafe_allow_html=True,
+    # ── Quadrant bento cards ──
+    _quad_summary = (
+        session_stats.groupby("Quadrant")
+        .agg(
+            sessions=("session_fk", "count"),
+            med_mqi=("quality_median", "median"),
+            med_wait=("velocity_median", "median"),
+            avg_offers=("offer_count", "mean"),
+        )
+        .reset_index()
+        .sort_values("med_mqi", ascending=False)
+        .to_dict("records")
     )
-    total_market_value = session_stats['total_potential'].sum()
-    m1, m2 = st.columns([1, 2])
-    with m1:
-        st.metric(label="Total Market Value Seen", value=f"${total_market_value:,.0f} MXN")
-    with m2:
-        st.markdown("**Top 3 Highest Value Sessions:**")
-        top_3 = session_stats.sort_values('total_potential', ascending=False).head(3)
-        display_df = top_3[['session_fk', 'Quadrant', 'total_potential', 'offer_count']].copy()
-        display_df['total_potential'] = display_df['total_potential'].apply(lambda x: f"${x:,.2f}")
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+    _QUAD_ORDER = ["Rich / Fast", "Rich / Slow", "Poor / Fast", "Poor / Slow"]
+    _quad_summary = sorted(_quad_summary, key=lambda r: _QUAD_ORDER.index(r["Quadrant"]) if r["Quadrant"] in _QUAD_ORDER else 99)
+
+    _bento_cols = st.columns(4)
+    for _col, _row in zip(_bento_cols, _quad_summary):
+        _q = _row["Quadrant"]
+        _accent = COLORS.get(_q, "#21918c")
+        with _col:
+            st.markdown(f"""
+<div style='border-top:3px solid {_accent};background:#ffffff;border-radius:8px;
+     padding:14px 16px 12px;font-family:Inter,sans-serif;'>
+  <div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.9px;
+       color:{_accent};margin-bottom:10px;'>{_q.replace(" / ", " · ")}</div>
+  <div style='display:flex;flex-direction:column;gap:6px;'>
+    <div>
+      <div style='font-size:1.35rem;font-weight:700;color:#1e293b;line-height:1;'>{_row["sessions"]}</div>
+      <div style='font-size:0.65rem;color:#94a3b8;margin-top:1px;letter-spacing:0.3px;'>Sessions</div>
+    </div>
+    <div style='border-top:1px solid #f1f5f9;padding-top:6px;'>
+      <div style='font-size:1.05rem;font-weight:600;color:#1e293b;line-height:1;'>{_row["med_mqi"]:.2f}</div>
+      <div style='font-size:0.65rem;color:#94a3b8;margin-top:1px;letter-spacing:0.3px;'>Median MQI</div>
+    </div>
+    <div style='border-top:1px solid #f1f5f9;padding-top:6px;'>
+      <div style='font-size:1.05rem;font-weight:600;color:#1e293b;line-height:1;'>{_row["med_wait"]:.0f}s</div>
+      <div style='font-size:0.65rem;color:#94a3b8;margin-top:1px;letter-spacing:0.3px;'>Median Wait</div>
+    </div>
+    <div style='border-top:1px solid #f1f5f9;padding-top:6px;'>
+      <div style='font-size:1.05rem;font-weight:600;color:#1e293b;line-height:1;'>{_row["avg_offers"]:.0f}</div>
+      <div style='font-size:0.65rem;color:#94a3b8;margin-top:1px;letter-spacing:0.3px;'>Avg Offers</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # ── Key insight callout ──
+    _paradise_pct = int(round(
+        len(session_stats[session_stats["Quadrant"] == "Rich / Fast"]) / len(session_stats) * 100
+    ))
+    st.markdown(f"""
+<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
+ padding:12px 16px;margin-top:16px;font-size:0.82rem;color:#334155;line-height:1.7;'>
+Only <strong>{_paradise_pct}%</strong> of sessions fell into the Paradise quadrant — high quality <em>and</em> high velocity.
+With the market quadrants established, rational search time boundaries can now be derived for each regime in the next phase.
+</div>
+""", unsafe_allow_html=True)
+
+    st.write("")
+
+    # ── Pending fix yellow callout ──
+    st.markdown("""
+<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+     padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+        color:#cc6600;'>⚠ PENDING FIX — Backpropagate session MQI change</span><br><br>
+  Session MQI was updated from <strong>mean → median</strong> in this chart. This change must be
+  backpropagated to: the LaTeX paper (PNG figures) and the source Jupyter notebooks (.ipynb).
+</div>
+""", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # TAB 3 — The VEN Playbook
@@ -534,7 +591,7 @@ with tab3:
         unsafe_allow_html=True,
     )
 
-    with st.expander("🔍 Click here to view the live BigQuery SQL (VEN Data Ingestion)"):
+    with st.expander("View SQL"):
         st.code(query_ven, language="sql")
 
     st.markdown(
