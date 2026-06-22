@@ -90,7 +90,7 @@ def map_category(cat_name):
 st.markdown("# The Cost of Patience")
 st.markdown(
     "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;'>"
-    "Optimal Stopping Theory (OST) addresses a single problem: given a sequential stream of transient options, when is the exact moment to commit? "
+    "Optimal Stopping Theory addresses a single problem: given a sequential stream of transient options, when is the exact moment to commit? "
     "In ride-hailing, every accepted offer locks the agent into a trajectory, while every rejection burns finite operational time. "
     "The clock is a continuous financial penalty."
     "</p>"
@@ -111,8 +111,8 @@ st.latex(r"CV(\tau) = p(\tau)\cdot EPH_{\text{target}} + (1-p(\tau))\cdot EPH_{\
 
 st.markdown(
     "<p style='color:#888;font-size:0.78rem;line-height:1.6;max-width:820px;margin-top:4px;'>"
-    "where $p(\\tau)$ is the empirical probability of encountering a premium offer within search window $\\tau$, "
-    "conditional on the active market regime. The equilibrium point where $CV(\\tau) = 0$ defines the mathematical boundary of rational patience."
+    "where p(τ) is the empirical probability of encountering a premium offer within search window τ, "
+    "conditional on the active market regime. The equilibrium point where CV(τ) = 0 defines the mathematical boundary of rational patience."
     "</p>"
     "<div style='margin-top:24px;'></div>"
     "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;'>"
@@ -131,7 +131,7 @@ st.markdown(
     "</div>"
     "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
     "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 3</div>"
-    "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>The VEN Playbook</div>"
+    "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>The CV(τ) Playbook</div>"
     "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Compute CV(τ) per quadrant to derive rational search time boundaries.</div>"
     "</div>"
     "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
@@ -280,7 +280,7 @@ st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
 tab1, tab2, tab3, tab4 = st.tabs([
     "Market Quality Index",
     "Market Quadrants",
-    "The VEN Playbook",
+    "The CV(τ) Playbook",
     "The Efficient Frontier",
 ])
 
@@ -629,13 +629,14 @@ With the market quadrants established, rational search time boundaries can now b
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# TAB 3 — The VEN Playbook
+# TAB 3 — The CV(τ) Playbook
 # ──────────────────────────────────────────────────────────────────────────────
 with tab3:
     st.markdown(
         "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>"
-        "This matrix calculates the <strong>Net Expected Value (VEN)</strong>: if you reject a baseline offer now, "
-        "what is the probability and expected gain of waiting for a premium target within a given time window?"
+        "The playbook operationalizes the Continuation Value formula. For a given target yield and market regime, "
+        "it computes the empirical probability of encountering a premium offer within each search window "
+        "and resolves whether waiting is mathematically justified over accepting the immediate baseline."
         "</p>",
         unsafe_allow_html=True,
     )
@@ -643,16 +644,10 @@ with tab3:
     with st.expander("View SQL"):
         st.code(query_ven, language="sql")
 
-    st.markdown(
-        "<div style='font-size:0.9rem;font-weight:700;color:#334155;margin:16px 0 4px;'>"
-        "Strategic Parameters</div>",
-        unsafe_allow_html=True,
-    )
     TARGET_EPH  = st.slider("Target Premium Yield ($/hr)", min_value=150, max_value=400,
                             value=200, step=10,
                             help="The premium rate you are holding out for. Baseline is locked at $30 below this.")
     BASELINE_EPH = TARGET_EPH - 30
-    st.info(f"**Active Baseline Yield:** ${BASELINE_EPH}/hr *(locked at $30 below Target)*")
 
     props_target = df_playbook[df_playbook['eph_real'].between(TARGET_EPH - 15, TARGET_EPH + 15)][
         ['upfront_fare', 'est_trip_time_sec', 'time_to_pickup_sec']].median()
@@ -698,19 +693,34 @@ with tab3:
         ven_matrix   = ven_matrix.reindex([q for q in q_order if q in ven_matrix.index])[cols_order]
         label_matrix = label_matrix.reindex([q for q in q_order if q in label_matrix.index])[cols_order]
 
+        st.markdown(
+            "<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;"
+            "padding:10px 16px;margin:0 0 12px;font-size:0.82rem;color:#334155;line-height:1.6;'>"
+            "<strong>How to read:</strong> Each cell shows the expected return of waiting (CV(τ), in $) "
+            "and the empirical probability of encountering a premium offer (%) within that search window. "
+            "<span style='color:#5a8a3c;font-weight:700;'>Green</span> = positive return, waiting is justified. "
+            "<span style='color:#b8860b;font-weight:700;'>Yellow</span> = threshold zone, marginal gain. "
+            "<span style='color:#b91c1c;font-weight:700;'>Red</span> = negative return, accept the current offer now."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
         fig_heat = go.Figure(data=go.Heatmap(
             z=ven_matrix.values, x=ven_matrix.columns, y=ven_matrix.index,
             text=label_matrix.values, texttemplate="%{text}",
             colorscale="RdYlGn", zmid=0, showscale=False,
-            hovertemplate="<b>%{y}</b><br>Wait: %{x}<br>Net Expected Value: $%{z:.2f}<extra></extra>",
+            hovertemplate="<b>%{y}</b><br>Wait: %{x}<br>CV(τ): $%{z:.2f}<extra></extra>",
         ))
         fig_heat.update_layout(
             autosize=True, height=500,
-            plot_bgcolor=OPUS_GREY, paper_bgcolor=OPUS_GREY,
-            title=dict(text=f"Playbook: VEN & Probability (Target: ${TARGET_EPH}/hr | Baseline: ${BASELINE_EPH}/hr)",
-                       font=dict(size=14, color=OPUS_PURPLE)),
-            xaxis_title=dict(text="Search Investment Time", font=dict(size=14, color=OPUS_TEXT)),
-            yaxis_title=dict(text="Market Regime", font=dict(size=14, color=OPUS_TEXT)),
+            plot_bgcolor="#ffffff", paper_bgcolor="#ffffff",
+            title=dict(
+                text=f"CV(τ) — Continuation Value by Regime & Search Window  "
+                     f"(Target: ${TARGET_EPH}/hr | Baseline: ${BASELINE_EPH}/hr)",
+                font=dict(size=13, color="#334155"),
+            ),
+            xaxis_title=dict(text="Search Window", font=dict(size=12, color="#334155")),
+            yaxis_title=dict(text="Market Regime", font=dict(size=12, color="#334155")),
             yaxis=dict(autorange="reversed"),
             margin=dict(l=60, r=20, t=60, b=40),
         )
