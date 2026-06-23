@@ -12,6 +12,33 @@ from components.styles import GLOBAL_CSS
 # ==============================================================================
 st.set_page_config(page_title="Causal Inference | Pienza", layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+st.markdown("""<style>
+.ols-kpi {
+  position: relative; border-radius: 6px; padding: 6px 16px; cursor: default;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.ols-kpi:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.ols-tip {
+  visibility: hidden; opacity: 0; width: 240px;
+  background: #ffffff; color: #475569;
+  font-size: 0.78rem; line-height: 1.55; font-weight: 400;
+  border: 1px solid #21918c; border-radius: 8px; padding: 10px 14px;
+  position: absolute; bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+  transition: opacity 0.18s ease;
+  z-index: 9999; text-transform: none; letter-spacing: 0;
+}
+.ols-tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: #21918c;
+}
+.ols-kpi:hover .ols-tip { visibility: visible; opacity: 1; }
+</style>""", unsafe_allow_html=True)
+
+def teal_callout(text: str, mb: str = "24px") -> str:
+    return f"""<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;padding:14px 18px;font-size:0.88rem;color:#334155;line-height:1.7;max-width:860px;margin-bottom:{mb};'>{text}</div>"""
 
 # ─────────────────────────────────────────────
 # SIDEBAR
@@ -138,21 +165,16 @@ with top_tab1:
   </div>
   <div class="ci-step">
     <div class="ci-dot">P2</div>
-    <div class="ci-step-label">Baseline OLS</div>
-    <div class="ci-step-sub">R²=0.93, heavy tails flagged</div>
+    <div class="ci-step-label">Heteroscedasticity</div>
+    <div class="ci-step-sub">Baseline OLS + Cone of uncertainty</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P3</div>
-    <div class="ci-step-label">Heteroscedasticity</div>
-    <div class="ci-step-sub">Cone of uncertainty</div>
-  </div>
-  <div class="ci-step">
-    <div class="ci-dot">P4</div>
     <div class="ci-step-label">Reality Check Matrix</div>
     <div class="ci-step-sub">Hierarchy of predictability</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P5</div>
+    <div class="ci-dot">P4</div>
     <div class="ci-step-label">LOWESS Curve</div>
     <div class="ci-step-sub">Integrity buffer identified</div>
   </div>
@@ -198,9 +220,8 @@ setTimeout(function() {
 </script>
 """, height=0)
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab3, tab4, tab5, tab6 = st.tabs([
         "Payout Stability",
-        "Baseline OLS",
         "Heteroscedasticity Audit",
         "Time-vs-Money Matrix",
         "LOWESS Response Curve",
@@ -211,14 +232,11 @@ setTimeout(function() {
 # PHASE 1: FINANCIAL STABILITY & POLICY INTERVENTION AUDIT
 # ==============================================================================
 with tab1:
-
-
-    # --- NEW: CAUSAL INFERENCE CONTEXT ---
-    st.markdown(r"""
-    Following the acquisition phase, the initial hypothesis regarding the Payout Spread was formally tested using the verified ground-truth of completed missions ($N = 249$, August 22 – October 1 window). The longitudinal data confirms that the **"structural haircut"** identified during the pilot study remains a consistent property of the marketplace architecture throughout the entire campaign.
-
-    The analysis reveals a highly stable financial equilibrium. While individual mission yields exhibit significant dispersion, the 5-mission moving average remains tightly anchored at a global mean of **0.8361**. This confirms that the platform operates under a consistent payout target for the majority of the operational window.
-    """)
+    st.markdown("""
+<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:20px;'>
+Longitudinal analysis shows the platform enforces a structural haircut. Across 249 completed missions, the payout never drifts far from <strong style='color:#0f172a;'>0.84</strong> — individual yields scatter, but the 5-mission moving average stays anchored. The system isn't noisy; it's calibrated.
+</div>
+""", unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL ---
     query_phase1 = """
@@ -235,7 +253,7 @@ with tab1:
     WHERE v.realized_fare IS NOT NULL
     """
 
-    with st.expander("🔍 Click here to view the live BigQuery SQL (No Hardcoding)"):
+    with st.expander("View SQL"):
         st.code(query_phase1, language="sql")
 
     # --- 1. DATA INGESTION ---
@@ -293,6 +311,12 @@ with tab1:
     fig1.add_hline(y=global_mean, line_dash="dash", line_color="#666666",
                 annotation_text=f"Global Average: {global_mean:.4f}", annotation_position="bottom right")
 
+    # Pre / Post computed for stat row and callout below
+    mask = df_dated['session_date'] < event_date
+    pre_event = df_dated.loc[mask, 'financial_spread'].mean()
+    post_event = df_dated.loc[~mask, 'financial_spread'].mean()
+    lift = ((post_event / pre_event) - 1) * 100
+
     # Policy Intervention Line
     if pd.notna(event_rank):
         fig1.add_vline(x=event_rank, line_width=2, line_color=OPUS_TEAL)
@@ -315,63 +339,20 @@ with tab1:
 
     st.plotly_chart(fig1, use_container_width=True)
 
-    # --- 4. ENHANCED STATISTICS & INTERVENTION CONTEXT ---
-    pre_event = df_dated[df_dated['session_date'] < event_date]['financial_spread'].mean()
-    post_event = df_dated[df_dated['session_date'] >= event_date]['financial_spread'].mean()
-    lift = ((post_event/pre_event)-1)*100
-
     st.markdown(f"""
-    A critical exogenous event occurred on **September 24**, when the platform issued a formal "Policy Intervention" message promising an increase in earnings. The empirical data confirms the validity of this signal:
-    * **Mean Spread (Pre-Intervention):** {pre_event:.4f}
-    * **Mean Spread (Post-Intervention):** {post_event:.4f}
-    * **Realized Yield Lift:** {lift:.2f}%
+<div style='display:flex;align-items:center;justify-content:center;gap:32px;padding:14px 0;margin-bottom:20px;'>
+  <div><span style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;'>Global Mean</span><br><span style='font-size:1.1rem;font-weight:800;color:#334155;'>{global_mean:.4f}</span></div>
+  <div style='color:#cbd5e1;font-size:1.2rem;'>·</div>
+  <div><span style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;'>Pre</span><br><span style='font-size:1.1rem;font-weight:800;color:#334155;'>{pre_event:.4f}</span></div>
+  <div style='color:#cbd5e1;font-size:1.2rem;'>·</div>
+  <div><span style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#21918c;'>Post</span><br><span style='font-size:1.1rem;font-weight:800;color:#21918c;'>{post_event:.4f}</span></div>
+  <div style='color:#cbd5e1;font-size:1.2rem;'>·</div>
+  <div style='background:rgba(33,145,140,0.1);border-radius:6px;padding:4px 12px;'><span style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#21918c;'>Yield Lift</span><br><span style='font-size:1.1rem;font-weight:800;color:#21918c;'>+{lift:.2f}%</span></div>
+</div>""", unsafe_allow_html=True)
 
-    This finding proves that while the system is anchored, it is not static, and formal policy communications result in a measurable shift in the underlying financial physics of the marketplace.
-    """)
+    st.markdown(teal_callout(f"The equilibrium is anchored, but not static. A September 24 policy intervention — a formal earnings increase notice — triggered a definitive <strong>+{lift:.2f}% yield lift</strong>, proving that formal communications measurably shift the underlying payout physics.", mb="0"), unsafe_allow_html=True)
 
 
-
-
-
-# ==============================================================================
-# PHASE 1.5: THE BASELINE MODEL (FINANCIAL PREDICTABILITY)
-# ==============================================================================
-with tab2:
-
-    st.markdown("""
-    #### **The Baseline Model: Financial Predictability**
-    To transition from longitudinal monitoring to formal inference, a baseline Ordinary Least Squares (OLS) model was architected to quantify the structural relationship between the quoted fare and operational reality. The estimated regression equation is defined as:
-    """)
-
-    # We use st.latex to force centering and bypass Markdown's underscore issues
-    st.latex(r"\widehat{\text{realized\_fare}} = 6.31 + 0.79 \cdot \text{upfront\_fare}")
-
-    st.markdown("""
-    The model results, summarized below, establish the global financial "physics" of the marketplace.
-    """)
-
-    # --- OLS METRICS TABLE ---
-    # Using raw strings r"" for the beta symbols so the \b doesn't act as a backspace
-    metrics_col1 = {
-        "Metric": ["R-squared ($R^2$)", r"Intercept ($\beta_0$)", r"Slope ($\beta_1$)"],
-        "Value": ["0.930", "6.3081", "0.7906"]
-    }
-    metrics_col2 = {
-        "Diagnostic": ["Prob (F-statistic)", "Skewness", "Kurtosis"],
-        "Value": ["1.00e-144", "2.638", "13.054"]
-    }
-
-    c1, c2 = st.columns(2)
-    with c1:
-        st.table(pd.DataFrame(metrics_col1))
-    with c2:
-        st.table(pd.DataFrame(metrics_col2))
-
-    st.markdown(r"""
-    The model exhibits a high coefficient of determination ($R^2 = 0.930$), confirming that 93% of the variance in realized earnings is explained by the initial offer. This demonstrates a robust **Predictive Synchrony** across the system. 
-
-    However, the high explanatory power masks severe structural instability. The extreme **Kurtosis (13.05)** and **positive Skewness (2.64)** serve as immediate analytical red flags. These metrics indicate a highly non-normal error distribution with "heavy tails," suggesting that the model's predictability is not uniform. The presence of these outliers and the significant deviation from normality point toward a violation of the homoscedasticity assumption, necessitating a deeper investigation: **residual analysis**.
-    """)
 
 
 
@@ -387,13 +368,41 @@ import numpy as np
 
 with tab3:
 
-    # --- NEW: CAUSAL INFERENCE CONTEXT (INTRO) ---
-    st.markdown(r"""
-    #### **Heteroscedasticity: The Cone of Uncertainty**
-    To validate the stability of the baseline model, an analysis on residuals was conducted. The objective was to determine if the prediction error remained constant across the financial spectrum or if it scaled with the magnitude of the transaction.
+    # ── POLISHED TOP ────────────────────────────────────────────────────────────
+    st.markdown("""
+<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+A baseline Ordinary Least Squares (OLS) model was architected to quantify the structural relationship between the quoted fare and operational reality. The estimated regression equation is defined as:
+</div>
+""", unsafe_allow_html=True)
 
-    The visual inspection identifies a classic fanning pattern, or *Cone of Uncertainty*. While the model is highly precise for low-value missions, the variance of the residuals expands significantly as the **Quoted Fare** increases. To confirm this observation with statistical rigor, a Breusch-Pagan test was executed, yielding a p-value of $0.0286$. This result formally rejects the null hypothesis of homoscedasticity, confirming that the model's error variance is non-constant ($p < 0.05$).
-    """)
+    st.latex(r"\widehat{\text{realized\_fare}} = 6.31 + 0.79 \cdot \text{upfront\_fare}")
+
+    st.markdown("""
+<div style='display:flex;align-items:center;gap:20px;padding:12px 0;margin-bottom:8px;justify-content:center;'>
+  <div class='ols-kpi' style='border-left:3px solid #21918c;border-radius:0 4px 4px 0;padding:4px 10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div class='ols-tip'>How much of the outcome the model explains. 93% of variation in realized fare is predicted by the quoted fare alone.</div>
+    <span style='font-size:0.68rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;'>R-squared <span style='color:#22c55e;'>✓</span></span>
+    <span style='font-size:0.88rem;font-weight:700;color:#334155;margin-left:8px;'>0.930</span>
+  </div>
+  <div class='ols-kpi' style='border-left:3px solid #21918c;border-radius:0 4px 4px 0;padding:4px 10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div class='ols-tip'>Asymmetry in the error distribution. At 2.64, errors lean positive — the model undershoots more than it overshoots, especially at higher fares.</div>
+    <span style='font-size:0.68rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;'>Skewness <span style='color:#f59e0b;'>⚠</span></span>
+    <span style='font-size:0.88rem;font-weight:700;color:#334155;margin-left:8px;'>2.638</span>
+  </div>
+  <div class='ols-kpi' style='border-left:3px solid #21918c;border-radius:0 4px 4px 0;padding:4px 10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div class='ols-tip'>How extreme the outliers are. Normal sits around 3. At 13.05, the tails are dangerously fat — catastrophic prediction errors are far more frequent than the model assumes.</div>
+    <span style='font-size:0.68rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;'>Kurtosis <span style='color:#ef4444;'>⚠</span></span>
+    <span style='font-size:0.88rem;font-weight:700;color:#334155;margin-left:8px;'>13.054</span>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown(teal_callout("The 93% predictive synchrony is a baseline illusion. Extreme Kurtosis (13.05) flags a heavily skewed error distribution, showing that predictability decays as the fare increases."), unsafe_allow_html=True)
+
+    st.markdown("""<div style='font-size:1.4rem;color:#21918c;font-weight:700;margin:20px 0 4px 0;text-align:center;'>↓</div>""", unsafe_allow_html=True)
+
+    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+The visual evidence reveals that the model is precise for low-value trips, but error variance fans out significantly as the quoted fare rises, thus confirming heteroscedasticity in the OLS residuals.
+</div>""", unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL ---
     query_phase2 = """
@@ -409,7 +418,7 @@ with tab3:
     WHERE v.realized_fare IS NOT NULL AND o.upfront_fare IS NOT NULL
     """
 
-    with st.expander("🔍 Click here to view the live BigQuery SQL (No Hardcoding)"):
+    with st.expander("View SQL"):
         st.code(query_phase2, language="sql")
 
     # --- 1. DATA INGESTION ---
@@ -504,10 +513,7 @@ with tab3:
 
     st.plotly_chart(fig2, use_container_width=True)
 
-    # --- NEW: CAUSAL INFERENCE CONTEXT (OUTRO & TRANSITION) ---
-    st.markdown(r"""
-    The 15% Risk Expansion Band confirms that absolute financial uncertainty scales proportionally with the **Quoted Fare**. While this diagnostic provided a clear measure of historical variance, the causal inquiry was temporarily paused once it became evident that the model lacked the explanatory power to determine *why* this uncertainty existed. It was only during subsequent multivariate interaction analysis on the completed missions cohort that a superior predictive signal was identified: the **Temporal Variance** (or *Time Spread*).
-    """)
+    st.markdown(teal_callout("A simple OLS is not sufficient. To diagnose the root cause of this expanding variance, the next phase introduces the temporal variable."), unsafe_allow_html=True)
 
 
 
@@ -533,7 +539,7 @@ with tab4:
     AND o.est_trip_time_sec > 0
     """
 
-    with st.expander("🔍 Click here to view the live BigQuery SQL (No Hardcoding)"):
+    with st.expander("View SQL"):
         st.code(query_reality_check, language="sql")
 
     # --- 1. DATA INGESTION (BigQuery) ---
@@ -625,7 +631,7 @@ with tab5:
     AND v.realized_fare IS NOT NULL
     """
 
-    with st.expander("🔍 Click here to view the live BigQuery SQL (No Hardcoding)"):
+    with st.expander("View SQL"):
         st.code(query_fraud_prevention, language="sql")
 
     # --- 1. DATA INGESTION ---
