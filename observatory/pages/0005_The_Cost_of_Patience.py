@@ -107,7 +107,25 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.latex(r"CV(\tau) = p(\tau)\cdot EPH_{\text{target}} + (1-p(\tau))\cdot EPH_{\text{fallback}} - EPH_{\text{immediate}}")
+_col_latex, _col_fn = st.columns([11, 1])
+with _col_latex:
+    st.latex(r"CV(\tau) = p(\tau)\cdot EPH_{\text{target}} + (1-p(\tau))\cdot EPH_{\text{fallback}} - EPH_{\text{immediate}}")
+with _col_fn:
+    st.markdown(
+        "<div style='padding-top:22px;'>"
+        "<span class='fn-wrap'>"
+        "<span class='fn-mark'>†</span>"
+        "<span class='fn-tooltip' style='width:320px;font-size:0.75rem;line-height:1.6;'>"
+        "<b>Plain-English breakdown:</b><br><br>"
+        "<b>p(τ)</b> — probability of finding a premium offer if you wait window τ.<br><br>"
+        "<b>EPH_target</b> — your yield <em>if</em> the premium offer is found and completed.<br><br>"
+        "<b>EPH_fallback</b> — your yield <em>if</em> nothing is found and you fall back to baseline — "
+        "but penalized by the idle time already burned. Same fare, lower EPH because the denominator grew.<br><br>"
+        "<b>EPH_immediate</b> — your yield if you accept the current baseline offer right now, zero wait cost.<br><br>"
+        "CV &gt; 0 → wait. CV &lt; 0 → accept now."
+        "</span></span></div>",
+        unsafe_allow_html=True,
+    )
 
 st.markdown(
     "<p style='color:#888;font-size:0.78rem;line-height:1.6;max-width:820px;margin-top:4px;'>"
@@ -168,6 +186,8 @@ WITH base_offers AS (
         p.category_name AS category,
         o.upfront_fare,
         o.est_trip_time_sec,
+        oa.offer_action_description AS offer_action,
+        LAG(oa.offer_action_description) OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp) AS prev_offer_action,
         TIMESTAMP_DIFF(
             CAST(o.offer_timestamp AS TIMESTAMP),
             LAG(CAST(o.offer_timestamp AS TIMESTAMP)) OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp),
@@ -176,6 +196,8 @@ WITH base_offers AS (
     FROM `645009831643.pienza_mini.offers` o
     JOIN `645009831643.pienza_mini.product_category` p
       ON o.product_category_fk = p.product_category_id
+    LEFT JOIN `645009831643.pienza_mini.offer_action` oa
+      ON o.offer_action_fk = oa.offer_action_id
     WHERE o.est_trip_time_sec > 0
       AND o.upfront_fare IS NOT NULL
       AND o.session_fk IS NOT NULL
@@ -190,36 +212,60 @@ SELECT
     CAST(o.offer_timestamp AS TIMESTAMP) AS offer_timestamp,
     o.upfront_fare,
     o.est_trip_time_sec,
-    COALESCE(o.time_to_pickup_sec, 300) AS time_to_pickup_sec,
-    r.reason_primary_description AS reason_primary
+    o.time_to_pickup_sec,
+    pc.category_name,
+    ef.eph_operational AS eph_real,
+    oa.offer_action_description AS offer_action,
+    LAG(oa.offer_action_description)
+        OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp) AS prev_offer_action,
+    TIMESTAMP_DIFF(
+        CAST(o.offer_timestamp AS TIMESTAMP),
+        LAG(CAST(o.offer_timestamp AS TIMESTAMP))
+            OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp),
+        SECOND
+    ) AS raw_delta
 FROM `645009831643.pienza_mini.offers` o
-LEFT JOIN `645009831643.pienza_mini.reason_primary` r
-  ON o.reason_primary_fk = r.reason_primary_id
-WHERE o.est_trip_time_sec > 0
+JOIN `645009831643.pienza_mini.engineered_features` ef
+  ON ef.offer_id_fk = o.offer_id
+JOIN `645009831643.pienza_mini.product_category` pc
+  ON o.product_category_fk = pc.product_category_id
+LEFT JOIN `645009831643.pienza_mini.offer_action` oa
+  ON o.offer_action_fk = oa.offer_action_id
+WHERE ef.eph_operational IS NOT NULL
+  AND o.est_trip_time_sec > 0
   AND o.upfront_fare IS NOT NULL
   AND o.session_fk IS NOT NULL
 """
 
 @st.cache_data
-def get_mqi_data():
-    return get_bq_client().query(query_mqi).to_dataframe()
+def get_mqi_data(query):
+    return get_bq_client().query(query).to_dataframe()
 
 @st.cache_data
-def get_moneymap_data():
-    return get_bq_client().query(query_moneymap).to_dataframe()
+def get_moneymap_data(query):
+    return get_bq_client().query(query).to_dataframe()
 
 @st.cache_data
-def get_ven_data():
-    return get_bq_client().query(query_ven).to_dataframe()
+def get_ven_data(query):
+    return get_bq_client().query(query).to_dataframe()
 
 with st.spinner("Loading data…"):
-    df_mqi          = get_mqi_data()
-    df_money        = get_moneymap_data()
-    df_playbook_raw = get_ven_data()
+    df_mqi          = get_mqi_data(query_mqi)
+    df_money        = get_moneymap_data(query_moneymap)
+    df_playbook_raw = get_ven_data(query_ven)
 
 # ── Phase 2 aggregation ──
-median_wait = df_money['raw_delta'].median()
-df_money['clean_wait'] = df_money['raw_delta'].fillna(median_wait)
+# Behavioral clock reset (mirrors Jupyter Cell 1.8):
+# prev_offer_action is already LAG'd in SQL — if the previous offer was accepted
+# the driver was on a trip, so the inter-offer gap is not search time → reset to 0.
+def _sanitize_wait(row):
+    if pd.isna(row['prev_offer_action']):
+        return np.nan
+    if 'accept' in str(row['prev_offer_action']).lower():
+        return 0.0
+    return row['raw_delta']
+
+df_money['clean_wait'] = df_money.apply(_sanitize_wait, axis=1)
 df_money['upfront_fare'] = pd.to_numeric(df_money['upfront_fare'], errors='coerce')
 df_money['est_trip_time_sec'] = pd.to_numeric(df_money['est_trip_time_sec'], errors='coerce')
 df_money['eph_realized'] = (df_money['upfront_fare'] / df_money['est_trip_time_sec']) * 3600
@@ -260,19 +306,62 @@ def format_currency_label(val):
 session_stats['label'] = session_stats['total_potential'].apply(format_currency_label)
 session_stats['color'] = session_stats['Quadrant'].map(COLORS)
 
-# ── Phase 3 aggregation ──
-df_playbook = pd.merge(
-    df_playbook_raw,
-    session_stats[['session_fk', 'Quadrant']],
-    on='session_fk', how='inner',
-)
-df_playbook['reason_primary'] = df_playbook['reason_primary'].astype(str).str.lower()
-df_playbook = df_playbook[
-    ~df_playbook['reason_primary'].str.contains('dropoff_non_operational')
-].copy()
-df_playbook['eph_real'] = (df_playbook['upfront_fare'] / df_playbook['est_trip_time_sec']) * 3600
+# ── Tab 3 pipeline — single dataset, mirrors notebook Cell 1 → 1.8 → 3 v2.1 → 3.5 ──
+_df_pb = df_playbook_raw.copy()
+_df_pb['offer_timestamp'] = pd.to_datetime(_df_pb['offer_timestamp'], utc=True).dt.tz_convert(None)
+_df_pb.sort_values(['session_fk', 'offer_timestamp'], inplace=True)
 
-st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
+# Category filter (notebook Cell 1: drop 'Other')
+def _simplify_cat(cat):
+    c = str(cat).lower()
+    if 'uberx' in c:                              return 'X'
+    if 'comfort' in c or 'business' in c:         return 'Mid-tier'
+    if 'black' in c:                              return 'Premium'
+    return None
+
+_df_pb['simplified_category'] = _df_pb['category_name'].apply(_simplify_cat)
+_df_pb = _df_pb[_df_pb['simplified_category'].notna()].copy()
+
+# MQI (notebook Cell 1)
+_anchors_pb = _df_pb.groupby('simplified_category')['eph_real'].median().to_dict()
+_df_pb['offer_quality_index'] = _df_pb['eph_real'] / _df_pb['simplified_category'].map(_anchors_pb)
+
+# Sanitized search delta (notebook Cell 1.8)
+def _sanitize_delta(row):
+    if pd.isna(row['prev_offer_action']):
+        return np.nan
+    if 'accept' in str(row['prev_offer_action']).lower():
+        return 0.0
+    return row['raw_delta']
+
+_df_pb['sanitized_search_delta'] = _df_pb.apply(_sanitize_delta, axis=1)
+
+# Quadrant assignment (notebook Cell 3 v2.1)
+# Quality axis: mean MQI per session
+_sess_quality = _df_pb.groupby('session_fk')['offer_quality_index'].median().to_dict()
+# Velocity axis: offer-level median as global threshold, per-session median for classification
+_global_rhythm = _df_pb['sanitized_search_delta'].median()
+_sess_rhythm   = _df_pb.groupby('session_fk')['sanitized_search_delta'].median().to_dict()
+
+_df_pb['session_mqi']    = _df_pb['session_fk'].map(_sess_quality)
+_df_pb['session_rhythm'] = _df_pb['session_fk'].map(_sess_rhythm)
+_df_pb['quality_state']  = _df_pb['session_mqi'].apply(lambda x: 'Rich' if x >= 1.0 else 'Poor')
+_df_pb['velocity_state'] = _df_pb['session_rhythm'].apply(
+    lambda x: 'Fast' if x <= _global_rhythm else 'Slow'
+)
+_df_pb['Quadrant'] = _df_pb['quality_state'] + ' / ' + _df_pb['velocity_state']
+
+# No dropoff_non_operational filter — notebook skips it (column not available there)
+df_playbook = _df_pb.copy()
+
+st.markdown(
+    "<div style='margin-top:28px;'></div>"
+    "<style>"
+    "[data-testid='stTabs'] { scroll-margin-top: 9999px; }"
+    "[data-testid='stTabsContent'] { min-height: 1800px; }"
+    "</style>",
+    unsafe_allow_html=True,
+)
 
 # ==============================================================================
 # TABS
@@ -470,11 +559,7 @@ Each offer is scored against its tier's historical median EPH, then aggregated i
         st.markdown("""
 <div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
  padding:12px 16px;margin-top:4px;font-size:0.82rem;color:#334155;line-height:1.7;'>
-The market is deeply heterogeneous — both across sessions and within them. That variance is what makes
-selectivity valuable in the first place. But selectivity has a cost: every rejected offer is time spent
-waiting, and waiting dilutes EPH. <strong>The real question is not whether to be selective — it is how
-selective, and under what market conditions.</strong> To answer it, sessions must first be classified
-by the quality and velocity of their offer flow.
+The market is deeply heterogeneous — both across sessions and within them. Selectivity exploits market variance, but waiting burns EPH. To optimize this trade-off, sessions must first be classified by the quality and velocity of their offer flow.
 </div>""", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -637,6 +722,12 @@ with tab3:
         "The playbook operationalizes the Continuation Value formula. For a given target yield and market regime, "
         "it computes the empirical probability of encountering a premium offer within each search window "
         "and resolves whether waiting is mathematically justified over accepting the immediate baseline."
+        "<span class='fn-wrap'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:300px;font-size:0.75rem;line-height:1.6;'>"
+        "<b>Scope &amp; constraint:</b> This playbook answers one specific question — <em>is waiting for +$30/hr over your current offer worth it?</em> "
+        "The $30 gap is held constant across all slider positions so that any change in the optimal search window reflects "
+        "target difficulty and market regime only, not a change in the size of the bet. "
+        "It does not prescribe an absolute yield to aim for — only whether the gamble is rational given the market you are currently in."
+        "</span></span>"
         "</p>",
         unsafe_allow_html=True,
     )
@@ -644,9 +735,12 @@ with tab3:
     with st.expander("View SQL"):
         st.code(query_ven, language="sql")
 
-    TARGET_EPH  = st.slider("Target Premium Yield ($/hr)", min_value=150, max_value=400,
-                            value=200, step=10,
-                            help="The premium rate you are holding out for. Baseline is locked at $30 below this.")
+    TARGET_EPH = st.select_slider(
+        "Target Premium Yield ($/hr)",
+        options=[170, 180, 200, 220, 250, 280],
+        value=200,
+        help="The premium rate you are holding out for. Baseline is locked at $30 below this.",
+    )
     BASELINE_EPH = TARGET_EPH - 30
 
     props_target = df_playbook[df_playbook['eph_real'].between(TARGET_EPH - 15, TARGET_EPH + 15)][
@@ -657,9 +751,11 @@ with tab3:
     if props_target.isnull().any() or props_base.isnull().any():
         st.warning(f"⚠️ Insufficient historical data near ${TARGET_EPH}/hr or ${BASELINE_EPH}/hr. Adjust the slider.")
     else:
-        df_sim = df_playbook.sort_values(['session_fk', 'offer_timestamp']).copy()
+        # 1:1 port of Jupyter Cell 3.5 — global sort, forward-looking roll, quadrant-grouped probability
+        df_sim = df_playbook.sort_values('offer_timestamp').copy()
         df_sim['is_success'] = (df_sim['eph_real'] >= TARGET_EPH).astype(int)
         df_sim = df_sim.set_index('offer_timestamp')
+        df_reversed = df_sim.iloc[::-1]
 
         time_windows = {'1m': '60s', '3m': '180s', '5m': '300s', '10m': '600s', '15m': '900s'}
         results = []
@@ -668,11 +764,9 @@ with tab3:
 
         for label, delta_str in time_windows.items():
             delta_sec = int(delta_str[:-1])
-            found_success = df_sim.groupby('session_fk')['is_success'].apply(
-                lambda x: x.iloc[::-1].rolling(window=delta_str).max().iloc[::-1]
-            ).reset_index(level=0, drop=True)
-            df_sim['found_success'] = found_success
-            probs = df_sim.groupby('Quadrant')['found_success'].mean()
+
+            found_success = df_reversed['is_success'].rolling(window=delta_str).max().iloc[::-1]
+            probs = found_success.groupby(df_sim['Quadrant']).mean()
 
             for quad, p in probs.items():
                 cycle_success = delta_sec + props_target['time_to_pickup_sec'] + props_target['est_trip_time_sec']
@@ -693,18 +787,6 @@ with tab3:
         ven_matrix   = ven_matrix.reindex([q for q in q_order if q in ven_matrix.index])[cols_order]
         label_matrix = label_matrix.reindex([q for q in q_order if q in label_matrix.index])[cols_order]
 
-        st.markdown(
-            "<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;"
-            "padding:10px 16px;margin:0 0 12px;font-size:0.82rem;color:#334155;line-height:1.6;'>"
-            "<strong>How to read:</strong> Each cell shows the expected return of waiting (CV(τ), in $) "
-            "and the empirical probability of encountering a premium offer (%) within that search window. "
-            "<span style='color:#5a8a3c;font-weight:700;'>Green</span> = positive return, waiting is justified. "
-            "<span style='color:#b8860b;font-weight:700;'>Yellow</span> = threshold zone, marginal gain. "
-            "<span style='color:#b91c1c;font-weight:700;'>Red</span> = negative return, accept the current offer now."
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
         fig_heat = go.Figure(data=go.Heatmap(
             z=ven_matrix.values, x=ven_matrix.columns, y=ven_matrix.index,
             text=label_matrix.values, texttemplate="%{text}",
@@ -722,9 +804,62 @@ with tab3:
             xaxis_title=dict(text="Search Window", font=dict(size=12, color="#334155")),
             yaxis_title=dict(text="Market Regime", font=dict(size=12, color="#334155")),
             yaxis=dict(autorange="reversed"),
-            margin=dict(l=60, r=20, t=60, b=40),
+            margin=dict(l=60, r=20, t=60, b=80),
+            annotations=[dict(
+                x=1, y=-0.22, xref="paper", yref="paper",
+                xanchor="right", yanchor="bottom",
+                text="<b>$</b> = expected return of waiting (CV(τ)) · <b>%</b> = probability of finding a premium offer within the window"
+                     " · <span style='color:#5a8a3c;'>●</span> Green = wait · <span style='color:#b8860b;'>●</span> Yellow = marginal · <span style='color:#b91c1c;'>●</span> Red = accept now",
+                showarrow=False,
+                font=dict(size=11, color="#64748b"),
+                align="right",
+            )],
         )
         st.plotly_chart(fig_heat, use_container_width=True)
+
+        # ── Dynamic callout derived from df_res ──
+        _window_order  = ['1m', '3m', '5m', '10m', '15m']
+        _window_min    = {'1m': 1, '3m': 3, '5m': 5, '10m': 10, '15m': 15}
+
+        _at_15m = df_res[df_res['Window'] == '15m']
+        _prob_min_15 = f"{_at_15m['Prob'].min():.0%}"
+        _prob_max_15 = f"{_at_15m['Prob'].max():.0%}"
+        _ven_min_15  = f"${_at_15m['VEN'].min():+.0f}"
+        _ven_max_15  = f"${_at_15m['VEN'].max():+.0f}"
+
+        # Interpolate breakeven minute per quadrant, then report median across quadrants
+        _breakevens = []
+        for _q in df_res['Quadrant'].unique():
+            _qrows = df_res[df_res['Quadrant'] == _q].set_index('Window')
+            for _i in range(len(_window_order) - 1):
+                _wa, _wb = _window_order[_i], _window_order[_i + 1]
+                if _wa not in _qrows.index or _wb not in _qrows.index:
+                    continue
+                _va, _vb = _qrows.loc[_wa, 'VEN'], _qrows.loc[_wb, 'VEN']
+                if _va > 0 and _vb <= 0:
+                    _ma, _mb = _window_min[_wa], _window_min[_wb]
+                    _cross = _ma + (_va / (_va - _vb)) * (_mb - _ma)
+                    _breakevens.append(_cross)
+                    break
+            else:
+                if all(_qrows.loc[w, 'VEN'] > 0 for w in _window_order if w in _qrows.index):
+                    _breakevens.append(15.0)
+
+        _rational_boundary = f"~{np.median(_breakevens):.0f} min" if _breakevens else "unknown"
+
+        st.markdown(
+            f"<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;"
+            f"padding:14px 18px;margin-top:16px;font-size:0.82rem;color:#334155;line-height:1.8;'>"
+            f"While the probability of finding a <b>${TARGET_EPH}/hr</b> offer ranges from "
+            f"<b>{_prob_min_15}</b> to <b>{_prob_max_15}</b> across regimes after 15 minutes, "
+            f"waiting that long yields a net return against the <b>${BASELINE_EPH}/hr</b> baseline "
+            f"of <b>{_ven_min_15}</b> to <b>{_ven_max_15}</b> — "
+            f"all negative. The rational boundary sits around <b>{_rational_boundary}</b>, "
+            f"where CV(τ) crosses zero and patience stops paying."
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # TAB 4 — The Efficient Frontier
