@@ -81,6 +81,14 @@ def map_category(cat_name):
 
 
 
+st.markdown("""
+<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+Rational search boundaries are only meaningful if the underlying payout structure is stable.
+This section validates that foundation — formally testing the Payout Spread hypothesis across
+the full mission cohort, retroactively confirming the assumptions the model was built on.
+</div>
+""", unsafe_allow_html=True)
+
 top_tab1, top_tab2 = st.tabs(["Analysis", "Executive Sandbox"])
 
 with top_tab1:
@@ -113,6 +121,14 @@ with top_tab1:
   text-align:center; margin-top:2px; line-height:1.3;
 }
 .ci-step:hover .ci-step-label { color:#21918c; }
+/* hide inner subtab bar and its border — stepper handles navigation */
+[data-baseweb="tab-panel"] [data-baseweb="tab-list"] { display:none !important; }
+[data-baseweb="tab-panel"] [data-baseweb="tab-border"] { display:none !important; }
+/* active stepper dot */
+.ci-step.ci-active .ci-dot {
+  background:#21918c !important; border-color:#21918c !important; color:#fff !important;
+}
+.ci-step.ci-active .ci-step-label { color:#21918c !important; font-weight:700; }
 </style>
 <div class="ci-stepper">
   <div class="ci-step">
@@ -121,22 +137,22 @@ with top_tab1:
     <div class="ci-step-sub">Structural haircut confirmed</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P1.5</div>
+    <div class="ci-dot">P2</div>
     <div class="ci-step-label">Baseline OLS</div>
     <div class="ci-step-sub">R²=0.93, heavy tails flagged</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P2</div>
+    <div class="ci-dot">P3</div>
     <div class="ci-step-label">Heteroscedasticity</div>
     <div class="ci-step-sub">Cone of uncertainty</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">RC</div>
+    <div class="ci-dot">P4</div>
     <div class="ci-step-label">Reality Check Matrix</div>
     <div class="ci-step-sub">Hierarchy of predictability</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P3</div>
+    <div class="ci-dot">P5</div>
     <div class="ci-step-label">LOWESS Curve</div>
     <div class="ci-step-sub">Integrity buffer identified</div>
   </div>
@@ -153,13 +169,26 @@ with top_tab1:
 setTimeout(function() {
   var steps = window.parent.document.querySelectorAll('.ci-step');
   var allTabs = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
-  // allTabs[0] = Analysis, allTabs[1] = Executive Sandbox, allTabs[2..7] = inner subtabs
+
+  function setActive(idx) {
+    steps.forEach(function(s) { s.classList.remove('ci-active'); });
+    if (steps[idx]) steps[idx].classList.add('ci-active');
+  }
+
+  // initialise: find which inner tab is currently selected
+  var initIdx = 0;
+  for (var j = 2; j < allTabs.length; j++) {
+    if (allTabs[j].getAttribute('aria-selected') === 'true') { initIdx = j - 2; break; }
+  }
+  setActive(initIdx);
+
   steps.forEach(function(step, i) {
     step.addEventListener('click', function() {
       var target = allTabs[i + 2];
       if (target) {
         var sy = window.parent.scrollY;
         target.click();
+        setActive(i);
         setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
         setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
       }
@@ -182,7 +211,7 @@ setTimeout(function() {
 # PHASE 1: FINANCIAL STABILITY & POLICY INTERVENTION AUDIT
 # ==============================================================================
 with tab1:
-    st.markdown("<span class='phase-badge'>Phase 1 — Financial Stability & Policy Intervention</span>", unsafe_allow_html=True)
+
 
     # --- NEW: CAUSAL INFERENCE CONTEXT ---
     st.markdown(r"""
@@ -308,7 +337,6 @@ with tab1:
 # PHASE 1.5: THE BASELINE MODEL (FINANCIAL PREDICTABILITY)
 # ==============================================================================
 with tab2:
-    st.markdown("<span class='phase-badge'>Phase 1.5 — The Baseline Model</span>", unsafe_allow_html=True)
 
     st.markdown("""
     #### **The Baseline Model: Financial Predictability**
@@ -358,7 +386,6 @@ import statsmodels.stats.api as sms
 import numpy as np
 
 with tab3:
-    st.markdown("<span class='phase-badge'>Phase 2 — The Cone of Uncertainty</span>", unsafe_allow_html=True)
 
     # --- NEW: CAUSAL INFERENCE CONTEXT (INTRO) ---
     st.markdown(r"""
@@ -491,7 +518,6 @@ with tab3:
 import plotly.express as px
 
 with tab4:
-    st.markdown("<span class='phase-badge'>The Reality Check Matrix</span>", unsafe_allow_html=True)
     st.markdown("Auditing the platform's core financial and operational prediction accuracy.")
 
     # --- THE "0 BS" SQL REVEAL ---
@@ -577,7 +603,6 @@ with tab4:
 # PHASE 3: THE FRAUD PREVENTION MECHANISM AUDIT (THE "U" CURVE)
 # ==============================================================================
 with tab5:
-    st.markdown("<span class='phase-badge'>Phase 3 — The Fraud Prevention Mechanism</span>", unsafe_allow_html=True)
 
     # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
     st.markdown(r"""
@@ -703,7 +728,6 @@ with tab5:
 import statsmodels.formula.api as smf
 import numpy as np
 with tab6:
-    st.markdown("<span class='phase-badge'>The Mathematical Verdict — Quadratic Risk Model</span>", unsafe_allow_html=True)
 
     # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
     st.markdown(r"""
@@ -825,7 +849,6 @@ with tab6:
 
 
 
-    st.markdown("---")
     st.markdown(f"<span class='phase-badge'>The Inelasticity Threshold: {tipping_point:.2f}x</span>", unsafe_allow_html=True)
 
     st.info(f"""
