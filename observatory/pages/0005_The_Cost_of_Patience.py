@@ -632,8 +632,8 @@ with tab2:
 
     y_max = session_stats['quality_median'].max() * 1.05
     y_min = session_stats['quality_median'].min() * 0.95
-    x_max = session_stats['velocity_median'].max() * 1.05
-    x_min = max(0, session_stats['velocity_median'].min() - 10)
+    x_min = 10
+    x_max = 30
 
     fig_money.add_vline(x=GLOBAL_VELOCITY, line_width=1.5, line_dash="dash", line_color="#d1d5db")
     fig_money.add_hline(y=GLOBAL_QUALITY,  line_width=1.5, line_dash="dash", line_color="#d1d5db")
