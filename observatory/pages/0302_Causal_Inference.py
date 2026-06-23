@@ -1,64 +1,17 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from google.cloud import bigquery
 from pathlib import Path
 import plotly.graph_objects as go
+from components.styles import GLOBAL_CSS
 
-
-
-# 1. SETUP CLIENTE (Conectando a tu pienza_mini)
-@st.cache_resource
-def get_bq_client():
-    # .parent nos saca de 'pages' y nos deja en 'observatory'
-    # Ahí es donde vive tu service-account.json
-    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
-    return bigquery.Client.from_service_account_json(json_path)
-
-client = get_bq_client()
-
-# 2. DEFINICIÓN DEL CANON VISUAL (Opus Lab)
-OPUS_PURPLE = '#440154'
-OPUS_TEAL   = '#21918c'
-OPUS_GREY   = '#FAFAFA'
-OPUS_TEXT   = '#121212'
-
-def map_category(cat_name):
-    """Maps platform-specific categories to simplified operational tiers."""
-    cat_lower = str(cat_name).lower()
-    if 'uberx' in cat_lower:
-        return "X"
-    elif 'business_comfort' in cat_lower or 'comfort' in cat_lower:
-        return "Mid-tier"
-    elif 'black' in cat_lower:
-        return "Premium"
-    else:
-        return "X"
-
-def obfuscate_fare(value):
-    """Legacy helper for currency masking (BVP standard uses Percentiles)."""
-    try:
-        if value is None: return "N/A"
-        s = f"{float(value):.2f}"
-        dot_idx = s.find('.')
-        prefix = s[:max(0, dot_idx-1)]
-        return f"{prefix}X.XX"
-    except:
-        return "N/A"
-
-sns.set_theme(style="whitegrid")
-plt.rcParams.update({
-    'figure.facecolor': OPUS_GREY, 'axes.facecolor': OPUS_GREY,
-    'text.color': OPUS_TEXT, 'axes.titlecolor': OPUS_PURPLE,
-    'axes.titleweight': 'bold'
-})
-
-# 3. CONFIGURACIÓN DE LA PÁGINA
-st.title("Causal Inference: Revisiting the Initial Hypothesis")
-st.markdown(f"**<span style='color:{OPUS_TEAL}; font-size:1.2rem;'>Motion to Explore! ...Proceed</span>**", unsafe_allow_html=True)
-st.set_page_config(layout="wide")
+# ==============================================================================
+# PAGE CONFIG
+# ==============================================================================
+st.set_page_config(page_title="Causal Inference | Pienza", layout="wide")
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # SIDEBAR
@@ -95,23 +48,141 @@ def build_sidebar():
 
 build_sidebar()
 
+# ==============================================================================
+# CONSTANTS
+# ==============================================================================
+OPUS_TEAL = '#21918c'
+OPUS_GREY = '#FAFAFA'
+OPUS_TEXT = '#121212'
+
+# ==============================================================================
+# HEADER
+# ==============================================================================
+st.markdown("# Causal Inference")
+
+# ==============================================================================
+# HELPERS
+# ==============================================================================
+@st.cache_resource
+def get_bq_client():
+    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
+    return bigquery.Client.from_service_account_json(json_path)
+
+def map_category(cat_name):
+    cat_lower = str(cat_name).lower()
+    if 'uberx' in cat_lower:
+        return "X"
+    elif 'business_comfort' in cat_lower or 'comfort' in cat_lower:
+        return "Mid-tier"
+    elif 'black' in cat_lower:
+        return "Premium"
+    else:
+        return "X"
 
 
-# Create the tabs (Cognitive Load = Minimized)
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Payout Stability", 
-    "Baseline OLS", 
-    "Heteroscedasticity Audit", 
-    "Time-vs-Money Matrix", 
-    "LOWESS Response Curve", 
-    "Polynomial Risk Model"
-])
+
+top_tab1, top_tab2 = st.tabs(["Analysis", "Executive Sandbox"])
+
+with top_tab1:
+    st.markdown("""
+<style>
+.ci-stepper { display:flex; align-items:flex-start; gap:0; margin:18px 0 28px 0; }
+.ci-step {
+  display:flex; flex-direction:column; align-items:center; flex:1;
+  position:relative; cursor:pointer;
+}
+.ci-step:not(:last-child)::after {
+  content:''; position:absolute; top:14px; left:calc(50% + 14px);
+  width:calc(100% - 28px); height:2px; background:rgba(33,145,140,0.2); z-index:0;
+}
+.ci-dot {
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(33,145,140,0.12); border:1.5px solid rgba(33,145,140,0.4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.60rem; font-weight:700; color:#21918c;
+  z-index:1; position:relative; flex-shrink:0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ci-step:hover .ci-dot { background:rgba(33,145,140,0.22); border-color:#21918c; }
+.ci-step-label {
+  font-size:0.68rem; font-weight:600; color:#334155;
+  text-align:center; margin-top:6px; line-height:1.3;
+}
+.ci-step-sub {
+  font-size:0.60rem; color:#94a3b8;
+  text-align:center; margin-top:2px; line-height:1.3;
+}
+.ci-step:hover .ci-step-label { color:#21918c; }
+</style>
+<div class="ci-stepper">
+  <div class="ci-step">
+    <div class="ci-dot">P1</div>
+    <div class="ci-step-label">Payout Stability</div>
+    <div class="ci-step-sub">Structural haircut confirmed</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P1.5</div>
+    <div class="ci-step-label">Baseline OLS</div>
+    <div class="ci-step-sub">R²=0.93, heavy tails flagged</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P2</div>
+    <div class="ci-step-label">Heteroscedasticity</div>
+    <div class="ci-step-sub">Cone of uncertainty</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">RC</div>
+    <div class="ci-step-label">Reality Check Matrix</div>
+    <div class="ci-step-sub">Hierarchy of predictability</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P3</div>
+    <div class="ci-step-label">LOWESS Curve</div>
+    <div class="ci-step-sub">Integrity buffer identified</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">★</div>
+    <div class="ci-step-label">Polynomial Model</div>
+    <div class="ci-step-sub">Inelasticity threshold: 0.94x</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    components.html("""
+<script>
+setTimeout(function() {
+  var steps = window.parent.document.querySelectorAll('.ci-step');
+  var allTabs = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+  // allTabs[0] = Analysis, allTabs[1] = Executive Sandbox, allTabs[2..7] = inner subtabs
+  steps.forEach(function(step, i) {
+    step.addEventListener('click', function() {
+      var target = allTabs[i + 2];
+      if (target) {
+        var sy = window.parent.scrollY;
+        target.click();
+        setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
+        setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
+      }
+    });
+  });
+}, 300);
+</script>
+""", height=0)
+
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "Payout Stability",
+        "Baseline OLS",
+        "Heteroscedasticity Audit",
+        "Time-vs-Money Matrix",
+        "LOWESS Response Curve",
+        "Polynomial Risk Model"
+    ])
 
 # ==============================================================================
 # PHASE 1: FINANCIAL STABILITY & POLICY INTERVENTION AUDIT
 # ==============================================================================
 with tab1:
-    st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>Phase 1: Financial Stability & Policy Intervention</span>**", unsafe_allow_html=True)
+    st.markdown("<span class='phase-badge'>Phase 1 — Financial Stability & Policy Intervention</span>", unsafe_allow_html=True)
 
     # --- NEW: CAUSAL INFERENCE CONTEXT ---
     st.markdown(r"""
@@ -195,11 +266,11 @@ with tab1:
 
     # Policy Intervention Line
     if pd.notna(event_rank):
-        fig1.add_vline(x=event_rank, line_width=2, line_color=OPUS_PURPLE)
+        fig1.add_vline(x=event_rank, line_width=2, line_color=OPUS_TEAL)
         fig1.add_annotation(
             x=event_rank, y=1.25, text='POLICY INTERVENTION',
-            showarrow=True, arrowhead=2, arrowcolor=OPUS_PURPLE,
-            ax=-60, ay=-30, bgcolor="white", bordercolor=OPUS_PURPLE, borderwidth=1
+            showarrow=True, arrowhead=2, arrowcolor=OPUS_TEAL,
+            ax=-60, ay=-30, bgcolor="white", bordercolor=OPUS_TEAL, borderwidth=1
         )
 
     fig1.update_layout(
@@ -237,7 +308,7 @@ with tab1:
 # PHASE 1.5: THE BASELINE MODEL (FINANCIAL PREDICTABILITY)
 # ==============================================================================
 with tab2:
-    st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>Phase 1.5: The Baseline Model</span>**", unsafe_allow_html=True)
+    st.markdown("<span class='phase-badge'>Phase 1.5 — The Baseline Model</span>", unsafe_allow_html=True)
 
     st.markdown("""
     #### **The Baseline Model: Financial Predictability**
@@ -287,7 +358,7 @@ import statsmodels.stats.api as sms
 import numpy as np
 
 with tab3:
-    st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>Phase 2: The Cone of Uncertainty</span>**", unsafe_allow_html=True)
+    st.markdown("<span class='phase-badge'>Phase 2 — The Cone of Uncertainty</span>", unsafe_allow_html=True)
 
     # --- NEW: CAUSAL INFERENCE CONTEXT (INTRO) ---
     st.markdown(r"""
@@ -372,8 +443,8 @@ with tab3:
     # Risk Expansion Lines (The Cone)
     fare_min, fare_max = df_clean['upfront_fare'].min(), df_clean['upfront_fare'].max()
     x_cone = np.linspace(fare_min, fare_max, 100)
-    fig2.add_trace(go.Scatter(x=x_cone, y=0.15 * x_cone, mode='lines', name='+15% Risk Expansion', line=dict(color=OPUS_PURPLE, dash='dot', width=2), hoverinfo='skip'))
-    fig2.add_trace(go.Scatter(x=x_cone, y=-0.15 * x_cone, mode='lines', name='-15% Risk Expansion', line=dict(color=OPUS_PURPLE, dash='dot', width=2), hoverinfo='skip'))
+    fig2.add_trace(go.Scatter(x=x_cone, y=0.15 * x_cone, mode='lines', name='+15% Risk Expansion', line=dict(color=OPUS_TEAL, dash='dot', width=2), hoverinfo='skip'))
+    fig2.add_trace(go.Scatter(x=x_cone, y=-0.15 * x_cone, mode='lines', name='-15% Risk Expansion', line=dict(color=OPUS_TEAL, dash='dot', width=2), hoverinfo='skip'))
 
     # Verdict Annotation
     verdict_text = f"<b>Statistical Audit:</b><br>• BP p-value: {bp_pvalue:.2e}<br>• Verdict: HETEROSCEDASTICITY CONFIRMED"
@@ -382,7 +453,7 @@ with tab3:
         x=0.02, y=0.05, xref="paper", yref="paper",
         text=verdict_text,
         showarrow=False, align="left",
-        bgcolor="white", bordercolor=OPUS_PURPLE, borderwidth=1,
+        bgcolor="white", bordercolor=OPUS_TEAL, borderwidth=1,
         font=dict(family="monospace", size=12)
     )
 
@@ -420,7 +491,7 @@ with tab3:
 import plotly.express as px
 
 with tab4:
-    st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>The Reality Check Matrix</span>**", unsafe_allow_html=True)
+    st.markdown("<span class='phase-badge'>The Reality Check Matrix</span>", unsafe_allow_html=True)
     st.markdown("Auditing the platform's core financial and operational prediction accuracy.")
 
     # --- THE "0 BS" SQL REVEAL ---
@@ -506,7 +577,7 @@ with tab4:
 # PHASE 3: THE FRAUD PREVENTION MECHANISM AUDIT (THE "U" CURVE)
 # ==============================================================================
 with tab5:
-    st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>Phase 3: The Fraud Prevention Mechanism</span>**", unsafe_allow_html=True)
+    st.markdown("<span class='phase-badge'>Phase 3 — The Fraud Prevention Mechanism</span>", unsafe_allow_html=True)
 
     # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
     st.markdown(r"""
@@ -632,7 +703,7 @@ with tab5:
 import statsmodels.formula.api as smf
 import numpy as np
 with tab6:
-    st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>The Mathematical Verdict: Quadratic Risk Model</span>**", unsafe_allow_html=True)
+    st.markdown("<span class='phase-badge'>The Mathematical Verdict — Quadratic Risk Model</span>", unsafe_allow_html=True)
 
     # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
     st.markdown(r"""
@@ -716,12 +787,12 @@ with tab6:
         y=[y_tip],
         mode='markers',
         name=f'Threshold: {tipping_point:.2f}x',
-        marker=dict(symbol='star', size=18, color=OPUS_PURPLE, line=dict(width=1, color='white')),
+        marker=dict(symbol='star', size=18, color=OPUS_TEAL, line=dict(width=1, color='white')),
         hovertemplate="<b>Inelasticity Threshold:</b> %{x:.2f}x<br><b>Predicted Spread:</b> %{y:.2f}<extra></extra>"
     ))
 
     # Tipping Point Vertical Line
-    fig5.add_vline(x=tipping_point, line_dash="dash", line_color=OPUS_PURPLE, opacity=0.8)
+    fig5.add_vline(x=tipping_point, line_dash="dash", line_color=OPUS_TEAL, opacity=0.8)
 
     # Layout Aesthetics
     fig5.update_layout(
@@ -754,17 +825,16 @@ with tab6:
 
 
 
-# --- 4. FINAL INSIGHT REPORT ---
-st.markdown("---")
-st.markdown(f"### 🎯 THE INELASTICITY THRESHOLD: **<span style='color:{OPUS_TEAL};'>{tipping_point:.2f}x</span>**", unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown(f"<span class='phase-badge'>The Inelasticity Threshold: {tipping_point:.2f}x</span>", unsafe_allow_html=True)
 
-st.info(f"""
+    st.info(f"""
 **STRATEGIC INSIGHT:**
 
-The platform's compensation model exhibits total INELASTICITY around the 1.0x mark. 
+The platform's compensation model exhibits total INELASTICITY around the 1.0x mark.
 The 'Fraud Prevention Mechanism' establishes a structural floor at exactly **{tipping_point:.2f}x**.
 
-Whether the trip is slightly faster (0.95x) or moderately delayed (up to 1.3x), the financial spread remains stagnant at the baseline level. This proves the platform is 'deaf' to marginal temporal variance, ensuring that price stability is maintained during the initial delay phase. 
+Whether the trip is slightly faster (0.95x) or moderately delayed (up to 1.3x), the financial spread remains stagnant at the baseline level. This proves the platform is 'deaf' to marginal temporal variance, ensuring that price stability is maintained during the initial delay phase.
 
 True compensation (*The Disruption Clause*) only triggers when the error is catastrophic.
 """)
@@ -773,151 +843,72 @@ True compensation (*The Disruption Clause*) only triggers when the error is cata
 
 
 
-st.info("### 🕵️‍♂️ OUTLIER DISPLAY")
-st.info("DASHBOARD: Run the model against user created data")
-
-
 
 # ==============================================================================
-# THE EXECUTIVE SANDBOX: PREDICTIVE PHYSICS (GLOBAL FOOTER)
+# TAB 2: EXECUTIVE SANDBOX
 # ==============================================================================
-import numpy as np
-import plotly.graph_objects as go
+with top_tab2:
+    st.markdown("<span class='phase-badge'>The Executive Sandbox — Predictive Physics</span>", unsafe_allow_html=True)
+    st.markdown("Test the platform's pricing architecture. Adjust the operational reality below to see how the system dynamically adjusts the payout yield against the structural baseline.")
 
-st.divider()
-st.markdown(f"### **<span style='color:{OPUS_PURPLE};'>The Executive Sandbox: Predictive Physics</span>**", unsafe_allow_html=True)
-st.markdown("Test the platform's pricing architecture. Adjust the operational reality below to see how the system dynamically adjusts the payout yield against the structural baseline.")
+    # --- 1. REFINED INTERACTIVE INPUTS ---
+    col1, col2 = st.columns(2)
+    with col1:
+        test_fare = st.selectbox(
+            "Promised Upfront Fare ($)",
+            options=[50, 100, 150, 200, 300, 500],
+            index=3
+        )
+    with col2:
+        time_spread = st.slider(
+            "Time Spread (Actual / Est. Time)",
+            min_value=0.5,
+            max_value=3.0,
+            value=2.05,
+            step=0.05
+        )
 
-# --- 1. REFINED INTERACTIVE INPUTS ---
-col1, col2 = st.columns(2)
-with col1:
-    test_fare = st.selectbox(
-        "Promised Upfront Fare ($)", 
-        options=[50, 100, 150, 200, 300, 500], 
-        index=3  # Defaults to 200 to match your test case
+    # --- 2. LIVE MATH ENGINE ---
+    quad_yield = 0.9915 - (0.3645 * time_spread) + (0.1945 * (time_spread ** 2))
+    quad_pred = test_fare * quad_yield
+
+    base_yield = 0.9915 - (0.3645 * 1.0) + (0.1945 * (1.0 ** 2))
+    base_pred = test_fare * base_yield
+
+    true_delta_usd = quad_pred - base_pred
+    true_delta_pct = (quad_pred / base_pred) - 1
+
+    ols_pred = 6.3081 + (0.7906 * test_fare)
+
+    # --- 3. FOCUSED OUTPUT METRICS ---
+    st.write("")
+    rc1, rc2, rc3 = st.columns(3)
+    rc1.metric(label="Base Payout (T = 1.0x)", value=f"${base_pred:.2f}", delta="Structural Target", delta_color="off")
+    rc2.metric(label="Realized Fare (Quadratic)", value=f"${quad_pred:.2f}", delta=f"{true_delta_pct * 100:+.1f}% vs Base Payout", delta_color="normal" if true_delta_usd >= 0 else "inverse")
+    rc3.metric(label="Exogenous Compensation", value=f"{true_delta_usd:+.2f} MXN", delta="Added for delay", delta_color="normal" if true_delta_usd >= 0 else "inverse")
+    st.write("")
+
+    # --- 4. THE DIVERGENCE CHART ---
+    t_range = np.linspace(0.5, 3.0, 100)
+    ols_curve = np.full_like(t_range, ols_pred)
+    quad_curve_yield = 0.9915 - (0.3645 * t_range) + (0.1945 * (t_range ** 2))
+    quad_curve = test_fare * quad_curve_yield
+
+    fig_sandbox = go.Figure()
+    fig_sandbox.add_trace(go.Scatter(x=t_range, y=ols_curve, mode='lines', name='Naive OLS (Blind to Time)', line=dict(color="#cccccc", width=3, dash='dash'), hovertemplate="OLS Baseline: $%{y:.2f}<extra></extra>"))
+    fig_sandbox.add_trace(go.Scatter(x=t_range, y=quad_curve, mode='lines', name='Quadratic Architecture', line=dict(color=OPUS_TEAL, width=4), hovertemplate="Risk Adjusted Payout: $%{y:.2f}<extra></extra>"))
+    fig_sandbox.add_trace(go.Scatter(x=[time_spread], y=[quad_pred], mode='markers', name='Current State', marker=dict(color=OPUS_TEAL, size=18, symbol='star', line=dict(color='white', width=1)), hovertemplate="<b>Your State</b><br>Time Spread: %{x:.2f}x<br>Final Payout: $%{y:.2f}<extra></extra>"))
+    fig_sandbox.add_vrect(x0=1.0, x1=1.35, fillcolor="grey", opacity=0.1, layer="below", line_width=0, annotation_text="Integrity Buffer", annotation_position="bottom right")
+
+    fig_sandbox.update_layout(
+        autosize=True, height=400,
+        plot_bgcolor=OPUS_GREY, paper_bgcolor=OPUS_GREY,
+        xaxis_title=dict(text="Time Spread (Actual / Estimated)", font=dict(size=14, color=OPUS_TEXT)),
+        yaxis_title=dict(text="Predicted Payout ($ MXN)", font=dict(size=14, color=OPUS_TEXT)),
+        xaxis=dict(range=[0.5, 3.0], gridcolor='lightgrey'),
+        yaxis=dict(gridcolor='lightgrey', zeroline=False),
+        margin=dict(l=60, r=20, t=20, b=50),
+        legend=dict(yanchor="bottom", y=0.02, xanchor="left", x=0.02, bgcolor="rgba(255,255,255,0.8)", bordercolor="#cccccc", borderwidth=1)
     )
-with col2:
-    time_spread = st.slider(
-        "Time Spread (Actual / Est. Time)", 
-        min_value=0.5, 
-        max_value=3.0, 
-        value=2.05, # Defaults to your test case
-        step=0.05
-    )
 
-# --- 2. LIVE MATH ENGINE ---
-# Quadratic Model (Current State)
-quad_yield = 0.9915 - (0.3645 * time_spread) + (0.1945 * (time_spread ** 2))
-quad_pred = test_fare * quad_yield
-
-# The True Benchmark (Time Spread = 1.0x)
-base_yield = 0.9915 - (0.3645 * 1.0) + (0.1945 * (1.0 ** 2)) # Equals 0.8215
-base_pred = test_fare * base_yield
-
-# Calculate True Delta (Against the 1.0x Baseline)
-true_delta_usd = quad_pred - base_pred
-true_delta_pct = (quad_pred / base_pred) - 1
-
-# OLS Model (Calculated purely for the background chart baseline)
-ols_pred = 6.3081 + (0.7906 * test_fare)
-
-# --- 3. FOCUSED OUTPUT METRICS ---
-st.write("") # Small spatial buffer
-rc1, rc2, rc3 = st.columns(3)
-
-# Metric 1: The Base Payout (The True Floor)
-rc1.metric(
-    label="Base Payout (T = 1.0x)", 
-    value=f"${base_pred:.2f}", 
-    delta="Structural Target", 
-    delta_color="off"
-)
-
-# Metric 2: The Realized Fare + The Delta
-rc2.metric(
-    label="Realized Fare (Quadratic)", 
-    value=f"${quad_pred:.2f}", 
-    delta=f"{true_delta_pct * 100:+.1f}% vs Base Payout", 
-    delta_color="normal" if true_delta_usd >= 0 else "inverse"
-)
-
-# Metric 3: The Delta in absolute dollars
-rc3.metric(
-    label="Exogenous Compensation", 
-    value=f"{true_delta_usd:+.2f} MXN", 
-    delta="Added for delay", 
-    delta_color="normal" if true_delta_usd >= 0 else "inverse"
-)
-st.write("") # Small spatial buffer
-
-# --- 4. THE DIVERGENCE CHART (Plotly) ---
-# Generate the spectrum of Time Spreads for the X-axis
-t_range = np.linspace(0.5, 3.0, 100)
-
-# The OLS model is blind to time, creating a perfectly flat array of absolute dollars
-ols_curve = np.full_like(t_range, ols_pred)
-
-# The Quadratic curve
-quad_curve_yield = 0.9915 - (0.3645 * t_range) + (0.1945 * (t_range ** 2))
-quad_curve = test_fare * quad_curve_yield
-
-fig_sandbox = go.Figure()
-
-# Plot 1: The OLS Baseline (Flat Line)
-fig_sandbox.add_trace(go.Scatter(
-    x=t_range, 
-    y=ols_curve, 
-    mode='lines', 
-    name='Naive OLS (Blind to Time)',
-    line=dict(color="#cccccc", width=3, dash='dash'),
-    hovertemplate="OLS Baseline: $%{y:.2f}<extra></extra>"
-))
-
-# Plot 2: The Quadratic Risk Architecture
-fig_sandbox.add_trace(go.Scatter(
-    x=t_range, 
-    y=quad_curve, 
-    mode='lines', 
-    name='Quadratic Architecture',
-    line=dict(color=OPUS_TEAL, width=4),
-    hovertemplate="Risk Adjusted Payout: $%{y:.2f}<extra></extra>"
-))
-
-# Plot 3: The "You Are Here" Dynamic Marker
-fig_sandbox.add_trace(go.Scatter(
-    x=[time_spread], 
-    y=[quad_pred], 
-    mode='markers', 
-    name='Current State',
-    marker=dict(color=OPUS_PURPLE, size=18, symbol='star', line=dict(color='white', width=1)),
-    hovertemplate="<b>Your State</b><br>Time Spread: %{x:.2f}x<br>Final Payout: $%{y:.2f}<extra></extra>"
-))
-
-# Add Integrity Buffer Shaded Region
-fig_sandbox.add_vrect(
-    x0=1.0, x1=1.35,
-    fillcolor="grey", opacity=0.1,
-    layer="below", line_width=0,
-    annotation_text="Integrity Buffer", annotation_position="bottom right"
-)
-
-# Layout Formatting
-fig_sandbox.update_layout(
-    autosize=True,
-    height=400,
-    plot_bgcolor=OPUS_GREY,
-    paper_bgcolor=OPUS_GREY,
-    xaxis_title=dict(text="Time Spread (Actual / Estimated)", font=dict(size=14, color=OPUS_TEXT)),
-    yaxis_title=dict(text="Predicted Payout ($ MXN)", font=dict(size=14, color=OPUS_TEXT)),
-    xaxis=dict(range=[0.5, 3.0], gridcolor='lightgrey'),
-    yaxis=dict(gridcolor='lightgrey', zeroline=False),
-    margin=dict(l=60, r=20, t=20, b=50),
-    legend=dict(
-        yanchor="bottom", y=0.02, 
-        xanchor="left", x=0.02,
-        bgcolor="rgba(255,255,255,0.8)", 
-        bordercolor="#cccccc", borderwidth=1
-    )
-)
-
-st.plotly_chart(fig_sandbox, use_container_width=True)
+    st.plotly_chart(fig_sandbox, use_container_width=True)
