@@ -10,6 +10,7 @@ from google.cloud import bigquery
 from pathlib import Path
 from scipy.interpolate import interp1d
 from components.styles import GLOBAL_CSS
+import streamlit.components.v1 as components
 
 # ==============================================================================
 # PAGE CONFIG
@@ -137,22 +138,22 @@ st.markdown(
     "Deriving that boundary requires four sequential phases — each building on the last."
     "</p>"
     "<div style='display:flex;gap:12px;margin-top:20px;max-width:820px;flex-wrap:wrap;'>"
-    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div class='phase-card' style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;cursor:pointer;border-radius:0 4px 4px 0;transition:background 0.15s;'>"
     "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 1</div>"
     "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>Market Quality Index</div>"
     "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Normalize offers across tiers into a single dimensionless quality score.</div>"
     "</div>"
-    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div class='phase-card' style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;cursor:pointer;border-radius:0 4px 4px 0;transition:background 0.15s;'>"
     "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 2</div>"
     "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>Market Quadrants</div>"
     "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Classify sessions by offer quality and arrival velocity into four regimes.</div>"
     "</div>"
-    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div class='phase-card' style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;cursor:pointer;border-radius:0 4px 4px 0;transition:background 0.15s;'>"
     "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 3</div>"
     "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>The CV(τ) Playbook</div>"
     "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Compute CV(τ) per quadrant to derive rational search time boundaries.</div>"
     "</div>"
-    "<div style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;'>"
+    "<div class='phase-card' style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;cursor:pointer;border-radius:0 4px 4px 0;transition:background 0.15s;'>"
     "<div style='font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#21918c;'>Phase 4</div>"
     "<div style='font-size:0.82rem;font-weight:600;color:#1e293b;margin-top:3px;'>The Efficient Frontier</div>"
     "<div style='font-size:0.75rem;color:#64748b;margin-top:2px;'>Map the Pareto boundary between selectivity and realized yield.</div>"
@@ -160,6 +161,31 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
+components.html("""
+<script>
+  setTimeout(function() {
+    var cards = window.parent.document.querySelectorAll('.phase-card');
+    var tabs  = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+    cards.forEach(function(card, i) {
+      card.addEventListener('click', function() {
+        if (tabs[i]) {
+          var sy = window.parent.scrollY;
+          tabs[i].click();
+          setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
+          setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
+        }
+      });
+      card.addEventListener('mouseenter', function() {
+        card.style.background = 'rgba(33,145,140,0.07)';
+      });
+      card.addEventListener('mouseleave', function() {
+        card.style.background = '';
+      });
+    });
+  }, 300);
+</script>
+""", height=0, scrolling=False)
 
 # ==============================================================================
 # DATA PIPELINE — runs once, feeds all tabs
@@ -867,8 +893,9 @@ with tab3:
 with tab4:
     st.markdown(
         "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>"
-        "For any given target ambition, this model calculates the <strong>Maximum Rational Search Time</strong> — "
-        "the exact minute where the Net Expected Value drops below zero."
+        "The Efficient Frontier maps the absolute threshold where patience stops being rational. "
+        "For any target ambition, the model calculates the <strong>Maximum Rational Search Time</strong> — "
+        "the exact minute the Continuation Value drops below zero."
         "</p>",
         unsafe_allow_html=True,
     )
@@ -945,36 +972,72 @@ with tab4:
         st.warning("⚠️ Insufficient data to plot the Efficient Frontier.")
     else:
         teal_purple_palette = {
-            'Rich / Fast': '#00897B',
-            'Rich / Slow': '#4DB6AC',
-            'Poor / Fast': '#BA68C8',
-            'Poor / Slow': '#6A1B9A',
+            'Rich / Fast': '#21918c',
+            'Rich / Slow': '#64b5b1',
+            'Poor / Fast': '#94a3b8',
+            'Poor / Slow': '#475569',
         }
-        fig, ax = plt.subplots(figsize=(14, 8), facecolor=OPUS_GREY)
-        ax.set_facecolor(OPUS_GREY)
-        sns.lineplot(data=df_frontier, x='Target EPH', y='Max Wait Time (Minutes)',
-                     hue='Quadrant', palette=teal_purple_palette, style='Quadrant',
-                     markers=True, dashes=False, linewidth=3, markersize=9, ax=ax)
-        ax.axhline(0, color='black', linewidth=1.5, linestyle='-')
-        ax.set_ylim(0, 9)
+        _symbols = {
+            'Rich / Fast': 'circle',
+            'Rich / Slow': 'square',
+            'Poor / Fast': 'triangle-up',
+            'Poor / Slow': 'diamond',
+        }
 
-        rich_fast = df_frontier[df_frontier['Quadrant'] == 'Rich / Fast']
-        for _, row in rich_fast.iterrows():
-            ax.text(row['Target EPH'], row['Max Wait Time (Minutes)'] + 0.2,
-                    f"{row['Max Wait Time (Minutes)']:.1f}m",
-                    color=teal_purple_palette['Rich / Fast'], fontsize=10,
-                    fontweight='bold', ha='center')
+        fig_frontier = go.Figure()
 
-        ax.set_title('The Efficient Frontier: Rational Search Time by Ambition',
-                     fontsize=18, fontweight='bold', color=OPUS_PURPLE, pad=25)
-        fig.text(0.5, 0.02,
-                 "Baseline Assumption: For any Target $X, the alternative is holding a Base Offer of ($X - 30)",
-                 ha="center", fontsize=11, style='italic', color='#555555',
-                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='none', pad=5))
-        ax.set_xlabel('Target Ambition ($/hr)', fontsize=12, fontweight='bold', color=OPUS_TEXT)
-        ax.set_ylabel('Max Rational Search Time (Minutes)', fontsize=12, fontweight='bold', color=OPUS_TEXT)
-        ax.set_xticks(list(target_range))
-        ax.grid(True, alpha=0.15)
-        ax.legend(title='Market Context', bbox_to_anchor=(1.02, 1), loc='upper left', frameon=True)
-        plt.subplots_adjust(bottom=0.15)
-        st.pyplot(fig)
+        for quad in ['Rich / Fast', 'Rich / Slow', 'Poor / Fast', 'Poor / Slow']:
+            _qd = df_frontier[df_frontier['Quadrant'] == quad]
+            fig_frontier.add_trace(go.Scatter(
+                x=_qd['Target EPH'],
+                y=_qd['Max Wait Time (Minutes)'],
+                mode='lines+markers+text' if quad == 'Rich / Fast' else 'lines+markers',
+                name=quad,
+                line=dict(color=teal_purple_palette[quad], width=2.5),
+                marker=dict(color=teal_purple_palette[quad], size=9,
+                            symbol=_symbols[quad], line=dict(width=0)),
+                text=[f"{v:.1f}m" for v in _qd['Max Wait Time (Minutes)']] if quad == 'Rich / Fast' else None,
+                textposition='top center',
+                textfont=dict(size=10, color=teal_purple_palette[quad], family='Inter'),
+                hovertemplate=(
+                    f"<b>{quad}</b><br>"
+                    "Target: $%{x}/hr<br>"
+                    "Max Wait: %{y:.1f} min<extra></extra>"
+                ),
+            ))
+
+        fig_frontier.add_hline(y=0, line_width=1.5, line_color='#334155', opacity=0.4)
+        fig_frontier.update_layout(
+            height=480,
+            plot_bgcolor='white', paper_bgcolor='white',
+            font_family='Inter',
+            xaxis=dict(
+                title=dict(text='Target Ambition ($/hr)', font=dict(size=12, color='#334155')),
+                tickvals=list(target_range),
+                gridcolor='#f0f0f0', zeroline=False,
+                tickfont=dict(size=11),
+            ),
+            yaxis=dict(
+                title=dict(text='Max Rational Search Time (min)', font=dict(size=12, color='#334155')),
+                range=[0, 9],
+                gridcolor='#f0f0f0', zeroline=False,
+                tickfont=dict(size=11),
+            ),
+            legend=dict(
+                title=dict(text='Market Regime', font=dict(size=11)),
+                font=dict(size=11), bgcolor='rgba(255,255,255,0.85)',
+                bordercolor='#e2e8f0', borderwidth=1,
+                yanchor='top', y=0.99, xanchor='right', x=0.99,
+            ),
+            margin=dict(l=50, r=20, t=30, b=50),
+        )
+        st.plotly_chart(fig_frontier, use_container_width=True)
+
+        st.markdown(
+            "<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;"
+            "padding:12px 16px;margin-top:16px;font-size:0.82rem;color:#334155;line-height:1.7;'>"
+            "<strong>The 8-Minute Hard Cap:</strong> Regardless of market regime or target ambition, "
+            "the absolute ceiling for rational patience never exceeds 8 minutes."
+            "</div>",
+            unsafe_allow_html=True,
+        )
