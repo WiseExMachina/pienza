@@ -524,7 +524,9 @@ The visual evidence reveals that the model is precise for low-value trips, but e
 import plotly.express as px
 
 with tab4:
-    st.markdown("Auditing the platform's core financial and operational prediction accuracy.")
+    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+Pure financial prediction is insufficient. By cross-referencing estimated and realized fares against actual trip durations, this matrix exposes a Hierarchy of Predictability, revealing exactly how the algorithm weighs time against money.
+</div>""", unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL ---
     query_reality_check = """
@@ -581,28 +583,45 @@ with tab4:
         autosize=True,
         plot_bgcolor=OPUS_GREY,
         paper_bgcolor=OPUS_GREY,
-        title=dict(
-            text=f"Core Sample (N={len(df_core_reality)})<br><i>Correlation > 0.8 = High Predictive Synchrony</i>",
-            font=dict(size=14, color=OPUS_TEXT),
-            y=0.95
-        ),
+        title=dict(text=""),
         xaxis=dict(tickfont=dict(size=12, color=OPUS_TEXT)),
         yaxis=dict(tickfont=dict(size=12, color=OPUS_TEXT)),
-        margin=dict(l=20, r=20, t=80, b=20)
+        coloraxis_showscale=False,
+        margin=dict(l=20, r=20, t=40, b=40)
     )
 
     st.plotly_chart(fig3, use_container_width=True)
 
-    # --- 4. CAUSAL INFERENCE CONTEXT (OUTRO) ---
-    st.markdown(r"""
-    #### **The Hierarchy of Predictability**
-    The correlation matrix reveals a systemic **Hierarchy of Predictability** that prioritizes price stability over operational variance. While the correlation between the Upfront Fare and Realized Fare is nearly perfect ($r = 0.961$), the Operational Synchrony for trip duration is significantly lower ($r = 0.813$). The most critical evidence of this decoupling is the correlation between Realized Fare and Actual Trip Time, which stands at only **0.621**. In an unbuffered marketplace, the final price would be highly sensitive to the actual time spent on the road ($r > 0.90$); however, the observed 0.621 correlation proves that the platform deliberately insulates the financial outcome from temporal fluctuations. The system isn't merely predicting the fare; it is enforcing it.
+    # --- 4. INSIGHTS ---
+    st.markdown("""
+<div style='display:flex;flex-direction:column;gap:12px;max-width:480px;margin:28px auto 28px auto;'>
+  <div style='background:#fff;border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div style='display:flex;align-items:center;gap:8px;margin-bottom:2px;'>
+      <span style='font-family:monospace;font-size:0.6rem;font-weight:700;color:#94a3b8;'>r = 0.961</span>
+      <span style='font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:1px 5px;border-radius:4px;background:#f1f5f9;color:#64748b;'>Financial Synchrony</span>
+    </div>
+    <div style='font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:2px;'>Upfront Fare → Realized Fare</div>
+    <div style='font-size:0.72rem;color:#777;line-height:1.45;'>Near-perfect predictability. The platform locks in the financial outcome at offer time.</div>
+  </div>
+  <div style='background:#fff;border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div style='display:flex;align-items:center;gap:8px;margin-bottom:2px;'>
+      <span style='font-family:monospace;font-size:0.6rem;font-weight:700;color:#94a3b8;'>r = 0.813</span>
+      <span style='font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:1px 5px;border-radius:4px;background:#f1f5f9;color:#64748b;'>Operational Synchrony</span>
+    </div>
+    <div style='font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:2px;'>Est. Trip Time → Actual Trip Time</div>
+    <div style='font-size:0.72rem;color:#777;line-height:1.45;'>Strong but lower. Time on the road is noisier than the money — and the algorithm knows it.</div>
+  </div>
+  <div style='background:#fff;border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div style='display:flex;align-items:center;gap:8px;margin-bottom:2px;'>
+      <span style='font-family:monospace;font-size:0.6rem;font-weight:700;color:#94a3b8;'>r = 0.621</span>
+      <span style='font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:1px 5px;border-radius:4px;background:#fef3c7;color:#92400e;'>Smoking Gun ⚠</span>
+    </div>
+    <div style='font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:2px;'>Realized Fare → Actual Trip Time</div>
+    <div style='font-size:0.72rem;color:#777;line-height:1.45;'>In an unbuffered market this would exceed 0.90. The gap proves the platform deliberately decouples financial outcome from time spent — neutralizing the incentive to pad trips.</div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
-    #### **Strategic Buffer & Moral Hazard**
-    This decoupling suggests a *Fraud Prevention Mechanism* in action. By maintaining a 0.961 financial synchrony while allowing for a 0.813 temporal variance, the algorithm acts as a **Strategic Buffer** that suppresses the marginal financial gain for additional minutes. This might be specifically designed to neutralize moral hazard by ensuring that the financial incentive for a driver to **intentionally take additional minutes for their own profit** is effectively eliminated. 
-
-    Within this window, moderate operational noise or deliberate padding is filtered out of the final transaction rather than being passed on to the passenger. To quantify the exact boundaries of this buffer and identify the threshold where the platform's response shifts from inelasticity to legitimate compensation for exogenous shocks, a **Fraud Prevention Response Curve** has been architected.
-    """)
+    st.markdown(teal_callout("The platform doesn't predict the fare — it enforces it by creating a structural buffer. To map the elasticity of this buffer, the next phase introduces the Response Curve."), unsafe_allow_html=True)
 
 
 # ==============================================================================
