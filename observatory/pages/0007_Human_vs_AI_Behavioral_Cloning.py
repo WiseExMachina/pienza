@@ -305,6 +305,7 @@ setTimeout(function() {
 .fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; pointer-events: auto; }
 .fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }
 .fn-wrap.fn-below .fn-tooltip::before { content:''; position:absolute; bottom:100%; left:0; width:100%; height:12px; }
+.fn-wrap.fn-left .fn-tooltip::after { left: 20px; transform: none; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -314,6 +315,25 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
 </div>
 """, unsafe_allow_html=True)
         st.markdown("""
+<details style='margin-bottom:20px;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;font-size:0.78rem;color:#64748b;cursor:pointer;'>
+  <summary style='font-weight:600;color:#21918c;letter-spacing:0.3px;list-style:none;display:flex;align-items:center;gap:6px;'>
+    &#9654; Pipeline Overview
+  </summary>
+  <div style='margin-top:12px;font-family:monospace;font-size:0.72rem;color:#475569;line-height:2.0;'>
+    41 features (X_physics)<br>
+    │<br>
+    ├──► <strong style='color:#21918c;'>Liga A</strong> &mdash; Control Group &nbsp;(41 features, pre-Lasso)<br>
+    │<br>
+    └──► Lasso V1 &nbsp;──► insight: <code style='font-size:0.68rem;background:rgba(33,145,140,0.08);padding:1px 4px;border-radius:3px;'>est_trip_dist_km</code> ranks 3rd but irrelevant for EV driver<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SME curation: 20 Praetorians hand-picked<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong style='color:#21918c;'>Liga B</strong> &mdash; Curated Raw &nbsp;(20 numerical + 10 categorical)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► PCA on 20 &nbsp;──► <strong style='color:#21918c;'>Liga C</strong> &nbsp;(12 components, 90% variance)
+  </div>
+</details>
 <div class='step-row'>
   <div class='step-spine'>
     <div class='step-circle' style='background:#21918c'>1</div>
@@ -322,40 +342,39 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   <div class='step-body'>
     <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature purged prior to modeling.</span></span></div>
     <div class='step-why'>Identifiers, timestamps, and target-leaking columns removed. Establishes the clean observation space before any statistical audit.</div>
-    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 105 columns &nbsp;·&nbsp; 41 columns dropped</div>
+    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 105 columns &nbsp;·&nbsp; 49 columns dropped</div>
     <div style='margin-top:10px;display:flex;flex-direction:column;gap:6px;'>
       <div style='display:flex;align-items:center;border-left:3px solid #21918c;padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Text &amp; Metadata</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_id &nbsp;·&nbsp; feature_id &nbsp;·&nbsp; session_fk &nbsp;·&nbsp; ocr_fk</span>
-        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+12</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>image_content_hash<br>dropoff_address<br>dropoff_ambiguity<br>dropoff_hdbscan_name<br>pickup_ambiguity<br>comment_1<br>comment_2<br>special_note_raw<br>inferred_agent_bearing<br>is_imputed<br>record_status_fk<br>interpolation_quality_fk</span></span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+15</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>image_content_hash<br>dropoff_address<br>dropoff_ambiguity<br>dropoff_hdbscan_name<br>pickup_ambiguity<br>pickup_address<br>dropoff_polygon_name<br>offer_timestamp<br>comment_1<br>comment_2<br>special_note_raw<br>inferred_agent_bearing<br>is_imputed<br>record_status_fk<br>interpolation_quality_fk</span></span>
       </div>
       <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.6);padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (EDA)</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_EDA &nbsp;·&nbsp; eph_realized_EDA &nbsp;·&nbsp; is_spread_downgrade_EDA &nbsp;·&nbsp; traffic_volatility_index_eda</span>
-        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+5</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>eph_complete_index_EDA<br>eph_complete_label_EDA<br>eph_realized_index_EDA<br>eph_realized_label_EDA<br>is_total_cycle_downgrade_EDA</span></span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+6</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>eph_complete_index_EDA<br>eph_complete_label_EDA<br>eph_realized_index_EDA<br>eph_realized_label_EDA<br>is_total_cycle_downgrade_EDA<br>realized_traffic_index</span></span>
       </div>
       <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.4);padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (Target)</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_action_fk &nbsp;·&nbsp; reason_primary_fk &nbsp;·&nbsp; outcome_fk &nbsp;·&nbsp; post_offer_status_fk</span>
       </div>
-      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.15);padding:7px 12px;gap:12px;'>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.25);padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Geo Coordinates</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>pickup_lat &nbsp;·&nbsp; pickup_lon &nbsp;·&nbsp; dropoff_lat &nbsp;·&nbsp; dropoff_lon</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+2</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>inferred_agent_lat<br>inferred_agent_lon</span></span>
       </div>
-      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.08);padding:7px 12px;gap:12px;'>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.1);padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Manual Overrides</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>rider_star_rating &nbsp;·&nbsp; rider_trip_count &nbsp;·&nbsp; is_exclusive &nbsp;·&nbsp; is_vip</span>
-        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+2</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>is_teens<br>is_identity_verified</span></span>
-      </div>
-      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.05);padding:7px 12px;gap:12px;'>
-        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>→ Categorical</span>
-        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>product_category_fk</span>
-        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:220px;white-space:normal;font-family:sans-serif;font-size:0.72rem;line-height:1.6;'>Encoded as int64 in the schema but represents a nominal category (UberX, Comfort, Flash...). Reclassified to the categorical pipeline from Step 1.</span></span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+6</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>is_teens<br>is_identity_verified<br>eph_direct_label<br>eph_operational_label<br>eph_realized_label_ML<br>eph_complete_label_ML</span></span>
       </div>
     </div>
-    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 64 columns &nbsp;(43 numerical + 16 categorical)</div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 56 columns &nbsp;(<span class='fn-wrap fn-left'><span class='fn-mark' style='vertical-align:baseline;font-size:0.75rem;'>46 numerical</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.62rem;line-height:1.7;width:660px;left:0;transform:none;'><div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 12px;'><span>upfront_fare</span><span>session_progress_ratio</span><span>cycle_cumulative_net_earnings</span><span>time_to_pickup_sec</span><span>inferred_agent_speed_mps</span><span>eph_direct</span><span>dist_to_pickup_km</span><span>traffic_index_base_120</span><span>eph_direct_index</span><span>est_trip_time_sec</span><span>time_since_last_offer</span><span>eph_operational</span><span>est_trip_dist_km</span><span>offer_density_10sec</span><span>eph_operational_index</span><span>is_surge</span><span>offer_density_30sec</span><span>is_operational_downgrade</span><span>surge_amount</span><span>offer_density_60sec</span><span>eph_realized_ML</span><span>is_turbo_plus</span><span>offer_density_180sec</span><span>eph_realized_index_ML</span><span>turbo_plus_amount</span><span>consecutive_rejects</span><span>is_spread_downgrade_ML</span><span>is_reservation</span><span>cycle_avg_dtp_km</span><span>eph_complete_ML</span><span>reservation_amount</span><span>cycle_std_dtp_km</span><span>eph_complete_index_ML</span><span>is_priority</span><span>cycle_ttp_dtp_ratio</span><span>is_total_cycle_downgrade_ML</span><span>priority_amount</span><span>dispatch_lead_time_sec</span><span>home_vector_alignment_score</span><span>is_long_trip</span><span>cycle_rolling_avg_spread</span><span>historical_rolling_avg_traffic_index</span><span>is_multiple_destinations</span><span>total_accumulated_deadhead_sec</span><span>traffic_volatility_index_ml</span></div></span></span> + <span class='fn-wrap'><span class='fn-mark' style='vertical-align:baseline;font-size:0.75rem;'>10 categorical</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.70rem;line-height:1.8;width:240px;'>hour_of_day<br>product_category_fk<br>driver_state_at_request_fk<br>day_of_week<br>time_of_day_block<br>day_type<br>dropoff_polygon_id<br>dropoff_h3_hex_id<br>dropoff_hdbscan_id<br>heuristic_flag_context</span></span>)</div>
   </div>
+</div>
+
+<div style='text-align:center;margin:4px 0;'>
+  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#21918c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
 </div>
 """, unsafe_allow_html=True)
 
@@ -370,19 +389,14 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <div class='step-label' style='color:#21918c'>Correlation Doppelgangers</div>
     <div class='step-why'>Pearson r &gt; 0.90 filter. Raw EPH values are dropped for normalized indices; time is absorbed into cumulative earnings, combining duration and yield in a single feature.</div>
     <div style='margin-top:12px;'>
-      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:6px;'>4,765 rows × 59 columns &nbsp;·&nbsp; audit on 43 numerical &nbsp;·&nbsp; 5 dropped</div>
+      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:6px;'>4,765 rows × 56 columns &nbsp;·&nbsp; audit on 46 numerical &nbsp;·&nbsp; 5 dropped</div>
       <div style='display:grid;grid-template-columns:1fr 1fr 64px;gap:0;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
         <span>DROPPED</span><span>SURVIVOR</span><span style='text-align:right;'>r</span>
       </div>
       <div style='border-left:3px solid #21918c;margin-top:4px;display:flex;flex-direction:column;'>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
-        </div>
-        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct_index &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
@@ -391,8 +405,13 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct_index &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+        </div>
+        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;'>
@@ -401,11 +420,77 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>0.92</span>
         </div>
       </div>
-      <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 54 columns &nbsp;(38 numerical + 16 categorical)</div>
+      <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 51 columns &nbsp;(<span class='fn-wrap fn-left'><span class='fn-mark' style='vertical-align:baseline;font-size:0.75rem;'>41 numerical</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.62rem;line-height:1.7;width:660px;left:0;transform:none;'><div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 12px;'><span>upfront_fare</span><span>session_progress_ratio</span><span>cycle_cumulative_net_earnings</span><span>time_to_pickup_sec</span><span>inferred_agent_speed_mps</span><span>eph_direct_index</span><span>dist_to_pickup_km</span><span>traffic_index_base_120</span><span>eph_operational_index</span><span>est_trip_time_sec</span><span>time_since_last_offer</span><span>is_operational_downgrade</span><span>est_trip_dist_km</span><span>offer_density_10sec</span><span>eph_realized_index_ML</span><span>is_surge</span><span>offer_density_30sec</span><span>is_spread_downgrade_ML</span><span>surge_amount</span><span>offer_density_60sec</span><span>eph_complete_index_ML</span><span>is_turbo_plus</span><span>offer_density_180sec</span><span>is_total_cycle_downgrade_ML</span><span>turbo_plus_amount</span><span>consecutive_rejects</span><span>home_vector_alignment_score</span><span>is_reservation</span><span>cycle_avg_dtp_km</span><span>historical_rolling_avg_traffic_index</span><span>reservation_amount</span><span>cycle_std_dtp_km</span><span>traffic_volatility_index_ml</span><span>is_priority</span><span>cycle_ttp_dtp_ratio</span><span></span><span>priority_amount</span><span>dispatch_lead_time_sec</span><span></span><span>is_long_trip</span><span>cycle_rolling_avg_spread</span><span></span><span>is_multiple_destinations</span><span>total_accumulated_deadhead_sec</span><span></span></div></span></span> + <span class='fn-wrap'><span class='fn-mark' style='vertical-align:baseline;font-size:0.75rem;'>10 categorical</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.70rem;line-height:1.8;width:240px;'>hour_of_day<br>product_category_fk<br>driver_state_at_request_fk<br>day_of_week<br>time_of_day_block<br>day_type<br>dropoff_polygon_id<br>dropoff_h3_hex_id<br>dropoff_hdbscan_id<br>heuristic_flag_context</span></span>)</div>
     </div>
   </div>
 </div>
 
+<div style='display:flex;flex-direction:column;align-items:flex-end;margin:10px 0;gap:4px;'>
+  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+  <span style='display:inline-flex;align-items:center;gap:8px;background:#164e4b;border-radius:6px;padding:5px 14px;font-size:0.70rem;color:#e2f5f4;font-weight:600;letter-spacing:0.3px;'>
+    ⎇ &nbsp;Liga A &nbsp;·&nbsp; Control Group &nbsp;·&nbsp; 41 numerical + 10 categorical
+  </span>
+  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+</div>
+
+""", unsafe_allow_html=True)
+
+        # --- STEP 3: LASSO (dynamic from notebook output) ---
+        import json as _json, os as _os
+        _lasso_path = _os.path.join(_os.path.dirname(__file__), '..', 'assets', 'lasso_liga_a.json')
+        try:
+            with open(_lasso_path) as _f:
+                _lasso = _json.load(_f)
+            _survivors = _lasso['survivors']   # {feature: coef}
+            _casualties = _lasso['casualties'] # [feature, ...]
+            _sorted = sorted(_survivors.items(), key=lambda x: x[1], reverse=True)
+            _top8 = _sorted[:8]
+            _rest = _sorted[8:]
+            _max_coef = _top8[0][1] if _top8 else 1.0
+
+            def _bar(coef, max_c):
+                pct = coef / max_c * 100
+                return f"<div style='height:6px;background:#21918c;border-radius:3px;width:{pct:.1f}%;min-width:3px;'></div>"
+
+            _top8_html = (
+                "<div style='border-left:3px solid #21918c;display:flex;flex-direction:column;'>"
+                + "".join(
+                    f"<div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>"
+                    f"<span style='font-family:monospace;font-size:0.68rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{f} &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>"
+                    f"{_bar(c, _max_coef)}"
+                    f"<span style='font-family:monospace;font-size:0.65rem;color:#94a3b8;text-align:right;'>{c:.3f}</span>"
+                    f"</div>"
+                    for f, c in _top8
+                )
+                + "</div>"
+            )
+
+            _rest_tooltip = "<br>".join(
+                f"{f} <span style='color:#94a3b8;'>({c:.3f})</span>"
+                for f, c in _rest
+            )
+            _n_rest = len(_rest)
+            _rest_pill = (
+                f"<span class='fn-wrap'>"
+                f"<span class='fn-mark' style='vertical-align:baseline;font-size:0.72rem;'>+{_n_rest} more</span>"
+                f"<span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.9;width:340px;left:0;transform:none;'>{_rest_tooltip}</span>"
+                f"</span>"
+            )
+
+            _cas_rows = (
+                "<div style='border-left:3px solid rgba(33,145,140,0.5);display:flex;flex-direction:column;'>"
+                + "".join(
+                    f"<div style='padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>"
+                    f"<span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:6px;white-space:nowrap;'>{f}<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>"
+                    f"</div>"
+                    for f in _casualties
+                )
+                + "</div>"
+            )
+
+            _n_surv = len(_survivors)
+            _n_cas  = len(_casualties)
+            _lasso_block = f"""
 <div class='step-row'>
   <div class='step-spine'>
     <div class='step-circle' style='background:#21918c'>3</div>
@@ -414,7 +499,58 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   <div class='step-body'>
     <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
     <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
+    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 51 columns &nbsp;·&nbsp; L1 audit on 41 numerical &nbsp;·&nbsp; C = 0.05</div>
+    <div style='margin-top:10px;display:flex;gap:24px;align-items:start;'>
+      <div style='flex:2;min-width:0;'>
+        <div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;gap:0 8px;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
+          <span>SURVIVOR</span><span>COEF</span><span style='text-align:right;'>val</span>
+        </div>
+        {_top8_html}
+        <div style='padding:6px 12px;'>{_rest_pill}</div>
+      </div>
+      <div style='flex:1;min-width:0;'>
+        <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>CASUALTIES ({_n_cas})</div>
+        {_cas_rows}
+      </div>
+    </div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 51 columns &nbsp;({_n_surv} numerical survivors + 10 categorical)</div>
+    <div style='margin-top:14px;text-align:center;'>
+      <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#21918c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+    </div>
+    <div style='margin-top:4px;border-left:3px solid #21918c;background:rgba(33,145,140,0.05);border-radius:0 8px 8px 0;padding:12px 16px;'>
+      <div style='font-size:0.65rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;'>SME Override</div>
+      <div style='font-size:0.78rem;color:#334155;line-height:1.65;'>
+        Although Lasso ranks <code style='font-size:0.72rem;background:rgba(33,145,140,0.10);padding:1px 5px;border-radius:3px;'>est_trip_dist_km</code> 3rd, human expertise overrides it: EV economics eliminate fuel costs, shifting the primary operational constraint from distance to time. A final matrix of <span class='fn-wrap'><span class='fn-mark' style='vertical-align:baseline;font-size:0.78rem;font-weight:700;'>20 domain-curated features</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.9;width:240px;left:0;transform:none;'>upfront_fare<br>time_to_pickup_sec<br>est_trip_time_sec<br>is_multiple_destinations<br>session_progress_ratio<br>traffic_index_base_120<br>time_since_last_offer<br>offer_density_10sec<br>consecutive_rejects<br>cycle_avg_dtp_km<br>cycle_std_dtp_km<br>cycle_ttp_dtp_ratio<br>dispatch_lead_time_sec<br>cycle_rolling_avg_spread<br>total_accumulated_deadhead_sec<br>cycle_cumulative_net_earnings<br>eph_operational_index<br>home_vector_alignment_score<br>historical_rolling_avg_traffic_index<br>traffic_volatility_index_ml</span></span> was locked in and passed a secondary Lasso validation without casualties.
+      </div>
+    </div>
+    <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 30 columns &nbsp;(20 numerical + 10 categorical)</div>
   </div>
+</div>
+"""
+        except FileNotFoundError:
+            _lasso_block = """
+<div class='step-row'>
+  <div class='step-spine'>
+    <div class='step-circle' style='background:#21918c'>3</div>
+    <div class='step-line'></div>
+  </div>
+  <div class='step-body'>
+    <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
+    <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#94a3b8;font-style:italic;'>Run 0501_PCA_allfeat.ipynb to populate results.</div>
+  </div>
+</div>
+"""
+
+        st.markdown(_lasso_block, unsafe_allow_html=True)
+
+        st.markdown("""
+<div style='display:flex;flex-direction:column;align-items:flex-end;margin:10px 0;gap:4px;'>
+  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+  <span style='display:inline-flex;align-items:center;gap:8px;background:#164e4b;border-radius:6px;padding:5px 14px;font-size:0.70rem;color:#e2f5f4;font-weight:600;letter-spacing:0.3px;'>
+    ⎇ &nbsp;Liga B &nbsp;·&nbsp; Curated Raw &nbsp;·&nbsp; 20 numerical + 10 categorical
+  </span>
+  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
 </div>
 
 <div class='step-row'>
@@ -424,7 +560,32 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   </div>
   <div class='step-body'>
     <div class='step-label' style='color:#21918c'>PCA</div>
-    <div class='step-why'>Principal Component Analysis compresses the surviving 41-feature set into orthogonal components retaining 90% of variance. Eliminates residual multicollinearity for linear and Bayesian estimators.</div>
+    <div class='step-why'>Principal Component Analysis compresses the 20-feature Praetorian set into orthogonal components, eliminating residual multicollinearity for linear and Bayesian estimators.</div>
+    <div style='margin-top:12px;display:flex;gap:24px;align-items:center;justify-content:center;'>
+      <div style='display:flex;flex-direction:column;gap:4px;'>
+        <div style='font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Cumulative variance</div>
+        <div style='display:flex;align-items:center;gap:8px;'>
+          <div style='width:160px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;'>
+            <div style='width:90%;height:100%;background:#21918c;border-radius:4px;'></div>
+          </div>
+          <span style='font-family:monospace;font-size:0.72rem;color:#21918c;font-weight:700;'>90%</span>
+        </div>
+        <div style='font-size:0.68rem;color:#94a3b8;margin-top:2px;'>captured by 12 of 20 components</div>
+      </div>
+      <div style='display:flex;flex-direction:column;gap:6px;'>
+        <div style='font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Compression</div>
+        <div style='font-family:monospace;font-size:0.72rem;color:#64748b;'>20 features &nbsp;→&nbsp; <span style='color:#21918c;font-weight:700;'>12 components</span></div>
+        <div style='font-size:0.68rem;color:#94a3b8;'>40% dimensionality reduction</div>
+      </div>
+    </div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 22 columns &nbsp;(12 components + 10 categorical)</div>
+    <div style='display:flex;flex-direction:column;align-items:flex-end;margin:10px 0;gap:4px;'>
+      <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+      <span style='display:inline-flex;align-items:center;gap:8px;background:#164e4b;border-radius:6px;padding:5px 14px;font-size:0.70rem;color:#e2f5f4;font-weight:600;letter-spacing:0.3px;'>
+        ⎇ &nbsp;Liga C &nbsp;·&nbsp; Curated PCA &nbsp;·&nbsp; 12 components + 10 categorical
+      </span>
+      <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+    </div>
   </div>
 </div>
 
@@ -461,6 +622,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   </div>
 </div>
 """, unsafe_allow_html=True)
+
 
     with sci2:
         pass
