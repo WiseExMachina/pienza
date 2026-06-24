@@ -630,10 +630,11 @@ Pure financial prediction is insufficient. By cross-referencing estimated and re
 with tab5:
 
     # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
-    st.markdown(r"""
-    #### **The Response Curve: Quantifying Inelasticity**
-    To visualize the strategic buffer in action, the relationship between temporal variance and financial outcome was modeled using a Locally Weighted Scatterplot Smoothing (LOWESS) regression. The resulting **Fraud Prevention Response Curve** identifies the empirical boundaries of the platform’s risk-sharing architecture.
-    """)
+    st.markdown("""<div style=’font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;’>
+To visualize the buffer in action, the relationship between temporal variance and financial outcome was modeled using a LOWESS regression.
+</div>""", unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-bottom:16px;'></div>", unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL (Updated with Metadata) ---
     query_fraud_prevention = """
@@ -705,8 +706,8 @@ with tab5:
     fig4.update_traces(line=dict(width=3), selector=dict(mode='lines')) 
 
     # --- STRATEGIC ANNOTATIONS ---
-    fig4.add_vline(x=1.0, line_dash="dash", line_color="#666666", 
-                annotation_text="Perfect Prediction (T_act = T_est)", annotation_position="top left")
+    fig4.add_vline(x=1.0, line_dash="dash", line_color="#666666",
+                annotation_text="Perfect Prediction", annotation_position="bottom left")
 
     fig4.add_hline(y=0.84, line_dash="dot", line_color="#666666", 
                 annotation_text="Global Yield Baseline", annotation_position="bottom right")
@@ -733,18 +734,28 @@ with tab5:
 
     st.plotly_chart(fig4, use_container_width=True)
 
-    # --- 4. FINAL VERDICT & CAUSAL INFERENCE ---
-    st.info(f"**Global Correlation (Time Variance vs. Financial Outcome):** {r_val:.4f}")
 
-    st.markdown(r"""
-    #### **Operational Regimes & Market Physics**
-    The visualization identifies two distinct operational regimes:
+    st.markdown("""
+<div style='display:flex;flex-direction:column;gap:12px;max-width:480px;margin:28px auto 28px auto;'>
+  <div style='background:#fff;border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div style='display:flex;align-items:center;gap:8px;margin-bottom:2px;'>
+      <span style='font-family:monospace;font-size:0.6rem;font-weight:700;color:#94a3b8;'>1.0x – 1.35x</span>
+      <span style='font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:1px 5px;border-radius:4px;background:#f1f5f9;color:#64748b;'>Integrity Buffer</span>
+    </div>
+    <div style='font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:2px;'>Inelastic Payout Zone</div>
+    <div style='font-size:0.72rem;color:#777;line-height:1.45;'>A purely inelastic payout zone. The system flatlines compensation for moderate delays, neutralizing any incentive to intentionally pad trips.</div>
+  </div>
+  <div style='background:#fff;border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+    <div style='display:flex;align-items:center;gap:8px;margin-bottom:2px;'>
+      <span style='font-family:monospace;font-size:0.6rem;font-weight:700;color:#94a3b8;'>&gt; 1.35x</span>
+      <span style='font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:1px 5px;border-radius:4px;background:#f1f5f9;color:#64748b;'>Exogenous Shocks</span>
+    </div>
+    <div style='font-size:0.8rem;font-weight:700;color:#1a1a1a;margin-bottom:2px;'>Elasticity Breaks</div>
+    <div style='font-size:0.72rem;color:#777;line-height:1.45;'>Once delays exceed the driver's control envelope, the system compensates for the extreme volatility.</div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
-    * **The Integrity Buffer (1.0x - 1.35x):** The response curve exhibits near-total inelasticity. In this window, an increase in trip duration does not result in a proportional increase in realized fare. By maintaining a flat payout profile during moderate delays, the mechanism ensures that the financial burden of standard operational noise is absorbed by the operational margin, effectively removing the incentive for intentional duration padding.
-    * **Exogenous Shocks (> 1.35x):** The curve reaches an inflection point and shifts to a sharp positive slope. This transition indicates that the algorithm distinguishes between driver-induced inefficiency and exogenous systemic shocks (e.g., major accidents or extreme rush-hour volatility). Once the delay is clearly beyond the driver's control envelope, the platform triggers a compensatory adjustment, realigning the financial outcome with the actual labor performed. 
-
-    > **Analytical Conclusion:** This non-linear architecture confirms that the system is expertly calibrated to prioritize price integrity and fraud prevention while maintaining a safety net for legitimate market disruptions.
-    """)
+    st.markdown(teal_callout("This non-linear architecture confirms that the system is expertly calibrated to prioritize price integrity and fraud prevention while maintaining a safety net for legitimate market disruptions."), unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -754,18 +765,15 @@ import statsmodels.formula.api as smf
 import numpy as np
 with tab6:
 
-    # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
-    st.markdown(r"""
-    #### **Mathematical Formalization: The Inelasticity Threshold**
-    To provide a precise mathematical anchor for the observed response curve, a quadratic polynomial regression was fitted to the dataset. This model quantifies the exact point where the platform's *Fraud Prevention Mechanism* reaches its maximum inelasticity before transitioning into compensatory adjustment. The estimated quadratic equation is defined as:
-    """)
+    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+To provide a precise mathematical anchor for the observed response curve, a quadratic polynomial regression was fitted to the dataset. The estimated equation is defined as:
+</div>""", unsafe_allow_html=True)
 
-    # Centered LaTeX Equation
     st.latex(r"\widehat{Yield} = 0.9915 - 0.3645(\Delta T) + 0.1945(\Delta T^2)")
 
-    st.markdown(r"""
-    Where $\Delta T$ represents the **Temporal Variance** (Actual/Estimated Time). The model is statistically robust, with an F-statistic of 46.80 and a highly significant p-value ($8.22 \times 10^{-18}$), confirming that the non-linear architecture is a structural property of the system rather than a stochastic artifact.
-    """)
+    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin:16px 0;'>
+Where ΔT represents the Temporal Variance (Actual/Estimated Time). The model is statistically robust (F-statistic: 46.80, p = 8.22 × 10⁻¹⁸), confirming the non-linear architecture is a structural property of the system.
+</div>""", unsafe_allow_html=True)
 
     # --- THE "0 BS" MATH REVEAL ---
     math_logic = """
@@ -777,10 +785,6 @@ with tab6:
     b2 = model_poly.params['np.power(time_spread, 2)']
     tipping_point = -b1 / (2 * b2)
     """
-
-    with st.expander("🔍 Click here to view the Live Mathematical Model (No Hardcoding)"):
-        st.markdown("This threshold is calculated dynamically from the Phase 3 dataset using Ordinary Least Squares (OLS) regression.")
-        st.code(math_logic, language="python")
 
     # --- 1. FIT THE QUADRATIC MODEL ---
     # Using df_final from Phase 3
@@ -863,29 +867,7 @@ with tab6:
 
     st.plotly_chart(fig5, use_container_width=True)
 
-    # --- 4. CAUSAL INFERENCE CONTEXT (OUTRO) ---
-    st.markdown(r"""
-    > **Analytical Conclusion:** The analysis identifies the Inelasticity Threshold at **0.94x**. This finding is strategically significant: it proves that the "floor" of financial yield is reached even before the trip is officially categorized as delayed ($1.0x$). 
-
-    The system exhibits total indifference to temporal fluctuations within the 0.90x to 1.30x range. By anchoring the payout at this 0.94x floor, the algorithm effectively decouples marginal labor time from marginal compensation. This architectural choice ensures that price integrity is maintained for the passenger while guaranteeing that the Agent is fully paid even if the mission is completed faster than expected. 
-
-    The sharp upward trajectory beyond 1.4x confirms that the system incorporates a high-threshold safety net for catastrophic prediction errors, further reinforcing the platform's focus on mitigating moral hazard through strategic inelasticity.
-    """)
-
-
-
-    st.markdown(f"<span class='phase-badge'>The Inelasticity Threshold: {tipping_point:.2f}x</span>", unsafe_allow_html=True)
-
-    st.info(f"""
-**STRATEGIC INSIGHT:**
-
-The platform's compensation model exhibits total INELASTICITY around the 1.0x mark.
-The 'Fraud Prevention Mechanism' establishes a structural floor at exactly **{tipping_point:.2f}x**.
-
-Whether the trip is slightly faster (0.95x) or moderately delayed (up to 1.3x), the financial spread remains stagnant at the baseline level. This proves the platform is 'deaf' to marginal temporal variance, ensuring that price stability is maintained during the initial delay phase.
-
-True compensation (*The Disruption Clause*) only triggers when the error is catastrophic.
-""")
+    st.markdown(teal_callout("By anchoring the payout at a 0.94x floor, the algorithm effectively decouples marginal labor time from marginal compensation, ensuring that price integrity is maintained for the passenger while guaranteeing that the Agent is fully paid even if the mission is completed faster than expected."), unsafe_allow_html=True)
 
 
 
