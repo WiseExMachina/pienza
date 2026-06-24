@@ -320,27 +320,41 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <div class='step-line'></div>
   </div>
   <div class='step-body'>
-    <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature evaluated and purged prior to modeling.</span></span></div>
+    <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature purged prior to modeling.</span></span></div>
     <div class='step-why'>Identifiers, timestamps, and target-leaking columns removed. Establishes the clean observation space before any statistical audit.</div>
-    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 104 columns &nbsp;·&nbsp; 30 columns dropped</div>
+    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 105 columns &nbsp;·&nbsp; 41 columns dropped</div>
     <div style='margin-top:10px;display:flex;flex-direction:column;gap:6px;'>
       <div style='display:flex;align-items:center;border-left:3px solid #21918c;padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Text &amp; Metadata</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_id &nbsp;·&nbsp; feature_id &nbsp;·&nbsp; session_fk &nbsp;·&nbsp; ocr_fk</span>
-        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+11</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>image_content_hash<br>dropoff_address<br>dropoff_ambiguity<br>dropoff_hdbscan_name<br>pickup_ambiguity<br>comment_1<br>comment_2<br>special_note_raw<br>is_imputed<br>record_status_fk<br>interpolation_quality_fk</span></span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+12</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>image_content_hash<br>dropoff_address<br>dropoff_ambiguity<br>dropoff_hdbscan_name<br>pickup_ambiguity<br>comment_1<br>comment_2<br>special_note_raw<br>inferred_agent_bearing<br>is_imputed<br>record_status_fk<br>interpolation_quality_fk</span></span>
       </div>
-      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.4);padding:7px 12px;gap:12px;'>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.6);padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (EDA)</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_EDA &nbsp;·&nbsp; eph_realized_EDA &nbsp;·&nbsp; is_spread_downgrade_EDA &nbsp;·&nbsp; traffic_volatility_index_eda</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+5</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>eph_complete_index_EDA<br>eph_complete_label_EDA<br>eph_realized_index_EDA<br>eph_realized_label_EDA<br>is_total_cycle_downgrade_EDA</span></span>
       </div>
-      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.2);padding:7px 12px;gap:12px;'>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.4);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (Target)</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_action_fk &nbsp;·&nbsp; reason_primary_fk &nbsp;·&nbsp; outcome_fk &nbsp;·&nbsp; post_offer_status_fk</span>
+      </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.15);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Geo Coordinates</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>pickup_lat &nbsp;·&nbsp; pickup_lon &nbsp;·&nbsp; dropoff_lat &nbsp;·&nbsp; dropoff_lon</span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+2</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>inferred_agent_lat<br>inferred_agent_lon</span></span>
+      </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.08);padding:7px 12px;gap:12px;'>
         <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Manual Overrides</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>rider_star_rating &nbsp;·&nbsp; rider_trip_count &nbsp;·&nbsp; is_exclusive &nbsp;·&nbsp; is_vip</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+2</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>is_teens<br>is_identity_verified</span></span>
       </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.05);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>→ Categorical</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>product_category_fk</span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:220px;white-space:normal;font-family:sans-serif;font-size:0.72rem;line-height:1.6;'>Encoded as int64 in the schema but represents a nominal category (UberX, Comfort, Flash...). Reclassified to the categorical pipeline from Step 1.</span></span>
+      </div>
     </div>
-    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 74 columns</div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 64 columns &nbsp;(43 numerical + 16 categorical)</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -354,7 +368,41 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   </div>
   <div class='step-body'>
     <div class='step-label' style='color:#21918c'>Correlation Doppelgangers</div>
-    <div class='step-why'>Pearson correlation matrix audit. Features with r &gt; 0.85 flagged; the lower-MI duplicate pruned to eliminate multicollinearity before Lasso.</div>
+    <div class='step-why'>Pearson r &gt; 0.90 filter. Raw EPH values are dropped for normalized indices; time is absorbed into cumulative earnings, combining duration and yield in a single feature.</div>
+    <div style='margin-top:12px;'>
+      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:6px;'>4,765 rows × 59 columns &nbsp;·&nbsp; audit on 43 numerical &nbsp;·&nbsp; 5 dropped</div>
+      <div style='display:grid;grid-template-columns:1fr 1fr 64px;gap:0;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
+        <span>DROPPED</span><span>SURVIVOR</span><span style='text-align:right;'>r</span>
+      </div>
+      <div style='border-left:3px solid #21918c;margin-top:4px;display:flex;flex-direction:column;'>
+        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+        </div>
+        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+        </div>
+        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_operational <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_operational_index &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+        </div>
+        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct_index &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+        </div>
+        <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;'>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>time_in_session_sec &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>cycle_cumulative_net_earnings &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>0.92</span>
+        </div>
+      </div>
+      <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 54 columns &nbsp;(38 numerical + 16 categorical)</div>
+    </div>
   </div>
 </div>
 
