@@ -167,20 +167,37 @@ components.html("""
   setTimeout(function() {
     var cards = window.parent.document.querySelectorAll('.phase-card');
     var tabs  = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+
+    function setActive(idx) {
+      cards.forEach(function(c) { c.classList.remove('pc-active'); });
+      if (cards[idx]) cards[idx].classList.add('pc-active');
+    }
+
+    var style = window.parent.document.createElement('style');
+    style.textContent = '.phase-card.pc-active { background: rgba(33,145,140,0.12) !important; border-left-width: 4px !important; }';
+    window.parent.document.head.appendChild(style);
+
+    var initIdx = 0;
+    for (var j = 0; j < tabs.length; j++) {
+      if (tabs[j].getAttribute('aria-selected') === 'true') { initIdx = j; break; }
+    }
+    setActive(initIdx);
+
     cards.forEach(function(card, i) {
       card.addEventListener('click', function() {
         if (tabs[i]) {
           var sy = window.parent.scrollY;
           tabs[i].click();
+          setActive(i);
           setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
           setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
         }
       });
       card.addEventListener('mouseenter', function() {
-        card.style.background = 'rgba(33,145,140,0.07)';
+        if (!card.classList.contains('pc-active')) card.style.background = 'rgba(33,145,140,0.07)';
       });
       card.addEventListener('mouseleave', function() {
-        card.style.background = '';
+        if (!card.classList.contains('pc-active')) card.style.background = '';
       });
     });
   }, 300);
@@ -385,6 +402,8 @@ st.markdown(
     "<style>"
     "[data-testid='stTabs'] { scroll-margin-top: 9999px; }"
     "[data-testid='stTabsContent'] { min-height: 1800px; }"
+    "[data-baseweb='tab-list'] { display: none !important; }"
+    "[data-baseweb='tab-border'] { display: none !important; }"
     "</style>",
     unsafe_allow_html=True,
 )
