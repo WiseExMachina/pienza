@@ -116,7 +116,7 @@ the full mission cohort, retroactively confirming the assumptions the model was 
 </div>
 """, unsafe_allow_html=True)
 
-top_tab1, top_tab2 = st.tabs(["Analysis", "Executive Sandbox"])
+top_tab1, top_tab2 = st.tabs(["Analysis", "Interactive Inference Tool"])
 
 with top_tab1:
     st.markdown("""
@@ -878,8 +878,9 @@ Where ΔT represents the Temporal Variance (Actual/Estimated Time). The model is
 # TAB 2: EXECUTIVE SANDBOX
 # ==============================================================================
 with top_tab2:
-    st.markdown("<span class='phase-badge'>The Executive Sandbox — Predictive Physics</span>", unsafe_allow_html=True)
-    st.markdown("Test the platform's pricing architecture. Adjust the operational reality below to see how the system dynamically adjusts the payout yield against the structural baseline.")
+    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+See the fitted polynomial model in action. Adjust the upfront fare and time spread to observe how the estimated payout yield deviates from the structural baseline.
+</div>""", unsafe_allow_html=True)
 
     # --- 1. REFINED INTERACTIVE INPUTS ---
     col1, col2 = st.columns(2)
@@ -911,12 +912,25 @@ with top_tab2:
     ols_pred = 6.3081 + (0.7906 * test_fare)
 
     # --- 3. FOCUSED OUTPUT METRICS ---
-    st.write("")
-    rc1, rc2, rc3 = st.columns(3)
-    rc1.metric(label="Base Payout (T = 1.0x)", value=f"${base_pred:.2f}", delta="Structural Target", delta_color="off")
-    rc2.metric(label="Realized Fare (Quadratic)", value=f"${quad_pred:.2f}", delta=f"{true_delta_pct * 100:+.1f}% vs Base Payout", delta_color="normal" if true_delta_usd >= 0 else "inverse")
-    rc3.metric(label="Exogenous Compensation", value=f"{true_delta_usd:+.2f} MXN", delta="Added for delay", delta_color="normal" if true_delta_usd >= 0 else "inverse")
-    st.write("")
+    delta_color = "#21918c" if true_delta_usd >= 0 else "#ef4444"
+    st.markdown(f"""
+<div style='display:flex;gap:16px;margin:20px 0;'>
+  <div style='flex:1;background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:18px 20px;box-shadow:0 4px 6px rgba(0,0,0,0.02);'>
+    <div style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:6px;'>Base Payout (T = 1.0x)</div>
+    <div style='font-size:1.5rem;font-weight:800;color:#334155;'>${base_pred:.2f}</div>
+    <div style='font-size:0.72rem;color:#94a3b8;margin-top:4px;'>Structural Target</div>
+  </div>
+  <div style='flex:1;background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:18px 20px;box-shadow:0 4px 6px rgba(0,0,0,0.02);'>
+    <div style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:6px;'>Realized Fare (Quadratic)</div>
+    <div style='font-size:1.5rem;font-weight:800;color:#334155;'>${quad_pred:.2f}</div>
+    <div style='font-size:0.72rem;color:{delta_color};margin-top:4px;'>{true_delta_pct * 100:+.1f}% vs Base Payout</div>
+  </div>
+  <div style='flex:1;background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:18px 20px;box-shadow:0 4px 6px rgba(0,0,0,0.02);'>
+    <div style='font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:6px;'>Exogenous Compensation</div>
+    <div style='font-size:1.5rem;font-weight:800;color:{delta_color};'>{true_delta_usd:+.2f} MXN</div>
+    <div style='font-size:0.72rem;color:#94a3b8;margin-top:4px;'>Added for delay</div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
     # --- 4. THE DIVERGENCE CHART ---
     t_range = np.linspace(0.5, 3.0, 100)
@@ -938,7 +952,12 @@ with top_tab2:
         xaxis=dict(range=[0.5, 3.0], gridcolor='lightgrey'),
         yaxis=dict(gridcolor='lightgrey', zeroline=False),
         margin=dict(l=60, r=20, t=20, b=50),
-        legend=dict(yanchor="bottom", y=0.02, xanchor="left", x=0.02, bgcolor="rgba(255,255,255,0.8)", bordercolor="#cccccc", borderwidth=1)
+        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.02, bgcolor="rgba(255,255,255,0.8)", bordercolor="#cccccc", borderwidth=1)
     )
 
     st.plotly_chart(fig_sandbox, use_container_width=True)
+
+    st.markdown(teal_callout(
+        f"An upfront fare of <strong>${test_fare} MXN</strong> yields a base payout of <strong>${base_pred:.2f}</strong>. "
+        f"Adjusting for a <strong>{time_spread:.2f}x</strong> time expansion, the model yields a realized fare of <strong>${quad_pred:.2f}</strong>."
+    ), unsafe_allow_html=True)
