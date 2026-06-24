@@ -146,10 +146,10 @@ in real-time.<span class="fn-wrap fn-below"><span class="fn-mark">†</span><spa
 """, unsafe_allow_html=True)
 
 
-subtab2, subtab3 = st.tabs(["🎮 Engine 1: GTS Telemetry Simulator", "📷 Engine 2: Gemini OCR"])
+subtab2, subtab3 = st.tabs(["🎮 Engine 1: GTS Telemetry Emulator", "📷 Engine 2: Gemini OCR"])
 
 with subtab2:
-    st.markdown("## Engine 1: GTS Telemetry Simulator")
+    st.markdown("## Engine 1: GTS Telemetry Emulator")
     st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>This module simulates the <strong>Engine 1</strong> mobile experience. It demonstrates the \"One-Touch\" state transitions and the logic used to calculate operational KPIs in the field. Press <strong>Start Session</strong> and walk through each event — the log and KPIs update in real time.</p>", unsafe_allow_html=True)
 
     # ── SESSION STATE ────────────────────────────────────────────────────────
