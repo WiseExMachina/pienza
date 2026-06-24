@@ -19,7 +19,7 @@ st.set_page_config(layout="wide", page_title="XGBoost Tournament: Human vs AI")
 # ─────────────────────────────────────────────
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Proyect Pienza")
+        st.markdown("Project Pienza")
         st.markdown("---")
         st.page_link("main.py", label="Home")
         st.page_link("pages/0001_Foundations.py", label="Foundations")
@@ -185,7 +185,7 @@ tab1, tab2, tab3 = st.tabs(["The Science", "The Coliseum", "The Coliseum (Legacy
 with tab1:
     st.markdown("""
 <style>
-.ci-stepper { display:flex; align-items:flex-start; gap:0; margin:18px 0 28px 0; }
+.ci-stepper { display:flex; align-items:flex-start; gap:0; margin:18px 0 6px 0; }
 .ci-step {
   display:flex; flex-direction:column; align-items:center; flex:1;
   position:relative; cursor:pointer;
@@ -298,26 +298,55 @@ setTimeout(function() {
                color: #fff; font-size: 12px; font-weight: 700;
                display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
 .step-line   { width: 2px; background: rgba(150,150,150,0.2); flex: 1; min-height: 16px; }
-.step-body   { flex: 1; padding: 0 0 48px 12px; }
+.step-body   { flex: 1; padding: 0 0 28px 12px; }
 .step-label  { font-size: 17px; font-weight: 700; letter-spacing: 1px;
                text-transform: uppercase; margin-bottom: 2px; padding-top: 6px; }
 .step-why    { font-size: 0.85rem; color: #777; line-height: 1.6; margin-bottom: 4px; }
+.fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; pointer-events: auto; }
+.fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }
+.fn-wrap.fn-below .fn-tooltip::before { content:''; position:absolute; bottom:100%; left:0; width:100%; height:12px; }
+
 </style>
 """, unsafe_allow_html=True)
-        _, col = st.columns([1, 11])
-        with col:
-            st.markdown("""
+        st.markdown("""
+<div style='font-size:0.90rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:28px;'>
+This pipeline follows an experimental design to evaluate three feature "Leagues" across linear and non-linear architectures. Linear estimators require orthogonal inputs to mitigate multicollinearity, while XGBoost leverages internal L1/L2 regularization to process raw feature physics. This framework ensures each algorithmic family is benchmarked against its optimal data representation.
+</div>
+""", unsafe_allow_html=True)
+        st.markdown("""
 <div class='step-row'>
   <div class='step-spine'>
     <div class='step-circle' style='background:#21918c'>1</div>
     <div class='step-line'></div>
   </div>
   <div class='step-body'>
-    <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge</div>
+    <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature evaluated and purged prior to modeling.</span></span></div>
     <div class='step-why'>Identifiers, timestamps, and target-leaking columns removed. Establishes the clean observation space before any statistical audit.</div>
+    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 104 columns &nbsp;·&nbsp; 30 columns dropped</div>
+    <div style='margin-top:10px;display:flex;flex-direction:column;gap:6px;'>
+      <div style='display:flex;align-items:center;border-left:3px solid #21918c;padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Text &amp; Metadata</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_id &nbsp;·&nbsp; feature_id &nbsp;·&nbsp; session_fk &nbsp;·&nbsp; ocr_fk</span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+11</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>image_content_hash<br>dropoff_address<br>dropoff_ambiguity<br>dropoff_hdbscan_name<br>pickup_ambiguity<br>comment_1<br>comment_2<br>special_note_raw<br>is_imputed<br>record_status_fk<br>interpolation_quality_fk</span></span>
+      </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.4);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (EDA)</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_EDA &nbsp;·&nbsp; eph_realized_EDA &nbsp;·&nbsp; is_spread_downgrade_EDA &nbsp;·&nbsp; traffic_volatility_index_eda</span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+5</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>eph_complete_index_EDA<br>eph_complete_label_EDA<br>eph_realized_index_EDA<br>eph_realized_label_EDA<br>is_total_cycle_downgrade_EDA</span></span>
+      </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.2);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Manual Overrides</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>rider_star_rating &nbsp;·&nbsp; rider_trip_count &nbsp;·&nbsp; is_exclusive &nbsp;·&nbsp; is_vip</span>
+        <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+2</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.72rem;line-height:1.8;'>is_teens<br>is_identity_verified</span></span>
+      </div>
+    </div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 74 columns</div>
   </div>
 </div>
+""", unsafe_allow_html=True)
 
+
+        st.markdown("""
 <div class='step-row'>
   <div class='step-spine'>
     <div class='step-circle' style='background:#21918c'>2</div>
@@ -357,7 +386,30 @@ setTimeout(function() {
   </div>
   <div class='step-body'>
     <div class='step-label' style='color:#164e4b'>Tri-League Architecture</div>
-    <div class='step-why'>Three feature representations advance to the tournament: League A (PCA, 19 components — control group), League B (raw curated, 20 features — interpretability mandate), League C (curated PCA, 12 components — mathematical purity). Every algorithm is benchmarked across all three.</div>
+    <div class='step-why'>Three feature representations advance to the tournament. Every algorithm is benchmarked across all three.</div>
+    <div style='display:flex;gap:20px;margin-top:12px;flex-wrap:wrap;'>
+      <div style='flex:1;min-width:180px;'>
+        <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
+              padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
+              color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>LEAGUE A</span>
+        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Wide Set · Control Group</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>41 features · Before Lasso.<br>Validates that expert pruning did not destroy latent signal.</div>
+      </div>
+      <div style='flex:1;min-width:180px;'>
+        <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
+              padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
+              color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>LEAGUE B</span>
+        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · Raw</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>20 features · Interpretability mandate.<br>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
+      </div>
+      <div style='flex:1;min-width:180px;'>
+        <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
+              padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
+              color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>LEAGUE C</span>
+        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · PCA</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>12 components · 90% of market variance.<br>Orthogonal projection of League B designed for linear and Bayesian purity.</div>
+      </div>
+    </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
