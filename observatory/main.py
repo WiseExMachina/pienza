@@ -6,10 +6,8 @@ from components.styles import GLOBAL_CSS
 # --- 0. SIDEBAR INTEGRADA ---
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Project Pienza")   
+        st.markdown("Project Pienza")
         st.markdown("---")
-        
-        # Resolve path dynamically for home page and subpages
         st.page_link("main.py", label="Home")
         st.page_link("pages/0001_Foundations.py", label="Foundations")
         st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines")
@@ -17,7 +15,7 @@ def build_sidebar():
         st.page_link("pages/0004_Data_Census_(The_Basics).py", label="Data Census: The Basics")
         st.page_link("pages/0005_The_Cost_of_Patience.py", label="The Cost of Patience: Optimal Stopping")
         st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
-        st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
+        st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
         st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
         st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
         st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
@@ -60,9 +58,9 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 
 # --- 3. HERO HEADER ---
-st.title("Project Pienza: An AI Digital Twin to Navigate the Ride-Hailing Dynamics of Mexico City")
+st.markdown("<h1 style='font-weight:300 !important;'>Project Pienza: An AI Digital Twin to Navigate the Ride-Hailing Dynamics of Mexico City</h1>", unsafe_allow_html=True)
 st.markdown("""
-    <h4 style='color: #21918c; font-weight: 400; margin-top: -10px;'>
+    <h4 style='color: #21918c; font-weight: 300 !important; margin-top: -10px;'>
         From Field Acquisition to Generative Simulation
     </h4>
     """, unsafe_allow_html=True)
@@ -200,7 +198,7 @@ modules = [
     ("pages/0006_Payout_Physics_Causal_Inference.py", "🔍", "Causal Inference", 
      "Audits payout stability, prediction errors, and mathematically formalizes the platform's fraud prevention mechanisms."),
      
-    ("pages/0501_XGB_Coliseum.py", "⚔️", "XGBoost Tournament", 
+    ("pages/0007_Human_vs_AI_Behavioral_Cloning.py", "⚔️", "Human vs AI: Behavioral Cloning",
      "An interactive coliseum comparing the decision-making of the human agent against hierarchical AI models."),
      
     ("pages/0601_O1_NLP1.py", "⚡", "The Quest to (O)1: NLP", 

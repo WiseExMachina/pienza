@@ -8,7 +8,7 @@ html, body, [class*="css"], h1, h2, h3, h4, h5, h6, p {
 
 h1 {
     font-size: 36px !important;
-    font-weight: 400 !important;
+    font-weight: 300 !important;
     color: #121212;
     letter-spacing: -1px;
 }

@@ -25,7 +25,7 @@ def build_sidebar():
         st.page_link("pages/0004_Data_Census_(The_Basics).py", label="Data Census: The Basics")
         st.page_link("pages/0005_The_Cost_of_Patience.py", label="The Cost of Patience: Optimal Stopping")
         st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
-        st.page_link("pages/0501_XGB_Coliseum.py", label="XGBoost Tournament: Human vs AI")
+        st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
         st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
         st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
         st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
