@@ -658,7 +658,58 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
 
 
     with sci2:
-        pass
+        st.markdown("""
+<div style='margin-bottom:20px;'>
+  <div class='step-label' style='color:#164e4b;margin-bottom:6px;'>Model Tournament</div>
+  <div class='step-why'>Five algorithms entered the arena in sequence, each benchmarked across all three feature leagues. Walk-forward validation: train on weeks 1&#8211;5, test on week 6. Scoring metric: F1-macro.</div>
+</div>
+<div style='border:1px solid rgba(0,0,0,0.07);border-radius:8px;overflow:hidden;'>
+  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:0.6px;padding:8px 14px;background:#f8fafc;border-bottom:1px solid rgba(0,0,0,0.06);'>
+    <span>TRIAL</span><span>ALGORITHM</span><span style='color:#64748b;'>A-LEAGUE</span><span style='color:#21918c;'>B-LEAGUE</span><span>C-LEAGUE</span>
+  </div>
+  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>1 &nbsp;floor</span>
+    <span style='font-size:0.72rem;color:#334155;'>Gaussian NB</span>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.257</span><div style='height:3px;background:#64748b;border-radius:2px;width:33.8%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.257</span><div style='height:3px;background:#21918c;border-radius:2px;width:33.8%;margin-top:3px;opacity:0.4;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.256</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:33.6%;margin-top:3px;opacity:0.5;'></div></div>
+  </div>
+  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>2 &nbsp;linear</span>
+    <span style='font-size:0.72rem;color:#334155;'>Logistic Regression</span>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.482</span><div style='height:3px;background:#64748b;border-radius:2px;width:63.3%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.514</span><div style='height:3px;background:#21918c;border-radius:2px;width:67.5%;margin-top:3px;opacity:0.4;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.490</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:64.4%;margin-top:3px;opacity:0.5;'></div></div>
+  </div>
+  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>3 &nbsp;theoretical</span>
+    <span style='font-size:0.72rem;color:#334155;'>Logistic Reg (k-fold)</span>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.687</span><div style='height:3px;background:#64748b;border-radius:2px;width:90.3%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.716</span><div style='height:3px;background:#21918c;border-radius:2px;width:94.1%;margin-top:3px;opacity:0.4;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.691</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:90.8%;margin-top:3px;opacity:0.5;'></div></div>
+  </div>
+  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>4 &nbsp;scout</span>
+    <span style='font-size:0.72rem;color:#334155;'>Decision Tree</span>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.336</span><div style='height:3px;background:#64748b;border-radius:2px;width:44.2%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.474</span><div style='height:3px;background:#21918c;border-radius:2px;width:62.3%;margin-top:3px;opacity:0.4;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.373</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:49.0%;margin-top:3px;opacity:0.5;'></div></div>
+  </div>
+  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);background:rgba(33,145,140,0.04);'>
+    <span style='font-family:monospace;font-size:0.62rem;color:#21918c;font-weight:700;'>5 &nbsp;champion</span>
+    <span style='font-size:0.72rem;color:#334155;font-weight:600;'>XGBoost</span>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.760</span><div style='height:3px;background:#64748b;border-radius:2px;width:99.9%;margin-top:3px;opacity:0.5;'></div></div>
+    <div style='background:rgba(33,145,140,0.10);border-radius:4px;padding:3px 6px;'><span style='font-family:monospace;font-size:0.72rem;color:#21918c;font-weight:700;'>0.761 &#9733;</span><div style='height:3px;background:#21918c;border-radius:2px;width:100%;margin-top:3px;'></div></div>
+    <span style='font-family:monospace;font-size:0.70rem;color:#cbd5e1;font-style:italic;'>retired</span>
+  </div>
+</div>
+<div style='margin-top:8px;font-size:0.65rem;color:#cbd5e1;font-style:italic;'>C-League retired before Trial 5 &#8212; PCA orthogonality conflicts with XGBoost&#39;s variance-based splits.</div>
+<div style='margin-top:24px;background:rgba(33,145,140,0.06);border:1px solid rgba(33,145,140,0.20);border-left:4px solid #21918c;border-radius:6px;padding:14px 18px;'>
+  <div style='font-size:0.59rem;font-weight:700;color:#21918c;letter-spacing:1.5px;margin-bottom:6px;'>TOURNAMENT WINNER</div>
+  <div style='font-size:0.88rem;font-weight:700;color:#164e4b;margin-bottom:6px;'>XGBoost &nbsp;&#183;&nbsp; B-League (Curated Raw)</div>
+  <div style='font-size:0.75rem;color:#94a3b8;line-height:1.6;'>F1-macro 0.761 &nbsp;&#183;&nbsp; Walk-forward validation (W1&#8211;5 train, W6 test) &nbsp;&#183;&nbsp; Advances to Phase 3 as the behavioral cloning backbone.</div>
+</div>
+""", unsafe_allow_html=True)
 
     with sci3:
         pass
