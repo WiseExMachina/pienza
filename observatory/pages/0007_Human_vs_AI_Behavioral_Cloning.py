@@ -236,13 +236,13 @@ with tab1:
   </div>
   <div class="ci-step">
     <div class="ci-dot">P4</div>
-    <div class="ci-step-label">Bias-Variance Tradeoff</div>
-    <div class="ci-step-sub">Lightweight champion emerges</div>
+    <div class="ci-step-label">SHAPs</div>
+    <div class="ci-step-sub">Behavioral DNA decoded</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P5</div>
-    <div class="ci-step-label">SHAPs</div>
-    <div class="ci-step-sub">Behavioral DNA decoded</div>
+    <div class="ci-step-label">Bias-Variance Tradeoff</div>
+    <div class="ci-step-sub">Lightweight champion emerges</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -284,8 +284,8 @@ setTimeout(function() {
         "Feature Selection",
         "Model Tournament",
         "Cognitive Cascade",
-        "Bias-Variance Tradeoff",
         "SHAPs",
+        "Bias-Variance Tradeoff",
     ])
 
     with sci1:
@@ -811,7 +811,264 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
             st.markdown(_heatmap_html, unsafe_allow_html=True)
 
     with sci3:
-        pass
+        import json as _json
+
+        _mono  = _json.load(open("/workspaces/pienza/data/dumped_files/0508_monolith_metrics.json"))
+        _casc  = _json.load(open("/workspaces/pienza/data/dumped_files/0509_cascade_metrics.json"))
+        _l1    = _casc["layer1"]
+        _l2    = _casc["layer2"]
+
+        # ── Intro + comparison banner (always visible, above tabs) ────────────
+        st.markdown("""
+<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:32px;'>
+The monolith treats every class equally — and pays for it. <code>strategic_mismatch</code> collapses to an F1 of 0.06 as the dominant <code>non_operational</code> class acts as a gravitational singularity, absorbing 42 of 56 misclassified instances. The Cognitive Cascade dismantles this gravity well by splitting the problem in two: a Bouncer that handles triage, and a Strategist that resolves the nuanced remainder.
+</div>
+<div style='display:grid;grid-template-columns:1fr 1px 1fr;gap:0;border:1px solid #eaeaea;border-radius:12px;overflow:hidden;margin-bottom:36px;'>
+  <div style='padding:24px 28px;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;'>Monolith · Single Model</div>
+    <div style='display:flex;align-items:baseline;gap:10px;margin-bottom:4px;'>
+      <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#64748b;line-height:1;'>0.61</div>
+      <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:1px;'>F1-MACRO</div>
+    </div>
+    <div style='font-size:0.72rem;color:#94a3b8;margin-top:6px;'>AUC 0.926 &nbsp;·&nbsp; Accuracy 76%</div>
+    <div style='margin-top:14px;padding:8px 12px;background:#fff5f5;border-radius:6px;border-left:3px solid #ef4444;'>
+      <div style='font-size:0.62rem;font-weight:700;color:#ef4444;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;'>Critical failure</div>
+      <div style='font-size:0.72rem;color:#64748b;'>strategic_mismatch F1 = <strong style='color:#ef4444;'>0.06</strong></div>
+    </div>
+  </div>
+  <div style='background:#eaeaea;'></div>
+  <div style='padding:24px 28px;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade · L1 + L2</div>
+    <div style='display:flex;align-items:baseline;gap:10px;margin-bottom:4px;'>
+      <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#21918c;line-height:1;'>0.91</div>
+      <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:1px;'>F1-MACRO L2</div>
+    </div>
+    <div style='font-size:0.72rem;color:#94a3b8;margin-top:6px;'>L1 F1-Macro 0.77 &nbsp;·&nbsp; L1 Accuracy 81%</div>
+    <div style='margin-top:14px;padding:8px 12px;background:rgba(33,145,140,0.07);border-radius:6px;border-left:3px solid #21918c;'>
+      <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;'>Gravity well resolved</div>
+      <div style='font-size:0.72rem;color:#334155;'>strategic_mismatch F1 = <strong style='color:#21918c;'>0.95</strong></div>
+    </div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+        if "c3_selected" not in st.session_state:
+            st.session_state["c3_selected"] = "Monolith"
+
+        _c3_active = st.session_state["c3_selected"]
+
+        _mono_active = _c3_active == "Monolith"
+        st.markdown(f"""
+<style>
+.c3-seg {{
+  display:inline-flex; border-radius:999px; background:#f1f5f9;
+  padding:4px; gap:0; margin-bottom:28px; border:1px solid #e2e8f0;
+}}
+.c3-seg-btn {{
+  padding:9px 28px; border-radius:999px; font-size:0.82rem; font-weight:600;
+  cursor:pointer; transition:all 0.18s ease; user-select:none;
+  white-space:nowrap; color:#64748b; background:transparent;
+}}
+.c3-seg-btn:hover {{ color:#21918c; }}
+.c3-seg-active {{
+  background:#21918c; color:#ffffff !important;
+  box-shadow:0 2px 8px rgba(33,145,140,0.30);
+}}
+</style>
+<div class="c3-seg">
+  <div class="c3-seg-btn {'c3-seg-active' if _mono_active else ''}" id="c3card-mono">Monolith</div>
+  <div class="c3-seg-btn {'c3-seg-active' if not _mono_active else ''}" id="c3card-casc">Cognitive Cascade</div>
+</div>
+""", unsafe_allow_html=True)
+
+        if st.button("mono", key="btn_c3_mono"):
+            st.session_state["c3_selected"] = "Monolith"
+            st.rerun()
+        if st.button("casc", key="btn_c3_casc"):
+            st.session_state["c3_selected"] = "Cognitive Cascade"
+            st.rerun()
+
+        components.html("""
+<script>
+setTimeout(function() {
+  var doc = window.parent.document;
+  var cardMono = doc.getElementById('c3card-mono');
+  var cardCasc = doc.getElementById('c3card-casc');
+  var btns = doc.querySelectorAll('button');
+  var btnMono = null, btnCasc = null;
+  btns.forEach(function(b) {
+    var t = b.innerText.trim();
+    if (t === 'mono') btnMono = b;
+    if (t === 'casc') btnCasc = b;
+  });
+  if (btnMono) {
+    var wrap = btnMono.closest('[data-testid="stElementContainer"]') || btnMono.parentElement;
+    if (wrap) wrap.style.display = 'none';
+    if (cardMono) cardMono.addEventListener('click', function() { btnMono.click(); });
+  }
+  if (btnCasc) {
+    var wrap2 = btnCasc.closest('[data-testid="stElementContainer"]') || btnCasc.parentElement;
+    if (wrap2) wrap2.style.display = 'none';
+    if (cardCasc) cardCasc.addEventListener('click', function() { btnCasc.click(); });
+  }
+}, 400);
+</script>
+""", height=0)
+
+
+        _c3_view = st.session_state["c3_selected"]
+
+        # ── Helper: render a confusion matrix (shared across views) ───────────
+        def _render_cm(cm_data, labels, title, subtitle, highlight_cell=None, highlight_col=None):
+                """Render an HTML confusion matrix. highlight_cell=(row,col) for red; highlight_col=col for gravity well."""
+                n = len(labels)
+                row_sums = [sum(cm_data[i]) for i in range(n)]
+
+                # Header row
+                header = "<div style='display:grid;grid-template-columns:120px repeat(" + str(n) + ",1fr);gap:2px;margin-bottom:2px;'>"
+                header += "<div style='font-size:0.58rem;font-weight:700;color:#94a3b8;text-align:right;padding:4px 6px;align-self:end;'>ACTUAL ↓ / PRED →</div>"
+                for lbl in labels:
+                    header += f"<div style='font-size:0.58rem;font-weight:700;color:#64748b;text-align:center;padding:4px 2px;letter-spacing:0.3px;writing-mode:vertical-lr;transform:rotate(180deg);height:80px;align-self:end;'>{lbl.replace('_',' ')}</div>"
+                header += "</div>"
+
+                rows_html = ""
+                for i in range(n):
+                    row_total = row_sums[i] if row_sums[i] > 0 else 1
+                    rows_html += "<div style='display:grid;grid-template-columns:120px repeat(" + str(n) + ",1fr);gap:2px;margin-bottom:2px;'>"
+                    rows_html += f"<div style='font-size:0.62rem;color:#334155;font-weight:600;text-align:right;padding:6px 8px 6px 0;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{labels[i].replace('_',' ')}</div>"
+                    for j in range(n):
+                        val = cm_data[i][j]
+                        pct = val / row_total
+                        is_diag = (i == j)
+                        is_highlight = highlight_cell and (i, j) == highlight_cell
+                        is_hcol = highlight_col is not None and j == highlight_col and not is_diag
+
+                        if is_highlight:
+                            bg = f"rgba(239,68,68,{max(0.15, pct):.2f})"
+                            txt_color = "#ef4444"
+                            border = "border:2px solid #ef4444;"
+                            fw = "700"
+                        elif is_diag:
+                            bg = f"rgba(33,145,140,{max(0.08, pct * 0.9):.2f})"
+                            txt_color = "#21918c" if pct > 0.3 else "#334155"
+                            border = ""
+                            fw = "700"
+                        elif is_hcol and val > 0:
+                            bg = f"rgba(239,68,68,{max(0.06, pct * 0.6):.2f})"
+                            txt_color = "#ef4444"
+                            border = ""
+                            fw = "600"
+                        elif val == 0:
+                            bg = "#f8fafc"
+                            txt_color = "#e2e8f0"
+                            border = ""
+                            fw = "400"
+                        else:
+                            bg = f"rgba(100,116,139,{max(0.06, pct * 0.5):.2f})"
+                            txt_color = "#64748b"
+                            border = ""
+                            fw = "500"
+
+                        rows_html += (
+                            f"<div style='background:{bg};{border}border-radius:4px;text-align:center;padding:6px 2px;'>"
+                            f"<div style='font-family:monospace;font-size:0.65rem;color:{txt_color};font-weight:{fw};'>{val}</div>"
+                            f"<div style='font-size:0.52rem;color:{txt_color};opacity:0.7;'>{pct*100:.0f}%</div>"
+                            f"</div>"
+                        )
+                    rows_html += "</div>"
+
+                return f"""
+    <div style='margin-bottom:8px;'>
+      <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;'>{title}</div>
+      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:14px;'>{subtitle}</div>
+      {header}
+      {rows_html}
+    </div>"""
+
+        if _c3_view == "Monolith":
+            st.markdown("---")
+            st.markdown("---")
+            st.markdown("---")
+            _mono_cm     = _mono["confusion_matrix"]
+            _mono_labels = _mono["labels"]
+            _sm_idx  = _mono_labels.index("strategic_mismatch")
+            _nop_idx = _mono_labels.index("non_operational")
+            st.markdown("""
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>01 — The Gravity Well</div>
+<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:6px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
+<div style='font-size:0.80rem;color:#777;line-height:1.6;margin-bottom:20px;'>With all seven classes competing in a single model, <code>non_operational</code> dominates the feature space. <code>strategic_mismatch</code> — with only 56 instances — cannot compete. 42 of its 54 errors are absorbed by the gravity well.</div>
+""", unsafe_allow_html=True)
+            st.markdown(
+                _render_cm(_mono_cm, _mono_labels,
+                           "XGBoost Monolith", "7 classes · single-stage · F1-macro 0.61",
+                           highlight_cell=(_sm_idx, _nop_idx), highlight_col=_nop_idx),
+                unsafe_allow_html=True
+            )
+            st.markdown("<div style='font-size:0.65rem;color:#94a3b8;font-style:italic;margin-top:4px;'>Red cell: 42 strategic_mismatch instances misclassified as non_operational — the gravity well in action.</div>", unsafe_allow_html=True)
+
+        elif _c3_view == "Cognitive Cascade":
+            st.markdown("---")
+            st.markdown("---")
+            st.markdown("---")
+
+            # ── Section 2: Cascade Architecture diagram ────────────────────────────
+            st.markdown("""
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>02 — The Cascade Architecture</div>
+<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:16px;'>Hierarchical decomposition separates the triage problem from the strategic nuance problem</div>
+<div style='display:flex;align-items:center;gap:0;margin-bottom:48px;justify-content:center;'>
+  <div style='background:rgba(33,145,140,0.07);border:1px solid rgba(33,145,140,0.3);border-radius:10px;padding:16px 20px;text-align:center;min-width:160px;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 1 · The Bouncer</div>
+    <div style='font-size:0.72rem;color:#334155;line-height:1.6;'>non_operational<br>proxy_zone<br>low_profitability<br>long_pickup<br><span style='color:#21918c;font-weight:700;'>→ nuanced_rest</span></div>
+    <div style='margin-top:10px;font-size:0.62rem;color:#94a3b8;'>780 offers in · 151 pass through</div>
+  </div>
+  <div style='display:flex;flex-direction:column;align-items:center;padding:0 16px;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;margin-bottom:4px;'>19.4% of traffic</div>
+    <div style='font-size:1.2rem;color:#21918c;'>→</div>
+  </div>
+  <div style='background:rgba(33,145,140,0.07);border:1px solid rgba(33,145,140,0.3);border-radius:10px;padding:16px 20px;text-align:center;min-width:160px;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 2 · The Strategist</div>
+    <div style='font-size:0.72rem;color:#334155;line-height:1.6;'>accepted<br>strategic_mismatch<br>expected_value_gamble</div>
+    <div style='margin-top:10px;font-size:0.62rem;color:#94a3b8;'>164 offers · isolated signal</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+            # ── Section 3: L1 CM ──────────────────────────────────────────────────
+            st.markdown("""
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>03 — Layer 1 · The Bouncer</div>
+<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:6px;'>Triage Confusion Matrix · W6 OOT Holdout</div>
+<div style='font-size:0.80rem;color:#777;line-height:1.6;margin-bottom:20px;'>The Bouncer handles 4 rejection classes plus a <em>nuanced_rest</em> bucket, routing strategic ambiguity downstream instead of forcing a premature classification.</div>
+""", unsafe_allow_html=True)
+
+            _l1_cm = _l1["confusion_matrix"]
+            _l1_labels = _l1["labels"]
+            st.markdown(
+            _render_cm(_l1_cm, _l1_labels,
+                       "Cascade · Layer 1 (Bouncer)", "5 classes · F1-macro 0.77 · Accuracy 81%"),
+            unsafe_allow_html=True
+            )
+            st.markdown("<div style='font-size:0.65rem;color:#94a3b8;font-style:italic;margin-top:4px;margin-bottom:48px;'>nuanced_rest is not a final class — it is a deliberate deferral to Layer 2.</div>", unsafe_allow_html=True)
+
+            # ── Section 4: L2 CM ──────────────────────────────────────────────────
+            st.markdown("""
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>04 — Layer 2 · The Strategist</div>
+<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:6px;'>Strategic Nuance Confusion Matrix · W6 OOT Holdout</div>
+<div style='font-size:0.80rem;color:#777;line-height:1.6;margin-bottom:20px;'>With the gravitational noise removed, the Strategist operates on a clean signal. <code>strategic_mismatch</code> jumps from F1 0.06 to <strong>0.95</strong>. The cascade architecture unlocked the latent signal that the monolith was structurally incapable of seeing.</div>
+""", unsafe_allow_html=True)
+
+            _l2_cm = _l2["confusion_matrix"]
+            _l2_labels = _l2["labels"]
+            st.markdown(
+            _render_cm(_l2_cm, _l2_labels,
+                       "Cascade · Layer 2 (Strategist)", "3 classes · F1-macro 0.91 · Accuracy 91%"),
+            unsafe_allow_html=True
+            )
+
+            # ── Final callout ──────────────────────────────────────────────────────
+            st.markdown("""
+<div style='margin-top:48px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 16px;'>
+  <div style='font-size:0.72rem;font-weight:700;color:#21918c;margin-bottom:8px;'>The Architecture as the Answer</div>
+  <div style='font-size:0.88rem;color:#334155;line-height:1.7;'>The monolith&#8217;s failure was not a data problem or a hyperparameter problem &#8212; it was a structural one. No amount of tuning resolves a 7:1 class imbalance when a dominant class shares feature space with a minority class. The Cognitive Cascade does not fight the gravity well. It sidesteps it entirely.</div>
+</div>""", unsafe_allow_html=True)
 
     with sci4:
         pass
