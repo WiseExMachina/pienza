@@ -174,7 +174,7 @@ df_master = load_tournament_ledger()
 st.markdown("# Human vs AI: Behavioral Cloning")
 st.markdown("""
 <div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:24px;'>
-Phase 5 documents the transition from descriptive discovery to a predictive inference engine.
+This phase documents the transition from descriptive discovery to a predictive inference engine.
 The objective: synthesize a model capable of replicating the agent's decision policy with high fidelity —
 and then beat it.
 </div>
@@ -306,41 +306,20 @@ setTimeout(function() {
 .fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }
 .fn-wrap.fn-below .fn-tooltip::before { content:''; position:absolute; bottom:100%; left:0; width:100%; height:12px; }
 .fn-wrap.fn-left .fn-tooltip::after { left: 20px; transform: none; }
-
 </style>
-""", unsafe_allow_html=True)
-        st.markdown("""
 <div style='font-size:0.90rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:28px;'>
-This pipeline follows an experimental design to evaluate three feature "Leagues" across linear and non-linear architectures. Linear estimators require orthogonal inputs to mitigate multicollinearity, while XGBoost leverages internal L1/L2 regularization to process raw feature physics. This framework ensures each algorithmic family is benchmarked against its optimal data representation.
+This pipeline follows an experimental design to evaluate three feature "Leagues" across linear and non-linear architectures. Linear estimators require orthogonal inputs to mitigate multicollinearity, while XGBoost leverages internal L1/L2 regularization to process raw feature physics. This framework ensures each algorithmic family is benchmarked against its optimal data representation.<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature purged prior to modeling.</span></span>
 </div>
 """, unsafe_allow_html=True)
+
         st.markdown("""
-<details style='margin-bottom:20px;border:1px solid #e2e8f0;border-radius:8px;padding:10px 16px;font-size:0.78rem;color:#64748b;cursor:pointer;'>
-  <summary style='font-weight:600;color:#21918c;letter-spacing:0.3px;list-style:none;display:flex;align-items:center;gap:6px;'>
-    &#9654; Pipeline Overview
-  </summary>
-  <div style='margin-top:12px;font-family:monospace;font-size:0.72rem;color:#475569;line-height:2.0;'>
-    41 features (X_physics)<br>
-    │<br>
-    ├──► <strong style='color:#21918c;'>Liga A</strong> &mdash; Control Group &nbsp;(41 features, pre-Lasso)<br>
-    │<br>
-    └──► Lasso V1 &nbsp;──► insight: <code style='font-size:0.68rem;background:rgba(33,145,140,0.08);padding:1px 4px;border-radius:3px;'>est_trip_dist_km</code> ranks 3rd but irrelevant for EV driver<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SME curation: 20 Praetorians hand-picked<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──► <strong style='color:#21918c;'>Liga B</strong> &mdash; Curated Raw &nbsp;(20 numerical + 10 categorical)<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► PCA on 20 &nbsp;──► <strong style='color:#21918c;'>Liga C</strong> &nbsp;(12 components, 90% variance)
-  </div>
-</details>
-<div class='step-row'>
+<div class='step-row' style='margin-bottom:32px;'>
   <div class='step-spine'>
     <div class='step-circle' style='background:#21918c'>1</div>
     <div class='step-line'></div>
   </div>
-  <div class='step-body'>
-    <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature purged prior to modeling.</span></span></div>
+  <div class='step-body' style='padding-bottom:0;'>
+    <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge</div>
     <div class='step-why'>Identifiers, timestamps, and target-leaking columns removed. Establishes the clean observation space before any statistical audit.</div>
     <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 105 columns &nbsp;·&nbsp; 49 columns dropped</div>
     <div style='margin-top:10px;display:flex;flex-direction:column;gap:6px;'>
@@ -373,9 +352,6 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   </div>
 </div>
 
-<div style='text-align:center;margin:4px 0;'>
-  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#21918c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
-</div>
 """, unsafe_allow_html=True)
 
 
@@ -425,12 +401,14 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   </div>
 </div>
 
-<div style='display:flex;flex-direction:column;align-items:flex-end;margin:10px 0;gap:4px;'>
-  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
-  <span style='display:inline-flex;align-items:center;gap:8px;background:#164e4b;border-radius:6px;padding:5px 14px;font-size:0.70rem;color:#e2f5f4;font-weight:600;letter-spacing:0.3px;'>
-    ⎇ &nbsp;Liga A &nbsp;·&nbsp; Control Group &nbsp;·&nbsp; 41 numerical + 10 categorical
-  </span>
-  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+<div style='display:flex;justify-content:flex-end;margin:12px 0 4px;'>
+  <div style='font-family:monospace;font-size:0.72rem;color:#164e4b;line-height:1.6;text-align:right;'>
+    <div style='color:rgba(22,78,75,0.4);'>│</div>
+    <div>└── ⎇ &nbsp;<span style='color:#1a6b67;font-weight:700;'>A-League</span></div>
+    <div style='padding-left:2.2ch;color:#1a6b67;'>Control Group</div>
+    <div style='padding-left:2.2ch;color:rgba(22,78,75,0.6);'>41 numerical + 10 categorical</div>
+    <div style='color:rgba(22,78,75,0.4);'>│</div>
+  </div>
 </div>
 
 """, unsafe_allow_html=True)
@@ -447,11 +425,11 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
             _top8 = _sorted[:8]
             _rest = _sorted[8:]
             _max_coef = _top8[0][1] if _top8 else 1.0
-
+    
             def _bar(coef, max_c):
                 pct = coef / max_c * 100
                 return f"<div style='height:6px;background:#21918c;border-radius:3px;width:{pct:.1f}%;min-width:3px;'></div>"
-
+    
             _top8_html = (
                 "<div style='border-left:3px solid #21918c;display:flex;flex-direction:column;'>"
                 + "".join(
@@ -464,7 +442,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                 )
                 + "</div>"
             )
-
+    
             _rest_tooltip = "<br>".join(
                 f"{f} <span style='color:#94a3b8;'>({c:.3f})</span>"
                 for f, c in _rest
@@ -476,7 +454,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                 f"<span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.9;width:340px;left:0;transform:none;'>{_rest_tooltip}</span>"
                 f"</span>"
             )
-
+    
             _cas_rows = (
                 "<div style='border-left:3px solid rgba(33,145,140,0.5);display:flex;flex-direction:column;'>"
                 + "".join(
@@ -487,70 +465,71 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                 )
                 + "</div>"
             )
-
+    
             _n_surv = len(_survivors)
             _n_cas  = len(_casualties)
             _lasso_block = f"""
-<div class='step-row'>
-  <div class='step-spine'>
-    <div class='step-circle' style='background:#21918c'>3</div>
-    <div class='step-line'></div>
-  </div>
-  <div class='step-body'>
-    <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
-    <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
-    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 51 columns &nbsp;·&nbsp; L1 audit on 41 numerical &nbsp;·&nbsp; C = 0.05</div>
-    <div style='margin-top:10px;display:flex;gap:24px;align-items:start;'>
-      <div style='flex:2;min-width:0;'>
-        <div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;gap:0 8px;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
+    <div class='step-row'>
+      <div class='step-spine'>
+        <div class='step-circle' style='background:#21918c'>3</div>
+        <div class='step-line'></div>
+      </div>
+      <div class='step-body'>
+        <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
+        <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
+        <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 51 columns &nbsp;·&nbsp; L1 audit on 41 numerical &nbsp;·&nbsp; C = 0.05</div>
+        <div style='margin-top:10px;display:flex;gap:24px;align-items:start;'>
+          <div style='flex:2;min-width:0;'>
+            <div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;gap:0 8px;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
           <span>SURVIVOR</span><span>COEF</span><span style='text-align:right;'>val</span>
+            </div>
+            {_top8_html}
+            <div style='padding:6px 12px;'>{_rest_pill}</div>
+          </div>
+          <div style='flex:1;min-width:0;'>
+            <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>CASUALTIES ({_n_cas})</div>
+            {_cas_rows}
+          </div>
         </div>
-        {_top8_html}
-        <div style='padding:6px 12px;'>{_rest_pill}</div>
-      </div>
-      <div style='flex:1;min-width:0;'>
-        <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>CASUALTIES ({_n_cas})</div>
-        {_cas_rows}
-      </div>
-    </div>
-    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 51 columns &nbsp;({_n_surv} numerical survivors + 10 categorical)</div>
-    <div style='margin-top:14px;text-align:center;'>
-      <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#21918c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
-    </div>
-    <div style='margin-top:4px;border-left:3px solid #21918c;background:rgba(33,145,140,0.05);border-radius:0 8px 8px 0;padding:12px 16px;'>
-      <div style='font-size:0.65rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;'>SME Override</div>
-      <div style='font-size:0.78rem;color:#334155;line-height:1.65;'>
-        Although Lasso ranks <code style='font-size:0.72rem;background:rgba(33,145,140,0.10);padding:1px 5px;border-radius:3px;'>est_trip_dist_km</code> 3rd, human expertise overrides it: EV economics eliminate fuel costs, shifting the primary operational constraint from distance to time. A final matrix of <span class='fn-wrap'><span class='fn-mark' style='vertical-align:baseline;font-size:0.78rem;font-weight:700;'>20 domain-curated features</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.9;width:240px;left:0;transform:none;'>upfront_fare<br>time_to_pickup_sec<br>est_trip_time_sec<br>is_multiple_destinations<br>session_progress_ratio<br>traffic_index_base_120<br>time_since_last_offer<br>offer_density_10sec<br>consecutive_rejects<br>cycle_avg_dtp_km<br>cycle_std_dtp_km<br>cycle_ttp_dtp_ratio<br>dispatch_lead_time_sec<br>cycle_rolling_avg_spread<br>total_accumulated_deadhead_sec<br>cycle_cumulative_net_earnings<br>eph_operational_index<br>home_vector_alignment_score<br>historical_rolling_avg_traffic_index<br>traffic_volatility_index_ml</span></span> was locked in and passed a secondary Lasso validation without casualties.
+        <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 51 columns &nbsp;({_n_surv} numerical survivors + 10 categorical)</div>
+        <div style='margin-top:14px;text-align:center;'>
+          <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#21918c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+        </div>
+        <div style='margin-top:4px;border-left:3px solid #21918c;background:rgba(33,145,140,0.05);border-radius:0 8px 8px 0;padding:12px 16px;'>
+          <div style='font-size:0.65rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:6px;'>SME Override</div>
+          <div style='font-size:0.78rem;color:#334155;line-height:1.65;'>
+            Although Lasso ranks <code style='font-size:0.72rem;background:rgba(33,145,140,0.10);padding:1px 5px;border-radius:3px;'>est_trip_dist_km</code> 3rd, human expertise overrides it: EV economics eliminate fuel costs, shifting the primary operational constraint from distance to time. A final matrix of <span class='fn-wrap'><span class='fn-mark' style='vertical-align:baseline;font-size:0.78rem;font-weight:700;'>20 domain-curated features</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.9;width:300px;left:0;transform:none;'>upfront_fare<br>time_to_pickup_sec<br>est_trip_time_sec<br>is_multiple_destinations<br>session_progress_ratio<br>traffic_index_base_120<br>time_since_last_offer<br>offer_density_10sec<br>consecutive_rejects<br>cycle_avg_dtp_km<br>cycle_std_dtp_km<br>cycle_ttp_dtp_ratio<br>dispatch_lead_time_sec<br>cycle_rolling_avg_spread<br>total_accumulated_deadhead_sec<br>cycle_cumulative_net_earnings<br>eph_operational_index<br>home_vector_alignment_score<br>historical_rolling_avg_traffic_index<br>traffic_volatility_index_ml</span></span> was locked in and passed a secondary Lasso validation without casualties.
+          </div>
+        </div>
+        <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 30 columns &nbsp;(20 numerical + 10 categorical)</div>
       </div>
     </div>
-    <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 30 columns &nbsp;(20 numerical + 10 categorical)</div>
-  </div>
-</div>
-"""
+    """
         except FileNotFoundError:
             _lasso_block = """
-<div class='step-row'>
-  <div class='step-spine'>
-    <div class='step-circle' style='background:#21918c'>3</div>
-    <div class='step-line'></div>
-  </div>
-  <div class='step-body'>
-    <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
-    <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
-    <div style='margin-top:10px;font-size:0.75rem;color:#94a3b8;font-style:italic;'>Run 0501_PCA_allfeat.ipynb to populate results.</div>
-  </div>
-</div>
-"""
-
+    <div class='step-row'>
+      <div class='step-spine'>
+        <div class='step-circle' style='background:#21918c'>3</div>
+        <div class='step-line'></div>
+      </div>
+      <div class='step-body'>
+        <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
+        <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
+        <div style='margin-top:10px;font-size:0.75rem;color:#94a3b8;font-style:italic;'>Run 0501_PCA_allfeat.ipynb to populate results.</div>
+      </div>
+    </div>
+    """
         st.markdown(_lasso_block, unsafe_allow_html=True)
 
         st.markdown("""
-<div style='display:flex;flex-direction:column;align-items:flex-end;margin:10px 0;gap:4px;'>
-  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
-  <span style='display:inline-flex;align-items:center;gap:8px;background:#164e4b;border-radius:6px;padding:5px 14px;font-size:0.70rem;color:#e2f5f4;font-weight:600;letter-spacing:0.3px;'>
-    ⎇ &nbsp;Liga B &nbsp;·&nbsp; Curated Raw &nbsp;·&nbsp; 20 numerical + 10 categorical
-  </span>
-  <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
+<div style='display:flex;justify-content:flex-end;margin:12px 0 4px;'>
+  <div style='font-family:monospace;font-size:0.72rem;color:#164e4b;line-height:1.6;text-align:right;'>
+    <div style='color:rgba(22,78,75,0.4);'>│</div>
+    <div>└── ⎇ &nbsp;<span style='color:#1a6b67;font-weight:700;'>B-League</span></div>
+    <div style='padding-left:2.2ch;color:#1a6b67;'>Curated Raw</div>
+    <div style='padding-left:2.2ch;color:rgba(22,78,75,0.6);'>20 numerical + 10 categorical</div>
+    <div style='color:rgba(22,78,75,0.4);'>│</div>
+  </div>
 </div>
 
 <div class='step-row'>
@@ -560,13 +539,13 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   </div>
   <div class='step-body'>
     <div class='step-label' style='color:#21918c'>PCA</div>
-    <div class='step-why'>Principal Component Analysis compresses the 20-feature Praetorian set into orthogonal components, eliminating residual multicollinearity for linear and Bayesian estimators.</div>
+    <div class='step-why'>Principal Component Analysis compresses the 20-feature set into orthogonal components, eliminating residual multicollinearity for linear and Bayesian estimators.</div>
     <div style='margin-top:12px;display:flex;gap:24px;align-items:center;justify-content:center;'>
       <div style='display:flex;flex-direction:column;gap:4px;'>
         <div style='font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Cumulative variance</div>
         <div style='display:flex;align-items:center;gap:8px;'>
           <div style='width:160px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;'>
-            <div style='width:90%;height:100%;background:#21918c;border-radius:4px;'></div>
+        <div style='width:90%;height:100%;background:#21918c;border-radius:4px;'></div>
           </div>
           <span style='font-family:monospace;font-size:0.72rem;color:#21918c;font-weight:700;'>90%</span>
         </div>
@@ -579,14 +558,53 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
       </div>
     </div>
     <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 22 columns &nbsp;(12 components + 10 categorical)</div>
-    <div style='display:flex;flex-direction:column;align-items:flex-end;margin:10px 0;gap:4px;'>
-      <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
-      <span style='display:inline-flex;align-items:center;gap:8px;background:#164e4b;border-radius:6px;padding:5px 14px;font-size:0.70rem;color:#e2f5f4;font-weight:600;letter-spacing:0.3px;'>
-        ⎇ &nbsp;Liga C &nbsp;·&nbsp; Curated PCA &nbsp;·&nbsp; 12 components + 10 categorical
-      </span>
-      <svg width='10' height='14' viewBox='0 0 10 16' fill='none'><path d='M5 0v13M1 9l4 5 4-5' stroke='#164e4b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>
-    </div>
   </div>
+</div>
+
+<div style='display:flex;justify-content:flex-end;margin:10px 0 4px;padding-right:0;'>
+  <div style='font-family:monospace;font-size:0.72rem;color:#164e4b;line-height:1.6;text-align:right;'>
+    <div style='color:rgba(22,78,75,0.4);'>│</div>
+    <div>└── ⎇ &nbsp;<span style='color:#1a6b67;font-weight:700;'>C-League</span></div>
+    <div style='padding-left:2.2ch;color:#1a6b67;'>Curated PCA</div>
+    <div style='padding-left:2.2ch;color:rgba(22,78,75,0.6);'>12 components + 10 categorical</div>
+    <div style='color:rgba(22,78,75,0.4);'>│</div>
+  </div>
+</div>
+
+<div class='step-row'>
+  <div class='step-spine'>
+    <div class='step-circle' style='background:#21918c;font-size:15px;'>⊕</div>
+    <div class='step-line'></div>
+  </div>
+  <div class='step-body'>
+    <div class='step-label' style='color:#21918c'>Categorical Curation</div>
+    <div class='step-why'>Selection is driven by MI + Chi² validated against human domain expertise.</div>
+    <div style='margin-top:12px;display:flex;flex-direction:column;gap:6px;'>
+      <div style='display:flex;align-items:center;border-left:3px solid #21918c;padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Temporal</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>hour_of_day &nbsp;·&nbsp; day_of_week &nbsp;·&nbsp; day_type &nbsp;·&nbsp; time_of_day_block</span>
+      </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.4);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Spatial</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>dropoff_polygon_id &nbsp;·&nbsp; dropoff_h3_hex_id &nbsp;·&nbsp; dropoff_hdbscan_id</span>
+      </div>
+      <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.25);padding:7px 12px;gap:12px;'>
+        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Offer Context</span>
+        <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>product_category_fk &nbsp;·&nbsp; driver_state_at_request_fk &nbsp;·&nbsp; heuristic_flag_context</span>
+      </div>
+    </div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>10 categorical survivors &nbsp;·&nbsp; passed to all Leagues unchanged</div>
+  </div>
+</div>
+
+<div style='display:flex;align-items:center;gap:16px;margin:28px 0 20px;padding:0 4px;'>
+  <div style='flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(22,78,75,0.25));'></div>
+  <div style='display:flex;align-items:center;gap:8px;'>
+    <span style='font-size:0.55rem;color:rgba(22,78,75,0.35);letter-spacing:3px;'>✦</span>
+    <span style='font-size:0.60rem;font-weight:700;letter-spacing:2.5px;color:rgba(22,78,75,0.45);text-transform:uppercase;'>Tri-League Convergence</span>
+    <span style='font-size:0.55rem;color:rgba(22,78,75,0.35);letter-spacing:3px;'>✦</span>
+  </div>
+  <div style='flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(22,78,75,0.25));'></div>
 </div>
 
 <div class='step-row'>
@@ -599,29 +617,30 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <div style='display:flex;gap:20px;margin-top:12px;flex-wrap:wrap;'>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
-              padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
-              color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>LEAGUE A</span>
+          padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
+          color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>A-LEAGUE</span>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Wide Set · Control Group</div>
         <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>41 features · Before Lasso.<br>Validates that expert pruning did not destroy latent signal.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
-              padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
-              color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>LEAGUE B</span>
+          padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
+          color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>B-LEAGUE</span>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · Raw</div>
         <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>20 features · Interpretability mandate.<br>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
-              padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
-              color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>LEAGUE C</span>
+          padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
+          color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>C-LEAGUE</span>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · PCA</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>12 components · 90% of market variance.<br>Orthogonal projection of League B designed for linear and Bayesian purity.</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>12 components · 90% of market variance.<br>Orthogonal projection of B-League designed for linear and Bayesian purity.</div>
       </div>
     </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
     with sci2:
