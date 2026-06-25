@@ -191,8 +191,18 @@ h4 {
     left: 50%;
     transform: translateX(-50%);
     box-shadow: 0 4px 14px rgba(0,0,0,0.10);
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease 0.1s, visibility 0.15s ease 0.1s;
     z-index: 9999;
+    pointer-events: auto;
+    font-weight: 400;
+}
+.fn-wrap .fn-tooltip::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 16px;
 }
 .fn-wrap .fn-tooltip::after {
     content: "";
@@ -203,7 +213,8 @@ h4 {
     border: 6px solid transparent;
     border-top-color: #21918c;
 }
-.fn-wrap:hover .fn-tooltip { visibility: visible; opacity: 1; }
+.fn-wrap:hover .fn-tooltip,
+.fn-wrap .fn-tooltip:hover { visibility: visible; opacity: 1; transition-delay: 0s; }
 
 .placeholder-card {
     background: #ffffff;
