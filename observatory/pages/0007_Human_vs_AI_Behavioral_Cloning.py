@@ -1,12 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
-import numpy as np
-import joblib
 import time
 import io
 from google.cloud import storage
 from components.styles import GLOBAL_CSS
+from utils.bq_client import fetch_data_from_bq
 
 
 # ==============================================================================
@@ -653,63 +652,163 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
 </div>
 """, unsafe_allow_html=True)
 
-    st.markdown("<div style='background:#FFFF00;border:3px solid #FFD700;padding:12px 18px;margin-top:32px;font-size:0.85rem;font-weight:700;color:#000;'>PENDING: reordenar Text &amp; Metadata</div>", unsafe_allow_html=True)
-
-
+        st.markdown("<div style='background:#FFFF00;border:3px solid #FFD700;padding:12px 18px;margin-top:32px;font-size:0.85rem;font-weight:700;color:#000;'>PENDING: reordenar Text &amp; Metadata</div>", unsafe_allow_html=True)
 
     with sci2:
         st.markdown("""
-<div style='margin-bottom:20px;'>
-  <div class='step-label' style='color:#164e4b;margin-bottom:6px;'>Model Tournament</div>
-  <div class='step-why'>Five algorithms entered the arena in sequence, each benchmarked across all three feature leagues. Walk-forward validation: train on weeks 1&#8211;5, test on week 6. Scoring metric: F1-macro.</div>
+<div style='margin-bottom:32px;'>
+  <div style='font-size:0.85rem;color:#777;line-height:1.6;margin-bottom:4px;font-family:Inter,sans-serif;font-weight:400;'>Five algorithms entered the arena in sequence, each benchmarked across all three feature leagues. This multi-trial framework is designed to capture the baseline predictive signal before introducing non-linear complexity.</div>
+  <div style='display:flex;gap:28px;margin-top:14px;justify-content:center;'>
+    <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
+      <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Training</div>
+      <div style='font-size:0.72rem;font-weight:600;color:#334155;'>Weeks 1 &#8211; 5</div>
+    </div>
+    <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
+      <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>OOT Holdout</div>
+      <div style='font-size:0.72rem;font-weight:600;color:#334155;'>Week 6</div>
+    </div>
+    <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
+      <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Scoring Metric</div>
+      <div style='font-size:0.72rem;font-weight:600;color:#334155;'>F1-Macro</div>
+    </div>
+  </div>
 </div>
 <div style='border:1px solid rgba(0,0,0,0.07);border-radius:8px;overflow:hidden;'>
-  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:0.6px;padding:8px 14px;background:#f8fafc;border-bottom:1px solid rgba(0,0,0,0.06);'>
-    <span>TRIAL</span><span>ALGORITHM</span><span style='color:#64748b;'>A-LEAGUE</span><span style='color:#21918c;'>B-LEAGUE</span><span>C-LEAGUE</span>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:0.6px;padding:8px 14px;background:#f8fafc;border-bottom:1px solid rgba(0,0,0,0.06);'>
+    <span>TRIAL</span><span>ALGORITHM</span><span>TRAINING</span><span style='color:#64748b;'>A-LEAGUE</span><span style='color:#21918c;'>B-LEAGUE</span><span>C-LEAGUE</span>
   </div>
-  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
     <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>1 &nbsp;floor</span>
     <span style='font-size:0.72rem;color:#334155;'>Gaussian NB</span>
+    <span style='font-size:0.68rem;color:#94a3b8;'>Chronological</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.257</span><div style='height:3px;background:#64748b;border-radius:2px;width:33.8%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.257</span><div style='height:3px;background:#21918c;border-radius:2px;width:33.8%;margin-top:3px;opacity:0.4;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.256</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:33.6%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
-  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
     <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>2 &nbsp;linear</span>
     <span style='font-size:0.72rem;color:#334155;'>Logistic Regression</span>
+    <span style='font-size:0.68rem;color:#94a3b8;'>Time-Series Split</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.482</span><div style='height:3px;background:#64748b;border-radius:2px;width:63.3%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.514</span><div style='height:3px;background:#21918c;border-radius:2px;width:67.5%;margin-top:3px;opacity:0.4;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.490</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:64.4%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
-  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
     <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>3 &nbsp;theoretical</span>
     <span style='font-size:0.72rem;color:#334155;'>Logistic Reg (k-fold)</span>
+    <span style='font-size:0.68rem;color:#94a3b8;'>Stratified K-Fold</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.687</span><div style='height:3px;background:#64748b;border-radius:2px;width:90.3%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.716</span><div style='height:3px;background:#21918c;border-radius:2px;width:94.1%;margin-top:3px;opacity:0.4;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.691</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:90.8%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
-  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
     <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>4 &nbsp;scout</span>
     <span style='font-size:0.72rem;color:#334155;'>Decision Tree</span>
+    <span style='font-size:0.68rem;color:#94a3b8;'>Time-Series Split</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.336</span><div style='height:3px;background:#64748b;border-radius:2px;width:44.2%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.474</span><div style='height:3px;background:#21918c;border-radius:2px;width:62.3%;margin-top:3px;opacity:0.4;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.373</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:49.0%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
-  <div style='display:grid;grid-template-columns:100px 1fr 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);background:rgba(33,145,140,0.04);'>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);background:rgba(33,145,140,0.04);'>
     <span style='font-family:monospace;font-size:0.62rem;color:#21918c;font-weight:700;'>5 &nbsp;champion</span>
     <span style='font-size:0.72rem;color:#334155;font-weight:600;'>XGBoost</span>
+    <span style='font-size:0.68rem;color:#21918c;font-weight:600;'>Stratified K-Fold</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.760</span><div style='height:3px;background:#64748b;border-radius:2px;width:99.9%;margin-top:3px;opacity:0.5;'></div></div>
     <div style='background:rgba(33,145,140,0.10);border-radius:4px;padding:3px 6px;'><span style='font-family:monospace;font-size:0.72rem;color:#21918c;font-weight:700;'>0.761 &#9733;</span><div style='height:3px;background:#21918c;border-radius:2px;width:100%;margin-top:3px;'></div></div>
     <span style='font-family:monospace;font-size:0.70rem;color:#cbd5e1;font-style:italic;'>retired</span>
   </div>
 </div>
-<div style='margin-top:8px;font-size:0.65rem;color:#cbd5e1;font-style:italic;'>C-League retired before Trial 5 &#8212; PCA orthogonality conflicts with XGBoost&#39;s variance-based splits.</div>
-<div style='margin-top:24px;background:rgba(33,145,140,0.06);border:1px solid rgba(33,145,140,0.20);border-left:4px solid #21918c;border-radius:6px;padding:14px 18px;'>
-  <div style='font-size:0.59rem;font-weight:700;color:#21918c;letter-spacing:1.5px;margin-bottom:6px;'>TOURNAMENT WINNER</div>
-  <div style='font-size:0.88rem;font-weight:700;color:#164e4b;margin-bottom:6px;'>XGBoost &nbsp;&#183;&nbsp; B-League (Curated Raw)</div>
-  <div style='font-size:0.75rem;color:#94a3b8;line-height:1.6;'>F1-macro 0.761 &nbsp;&#183;&nbsp; Walk-forward validation (W1&#8211;5 train, W6 test) &nbsp;&#183;&nbsp; Advances to Phase 3 as the behavioral cloning backbone.</div>
+<div style='margin-top:10px;font-size:0.65rem;color:#94a3b8;font-style:italic;'>C-League retired at Trial 4 &#8212; PCA compression discards the variance XGBoost needs to split on.</div>
+<div style='margin-top:56px;margin-bottom:56px;display:flex;align-items:center;gap:20px;justify-content:center;'>
+  <div style='flex-shrink:0;text-align:center;'>
+    <div style='font-family:monospace;font-size:2.4rem;font-weight:700;color:#21918c;line-height:1;'>0.761</div>
+    <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-top:4px;'>F1-MACRO</div>
+  </div>
+  <div style='width:1px;height:48px;background:rgba(33,145,140,0.2);flex-shrink:0;'></div>
+  <div>
+    <div style='font-size:0.88rem;font-weight:700;color:#164e4b;margin-bottom:3px;'>XGBoost &nbsp;&#183;&nbsp; B-League (Curated Raw)</div>
+    <div style='font-size:0.75rem;color:#94a3b8;line-height:1.6;'>OOT Holdout (W1&#8211;5 train, W6 test) &nbsp;&#183;&nbsp; Advances to Phase 3 as the behavioral cloning backbone.</div>
+  </div>
+</div>
+<div style='margin-top:52px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 16px;'>
+  <div style='font-size:0.72rem;font-weight:700;color:#21918c;margin-bottom:8px;'>The State vs. Time Dilemma</div>
+  <div style='font-size:0.88rem;color:#334155;line-height:1.7;'>Strict time-splits on a 5-week dataset risk severe data starvation. However, because the foundational feature matrix already encoded temporal context and agent memory, every observation acts as an independent operational state. This existing architecture renders chronological ordering mathematically redundant, allowing Stratified K-Fold to maximize training volume without data leakage &#8212; strictly validated by a Week 6 out-of-time holdout.</div>
 </div>
 """, unsafe_allow_html=True)
+
+        # ── Class distribution by week heatmap ──────────────────────────────
+        _SQL_CLASS_DIST = """
+        WITH weekly AS (
+            SELECT
+                CAST(FLOOR(DATE_DIFF(DATE(CAST(ml.offer_timestamp AS TIMESTAMP)), DATE '2024-08-22', DAY) / 7) + 1 AS INT64) AS week_num,
+                COALESCE(rp.reason_primary_description, 'accepted') AS reason,
+                COUNT(*) AS n
+            FROM `645009831643.pienza_mini.v_ML_Supervised` ml
+            LEFT JOIN `645009831643.pienza_mini.reason_primary` rp
+                ON rp.reason_primary_id = ml.reason_primary_fk
+            WHERE COALESCE(rp.reason_primary_description, '') != 'system_logic_failure'
+            GROUP BY 1, 2
+        )
+        SELECT week_num, reason, n FROM weekly ORDER BY week_num, reason
+        """
+        _df_dist = fetch_data_from_bq(_SQL_CLASS_DIST)
+
+        if not _df_dist.empty:
+            _pivot = _df_dist.pivot(index="reason", columns="week_num", values="n").fillna(0)
+            _weeks = sorted(_pivot.columns.tolist())
+            _reasons = _pivot.index.tolist()
+            _pct = _pivot.div(_pivot.sum(axis=0), axis=1) * 100
+            _week_headers = "".join([
+                f"<span style='font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-align:center;'>{'W6 OOT' if w == _weeks[-1] else f'W{i+1}'}</span>"
+                for i, w in enumerate(_weeks)
+            ])
+            _grid_cols = f"1fr repeat({len(_weeks)}, 52px)"
+            _rows_html = ""
+            for reason in _reasons:
+                _cells = ""
+                for i, w in enumerate(_weeks):
+                    pct = _pct.loc[reason, w]
+                    n = int(_pivot.loc[reason, w])
+                    is_oot = (w == _weeks[-1])
+                    opacity = max(0.08, pct / 100)
+                    bg = f"rgba(148,163,184,{opacity:.2f})" if is_oot else f"rgba(33,145,140,{opacity:.2f})"
+                    border = "border-left:1px dashed rgba(0,0,0,0.10);" if is_oot else ""
+                    _cells += (
+                        f"<div style='text-align:center;padding:4px 2px;background:{bg};border-radius:3px;{border}'>"
+                        f"<div style='font-family:monospace;font-size:0.65rem;color:#334155;font-weight:600;'>{pct:.0f}%</div>"
+                        f"<div style='font-family:monospace;font-size:0.55rem;color:#94a3b8;'>{n}</div>"
+                        f"</div>"
+                    )
+                _rows_html += (
+                    f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:4px;align-items:center;padding:1px 0;border-top:1px solid rgba(0,0,0,0.04);'>"
+                    f"<span style='font-family:monospace;font-size:0.65rem;color:#64748b;'>{reason}</span>"
+                    f"{_cells}</div>"
+                )
+            _totals_cells = ""
+            for i, w in enumerate(_weeks):
+                total_n = int(_pivot[w].sum())
+                is_oot = (w == _weeks[-1])
+                border = "border-left:1px dashed rgba(0,0,0,0.10);" if is_oot else ""
+                _totals_cells += (
+                    f"<div style='text-align:center;padding:4px 2px;{border}'>"
+                    f"<div style='font-family:monospace;font-size:0.65rem;color:#334155;font-weight:700;'>{total_n:,}</div>"
+                    f"</div>"
+                )
+            _totals_row = (
+                f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:4px;align-items:center;padding:1px 0;border-top:1px solid rgba(0,0,0,0.12);margin-top:2px;'>"
+                f"<span style='font-family:monospace;font-size:0.60rem;color:#94a3b8;font-weight:700;letter-spacing:0.5px;'>TOTAL</span>"
+                f"{_totals_cells}</div>"
+            )
+            _heatmap_html = (
+                f"<div style='margin-top:56px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>A temporal breakdown of the target variables confirms the structural integrity of the dataset. Tracking class distribution across the six-week horizon validates that the agent&#8217;s decision policy does not suffer from fundamental concept drift, safely clearing the path for K-Fold shuffling.</div>"
+                f"<div style='margin-top:28px;border-top:1px solid rgba(0,0,0,0.06);padding-top:20px;max-width:820px;margin-left:auto;margin-right:auto;'>"
+                f"<div style='font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:1.5px;margin-bottom:10px;'>CLASS DISTRIBUTION BY WEEK &nbsp;&#8212;&nbsp; REASON PRIMARY</div>"
+                f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:4px;padding:0 0 6px;'><span></span>{_week_headers}</div>"
+                f"{_rows_html}{_totals_row}"
+                f"<div style='margin-top:8px;font-size:0.65rem;color:#94a3b8;font-style:italic;'>W6 = OOT holdout, unseen during training. Minority class shift across weeks motivates Stratified K-Fold over strict time-splits.</div>"
+                f"</div>"
+            )
+            st.markdown(_heatmap_html, unsafe_allow_html=True)
 
     with sci3:
         pass
