@@ -223,7 +223,7 @@ with tab1:
   <div class="ci-step ci-active">
     <div class="ci-dot">P1</div>
     <div class="ci-step-label">Feature Selection</div>
-    <div class="ci-step-sub">MI + Chi-squared audit</div>
+    <div class="ci-step-sub">Lasso + domain curation</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P2</div>
@@ -602,7 +602,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
         <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>driver_state_at_request_fk &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:1%;min-width:3px;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.003</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>18.9</span></div>
       </div>
     </div>
-    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4 categorical survivors</div>
+    <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>5 categorical survivors</div>
   </div>
 </div>
 
@@ -628,22 +628,25 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
           padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>A-LEAGUE</span>
+        <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>41 numerical + 5 categorical</div>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Wide Set · Control Group</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>41 features · Before Lasso.<br>Validates that expert pruning did not destroy latent signal.</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>Validates that expert pruning did not destroy latent signal.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
           padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>B-LEAGUE</span>
+        <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>20 numerical + 5 categorical</div>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · Raw</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>20 features · Interpretability mandate.<br>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
           padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>C-LEAGUE</span>
+        <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>12 components + 5 categorical</div>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · PCA</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>12 components · 90% of market variance.<br>Orthogonal projection of B-League designed for linear and Bayesian purity.</div>
+        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>Orthogonal projection of B-League designed for linear and Bayesian purity.</div>
       </div>
     </div>
   </div>
