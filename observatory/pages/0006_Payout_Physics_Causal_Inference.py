@@ -882,6 +882,16 @@ with top_tab2:
 See the fitted polynomial model in action. Adjust the upfront fare and time spread to observe how the estimated payout yield deviates from the structural baseline.
 </div>""", unsafe_allow_html=True)
 
+    st.markdown("<div style='margin-top:32px;'></div>", unsafe_allow_html=True)
+    st.markdown(r"""
+<div style='text-align:center;'>
+
+$$\small \widehat{Fare}(\Delta T) = \begin{cases} \text{Base Payout} & \text{if } \Delta T \leq 1.0 \\ \text{Upfront Fare} \times (0.9915 - 0.3645\,\Delta T + 0.1945\,\Delta T^2) & \text{if } \Delta T > 1.0 \end{cases}$$
+
+</div>
+""", unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom:32px;'></div>", unsafe_allow_html=True)
+
     # --- 1. REFINED INTERACTIVE INPUTS ---
     col1, col2 = st.columns(2)
     with col1:
@@ -900,11 +910,14 @@ See the fitted polynomial model in action. Adjust the upfront fare and time spre
         )
 
     # --- 2. LIVE MATH ENGINE ---
-    quad_yield = 0.9915 - (0.3645 * time_spread) + (0.1945 * (time_spread ** 2))
-    quad_pred = test_fare * quad_yield
-
     base_yield = 0.9915 - (0.3645 * 1.0) + (0.1945 * (1.0 ** 2))
     base_pred = test_fare * base_yield
+
+    if time_spread <= 1.0:
+        quad_yield = base_yield
+    else:
+        quad_yield = 0.9915 - (0.3645 * time_spread) + (0.1945 * (time_spread ** 2))
+    quad_pred = test_fare * quad_yield
 
     true_delta_usd = quad_pred - base_pred
     true_delta_pct = (quad_pred / base_pred) - 1
@@ -935,7 +948,11 @@ See the fitted polynomial model in action. Adjust the upfront fare and time spre
     # --- 4. THE DIVERGENCE CHART ---
     t_range = np.linspace(0.5, 3.0, 100)
     ols_curve = np.full_like(t_range, ols_pred)
-    quad_curve_yield = 0.9915 - (0.3645 * t_range) + (0.1945 * (t_range ** 2))
+    quad_curve_yield = np.where(
+        t_range <= 1.0,
+        base_yield,
+        0.9915 - (0.3645 * t_range) + (0.1945 * (t_range ** 2))
+    )
     quad_curve = test_fare * quad_curve_yield
 
     fig_sandbox = go.Figure()
