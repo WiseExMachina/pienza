@@ -922,73 +922,6 @@ This section shows how a monolithic class architecture fails because determinist
 
         _c3_view = st.session_state["c3_selected"]
 
-        # ── Helper: render a confusion matrix (shared across views) ───────────
-        def _render_cm(cm_data, labels, title, subtitle, highlight_cell=None, highlight_col=None):
-                """Render an HTML confusion matrix. highlight_cell=(row,col) for red; highlight_col=col for gravity well."""
-                n = len(labels)
-                row_sums = [sum(cm_data[i]) for i in range(n)]
-
-                # Header row
-                header = "<div style='display:grid;grid-template-columns:120px repeat(" + str(n) + ",1fr);gap:2px;margin-bottom:2px;'>"
-                header += "<div style='font-size:0.58rem;font-weight:700;color:#94a3b8;text-align:right;padding:4px 6px;align-self:end;'>ACTUAL ↓ / PRED →</div>"
-                for lbl in labels:
-                    header += f"<div style='font-size:0.58rem;font-weight:700;color:#64748b;text-align:center;padding:4px 2px;letter-spacing:0.3px;writing-mode:vertical-lr;transform:rotate(180deg);height:80px;align-self:end;'>{lbl.replace('_',' ')}</div>"
-                header += "</div>"
-
-                rows_html = ""
-                for i in range(n):
-                    row_total = row_sums[i] if row_sums[i] > 0 else 1
-                    rows_html += "<div style='display:grid;grid-template-columns:120px repeat(" + str(n) + ",1fr);gap:2px;margin-bottom:2px;'>"
-                    rows_html += f"<div style='font-size:0.62rem;color:#334155;font-weight:600;text-align:right;padding:6px 8px 6px 0;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{labels[i].replace('_',' ')}</div>"
-                    for j in range(n):
-                        val = cm_data[i][j]
-                        pct = val / row_total
-                        is_diag = (i == j)
-                        is_highlight = highlight_cell and (i, j) == highlight_cell
-                        is_hcol = highlight_col is not None and j == highlight_col and not is_diag
-
-                        if is_highlight:
-                            bg = f"rgba(239,68,68,{max(0.15, pct):.2f})"
-                            txt_color = "#ef4444"
-                            border = "border:2px solid #ef4444;"
-                            fw = "700"
-                        elif is_diag:
-                            bg = f"rgba(33,145,140,{max(0.08, pct * 0.9):.2f})"
-                            txt_color = "#21918c" if pct > 0.3 else "#334155"
-                            border = ""
-                            fw = "700"
-                        elif is_hcol and val > 0:
-                            bg = f"rgba(239,68,68,{max(0.06, pct * 0.6):.2f})"
-                            txt_color = "#ef4444"
-                            border = ""
-                            fw = "600"
-                        elif val == 0:
-                            bg = "#f8fafc"
-                            txt_color = "#e2e8f0"
-                            border = ""
-                            fw = "400"
-                        else:
-                            bg = f"rgba(100,116,139,{max(0.06, pct * 0.5):.2f})"
-                            txt_color = "#64748b"
-                            border = ""
-                            fw = "500"
-
-                        rows_html += (
-                            f"<div style='background:{bg};{border}border-radius:4px;text-align:center;padding:6px 2px;'>"
-                            f"<div style='font-family:monospace;font-size:0.65rem;color:{txt_color};font-weight:{fw};'>{val}</div>"
-                            f"<div style='font-size:0.52rem;color:{txt_color};opacity:0.7;'>{pct*100:.0f}%</div>"
-                            f"</div>"
-                        )
-                    rows_html += "</div>"
-
-                return f"""
-    <div style='margin-bottom:8px;'>
-      <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;'>{title}</div>
-      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:14px;'>{subtitle}</div>
-      {header}
-      {rows_html}
-    </div>"""
-
         if _c3_view == "Monolith":
             _mono_cm     = _mono["confusion_matrix"]
             _mono_labels = _mono["labels"]
@@ -1004,7 +937,7 @@ This section shows how a monolithic class architecture fails because determinist
                 _rt = _row_sums[i] if _row_sums[i] > 0 else 1
                 _display_lbl = _label_map.get(_mono_labels[i], _mono_labels[i]).replace('_', ' ')
                 _rows_html += f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:3px;margin-bottom:3px;'>"
-                _rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{_display_lbl}</div>"
+                _rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_display_lbl}</div>"
                 for j in range(_n):
                     _val = _mono_cm[i][j]
                     _pct = _val / _rt
@@ -1056,7 +989,7 @@ This section shows how a monolithic class architecture fails because determinist
             _ac_t1 = round((1 - _ac["precision"]) * 100)
 
             st.markdown(f"""
-<div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:40px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:40px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
 <div style='padding-bottom:90px;'>
 <div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
   <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
@@ -1075,7 +1008,7 @@ This section shows how a monolithic class architecture fails because determinist
 </div>""", unsafe_allow_html=True)
 
             st.markdown(f"""
-<div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:16px;margin-top:40px;'>Autopsy Report</div>
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;margin-top:40px;'>Autopsy Report</div>
 <div style='margin:0 auto;max-width:780px;border:1px solid rgba(33,145,140,0.2);border-radius:8px;overflow:hidden;'>
   <div style='display:grid;grid-template-columns:140px 1fr 1fr 1fr;'>
     <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
@@ -1129,51 +1062,58 @@ This section shows how a monolithic class architecture fails because determinist
 
 
         elif _c3_view == "Cognitive Cascade":
-            st.markdown("---")
-            st.markdown("---")
-            st.markdown("---")
+            st.markdown("""<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:32px;'>
+In this hierarchical architecture, Layer 1 collapses the overlapping minority classes into a single <code>nuanced_rest</code> bucket. Recalled observations from this bucket then pass to Layer 2 to decode the agent&#8217;s final decision policy.
+</div>""", unsafe_allow_html=True)
 
             # ── Section 2: Cascade Architecture diagram ────────────────────────────
             st.markdown("""
-<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>02 — The Cascade Architecture</div>
-<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:16px;'>Hierarchical decomposition separates the triage problem from the strategic nuance problem</div>
-<div style='display:flex;align-items:center;gap:0;margin-bottom:48px;justify-content:center;'>
-  <div style='background:rgba(33,145,140,0.07);border:1px solid rgba(33,145,140,0.3);border-radius:10px;padding:16px 20px;text-align:center;min-width:160px;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 1 · The Bouncer</div>
-    <div style='font-size:0.72rem;color:#334155;line-height:1.6;'>non_operational<br>proxy_zone<br>low_profitability<br>long_pickup<br><span style='color:#21918c;font-weight:700;'>→ nuanced_rest</span></div>
-    <div style='margin-top:10px;font-size:0.62rem;color:#94a3b8;'>780 offers in · 151 pass through</div>
+<div style='display:flex;justify-content:center;margin-bottom:48px;'>
+<div style='display:grid;grid-template-columns:auto auto auto;gap:0;align-items:center;'>
+  <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>
+    <div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'>
+      <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Layer 1</div>
+    </div>
+    <div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>dropoff_non_operational</div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>proxy_zone</div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>low_profitability</div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>long_pickup</div>
+      <div style='background:rgba(33,145,140,0.08);border:1px solid rgba(33,145,140,0.3);border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#21918c;font-weight:700;'>→ nuanced_rest</div>
+    </div>
   </div>
-  <div style='display:flex;flex-direction:column;align-items:center;padding:0 16px;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;margin-bottom:4px;'>19.4% of traffic</div>
-    <div style='font-size:1.2rem;color:#21918c;'>→</div>
+  <div style='display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 16px;'>
+    <div style='font-size:0.55rem;font-weight:700;color:#94a3b8;'>19.4%</div>
+    <div style='color:#21918c;font-size:1.1rem;'>→</div>
   </div>
-  <div style='background:rgba(33,145,140,0.07);border:1px solid rgba(33,145,140,0.3);border-radius:10px;padding:16px 20px;text-align:center;min-width:160px;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 2 · The Strategist</div>
-    <div style='font-size:0.72rem;color:#334155;line-height:1.6;'>accepted<br>strategic_mismatch<br>expected_value_gamble</div>
-    <div style='margin-top:10px;font-size:0.62rem;color:#94a3b8;'>164 offers · isolated signal</div>
+  <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>
+    <div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'>
+      <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Layer 2</div>
+    </div>
+    <div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>accepted</div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>strategic_mismatch</div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>expected_value_gamble</div>
+    </div>
   </div>
+</div>
 </div>
 """, unsafe_allow_html=True)
 
-            # ── Section 3: L1 CM ──────────────────────────────────────────────────
-            st.markdown("""
-<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>03 — Layer 1 · The Bouncer</div>
-<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:6px;'>Triage Confusion Matrix · W6 OOT Holdout</div>
-<div style='font-size:0.80rem;color:#777;line-height:1.6;margin-bottom:20px;'>The Bouncer handles 4 rejection classes plus a <em>nuanced_rest</em> bucket, routing strategic ambiguity downstream instead of forcing a premature classification.</div>
-""", unsafe_allow_html=True)
-
+            # ── Sections 3 + 4: L1 and L2 side by side ───────────────────────────
             _l1_cm = _l1["confusion_matrix"]
             _l1_labels = _l1["labels"]
             _l1_n = len(_l1_labels)
             _l1_row_sums = [sum(_l1_cm[i]) for i in range(_l1_n)]
-            _l1_cw = 66
-            _l1_grid_cols = f"130px " + " ".join([f"{_l1_cw}px"] * _l1_n)
+            _l1_cw = 76
+            _l1_grid_cols = f"90px " + " ".join([f"{_l1_cw}px"] * _l1_n)
             _l1_rows_html = ""
             for i in range(_l1_n):
                 _rt = _l1_row_sums[i] if _l1_row_sums[i] > 0 else 1
-                _display_lbl = _l1_labels[i].replace('_', ' ')
+                _l1_lmap = {"non_operational": "dropoff non operational"}
+                _display_lbl = _l1_lmap.get(_l1_labels[i], _l1_labels[i]).replace('_', ' ')
                 _l1_rows_html += f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};gap:3px;margin-bottom:3px;'>"
-                _l1_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{_display_lbl}</div>"
+                _l1_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_display_lbl}</div>"
                 for j in range(_l1_n):
                     _val = _l1_cm[i][j]
                     _pct = _val / _rt
@@ -1195,41 +1135,26 @@ This section shows how a monolithic class architecture fails because determinist
                         _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
                     else:
                         _icon = ""
-                    _l1_rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;padding:16px 0;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                    _l1_rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
                 _l1_rows_html += "</div>"
             _l1_bot = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};gap:3px;margin-top:4px;'><div></div>"
             for _lbl in _l1_labels:
                 _l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
             _l1_bot += "</div>"
             _l1_pred = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
-            st.markdown(f"""
-<div style='padding-bottom:90px;'>
-<div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
-  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
-  <div>{_l1_rows_html}{_l1_bot}{_l1_pred}</div>
-</div></div>
-</div>""", unsafe_allow_html=True)
-            st.markdown("<div style='font-size:0.65rem;color:#94a3b8;font-style:italic;margin-top:4px;margin-bottom:48px;'>nuanced_rest is not a final class — it is a deliberate deferral to Layer 2.</div>", unsafe_allow_html=True)
-
-            # ── Section 4: L2 CM ──────────────────────────────────────────────────
-            st.markdown("""
-<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>04 — Layer 2 · The Strategist</div>
-<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:6px;'>Strategic Nuance Confusion Matrix · W6 OOT Holdout</div>
-<div style='font-size:0.80rem;color:#777;line-height:1.6;margin-bottom:20px;'>With the gravitational noise removed, the Strategist operates on a clean signal. <code>strategic_mismatch</code> jumps from F1 0.06 to <strong>0.95</strong>. The cascade architecture unlocked the latent signal that the monolith was structurally incapable of seeing.</div>
-""", unsafe_allow_html=True)
 
             _l2_cm = _l2["confusion_matrix"]
             _l2_labels = _l2["labels"]
             _l2_n = len(_l2_labels)
             _l2_row_sums = [sum(_l2_cm[i]) for i in range(_l2_n)]
-            _l2_cw = 66
-            _l2_grid_cols = f"130px " + " ".join([f"{_l2_cw}px"] * _l2_n)
+            _l2_cw = 76
+            _l2_grid_cols = f"90px " + " ".join([f"{_l2_cw}px"] * _l2_n)
             _l2_rows_html = ""
             for i in range(_l2_n):
                 _rt = _l2_row_sums[i] if _l2_row_sums[i] > 0 else 1
                 _display_lbl = _l2_labels[i].replace('_', ' ')
                 _l2_rows_html += f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};gap:3px;margin-bottom:3px;'>"
-                _l2_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{_display_lbl}</div>"
+                _l2_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_display_lbl}</div>"
                 for j in range(_l2_n):
                     _val = _l2_cm[i][j]
                     _pct = _val / _rt
@@ -1249,19 +1174,35 @@ This section shows how a monolithic class architecture fails because determinist
                         _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
                     else:
                         _icon = ""
-                    _l2_rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;padding:16px 0;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                    _l2_rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
                 _l2_rows_html += "</div>"
             _l2_bot = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};gap:3px;margin-top:4px;'><div></div>"
             for _lbl in _l2_labels:
                 _l2_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
             _l2_bot += "</div>"
             _l2_pred = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+
             st.markdown(f"""
-<div style='padding-bottom:90px;'>
-<div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
-  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
-  <div>{_l2_rows_html}{_l2_bot}{_l2_pred}</div>
-</div></div>
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade · Theoretical Ceiling</div>
+<div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>Layer 2 was evaluated in strict isolation using 100% of the ground-truth nuanced holdout. This prevents selection bias and establishes the theoretical performance ceiling of the Nuance Engine before introducing cascading errors from Layer 1.</div>
+<div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:90px;'>
+  <div>
+    <div><div style='display:flex;gap:2px;align-items:center;'>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div>{_l1_rows_html}{_l1_bot}{_l1_pred}</div>
+    </div></div>
+  </div>
+  <div style='display:flex;align-items:center;justify-content:center;'>
+    <div style='width:32px;height:32px;border-radius:999px;background:rgba(33,145,140,0.10);display:flex;align-items:center;justify-content:center;'>
+      <span style='color:#21918c;font-size:1rem;line-height:1;'>→</span>
+    </div>
+  </div>
+  <div>
+    <div><div style='display:flex;gap:2px;align-items:center;'>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div>{_l2_rows_html}{_l2_bot}{_l2_pred}</div>
+    </div></div>
+  </div>
 </div>""", unsafe_allow_html=True)
 
             # ── Final callout ──────────────────────────────────────────────────────
