@@ -821,32 +821,63 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
         # ── Intro + comparison banner (always visible, above tabs) ────────────
         st.markdown("""
 <div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:32px;'>
-The monolith treats every class equally — and pays for it. <code>strategic_mismatch</code> collapses to an F1 of 0.06 as the dominant <code>non_operational</code> class acts as a gravitational singularity, absorbing 42 of 56 misclassified instances. The Cognitive Cascade dismantles this gravity well by splitting the problem in two: a Bouncer that handles triage, and a Strategist that resolves the nuanced remainder.
+This section shows how a monolithic class architecture fails because deterministic noise acts as a "gravitational well," cannibalizing nuanced decisions. The Cognitive Cascade resolves this through a dual-layer hierarchy: Layer 1 isolates deterministic rejections, clearing a noise-free subset for Layer 2 to decode the agent's true strategic intent.
 </div>
-<div style='display:grid;grid-template-columns:1fr 1px 1fr;gap:0;border:1px solid #eaeaea;border-radius:12px;overflow:hidden;margin-bottom:36px;'>
-  <div style='padding:24px 28px;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;'>Monolith · Single Model</div>
-    <div style='display:flex;align-items:baseline;gap:10px;margin-bottom:4px;'>
-      <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#64748b;line-height:1;'>0.61</div>
-      <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:1px;'>F1-MACRO</div>
+<style>
+.bento-card {
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-left:3px solid #21918c;
+  border-radius:10px;
+  padding:14px 16px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: default;
+}
+.bento-card:hover {
+  box-shadow: 0 6px 24px rgba(33,145,140,0.13);
+  transform: translateY(-2px);
+}
+</style>
+<div style='display:grid;grid-template-columns:1fr auto 2fr;align-items:center;gap:0;margin-bottom:36px;'>
+  <div class='bento-card'>
+    <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;'>Monolith</div>
+    <div style='font-size:0.55rem;color:#94a3b8;margin-bottom:6px;'>Single Stage · 7 Classes</div>
+    <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
+      <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.61</div>
+      <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
     </div>
-    <div style='font-size:0.72rem;color:#94a3b8;margin-top:6px;'>AUC 0.926 &nbsp;·&nbsp; Accuracy 76%</div>
-    <div style='margin-top:14px;padding:8px 12px;background:#fff5f5;border-radius:6px;border-left:3px solid #ef4444;'>
-      <div style='font-size:0.62rem;font-weight:700;color:#ef4444;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;'>Critical failure</div>
-      <div style='font-size:0.72rem;color:#64748b;'>strategic_mismatch F1 = <strong style='color:#ef4444;'>0.06</strong></div>
+    <div style='display:flex;gap:5px;flex-wrap:wrap;'>
+      <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.941</span>
+      <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 76%</span>
     </div>
   </div>
-  <div style='background:#eaeaea;'></div>
-  <div style='padding:24px 28px;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade · L1 + L2</div>
-    <div style='display:flex;align-items:baseline;gap:10px;margin-bottom:4px;'>
-      <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#21918c;line-height:1;'>0.91</div>
-      <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:1px;'>F1-MACRO L2</div>
-    </div>
-    <div style='font-size:0.72rem;color:#94a3b8;margin-top:6px;'>L1 F1-Macro 0.77 &nbsp;·&nbsp; L1 Accuracy 81%</div>
-    <div style='margin-top:14px;padding:8px 12px;background:rgba(33,145,140,0.07);border-radius:6px;border-left:3px solid #21918c;'>
-      <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;'>Gravity well resolved</div>
-      <div style='font-size:0.72rem;color:#334155;'>strategic_mismatch F1 = <strong style='color:#21918c;'>0.95</strong></div>
+  <div style='padding:0 14px;color:#cbd5e1;font-size:1rem;text-align:center;'>→</div>
+  <div class='bento-card'>
+    <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade</div>
+    <div style='display:grid;grid-template-columns:1fr 1px 1fr;gap:0;'>
+      <div style='padding-right:16px;'>
+        <div style='font-size:0.55rem;color:#94a3b8;margin-bottom:6px;'>Layer 1 · 5 Classes</div>
+        <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
+          <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.76</div>
+          <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
+        </div>
+        <div style='display:flex;gap:5px;flex-wrap:wrap;'>
+          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.941</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 81%</span>
+        </div>
+      </div>
+      <div style='background:#e2e8f0;'></div>
+      <div style='padding-left:16px;'>
+        <div style='font-size:0.55rem;color:#94a3b8;margin-bottom:6px;'>Layer 2 · 3 Classes</div>
+        <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
+          <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.91</div>
+          <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
+        </div>
+        <div style='display:flex;gap:5px;flex-wrap:wrap;'>
+          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.981</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 91%</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>""", unsafe_allow_html=True)
@@ -864,7 +895,7 @@ The monolith treats every class equally — and pays for it. <code>strategic_mis
   padding:4px; gap:0; margin-bottom:28px; border:1px solid #e2e8f0;
 }}
 .c3-seg-btn {{
-  padding:9px 28px; border-radius:999px; font-size:0.82rem; font-weight:600;
+  padding:5px 16px; border-radius:999px; font-size:0.72rem; font-weight:600;
   cursor:pointer; transition:all 0.18s ease; user-select:none;
   white-space:nowrap; color:#64748b; background:transparent;
 }}
@@ -887,32 +918,6 @@ The monolith treats every class equally — and pays for it. <code>strategic_mis
             st.session_state["c3_selected"] = "Cognitive Cascade"
             st.rerun()
 
-        components.html("""
-<script>
-setTimeout(function() {
-  var doc = window.parent.document;
-  var cardMono = doc.getElementById('c3card-mono');
-  var cardCasc = doc.getElementById('c3card-casc');
-  var btns = doc.querySelectorAll('button');
-  var btnMono = null, btnCasc = null;
-  btns.forEach(function(b) {
-    var t = b.innerText.trim();
-    if (t === 'mono') btnMono = b;
-    if (t === 'casc') btnCasc = b;
-  });
-  if (btnMono) {
-    var wrap = btnMono.closest('[data-testid="stElementContainer"]') || btnMono.parentElement;
-    if (wrap) wrap.style.display = 'none';
-    if (cardMono) cardMono.addEventListener('click', function() { btnMono.click(); });
-  }
-  if (btnCasc) {
-    var wrap2 = btnCasc.closest('[data-testid="stElementContainer"]') || btnCasc.parentElement;
-    if (wrap2) wrap2.style.display = 'none';
-    if (cardCasc) cardCasc.addEventListener('click', function() { btnCasc.click(); });
-  }
-}, 400);
-</script>
-""", height=0)
 
 
         _c3_view = st.session_state["c3_selected"]
@@ -985,25 +990,132 @@ setTimeout(function() {
     </div>"""
 
         if _c3_view == "Monolith":
-            st.markdown("---")
-            st.markdown("---")
-            st.markdown("---")
             _mono_cm     = _mono["confusion_matrix"]
             _mono_labels = _mono["labels"]
-            _sm_idx  = _mono_labels.index("strategic_mismatch")
-            _nop_idx = _mono_labels.index("non_operational")
-            st.markdown("""
-<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>01 — The Gravity Well</div>
-<div style='font-size:0.85rem;color:#334155;font-weight:600;margin-bottom:6px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
-<div style='font-size:0.80rem;color:#777;line-height:1.6;margin-bottom:20px;'>With all seven classes competing in a single model, <code>non_operational</code> dominates the feature space. <code>strategic_mismatch</code> — with only 56 instances — cannot compete. 42 of its 54 errors are absorbed by the gravity well.</div>
+            _n = len(_mono_labels)
+            _row_sums = [sum(_mono_cm[i]) for i in range(_n)]
+
+            # Build cell rows — fixed columns so cells stay compact regardless of screen width
+            _label_map = {"non_operational": "dropoff non operational"}
+            _cw = 66
+            _grid_cols = f"130px " + " ".join([f"{_cw}px"] * _n)
+            _rows_html = ""
+            for i in range(_n):
+                _rt = _row_sums[i] if _row_sums[i] > 0 else 1
+                _display_lbl = _label_map.get(_mono_labels[i], _mono_labels[i]).replace('_', ' ')
+                _rows_html += f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:3px;margin-bottom:3px;'>"
+                _rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{_display_lbl}</div>"
+                for j in range(_n):
+                    _val = _mono_cm[i][j]
+                    _pct = _val / _rt
+                    _diag = (i == j)
+                    if _diag:
+                        _alpha = max(0.14, _pct * 0.85)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"
+                        _tc = "#fff" if _pct > 0.45 else "#21918c"
+                        _fw = "700"
+                    elif _val == 0:
+                        _bg = "#f8fafc"; _tc = "#e2e8f0"; _fw = "400"
+                    else:
+                        _alpha = max(0.04, _pct * 0.35)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"
+                        _tc = "#94a3b8"; _fw = "500"
+                    _green_lbl = {"non_operational","proxy_zone","low_profitability","long_pickup"}
+                    _red_lbl   = {"strategic_mismatch","expected_value_gamble","accepted"}
+                    if _diag and _mono_labels[i] in _green_lbl:
+                        _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
+                    elif _diag and _mono_labels[i] in _red_lbl:
+                        _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#ef4444;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✗</span>"
+                    else:
+                        _icon = ""
+                    _rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;padding:16px 0;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                _rows_html += "</div>"
+
+            # Bottom class labels row (empty first cell to offset row-label column)
+            _bot = f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:3px;margin-top:4px;'>"
+            _bot += "<div></div>"
+            for _lbl in _mono_labels:
+                _bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_label_map.get(_lbl, _lbl).replace('_',' ')}</div>"
+            _bot += "</div>"
+
+            # "Predicted" axis label centered under the data columns only
+            _pred_label = f"<div style='display:grid;grid-template-columns:{_grid_cols};margin-top:8px;'>"
+            _pred_label += "<div></div>"
+            _pred_label += f"<div style='grid-column:2/{_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div>"
+            _pred_label += "</div>"
+
+            _cr = _mono["classification_report"]
+            _sm = _cr["strategic_mismatch"]
+            _ev = _cr["expected_value_gamble"]
+            _ac = _cr["accepted"]
+            _sm_t2 = round((1 - _sm["recall"]) * 100)
+            _sm_t1 = round((1 - _sm["precision"]) * 100)
+            _ev_t2 = round((1 - _ev["recall"]) * 100)
+            _ev_t1 = round((1 - _ev["precision"]) * 100)
+            _ac_t2 = round((1 - _ac["recall"]) * 100)
+            _ac_t1 = round((1 - _ac["precision"]) * 100)
+
+            st.markdown(f"""
+<div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:40px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
+<div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
+  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+  <div>
+    {_rows_html}
+    {_bot}
+    {_pred_label}
+  </div>
+</div></div>
 """, unsafe_allow_html=True)
-            st.markdown(
-                _render_cm(_mono_cm, _mono_labels,
-                           "XGBoost Monolith", "7 classes · single-stage · F1-macro 0.61",
-                           highlight_cell=(_sm_idx, _nop_idx), highlight_col=_nop_idx),
-                unsafe_allow_html=True
-            )
-            st.markdown("<div style='font-size:0.65rem;color:#94a3b8;font-style:italic;margin-top:4px;'>Red cell: 42 strategic_mismatch instances misclassified as non_operational — the gravity well in action.</div>", unsafe_allow_html=True)
+
+            st.markdown("""<div style='margin-top:40px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 18px;'>
+  <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Diagnostic</div>
+  <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>While deterministic rejections achieve high separation (&gt;80% recall), the nuanced classes severely underperform. Due to the high similarity in their feature spaces, the model defaults to a "lazy" information gain strategy: it absorbs these complex, minority decisions into the <code style='font-size:0.75rem;background:rgba(33,145,140,0.12);padding:1px 5px;border-radius:3px;'>dropoff_non_operational</code> majority class instead of executing the deep splits required to isolate them.</div>
+</div>""", unsafe_allow_html=True)
+
+            st.markdown(f"""
+<div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:16px;margin-top:40px;'>Autopsy Report</div>
+<div style='margin:0 auto;max-width:780px;border:1px solid rgba(33,145,140,0.2);border-radius:8px;overflow:hidden;'>
+  <div style='display:grid;grid-template-columns:140px 1fr 1fr 1fr;'>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Strategic Mismatch</div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Expected Value Gamble</div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Accepted</div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.60rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
+      <div style='font-size:0.58rem;color:#94a3b8;margin-top:2px;'>False Negative</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_sm_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_ev_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_ac_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;'>
+      <div style='font-size:0.60rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
+      <div style='font-size:0.58rem;color:#94a3b8;margin-top:2px;'>False Positive</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_sm_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_ev_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_ac_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
 
         elif _c3_view == "Cognitive Cascade":
             st.markdown("---")
@@ -1069,6 +1181,31 @@ setTimeout(function() {
   <div style='font-size:0.72rem;font-weight:700;color:#21918c;margin-bottom:8px;'>The Architecture as the Answer</div>
   <div style='font-size:0.88rem;color:#334155;line-height:1.7;'>The monolith&#8217;s failure was not a data problem or a hyperparameter problem &#8212; it was a structural one. No amount of tuning resolves a 7:1 class imbalance when a dominant class shares feature space with a minority class. The Cognitive Cascade does not fight the gravity well. It sidesteps it entirely.</div>
 </div>""", unsafe_allow_html=True)
+
+        components.html("""<script>
+setTimeout(function() {
+  var doc = window.parent.document;
+  var cardMono = doc.getElementById('c3card-mono');
+  var cardCasc = doc.getElementById('c3card-casc');
+  var btns = doc.querySelectorAll('button');
+  var btnMono = null, btnCasc = null;
+  btns.forEach(function(b) {
+    var t = b.innerText.trim();
+    if (t === 'mono') btnMono = b;
+    if (t === 'casc') btnCasc = b;
+  });
+  if (btnMono) {
+    var wrap = btnMono.closest('[data-testid="stElementContainer"]') || btnMono.parentElement;
+    if (wrap) wrap.style.display = 'none';
+    if (cardMono) cardMono.addEventListener('click', function() { btnMono.click(); });
+  }
+  if (btnCasc) {
+    var wrap2 = btnCasc.closest('[data-testid="stElementContainer"]') || btnCasc.parentElement;
+    if (wrap2) wrap2.style.display = 'none';
+    if (cardCasc) cardCasc.addEventListener('click', function() { btnCasc.click(); });
+  }
+}, 400);
+</script>""", height=1)
 
     with sci4:
         pass
