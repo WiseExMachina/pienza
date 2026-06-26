@@ -1057,6 +1057,7 @@ This section shows how a monolithic class architecture fails because determinist
 
             st.markdown(f"""
 <div style='font-size:0.85rem;font-weight:600;color:#334155;margin-bottom:40px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
+<div style='padding-bottom:90px;'>
 <div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
   <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
   <div>
@@ -1065,6 +1066,7 @@ This section shows how a monolithic class architecture fails because determinist
     {_pred_label}
   </div>
 </div></div>
+</div>
 """, unsafe_allow_html=True)
 
             st.markdown("""<div style='margin-top:40px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 18px;'>
@@ -1081,8 +1083,8 @@ This section shows how a monolithic class architecture fails because determinist
     <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Expected Value Gamble</div>
     <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Accepted</div>
     <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);'>
-      <div style='font-size:0.60rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
-      <div style='font-size:0.58rem;color:#94a3b8;margin-top:2px;'>False Negative</div>
+      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
+      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Negative</div>
     </div>
     <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
       <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_sm_t2}%</div>
@@ -1097,8 +1099,8 @@ This section shows how a monolithic class architecture fails because determinist
       <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
     </div>
     <div style='padding:14px;'>
-      <div style='font-size:0.60rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
-      <div style='font-size:0.58rem;color:#94a3b8;margin-top:2px;'>False Positive</div>
+      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
+      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Positive</div>
     </div>
     <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
       <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_sm_t1}%</div>
@@ -1113,6 +1115,15 @@ This section shows how a monolithic class architecture fails because determinist
       <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
     </div>
   </div>
+</div>
+""", unsafe_allow_html=True)
+
+            st.markdown("""
+<div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>
+  A simultaneous collapse across both Type I and Type II metrics confirms a complete failure to map mathematical boundaries. With up to 96% of critical events undetected and severe false-alarm rates when triggered, the model isn&#8217;t inferring complex intent&#8202;&#8212;&#8202;it is simply guessing blindly.
+</div>
+<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#94a3b8;font-family:monospace;text-align:center;'>
+  Monolith &middot; F1-macro 0.61 &middot; <span style='color:#b91c1c;'>✗ architecture insufficient</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Cognitive Cascade <span style='color:#21918c;'>→</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1153,11 +1164,51 @@ This section shows how a monolithic class architecture fails because determinist
 
             _l1_cm = _l1["confusion_matrix"]
             _l1_labels = _l1["labels"]
-            st.markdown(
-            _render_cm(_l1_cm, _l1_labels,
-                       "Cascade · Layer 1 (Bouncer)", "5 classes · F1-macro 0.77 · Accuracy 81%"),
-            unsafe_allow_html=True
-            )
+            _l1_n = len(_l1_labels)
+            _l1_row_sums = [sum(_l1_cm[i]) for i in range(_l1_n)]
+            _l1_cw = 66
+            _l1_grid_cols = f"130px " + " ".join([f"{_l1_cw}px"] * _l1_n)
+            _l1_rows_html = ""
+            for i in range(_l1_n):
+                _rt = _l1_row_sums[i] if _l1_row_sums[i] > 0 else 1
+                _display_lbl = _l1_labels[i].replace('_', ' ')
+                _l1_rows_html += f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};gap:3px;margin-bottom:3px;'>"
+                _l1_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{_display_lbl}</div>"
+                for j in range(_l1_n):
+                    _val = _l1_cm[i][j]
+                    _pct = _val / _rt
+                    _diag = (i == j)
+                    if _diag:
+                        _alpha = max(0.14, _pct * 0.85)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"
+                        _tc = "#fff" if _pct > 0.45 else "#21918c"
+                        _fw = "700"
+                    elif _val == 0:
+                        _bg = "#f8fafc"; _tc = "#e2e8f0"; _fw = "400"
+                    else:
+                        _alpha = max(0.04, _pct * 0.35)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"
+                        _tc = "#94a3b8"; _fw = "500"
+                    if _diag and _l1_labels[i] == "nuanced_rest":
+                        _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#f59e0b;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>→</span>"
+                    elif _diag:
+                        _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
+                    else:
+                        _icon = ""
+                    _l1_rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;padding:16px 0;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                _l1_rows_html += "</div>"
+            _l1_bot = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};gap:3px;margin-top:4px;'><div></div>"
+            for _lbl in _l1_labels:
+                _l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
+            _l1_bot += "</div>"
+            _l1_pred = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+            st.markdown(f"""
+<div style='padding-bottom:90px;'>
+<div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
+  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+  <div>{_l1_rows_html}{_l1_bot}{_l1_pred}</div>
+</div></div>
+</div>""", unsafe_allow_html=True)
             st.markdown("<div style='font-size:0.65rem;color:#94a3b8;font-style:italic;margin-top:4px;margin-bottom:48px;'>nuanced_rest is not a final class — it is a deliberate deferral to Layer 2.</div>", unsafe_allow_html=True)
 
             # ── Section 4: L2 CM ──────────────────────────────────────────────────
@@ -1169,11 +1220,49 @@ This section shows how a monolithic class architecture fails because determinist
 
             _l2_cm = _l2["confusion_matrix"]
             _l2_labels = _l2["labels"]
-            st.markdown(
-            _render_cm(_l2_cm, _l2_labels,
-                       "Cascade · Layer 2 (Strategist)", "3 classes · F1-macro 0.91 · Accuracy 91%"),
-            unsafe_allow_html=True
-            )
+            _l2_n = len(_l2_labels)
+            _l2_row_sums = [sum(_l2_cm[i]) for i in range(_l2_n)]
+            _l2_cw = 66
+            _l2_grid_cols = f"130px " + " ".join([f"{_l2_cw}px"] * _l2_n)
+            _l2_rows_html = ""
+            for i in range(_l2_n):
+                _rt = _l2_row_sums[i] if _l2_row_sums[i] > 0 else 1
+                _display_lbl = _l2_labels[i].replace('_', ' ')
+                _l2_rows_html += f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};gap:3px;margin-bottom:3px;'>"
+                _l2_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{_display_lbl}</div>"
+                for j in range(_l2_n):
+                    _val = _l2_cm[i][j]
+                    _pct = _val / _rt
+                    _diag = (i == j)
+                    if _diag:
+                        _alpha = max(0.14, _pct * 0.85)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"
+                        _tc = "#fff" if _pct > 0.45 else "#21918c"
+                        _fw = "700"
+                    elif _val == 0:
+                        _bg = "#f8fafc"; _tc = "#e2e8f0"; _fw = "400"
+                    else:
+                        _alpha = max(0.04, _pct * 0.35)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"
+                        _tc = "#94a3b8"; _fw = "500"
+                    if _diag:
+                        _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
+                    else:
+                        _icon = ""
+                    _l2_rows_html += f"<div style='background:{_bg};border-radius:4px;text-align:center;padding:16px 0;position:relative;'>{_icon}<div style='font-size:0.85rem;color:{_tc};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                _l2_rows_html += "</div>"
+            _l2_bot = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};gap:3px;margin-top:4px;'><div></div>"
+            for _lbl in _l2_labels:
+                _l2_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
+            _l2_bot += "</div>"
+            _l2_pred = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+            st.markdown(f"""
+<div style='padding-bottom:90px;'>
+<div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
+  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+  <div>{_l2_rows_html}{_l2_bot}{_l2_pred}</div>
+</div></div>
+</div>""", unsafe_allow_html=True)
 
             # ── Final callout ──────────────────────────────────────────────────────
             st.markdown("""
