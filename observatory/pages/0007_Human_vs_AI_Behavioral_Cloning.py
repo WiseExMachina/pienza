@@ -88,6 +88,20 @@ observer.observe(document.body, { childList: true, subtree: true });
 # --- B. ESTILOS BASE (OPUS THEME) ---
 base_css = """
 <style>
+    /* Gray minimal slider for threshold simulator */
+    [data-testid="stSlider"] div[data-baseweb="slider"] div[role="slider"] {
+        background-color: #94a3b8 !important;
+        border-color: #94a3b8 !important;
+    }
+    [data-testid="stSlider"] div[data-baseweb="slider"] div[data-testid="stThumbValue"] {
+        color: #64748b !important;
+    }
+    [data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child > div:first-child {
+        background-color: #cbd5e1 !important;
+    }
+    [data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child > div:nth-child(2) {
+        background-color: #94a3b8 !important;
+    }
     .offer-gem {
         background-color: #ffffff; border-left: 4px solid #21918c;
         padding: 4px 8px; margin-bottom: 3px; border-radius: 4px;
@@ -172,7 +186,7 @@ df_master = load_tournament_ledger()
 # ==============================================================================
 st.markdown("# Human vs AI: Behavioral Cloning")
 st.markdown("""
-<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+<div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
 This phase documents the transition from descriptive discovery to a predictive inference engine.
 The objective: synthesize a model capable of replicating the agent's decision policy with high fidelity —
 and then beat it.
@@ -207,7 +221,7 @@ with tab1:
   text-align:center; margin-top:6px; line-height:1.3;
 }
 .ci-step-sub {
-  font-size:0.60rem; color:#94a3b8;
+  font-size:0.60rem; color:#64748b;
   text-align:center; margin-top:2px; line-height:1.3;
 }
 .ci-step:hover .ci-step-label { color:#21918c; }
@@ -306,7 +320,7 @@ setTimeout(function() {
 .fn-wrap.fn-below .fn-tooltip::before { content:''; position:absolute; bottom:100%; left:0; width:100%; height:12px; }
 .fn-wrap.fn-left .fn-tooltip::after { left: 20px; transform: none; }
 </style>
-<div style='font-size:0.90rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:28px;'>
+<div style='font-size:0.90rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:28px;'>
 This pipeline follows an experimental design to evaluate three feature "Leagues" across linear and non-linear architectures. Linear estimators require orthogonal inputs to mitigate multicollinearity, while XGBoost leverages internal L1/L2 regularization to process raw feature physics. This framework ensures each algorithmic family is benchmarked against its optimal data representation.<span class='fn-wrap fn-below'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:260px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.6;text-transform:none;letter-spacing:0;font-weight:400;'>Unlike the <a href='/Feature_Store' target='_self' style='color:#21918c;'>Feature Store</a>, which exposes a distilled subset optimized for explainability, this pipeline serves as the absolute audit trail — logging every feature purged prior to modeling.</span></span>
 </div>
 """, unsafe_allow_html=True)
@@ -320,29 +334,29 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   <div class='step-body' style='padding-bottom:0;'>
     <div class='step-label' style='color:#21918c'>Noise &amp; Metadata Purge</div>
     <div class='step-why'>Identifiers, timestamps, and target-leaking columns removed. Establishes the clean observation space before any statistical audit.</div>
-    <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 105 columns &nbsp;·&nbsp; 49 columns dropped</div>
+    <div style='margin-top:12px;font-size:0.75rem;color:#64748b;'>4,765 rows × 105 columns &nbsp;·&nbsp; 49 columns dropped</div>
     <div style='margin-top:10px;display:flex;flex-direction:column;gap:6px;'>
       <div style='display:flex;align-items:center;border-left:3px solid #21918c;padding:7px 12px;gap:12px;'>
-        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Text &amp; Metadata</span>
+        <span style='font-size:0.65rem;font-weight:700;color:#64748b;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Text &amp; Metadata</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_id &nbsp;·&nbsp; feature_id &nbsp;·&nbsp; session_fk &nbsp;·&nbsp; ocr_fk</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+15</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.8;width:210px;right:0;left:auto;transform:none;'>image_content_hash<br>dropoff_address<br>dropoff_ambiguity<br>dropoff_hdbscan_name<br>pickup_ambiguity<br>pickup_address<br>dropoff_polygon_name<br>offer_timestamp<br>comment_1<br>comment_2<br>special_note_raw<br>inferred_agent_bearing<br>is_imputed<br>record_status_fk<br>interpolation_quality_fk</span></span>
       </div>
       <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.6);padding:7px 12px;gap:12px;'>
-        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (EDA)</span>
+        <span style='font-size:0.65rem;font-weight:700;color:#64748b;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (EDA)</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_EDA &nbsp;·&nbsp; eph_realized_EDA &nbsp;·&nbsp; is_spread_downgrade_EDA &nbsp;·&nbsp; traffic_volatility_index_eda</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+6</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.8;width:210px;right:0;left:auto;transform:none;'>eph_complete_index_EDA<br>eph_complete_label_EDA<br>eph_realized_index_EDA<br>eph_realized_label_EDA<br>is_total_cycle_downgrade_EDA<br>realized_traffic_index</span></span>
       </div>
       <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.4);padding:7px 12px;gap:12px;'>
-        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (Target)</span>
+        <span style='font-size:0.65rem;font-weight:700;color:#64748b;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Leakage (Target)</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>offer_action_fk &nbsp;·&nbsp; reason_primary_fk &nbsp;·&nbsp; outcome_fk &nbsp;·&nbsp; post_offer_status_fk</span>
       </div>
       <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.25);padding:7px 12px;gap:12px;'>
-        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Geo Coordinates</span>
+        <span style='font-size:0.65rem;font-weight:700;color:#64748b;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Geo Coordinates</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>pickup_lat &nbsp;·&nbsp; pickup_lon &nbsp;·&nbsp; dropoff_lat &nbsp;·&nbsp; dropoff_lon</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+2</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.8;width:210px;right:0;left:auto;transform:none;'>inferred_agent_lat<br>inferred_agent_lon</span></span>
       </div>
       <div style='display:flex;align-items:center;border-left:3px solid rgba(33,145,140,0.1);padding:7px 12px;gap:12px;'>
-        <span style='font-size:0.65rem;font-weight:700;color:#94a3b8;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Manual Overrides</span>
+        <span style='font-size:0.65rem;font-weight:700;color:#64748b;width:120px;flex-shrink:0;letter-spacing:0.5px;'>Manual Overrides</span>
         <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>rider_star_rating &nbsp;·&nbsp; rider_trip_count &nbsp;·&nbsp; is_exclusive &nbsp;·&nbsp; is_vip</span>
         <span class='fn-wrap' style='margin-left:auto;'><span class='fn-mark'>+6</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.8;width:210px;right:0;left:auto;transform:none;'>is_teens<br>is_identity_verified<br>eph_direct_label<br>eph_operational_label<br>eph_realized_label_ML<br>eph_complete_label_ML</span></span>
       </div>
@@ -364,35 +378,35 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <div class='step-label' style='color:#21918c'>Correlation Doppelgangers</div>
     <div class='step-why'>Pearson r &gt; 0.90 filter. Raw EPH values are dropped for normalized indices; time is absorbed into cumulative earnings, combining duration and yield in a single feature.</div>
     <div style='margin-top:12px;'>
-      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:6px;'>4,765 rows × 56 columns &nbsp;·&nbsp; audit on 46 numerical &nbsp;·&nbsp; 5 dropped</div>
-      <div style='display:grid;grid-template-columns:1fr 1fr 64px;gap:0;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
+      <div style='font-size:0.75rem;color:#64748b;margin-bottom:6px;'>4,765 rows × 56 columns &nbsp;·&nbsp; audit on 46 numerical &nbsp;·&nbsp; 5 dropped</div>
+      <div style='display:grid;grid-template-columns:1fr 1fr 64px;gap:0;font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.5px;padding:4px 12px;'>
         <span>DROPPED</span><span>SURVIVOR</span><span style='text-align:right;'>r</span>
       </div>
       <div style='border-left:3px solid #21918c;margin-top:4px;display:flex;flex-direction:column;'>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct <span style='color:#64748b;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_direct_index &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_operational <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_operational <span style='color:#64748b;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_operational_index &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_ML <span style='color:#64748b;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_realized_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>
-          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_ML <span style='color:#94a3b8;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_ML <span style='color:#64748b;'>(raw)</span> &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>eph_complete_index_ML &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>1.00</span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;text-align:right;'>1.00</span>
         </div>
         <div style='display:grid;grid-template-columns:1fr 1fr 64px;padding:5px 12px;'>
           <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>time_in_session_sec &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span>
           <span style='font-family:monospace;font-size:0.68rem;color:#64748b;'>cycle_cumulative_net_earnings &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>
-          <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;text-align:right;'>0.92</span>
+          <span style='font-family:monospace;font-size:0.68rem;color:#64748b;text-align:right;'>0.92</span>
         </div>
       </div>
       <div style='margin-top:8px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 51 columns &nbsp;(<span class='fn-wrap fn-left'><span class='fn-mark' style='vertical-align:baseline;font-size:0.75rem;'>41 numerical</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.8;width:660px;left:0;transform:none;'><div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 12px;'><span>upfront_fare</span><span>session_progress_ratio</span><span>cycle_cumulative_net_earnings</span><span>time_to_pickup_sec</span><span>inferred_agent_speed_mps</span><span>eph_direct_index</span><span>dist_to_pickup_km</span><span>traffic_index_base_120</span><span>eph_operational_index</span><span>est_trip_time_sec</span><span>time_since_last_offer</span><span>is_operational_downgrade</span><span>est_trip_dist_km</span><span>offer_density_10sec</span><span>eph_realized_index_ML</span><span>is_surge</span><span>offer_density_30sec</span><span>is_spread_downgrade_ML</span><span>surge_amount</span><span>offer_density_60sec</span><span>eph_complete_index_ML</span><span>is_turbo_plus</span><span>offer_density_180sec</span><span>is_total_cycle_downgrade_ML</span><span>turbo_plus_amount</span><span>consecutive_rejects</span><span>home_vector_alignment_score</span><span>is_reservation</span><span>cycle_avg_dtp_km</span><span>historical_rolling_avg_traffic_index</span><span>reservation_amount</span><span>cycle_std_dtp_km</span><span>traffic_volatility_index_ml</span><span>is_priority</span><span>cycle_ttp_dtp_ratio</span><span></span><span>priority_amount</span><span>dispatch_lead_time_sec</span><span></span><span>is_long_trip</span><span>cycle_rolling_avg_spread</span><span></span><span>is_multiple_destinations</span><span>total_accumulated_deadhead_sec</span><span></span></div></span></span> + <span class='fn-wrap'><span class='fn-mark' style='vertical-align:baseline;font-size:0.75rem;'>10 categorical</span><span class='fn-tooltip' style='font-family:monospace;font-size:0.68rem;line-height:1.8;width:240px;'>hour_of_day<br>product_category_fk<br>driver_state_at_request_fk<br>day_of_week<br>time_of_day_block<br>day_type<br>dropoff_polygon_id<br>dropoff_h3_hex_id<br>dropoff_hdbscan_id<br>heuristic_flag_context</span></span>)</div>
@@ -433,7 +447,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                     f"<div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid rgba(0,0,0,0.04);'>"
                     f"<span style='font-family:monospace;font-size:0.68rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>{f} &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span>"
                     f"{_bar(c, _max_coef)}"
-                    f"<span style='font-family:monospace;font-size:0.65rem;color:#94a3b8;text-align:right;'>{c:.3f}</span>"
+                    f"<span style='font-family:monospace;font-size:0.65rem;color:#64748b;text-align:right;'>{c:.3f}</span>"
                     f"</div>"
                     for f, c in _top8
                 )
@@ -441,7 +455,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
             )
     
             _rest_tooltip = "<br>".join(
-                f"{f} <span style='color:#94a3b8;'>({c:.3f})</span>"
+                f"{f} <span style='color:#64748b;'>({c:.3f})</span>"
                 for f, c in _rest
             )
             _n_rest = len(_rest)
@@ -474,17 +488,17 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
       <div class='step-body'>
         <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
         <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
-        <div style='margin-top:12px;font-size:0.75rem;color:#94a3b8;'>4,765 rows × 51 columns &nbsp;·&nbsp; L1 audit on 41 numerical &nbsp;·&nbsp; C = 0.05</div>
+        <div style='margin-top:12px;font-size:0.75rem;color:#64748b;'>4,765 rows × 51 columns &nbsp;·&nbsp; L1 audit on 41 numerical &nbsp;·&nbsp; C = 0.05</div>
         <div style='margin-top:10px;display:flex;gap:24px;align-items:start;'>
           <div style='flex:2;min-width:0;'>
-            <div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;gap:0 8px;font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>
+            <div style='display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 48px;gap:0 8px;font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.5px;padding:4px 12px;'>
           <span>SURVIVOR</span><span>COEF</span><span style='text-align:right;'>val</span>
             </div>
             {_top8_html}
             <div style='padding:6px 12px;'>{_rest_pill}</div>
           </div>
           <div style='flex:1;min-width:0;'>
-            <div style='font-size:0.65rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'>CASUALTIES ({_n_cas})</div>
+            <div style='font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.5px;padding:4px 12px;'>CASUALTIES ({_n_cas})</div>
             {_cas_rows}
           </div>
         </div>
@@ -512,7 +526,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
       <div class='step-body'>
         <div class='step-label' style='color:#21918c'>Lasso Regularization</div>
         <div class='step-why'>L1 penalty drives irrelevant coefficients to exactly zero. Survivors confirm predictive signal under linear constraints — setting the ceiling for what non-linear models must beat.</div>
-        <div style='margin-top:10px;font-size:0.75rem;color:#94a3b8;font-style:italic;'>Run 0501_PCA_allfeat.ipynb to populate results.</div>
+        <div style='margin-top:10px;font-size:0.75rem;color:#64748b;font-style:italic;'>Run 0501_PCA_allfeat.ipynb to populate results.</div>
       </div>
     </div>
     """
@@ -539,19 +553,19 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <div class='step-why'>Principal Component Analysis compresses the 20-feature set into orthogonal components, eliminating residual multicollinearity for linear and Bayesian estimators.</div>
     <div style='margin-top:12px;display:flex;gap:24px;align-items:center;justify-content:center;'>
       <div style='display:flex;flex-direction:column;gap:4px;'>
-        <div style='font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Cumulative variance</div>
+        <div style='font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Cumulative variance</div>
         <div style='display:flex;align-items:center;gap:8px;'>
           <div style='width:160px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;'>
         <div style='width:90%;height:100%;background:#21918c;border-radius:4px;'></div>
           </div>
           <span style='font-family:monospace;font-size:0.72rem;color:#21918c;font-weight:700;'>90%</span>
         </div>
-        <div style='font-size:0.68rem;color:#94a3b8;margin-top:2px;'>captured by 12 of 20 components</div>
+        <div style='font-size:0.68rem;color:#64748b;margin-top:2px;'>captured by 12 of 20 components</div>
       </div>
       <div style='display:flex;flex-direction:column;gap:6px;'>
-        <div style='font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Compression</div>
+        <div style='font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;'>Compression</div>
         <div style='font-family:monospace;font-size:0.72rem;color:#64748b;'>20 features &nbsp;→&nbsp; <span style='color:#21918c;font-weight:700;'>12 components</span></div>
-        <div style='font-size:0.68rem;color:#94a3b8;'>40% dimensionality reduction</div>
+        <div style='font-size:0.68rem;color:#64748b;'>40% dimensionality reduction</div>
       </div>
     </div>
     <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>4,765 rows × 22 columns &nbsp;(12 components + 10 categorical)</div>
@@ -577,26 +591,26 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <div class='step-label' style='color:#21918c'>Categorical Curation</div>
     <div class='step-why'>Selection driven by Mutual Information + Chi&#178; validated against human domain expertise.</div>
     <div style='margin-top:12px;display:flex;flex-direction:column;gap:4px;'>
-      <div style='font-size:0.75rem;color:#94a3b8;margin-bottom:4px;'>10 categorical</div>
+      <div style='font-size:0.75rem;color:#64748b;margin-bottom:4px;'>10 categorical</div>
       <div style='border-left:3px solid #21918c;'>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;gap:3px 8px;font-size:0.60rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'><span>SPATIAL</span><span></span><span style='text-align:right;'>MI</span><span style='text-align:right;'>CHI2</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>dropoff_h3_hex_id &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:100%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.967</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>83,801</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>dropoff_polygon_id &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:70.7%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.684</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>69,959</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>dropoff_hdbscan_id &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:41.4%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.400</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>8,806</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>final_zone_id &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span> <span class='fn-wrap fn-left'><span class='fn-mark' style='font-size:0.65rem;color:#000;font-weight:900;cursor:default;border-bottom:none;'>ⓘ</span><span class='fn-tooltip' style='font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:220px;left:0;transform:none;'>A geospatial coalescence of manual polygons and HDBSCAN clusters. Selected over H3 hex grids to preserve domain explainability and prevent overfitting.</span></span></span><div style='height:5px;background:#21918c;border-radius:3px;width:69.4%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.671</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>24.9</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;gap:3px 8px;font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.5px;padding:4px 12px;'><span>SPATIAL</span><span></span><span style='text-align:right;'>MI</span><span style='text-align:right;'>CHI2</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>dropoff_h3_hex_id &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:100%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.967</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>83,801</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>dropoff_polygon_id &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:70.7%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.684</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>69,959</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>dropoff_hdbscan_id &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:41.4%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.400</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>8,806</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>final_zone_id &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span> <span class='fn-wrap fn-left'><span class='fn-mark' style='font-size:0.65rem;color:#000;font-weight:900;cursor:default;border-bottom:none;'>ⓘ</span><span class='fn-tooltip' style='font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:220px;left:0;transform:none;'>A geospatial coalescence of manual polygons and HDBSCAN clusters. Selected over H3 hex grids to preserve domain explainability and prevent overfitting.</span></span></span><div style='height:5px;background:#21918c;border-radius:3px;width:69.4%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.671</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>24.9</span></div>
       </div>
       <div style='border-left:3px solid rgba(33,145,140,0.5);'>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;gap:3px 8px;font-size:0.60rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'><span>TEMPORAL</span><span></span><span style='text-align:right;'>MI</span><span style='text-align:right;'>CHI2</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>hour_of_day &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span><div style='height:5px;background:#21918c;border-radius:3px;width:100%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.071</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>257.9</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>day_of_week &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span><div style='height:5px;background:#21918c;border-radius:3px;width:35.2%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.025</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>101.2</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>day_type &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:21.1%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.015</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>30.2</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>time_of_day_block &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:12.7%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.009</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>38.9</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;gap:3px 8px;font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.5px;padding:4px 12px;'><span>TEMPORAL</span><span></span><span style='text-align:right;'>MI</span><span style='text-align:right;'>CHI2</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>hour_of_day &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span><div style='height:5px;background:#21918c;border-radius:3px;width:100%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.071</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>257.9</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>day_of_week &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span><div style='height:5px;background:#21918c;border-radius:3px;width:35.2%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.025</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>101.2</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>day_type &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:21.1%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.015</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>30.2</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>time_of_day_block &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:12.7%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.009</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>38.9</span></div>
       </div>
       <div style='border-left:3px solid rgba(33,145,140,0.25);'>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;gap:3px 8px;font-size:0.60rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;padding:4px 12px;'><span>CONTEXTUAL</span><span></span><span style='text-align:right;'>MI</span><span style='text-align:right;'>CHI2</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>heuristic_flag_context &nbsp;<span style='color:#f59e0b;font-size:0.6rem;'>&#9888;</span> <span class='fn-wrap fn-left'><span class='fn-mark' style='font-size:0.65rem;color:#000;font-weight:900;cursor:default;border-bottom:none;'>ⓘ</span><span class='fn-tooltip' style='font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:250px;left:0;transform:none;'>The dominant signal in early SHAP audits. Constitutes expert-encoded bias (data leakage); retained here strictly to establish the baseline for the algorithmic tournament.</span></span></span><div style='height:5px;background:#f59e0b;border-radius:3px;width:100%;opacity:0.6;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.302</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>8,472</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>product_category_fk &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span><div style='height:5px;background:#21918c;border-radius:3px;width:10.9%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.033</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>182.4</span></div>
-        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>driver_state_at_request_fk &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:1%;min-width:3px;'></div><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>0.003</span><span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;text-align:right;'>18.9</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;gap:3px 8px;font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.5px;padding:4px 12px;'><span>CONTEXTUAL</span><span></span><span style='text-align:right;'>MI</span><span style='text-align:right;'>CHI2</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>heuristic_flag_context &nbsp;<span style='color:#f59e0b;font-size:0.6rem;'>&#9888;</span> <span class='fn-wrap fn-left'><span class='fn-mark' style='font-size:0.65rem;color:#000;font-weight:900;cursor:default;border-bottom:none;'>ⓘ</span><span class='fn-tooltip' style='font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:250px;left:0;transform:none;'>The dominant signal in early SHAP audits. Constitutes expert-encoded bias (data leakage); retained here strictly to establish the baseline for the algorithmic tournament.</span></span></span><div style='height:5px;background:#f59e0b;border-radius:3px;width:100%;opacity:0.6;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.302</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>8,472</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>product_category_fk &nbsp;<span style='color:#22c55e;font-size:0.6rem;'>✓</span></span><div style='height:5px;background:#21918c;border-radius:3px;width:10.9%;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.033</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>182.4</span></div>
+        <div style='display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.9fr) 44px 56px;align-items:center;gap:3px 8px;padding:4px 12px;border-top:1px solid rgba(0,0,0,0.04);'><span style='font-family:monospace;font-size:0.68rem;color:#64748b;display:flex;align-items:center;gap:4px;'>driver_state_at_request_fk &nbsp;<span style='color:#ef4444;font-size:0.6rem;'>✕</span></span><div style='height:5px;background:rgba(100,116,139,0.25);border-radius:3px;width:1%;min-width:3px;'></div><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>0.003</span><span style='font-family:monospace;font-size:0.62rem;color:#64748b;text-align:right;'>18.9</span></div>
       </div>
     </div>
     <div style='margin-top:10px;font-size:0.75rem;color:#21918c;font-weight:600;'>5 categorical survivors</div>
@@ -627,7 +641,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>A-LEAGUE</span>
         <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>41 numerical + 5 categorical</div>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Wide Set · Control Group</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>Validates that expert pruning did not destroy latent signal.</div>
+        <div style='font-size:0.75rem;color:#64748b;line-height:1.5;'>Validates that expert pruning did not destroy latent signal.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
@@ -635,7 +649,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>B-LEAGUE</span>
         <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>20 numerical + 5 categorical</div>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · Raw</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
+        <div style='font-size:0.75rem;color:#64748b;line-height:1.5;'>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
         <span style='display:inline-block;font-size:0.65rem;font-weight:700;letter-spacing:1px;
@@ -643,7 +657,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>C-LEAGUE</span>
         <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>12 components + 5 categorical</div>
         <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · PCA</div>
-        <div style='font-size:0.75rem;color:#94a3b8;line-height:1.5;'>Orthogonal projection of B-League designed for linear and Bayesian purity.</div>
+        <div style='font-size:0.75rem;color:#64748b;line-height:1.5;'>Orthogonal projection of B-League designed for linear and Bayesian purity.</div>
       </div>
     </div>
   </div>
@@ -658,54 +672,54 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
   <div style='font-size:0.85rem;color:#777;line-height:1.6;margin-bottom:4px;font-family:Inter,sans-serif;font-weight:400;'>Five algorithms entered the arena in sequence, each benchmarked across all three feature leagues. This multi-trial framework is designed to capture the baseline predictive signal before introducing non-linear complexity.</div>
   <div style='display:flex;gap:28px;margin-top:14px;justify-content:center;'>
     <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
-      <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Training</div>
+      <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Training</div>
       <div style='font-size:0.72rem;font-weight:600;color:#334155;'>Weeks 1 &#8211; 5</div>
     </div>
     <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
-      <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>OOT Holdout</div>
+      <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>OOT Holdout</div>
       <div style='font-size:0.72rem;font-weight:600;color:#334155;'>Week 6</div>
     </div>
     <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
-      <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Scoring Metric</div>
+      <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Scoring Metric</div>
       <div style='font-size:0.72rem;font-weight:600;color:#334155;'>F1-Macro</div>
     </div>
   </div>
 </div>
 <div style='border:1px solid rgba(0,0,0,0.07);border-radius:8px;overflow:hidden;'>
-  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:0.6px;padding:8px 14px;background:#f8fafc;border-bottom:1px solid rgba(0,0,0,0.06);'>
+  <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;font-size:0.59rem;font-weight:700;color:#64748b;letter-spacing:0.6px;padding:8px 14px;background:#f8fafc;border-bottom:1px solid rgba(0,0,0,0.06);'>
     <span>TRIAL</span><span>ALGORITHM</span><span>TRAINING</span><span style='color:#64748b;'>A-LEAGUE</span><span style='color:#21918c;'>B-LEAGUE</span><span>C-LEAGUE</span>
   </div>
   <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
-    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>1 &nbsp;floor</span>
+    <span style='font-family:monospace;font-size:0.62rem;color:#64748b;'>1 &nbsp;floor</span>
     <span style='font-size:0.72rem;color:#334155;'>Gaussian NB</span>
-    <span style='font-size:0.68rem;color:#94a3b8;'>Chronological</span>
+    <span style='font-size:0.68rem;color:#64748b;'>Chronological</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.257</span><div style='height:3px;background:#64748b;border-radius:2px;width:33.8%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.257</span><div style='height:3px;background:#21918c;border-radius:2px;width:33.8%;margin-top:3px;opacity:0.4;'></div></div>
-    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.256</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:33.6%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.256</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:33.6%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
   <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
-    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>2 &nbsp;linear</span>
+    <span style='font-family:monospace;font-size:0.62rem;color:#64748b;'>2 &nbsp;linear</span>
     <span style='font-size:0.72rem;color:#334155;'>Logistic Regression</span>
-    <span style='font-size:0.68rem;color:#94a3b8;'>Time-Series Split</span>
+    <span style='font-size:0.68rem;color:#64748b;'>Time-Series Split</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.482</span><div style='height:3px;background:#64748b;border-radius:2px;width:63.3%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.514</span><div style='height:3px;background:#21918c;border-radius:2px;width:67.5%;margin-top:3px;opacity:0.4;'></div></div>
-    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.490</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:64.4%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.490</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:64.4%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
   <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
-    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>3 &nbsp;theoretical</span>
+    <span style='font-family:monospace;font-size:0.62rem;color:#64748b;'>3 &nbsp;theoretical</span>
     <span style='font-size:0.72rem;color:#334155;'>Logistic Reg (k-fold)</span>
-    <span style='font-size:0.68rem;color:#94a3b8;'>Stratified K-Fold</span>
+    <span style='font-size:0.68rem;color:#64748b;'>Stratified K-Fold</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.687</span><div style='height:3px;background:#64748b;border-radius:2px;width:90.3%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.716</span><div style='height:3px;background:#21918c;border-radius:2px;width:94.1%;margin-top:3px;opacity:0.4;'></div></div>
-    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.691</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:90.8%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.691</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:90.8%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
   <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);'>
-    <span style='font-family:monospace;font-size:0.62rem;color:#94a3b8;'>4 &nbsp;scout</span>
+    <span style='font-family:monospace;font-size:0.62rem;color:#64748b;'>4 &nbsp;scout</span>
     <span style='font-size:0.72rem;color:#334155;'>Decision Tree</span>
-    <span style='font-size:0.68rem;color:#94a3b8;'>Time-Series Split</span>
+    <span style='font-size:0.68rem;color:#64748b;'>Time-Series Split</span>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.336</span><div style='height:3px;background:#64748b;border-radius:2px;width:44.2%;margin-top:3px;opacity:0.5;'></div></div>
     <div><span style='font-family:monospace;font-size:0.72rem;color:#21918c;'>0.474</span><div style='height:3px;background:#21918c;border-radius:2px;width:62.3%;margin-top:3px;opacity:0.4;'></div></div>
-    <div><span style='font-family:monospace;font-size:0.72rem;color:#94a3b8;'>0.373</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:49.0%;margin-top:3px;opacity:0.5;'></div></div>
+    <div><span style='font-family:monospace;font-size:0.72rem;color:#64748b;'>0.373</span><div style='height:3px;background:#94a3b8;border-radius:2px;width:49.0%;margin-top:3px;opacity:0.5;'></div></div>
   </div>
   <div style='display:grid;grid-template-columns:100px 1fr 150px 108px 108px 108px;gap:0 8px;align-items:center;padding:9px 14px;border-top:1px solid rgba(0,0,0,0.04);background:rgba(33,145,140,0.04);'>
     <span style='font-family:monospace;font-size:0.62rem;color:#21918c;font-weight:700;'>5 &nbsp;champion</span>
@@ -716,16 +730,16 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     <span style='font-family:monospace;font-size:0.70rem;color:#cbd5e1;font-style:italic;'>retired</span>
   </div>
 </div>
-<div style='margin-top:10px;font-size:0.65rem;color:#94a3b8;font-style:italic;'>C-League retired at Trial 4 &#8212; PCA compression discards the variance XGBoost needs to split on.</div>
+<div style='margin-top:10px;font-size:0.65rem;color:#64748b;font-style:italic;'>C-League retired at Trial 4 &#8212; PCA compression discards the variance XGBoost needs to split on.</div>
 <div style='margin-top:56px;margin-bottom:56px;display:flex;align-items:center;gap:20px;justify-content:center;'>
   <div style='flex-shrink:0;text-align:center;'>
     <div style='font-family:monospace;font-size:2.4rem;font-weight:700;color:#21918c;line-height:1;'>0.761</div>
-    <div style='font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-top:4px;'>F1-MACRO</div>
+    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1px;margin-top:4px;'>F1-MACRO</div>
   </div>
   <div style='width:1px;height:48px;background:rgba(33,145,140,0.2);flex-shrink:0;'></div>
   <div>
     <div style='font-size:0.88rem;font-weight:700;color:#164e4b;margin-bottom:3px;'>XGBoost &nbsp;&#183;&nbsp; B-League (Curated Raw)</div>
-    <div style='font-size:0.75rem;color:#94a3b8;line-height:1.6;'>OOT Holdout (W1&#8211;5 train, W6 test) &nbsp;&#183;&nbsp; Advances to Phase 3 as the behavioral cloning backbone.</div>
+    <div style='font-size:0.75rem;color:#64748b;line-height:1.6;'>OOT Holdout (W1&#8211;5 train, W6 test) &nbsp;&#183;&nbsp; Advances to Phase 3 as the behavioral cloning backbone.</div>
   </div>
 </div>
 <div style='margin-top:52px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 16px;'>
@@ -757,7 +771,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
             _reasons = _pivot.index.tolist()
             _pct = _pivot.div(_pivot.sum(axis=0), axis=1) * 100
             _week_headers = "".join([
-                f"<span style='font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-align:center;'>{'W6 OOT' if w == _weeks[-1] else f'W{i+1}'}</span>"
+                f"<span style='font-size:0.59rem;font-weight:700;color:#64748b;letter-spacing:0.5px;text-align:center;'>{'W6 OOT' if w == _weeks[-1] else f'W{i+1}'}</span>"
                 for i, w in enumerate(_weeks)
             ])
             _grid_cols = f"1fr repeat({len(_weeks)}, 52px)"
@@ -774,7 +788,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                     _cells += (
                         f"<div style='text-align:center;padding:4px 2px;background:{bg};border-radius:3px;{border}'>"
                         f"<div style='font-family:monospace;font-size:0.65rem;color:#334155;font-weight:600;'>{pct:.0f}%</div>"
-                        f"<div style='font-family:monospace;font-size:0.55rem;color:#94a3b8;'>{n}</div>"
+                        f"<div style='font-family:monospace;font-size:0.55rem;color:#64748b;'>{n}</div>"
                         f"</div>"
                     )
                 _rows_html += (
@@ -794,16 +808,16 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                 )
             _totals_row = (
                 f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:4px;align-items:center;padding:1px 0;border-top:1px solid rgba(0,0,0,0.12);margin-top:2px;'>"
-                f"<span style='font-family:monospace;font-size:0.60rem;color:#94a3b8;font-weight:700;letter-spacing:0.5px;'>TOTAL</span>"
+                f"<span style='font-family:monospace;font-size:0.60rem;color:#64748b;font-weight:700;letter-spacing:0.5px;'>TOTAL</span>"
                 f"{_totals_cells}</div>"
             )
             _heatmap_html = (
                 f"<div style='margin-top:56px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>A temporal breakdown of the target variables confirms the structural integrity of the dataset. Tracking class distribution across the six-week horizon validates that the agent&#8217;s decision policy does not suffer from fundamental concept drift, safely clearing the path for K-Fold shuffling.</div>"
                 f"<div style='margin-top:28px;border-top:1px solid rgba(0,0,0,0.06);padding-top:20px;max-width:820px;margin-left:auto;margin-right:auto;'>"
-                f"<div style='font-size:0.59rem;font-weight:700;color:#94a3b8;letter-spacing:1.5px;margin-bottom:10px;'>CLASS DISTRIBUTION BY WEEK &nbsp;&#8212;&nbsp; REASON PRIMARY</div>"
+                f"<div style='font-size:0.59rem;font-weight:700;color:#64748b;letter-spacing:1.5px;margin-bottom:10px;'>CLASS DISTRIBUTION BY WEEK &nbsp;&#8212;&nbsp; REASON PRIMARY</div>"
                 f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:4px;padding:0 0 6px;'><span></span>{_week_headers}</div>"
                 f"{_rows_html}{_totals_row}"
-                f"<div style='margin-top:8px;font-size:0.65rem;color:#94a3b8;font-style:italic;'>W6 = OOT holdout, unseen during training. Minority class shift across weeks motivates Stratified K-Fold over strict time-splits.</div>"
+                f"<div style='margin-top:8px;font-size:0.65rem;color:#64748b;font-style:italic;'>W6 = OOT holdout, unseen during training. Minority class shift across weeks motivates Stratified K-Fold over strict time-splits.</div>"
                 f"</div>"
             )
             st.markdown(_heatmap_html, unsafe_allow_html=True)
@@ -841,14 +855,14 @@ This section shows how a monolithic class architecture fails because determinist
 <div style='display:grid;grid-template-columns:1fr auto 2fr;align-items:center;gap:0;margin-bottom:36px;'>
   <div class='bento-card'>
     <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;'>Monolith</div>
-    <div style='font-size:0.55rem;color:#94a3b8;margin-bottom:6px;'>Single Stage · 7 Classes</div>
+    <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Single Stage · 7 Classes</div>
     <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
       <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.61</div>
       <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
     </div>
     <div style='display:flex;gap:5px;flex-wrap:wrap;'>
-      <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.941</span>
-      <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 76%</span>
+      <span style='font-size:0.58rem;font-weight:600;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.941</span>
+      <span style='font-size:0.58rem;font-weight:600;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 76%</span>
     </div>
   </div>
   <div style='padding:0 14px;color:#cbd5e1;font-size:1rem;text-align:center;'>→</div>
@@ -856,26 +870,26 @@ This section shows how a monolithic class architecture fails because determinist
     <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade</div>
     <div style='display:grid;grid-template-columns:1fr 1px 1fr;gap:0;'>
       <div style='padding-right:16px;'>
-        <div style='font-size:0.55rem;color:#94a3b8;margin-bottom:6px;'>Layer 1 · 5 Classes</div>
+        <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Layer 1 · 5 Classes</div>
         <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
           <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.76</div>
           <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
         </div>
         <div style='display:flex;gap:5px;flex-wrap:wrap;'>
-          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.941</span>
-          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 81%</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.941</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 81%</span>
         </div>
       </div>
       <div style='background:#e2e8f0;'></div>
       <div style='padding-left:16px;'>
-        <div style='font-size:0.55rem;color:#94a3b8;margin-bottom:6px;'>Layer 2 · 3 Classes</div>
+        <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Layer 2 · 3 Classes</div>
         <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
           <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.91</div>
           <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
         </div>
         <div style='display:flex;gap:5px;flex-wrap:wrap;'>
-          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.981</span>
-          <span style='font-size:0.58rem;font-weight:600;color:#94a3b8;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 91%</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>AUC 0.981</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 9px;'>Acc 91%</span>
         </div>
       </div>
     </div>
@@ -985,7 +999,7 @@ This section shows how a monolithic class architecture fails because determinist
                     f"<div style='margin-top:4px;margin-left:{_nc_margin}px;width:{_nc_width}px;"
                     f"display:flex;align-items:center;gap:4px;'>"
                     f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);margin-left:40px;'></div>"
-                    f"<span style='font-size:0.52rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;"
+                    f"<span style='font-size:0.52rem;font-weight:700;color:#64748b;letter-spacing:0.8px;"
                     f"text-transform:uppercase;white-space:nowrap;'>nuanced</span>"
                     f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);'></div>"
                     f"</div>"
@@ -996,7 +1010,7 @@ This section shows how a monolithic class architecture fails because determinist
             # "Predicted" axis label centered under the data columns only
             _pred_label = f"<div style='display:grid;grid-template-columns:{_grid_cols};margin-top:8px;'>"
             _pred_label += "<div></div>"
-            _pred_label += f"<div style='grid-column:2/{_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div>"
+            _pred_label += f"<div style='grid-column:2/{_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div>"
             _pred_label += "</div>"
 
             _cr = _mono["classification_report"]
@@ -1014,7 +1028,7 @@ This section shows how a monolithic class architecture fails because determinist
 <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:40px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
 <div style='padding-bottom:90px;'>
 <div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
-  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+  <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
   <div>
     {_rows_html}
     {_bot}
@@ -1031,54 +1045,54 @@ This section shows how a monolithic class architecture fails because determinist
 </div>""", unsafe_allow_html=True)
 
             st.markdown(f"""
-<div style='font-size:0.65rem;font-weight:600;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;margin-top:40px;border-left:2px solid rgba(33,145,140,0.3);padding-left:8px;'>Autopsy Report</div>
-<div style='margin:0 auto;max-width:780px;border:1px solid rgba(33,145,140,0.2);border-radius:8px;overflow:hidden;'>
-  <div style='display:grid;grid-template-columns:140px 1fr 1fr 1fr;'>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Strategic Mismatch</div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Expected Value Gamble</div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Accepted</div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);'>
-      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
-      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Negative</div>
+<div style='font-size:0.65rem;font-weight:600;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;margin-top:40px;border-left:2px solid rgba(33,145,140,0.3);padding-left:8px;'>Autopsy Report</div>
+<div style='display:flex;justify-content:center;'><div style='display:inline-block;border:1px solid rgba(33,145,140,0.2);border-radius:6px;overflow:hidden;'>
+  <div style='display:grid;grid-template-columns:100px 1fr 1fr 1fr;'>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Strategic Mismatch</div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Expected Value Gamble</div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Accepted</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.62rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
+      <div style='font-size:0.58rem;color:#94a3b8;margin-top:1px;'>False Negative</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_sm_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_sm_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_ev_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_ev_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_ac_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_ac_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;'>
-      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
-      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Positive</div>
+    <div style='padding:8px 10px;'>
+      <div style='font-size:0.62rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
+      <div style='font-size:0.58rem;color:#94a3b8;margin-top:1px;'>False Positive</div>
     </div>
-    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_sm_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_sm_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
-    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_ev_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_ev_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
-    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_ac_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_ac_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
   </div>
-</div>
+</div></div>
 """, unsafe_allow_html=True)
 
             st.markdown("""
 <div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>
   A simultaneous collapse across both Type I and Type II metrics confirms a complete failure to map mathematical boundaries. With up to 96% of critical events undetected and severe false-alarm rates when triggered, the model isn&#8217;t inferring complex intent&#8202;&#8212;&#8202;it is simply guessing blindly.
 </div>
-<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#94a3b8;font-family:monospace;text-align:center;'>
+<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
   Monolith &middot; F1-macro 0.61 &middot; <span style='color:#b91c1c;'>✗ architecture insufficient</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Cognitive Cascade <span style='color:#21918c;'>→</span>
 </div>
 """, unsafe_allow_html=True)
@@ -1106,7 +1120,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
     </div>
   </div>
   <div style='display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 16px;'>
-    <div style='font-size:0.55rem;font-weight:700;color:#94a3b8;'>19.4%</div>
+    <div style='font-size:0.55rem;font-weight:700;color:#64748b;'>19.4%</div>
     <div style='color:#21918c;font-size:1.1rem;'>→</div>
   </div>
   <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>
@@ -1177,11 +1191,11 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
                 f"<div></div>"
                 f"<div style='grid-column:2/{_l1_n+2};display:flex;align-items:center;gap:4px;padding:0 2px;'>"
                 f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);'></div>"
-                f"<span style='font-size:0.52rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>nuanced →</span>"
+                f"<span style='font-size:0.52rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>nuanced →</span>"
                 f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);'></div>"
                 f"</div></div>"
             )
-            _l1_pred = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+            _l1_pred = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
             # Canonical L2 order: matches monolith column order for cognitive consistency
             _L2_CANONICAL = ["strategic_mismatch", "expected_value_gamble", "accepted"]
@@ -1225,17 +1239,17 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             for _lbl in _l2_labels:
                 _l2_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
             _l2_bot += "</div>"
-            _l2_pred = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+            _l2_pred = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
             st.markdown(f"""
-<div style='margin-top:56px;margin-bottom:4px;font-size:0.75rem;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>Cognitive Cascade · Theoretical Ceiling</div>
+<div style='margin-top:56px;margin-bottom:4px;font-size:0.75rem;font-weight:700;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>Cognitive Cascade · Theoretical Ceiling</div>
 <div style='height:1px;background:linear-gradient(90deg,#21918c,transparent);margin-bottom:28px;'></div>
 <div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>Layer 2 was evaluated in strict isolation using 100% of the ground-truth nuanced holdout. This prevents selection bias and establishes the theoretical performance ceiling of the Nuance Engine before introducing cascading errors from Layer 1.</div>
 <div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:25px;'>
   <div>
     <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 1</div>
     <div style='display:flex;gap:2px;align-items:center;'>
-      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
       <div>{_l1_rows_html}{_l1_bot}{_l1_pred}</div>
     </div>
   </div>
@@ -1247,7 +1261,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
   <div>
     <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 2</div>
     <div style='display:flex;gap:2px;align-items:center;'>
-      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
       <div>{_l2_rows_html}{_l2_bot}{_l2_pred}</div>
     </div>
   </div>
@@ -1278,56 +1292,56 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
   <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Diagnostic</div>
   <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>Shattering the monolith&#8217;s baseline of {_m_sm_r}%, {_m_ev_r}%, and {_m_ac_r}%, Layer 2 achieves a theoretical recall ceiling of &gt;{_l2_min_recall}% across all three nuanced classes.</div>
 </div>
-<div style='font-size:0.65rem;font-weight:600;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;margin-top:40px;border-left:2px solid rgba(33,145,140,0.3);padding-left:8px;'>Autopsy Report</div>
-<div style='margin:0 auto;max-width:900px;border:1px solid rgba(33,145,140,0.2);border-radius:8px;overflow:hidden;'>
-  <div style='display:grid;grid-template-columns:140px 1fr 1fr 1fr 1fr;'>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Nuanced Rest<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L1</span></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:3px solid rgba(33,145,140,0.35);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Strategic Mismatch<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L2</span></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Expected Value Gamble<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L2</span></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Accepted<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L2</span></div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);'>
-      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
-      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Negative</div>
+<div style='font-size:0.65rem;font-weight:600;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;margin-top:40px;border-left:2px solid rgba(33,145,140,0.3);padding-left:8px;'>Autopsy Report</div>
+<div style='display:flex;justify-content:center;'><div style='display:inline-block;border:1px solid rgba(33,145,140,0.2);border-radius:6px;overflow:hidden;'>
+  <div style='display:grid;grid-template-columns:100px 1fr 1fr 1fr 1fr;'>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Nuanced Rest &nbsp;<span style='font-size:0.50rem;color:#94a3b8;font-weight:500;letter-spacing:0;'>L1</span></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:2px solid rgba(33,145,140,0.35);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Strategic Mismatch &nbsp;<span style='font-size:0.50rem;color:#94a3b8;font-weight:500;letter-spacing:0;'>L2</span></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Expected Value Gamble &nbsp;<span style='font-size:0.50rem;color:#94a3b8;font-weight:500;letter-spacing:0;'>L2</span></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Accepted &nbsp;<span style='font-size:0.50rem;color:#94a3b8;font-weight:500;letter-spacing:0;'>L2</span></div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.62rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
+      <div style='font-size:0.58rem;color:#94a3b8;margin-top:1px;'>False Negative</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_nr_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_nr_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:3px solid rgba(33,145,140,0.35);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_csm_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:2px solid rgba(33,145,140,0.35);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_csm_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_cev_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_cev_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_cac_t2}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_cac_t2}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>undetected</div>
     </div>
-    <div style='padding:14px;'>
-      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
-      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Positive</div>
+    <div style='padding:8px 10px;'>
+      <div style='font-size:0.62rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
+      <div style='font-size:0.58rem;color:#94a3b8;margin-top:1px;'>False Positive</div>
     </div>
-    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_nr_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_nr_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
-    <div style='padding:14px;border-left:3px solid rgba(33,145,140,0.35);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_csm_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:2px solid rgba(33,145,140,0.35);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_csm_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
-    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_cev_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_cev_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
-    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
-      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_cac_t1}%</div>
-      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_cac_t1}%</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:2px;'>false alarms</div>
     </div>
   </div>
-</div>
+</div></div>
 """, unsafe_allow_html=True)
 
             st.markdown("""
@@ -1338,7 +1352,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 
             # ── Threshold Simulator ───────────────────────────────────────────────
             st.markdown("""
-<div style='margin-top:56px;margin-bottom:4px;font-size:0.75rem;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>THRESHOLD SIMULATOR</div>
+<div style='margin-top:56px;margin-bottom:4px;font-size:0.75rem;font-weight:700;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>THRESHOLD SIMULATOR</div>
 <div style='height:1px;background:linear-gradient(90deg,#21918c,transparent);margin-bottom:16px;'></div>
 <div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>To simulate real-world production, this interactive module allows you to tune Layer&#160;1&#8217;s nuanced recall threshold, visualizing exactly how upstream signal capture impacts the data routed to Layer&#160;2.</div>
 """, unsafe_allow_html=True)
@@ -1351,11 +1365,18 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 
             _df_sim = _load_sim_parquet_v3()
 
-            _thresh_pct = st.slider(
-                "Layer 1 — nuanced_rest classification threshold",
-                min_value=1, max_value=99, value=50, step=1, format="%d%%",
+            if "sim_thresh_pct" not in st.session_state:
+                st.session_state["sim_thresh_pct"] = 50
+
+            st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>Layer 1 · nuanced_rest classification threshold</div>", unsafe_allow_html=True)
+            st.slider(
+                label="threshold",
+                label_visibility="collapsed",
+                key="sim_thresh_pct",
+                min_value=1, max_value=99, step=1, format="%d%%",
                 help="Adjusts the probability cutoff at which Layer 1 routes an observation to Layer 2 as nuanced_rest. At 50% (sklearn default) the behavior matches the static matrices above. Lower = more signal captured, more noise introduced."
             )
+            _thresh_pct = st.session_state["sim_thresh_pct"]
             _T = _thresh_pct / 100
 
             # Normalize labels from parquet (may be uppercase from le.inverse_transform)
@@ -1399,13 +1420,14 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
                         _ico = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#f59e0b;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>→</span>"
                     else:
                         _ico = ""
-                    _sim_l1_rows += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'>{_ico}<div style='font-size:0.85rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                    _border = "box-shadow:0 0 0 2px rgba(245,158,11,0.55);" if (_diag and tc == "the_nuanced_rest") else ""
+                    _sim_l1_rows += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;{_border}'>{_ico}<div style='font-size:0.85rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
                 _sim_l1_rows += "</div>"
             _sim_l1_bot = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-top:4px;'><div></div>"
             for _lbl in _SIM_L1_ORDER:
                 _sim_l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_sim_l1_display.get(_lbl,_lbl).replace('_',' ')}</div>"
             _sim_l1_bot += "</div>"
-            _sim_l1_pred = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};margin-top:8px;'><div></div><div style='grid-column:2/{_sim_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+            _sim_l1_pred = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};margin-top:8px;'><div></div><div style='grid-column:2/{_sim_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
             # L2: true nuanced routed to L2
             _SIM_L2_ORDER  = ["strategic_mismatch", "expected_value_gamble", "accepted"]
@@ -1442,7 +1464,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             _sim_l2_bot  = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:2px;margin-top:4px;'><div></div>"
             _sim_l2_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _SIM_L2_ORDER)
             _sim_l2_bot += "</div>"
-            _sim_l2_pred = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;'>Predicted</div></div>"
+            _sim_l2_pred = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted</div></div>"
 
             # FP matrix: non-nuanced routed to L2 by L1 (false positives)
             _fp_mask       = (_pred_l1 == "the_nuanced_rest") & (_sim_l1_ytrue != "the_nuanced_rest")
@@ -1464,7 +1486,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
                 _rt = _sim_fp_row_sums[i] or 1
                 _lbl = _sim_fp_display.get(tc, tc)
                 _sim_fp_rows += f"<div style='display:grid;grid-template-columns:{_sm_lw}px {' '.join([f'{_sm_cw}px']*_sim_l2_n)};gap:2px;margin-bottom:2px;'>"
-                _sim_fp_rows += f"<div style='font-size:0.50rem;color:#94a3b8;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{_lbl}</div>"
+                _sim_fp_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{_lbl}</div>"
                 for j, pc in enumerate(_SIM_L2_ORDER):
                     _val = _sim_fp_cm[i][j]; _pct = _val / _rt
                     if _val == 0:
@@ -1478,24 +1500,49 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             _sim_fp_bot  = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};gap:2px;margin-top:4px;'><div></div>"
             _sim_fp_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _SIM_L2_ORDER)
             _sim_fp_bot += "</div>"
-            _sim_fp_pred = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;'>L2 Predicted</div></div>"
+            _sim_fp_pred = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>L2 Predicted</div></div>"
 
             _nr_routed = int(_routed_mask.sum())
             _nr_total  = int((_sim_l1_ytrue == "the_nuanced_rest").sum())
 
             st.markdown(f"""
-<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;'>Cascade · Threshold @ {_thresh_pct}%</div>
-<div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:28px;'>
-  Layer 1 routes <strong style='color:#21918c;'>{_nr_routed} of {_nr_total}</strong> true nuanced observations to Layer 2
-  {f"(+{_fp_count} non-nuanced false positives also routed)." if _fp_count > 0 else "."}
-
+<div style='display:flex;align-items:center;gap:0;margin-bottom:28px;justify-content:center;'>
+  <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>
+    <div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'>
+      <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Layer 1</div>
+    </div>
+    <div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;display:flex;justify-content:space-between;'>
+        <span>total holdout</span><span style='font-weight:700;color:#64748b;'>{len(_df_sim)}</span>
+      </div>
+      <div style='background:rgba(33,145,140,0.08);border:1px solid rgba(33,145,140,0.3);border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#21918c;font-weight:700;display:flex;justify-content:space-between;'>
+        <span>→ nuanced_rest</span><span>{_nr_routed + _fp_count}</span>
+      </div>
+    </div>
+  </div>
+  <div style='display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 16px;'>
+    <div style='font-size:0.55rem;font-weight:700;color:#64748b;'>{round(_nr_routed/len(_df_sim)*100,1)}%</div>
+    <div style='color:#21918c;font-size:1.1rem;'>→</div>
+  </div>
+  <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>
+    <div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'>
+      <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Layer 2</div>
+    </div>
+    <div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>
+      <div style='background:rgba(33,145,140,0.08);border:1px solid rgba(33,145,140,0.3);border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#21918c;font-weight:700;display:flex;justify-content:space-between;'>
+        <span>true nuanced</span><span>{_nr_routed}</span>
+      </div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;font-weight:600;display:flex;justify-content:space-between;'>
+        <span>false positives</span><span>{_fp_count}</span>
+      </div>
+    </div>
+  </div>
 </div>
-<div style='display:inline-block;background:#fef08a;border:1px solid #eab308;border-radius:4px;padding:4px 10px;font-size:0.68rem;font-weight:600;color:#854d0e;margin-bottom:20px;transform:rotate(-1deg);'>📌 TODO: convertir a tablita</div>
 <div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:start;padding-bottom:25px;'>
   <div>
     <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 1</div>
     <div style='display:flex;gap:2px;align-items:center;'>
-      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
       <div>{_sim_l1_rows}{_sim_l1_bot}{_sim_l1_pred}</div>
     </div>
   </div>
@@ -1506,21 +1553,21 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
   </div>
   <div style='display:flex;flex-direction:column;gap:0;align-items:start;'>
     <div>
-      <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 2 · Signal</div>
+      <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 2</div>
       <div style='display:flex;gap:2px;align-items:center;'>
-        <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.50rem;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+        <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
         <div>{_sim_l2_rows}{_sim_l2_bot}{_sim_l2_pred}</div>
       </div>
     </div>
     <div style='display:flex;align-items:center;padding-left:138px;margin-top:6px;margin-bottom:6px;'>
       <div style='width:24px;height:24px;border-radius:999px;background:rgba(100,116,139,0.10);display:flex;align-items:center;justify-content:center;'>
-        <span style='color:#94a3b8;font-size:0.8rem;line-height:1;'>↓</span>
+        <span style='color:#64748b;font-size:0.8rem;line-height:1;'>↓</span>
       </div>
     </div>
     <div>
-      <div style='font-size:0.72rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>L2 False Positives · Routed from L1</div>
+      <div style='font-size:0.72rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>L1 False Positives · Routed to L2</div>
       <div style='display:flex;gap:2px;align-items:center;'>
-        <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.50rem;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;align-self:center;'>L1 Real</div>
+        <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;align-self:center;'>L1 Real</div>
         <div>{_sim_fp_rows}{_sim_fp_bot}{_sim_fp_pred}</div>
       </div>
     </div>
@@ -1593,35 +1640,80 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 
             def _pct(n, d): return f"({round(n/d*100)}%)" if d > 0 else ""
 
+            _ai_ne_human_a2 = _a2["to_sm"] + _a2["to_ev"] + _a2["phantom"]
+            _ai_ne_human_a3 = _a3["to_sm"] + _a3["to_ev"] + _a3["phantom"]
+
             st.markdown(f"""
-<div style='margin-top:40px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 18px;'>
+<div style='margin-top:16px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0;padding:14px 18px;'>
   <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Precision–Recall Tradeoff</div>
   <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>Pushing the threshold toward 100% maximizes conditional precision in Layer 2 at the cost of a recall collapse, allowing very few offers to pass the initial filter. Conversely, pushing it toward 0% preserves recall but introduces a high volume of False Positives into Layer 2, degrading the decision boundaries required to resolve strategic intent.</div>
 </div>
-<div style='font-size:0.65rem;font-weight:600;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;margin-top:40px;border-left:2px solid rgba(33,145,140,0.3);padding-left:8px;'>Accepted · Signal Tracking</div>
-<div style='max-width:700px;border:1px solid rgba(33,145,140,0.2);border-radius:8px;overflow:visible;position:relative;'>
-  <div style='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;'>A1<br><span style='font-weight:500;text-transform:none;letter-spacing:0;'>Ground Truth</span></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;'>A2<br><span style='font-weight:500;text-transform:none;letter-spacing:0;'>Default · 50%</span></div>
-    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>A3<br><span style='font-weight:500;text-transform:none;letter-spacing:0;'>@ {_thresh_pct}%</span></div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);font-size:0.72rem;font-weight:600;color:#334155;'>Human</div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-family:monospace;font-size:1.3rem;font-weight:700;color:#21918c;'>{_a1_total}</div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-family:monospace;font-size:1.3rem;font-weight:700;color:#94a3b8;'>—</div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-family:monospace;font-size:1.3rem;font-weight:700;color:#94a3b8;'>—</div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);font-size:0.72rem;font-weight:600;color:#21918c;'>accepted · Human = AI<div style='font-size:0.58rem;font-weight:400;color:#94a3b8;margin-top:2px;'>offers both the human and the AI accepted</div></div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-family:monospace;font-size:1.3rem;font-weight:700;color:#94a3b8;'>—</div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#21918c;'>{_a2["correct"]}</span> <span style='font-size:0.60rem;color:#94a3b8;'>{_pct(_a2["correct"],_a2["routed"])}</span></div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#21918c;'>{_a3["correct"]}</span> <span style='font-size:0.60rem;color:#94a3b8;'>{_pct(_a3["correct"],_a3["routed"])}</span></div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);font-size:0.72rem;font-weight:600;color:#d97706;'>accepted · AI ≠ Human<div style='font-size:0.58rem;font-weight:400;color:#94a3b8;margin-top:2px;'>offers the AI accepted that the human rejected</div></div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-family:monospace;font-size:1.3rem;font-weight:700;color:#94a3b8;'>—</div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#d97706;'>{_a2["to_sm"]+_a2["to_ev"]+_a2["phantom"]}</span> <span style='font-size:0.60rem;color:#94a3b8;'>{_pct(_a2["to_sm"]+_a2["to_ev"]+_a2["phantom"],_a1_total)}</span></div>
-    <div style='padding:12px 14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#d97706;'>{_a3["to_sm"]+_a3["to_ev"]+_a3["phantom"]}</span> <span style='font-size:0.60rem;color:#94a3b8;'>{_pct(_a3["to_sm"]+_a3["to_ev"]+_a3["phantom"],_a1_total)}</span></div>
-    <div style='padding:12px 14px;font-size:0.72rem;font-weight:600;color:#334155;position:relative;'>Cumulative earnings<span class='fn-wrap' style='position:absolute;top:6px;right:8px;'><span class='fn-mark' style='color:#21918c;'>ⓘ</span><span class='fn-tooltip' style='width:300px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400;'><strong>Imputation method (AI ≠ Human trips)</strong><br>Human earnings are verified realized fares. Non-realized AI fares are estimated via the Causal Inference polynomial model at ΔT = 1.0:<br><br><span style='font-family:monospace;font-size:0.78rem;background:rgba(33,145,140,0.08);padding:4px 8px;border-radius:4px;display:block;'>F̂(ΔT=1) = 6.31 + 0.79 · Upfront Fare</span></span></span><div style='font-size:0.58rem;font-weight:400;color:#94a3b8;margin-top:2px;'>Human: verified realized fares</div></div>
-    <div style='padding:12px 14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#21918c;'>${_a1_earnings:,.0f}</span></div>
-    <div style='padding:12px 14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#21918c;'>${_a2["earn_total"]:,.0f}</span></div>
-    <div style='padding:12px 14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;position:relative;'><span class='fn-wrap fn-left' style='position:absolute;top:6px;right:8px;'><span class='fn-mark' style='color:#21918c;'>ⓘ</span><span class='fn-tooltip' style='width:300px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400;color:#334155;'><strong>Simulator scope caveat</strong><br>Very low thresholds are mathematically valid but operationally impossible. Throughput is strictly capped by deadhead time, transit logistics, and the inability to run concurrent rides. As the threshold drops, Layer 2 accepts a volume of offers that exceeds real-world physical constraints for a single driver.</span></span><span style='font-family:monospace;font-size:1.3rem;font-weight:700;color:#21918c;'>${_a3["earn_total"]:,.0f}</span></div>
+<div style='margin-top:32px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:20px;'>To measure the real-world impact of this tradeoff, the scorecard below translates classification thresholds into financial outcomes, comparing the AI's dynamic yield against the human baseline.</div>
+<div style='display:flex;justify-content:center;'><div style='display:inline-block;border:1px solid rgba(33,145,140,0.2);border-radius:6px;overflow:hidden;'>
+  <div style='display:grid;grid-template-columns:200px 160px 160px 160px;'>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;'>Accepted</div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Human <span style='font-size:0.58rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>Ground Truth</span></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>AI <span style='font-size:0.58rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>Default Threshold</span></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:2px solid rgba(33,145,140,0.4);text-align:center;font-size:0.65rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>AI <span style='font-size:0.58rem;color:#21918c;font-weight:500;letter-spacing:0;text-transform:none;'>Active · {_thresh_pct}%</span></div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.72rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Human Only</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_a1_total}</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#94a3b8;line-height:1;'>—</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:2px solid rgba(33,145,140,0.4);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#94a3b8;line-height:1;'>—</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.72rem;font-weight:700;color:#21918c;text-transform:uppercase;letter-spacing:0.5px;'>Human = AI</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:1px;'>both accepted</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#94a3b8;line-height:1;'>—</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='display:flex;align-items:baseline;justify-content:center;gap:4px;'><span style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_a2["correct"]}</span><span style='font-size:0.55rem;color:#94a3b8;'>{_pct(_a2["correct"],_a2["routed"])}</span></div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:2px solid rgba(33,145,140,0.4);text-align:center;'>
+      <div style='display:flex;align-items:baseline;justify-content:center;gap:4px;'><span style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>{_a3["correct"]}</span><span style='font-size:0.55rem;color:#94a3b8;'>{_pct(_a3["correct"],_a3["routed"])}</span></div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.72rem;font-weight:700;color:rgba(33,145,140,0.55);text-transform:uppercase;letter-spacing:0.5px;'>AI ≠ Human</div>
+      <div style='font-size:0.52rem;color:#94a3b8;margin-top:1px;'>AI accepted, human rejected</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#94a3b8;line-height:1;'>—</div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='display:flex;align-items:baseline;justify-content:center;gap:4px;'><span style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.55);line-height:1;'>{_ai_ne_human_a2}</span><span style='font-size:0.55rem;color:#94a3b8;'>{_pct(_ai_ne_human_a2,_a1_total)}</span></div>
+    </div>
+    <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:2px solid rgba(33,145,140,0.4);text-align:center;'>
+      <div style='display:flex;align-items:baseline;justify-content:center;gap:4px;'><span style='font-family:monospace;font-size:1.15rem;font-weight:700;color:rgba(33,145,140,0.55);line-height:1;'>{_ai_ne_human_a3}</span><span style='font-size:0.55rem;color:#94a3b8;'>{_pct(_ai_ne_human_a3,_a1_total)}</span></div>
+    </div>
+    <div style='position:relative;padding:8px 10px;'>
+      <div style='font-size:0.72rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Cumulative earnings</div>
+      <span class='fn-wrap' style='position:absolute;top:6px;right:8px;'><span class='fn-mark' style='color:#21918c;font-size:0.6rem;'>ⓘ</span><span class='fn-tooltip' style='width:380px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400;color:#334155;'><strong>Imputation method (AI ≠ Human trips)</strong><br>Human earnings are verified realized fares. Non-realized AI fares are estimated via the Causal Inference polynomial model at ΔT = 1.0:<br><br><span style='font-family:monospace;font-size:0.78rem;background:rgba(33,145,140,0.08);padding:4px 8px;border-radius:4px;display:block;white-space:nowrap;'>F̂(ΔT=1) = 6.31 + 0.79 · Upfront Fare</span></span></span>
+    </div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>${_a1_earnings:,.0f}</div>
+    </div>
+    <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>${_a2["earn_total"]:,.0f}</div>
+    </div>
+    <div style='padding:8px 10px;border-left:2px solid rgba(33,145,140,0.4);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>${_a3["earn_total"]:,.0f}</div>
+    </div>
   </div>
+</div></div>
+<div style='margin-top:40px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0;padding:14px 18px;'>
+  <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Simulator scope caveat</div>
+  <div style='font-size:0.82rem;color:#334155;line-height:1.6;'>Both mathematical extremes would fail in real-world operations. While very low thresholds imply a volume that breaks physical transit constraints, extreme high thresholds starve the agent of operational volume, leaving them with too few viable options to generate meaningful earnings.</div>
+</div>
+<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
+  Cognitive Cascade &middot; threshold optimized &middot; <span style='color:#21918c;'>✓ behavioral signal confirmed</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Decoding Behavioral DNA <span style='color:#21918c;'>→</span>
 </div>
 """, unsafe_allow_html=True)
 
