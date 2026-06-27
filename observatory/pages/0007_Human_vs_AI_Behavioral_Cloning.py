@@ -1339,68 +1339,151 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 <div style='height:1px;background:linear-gradient(90deg,#21918c,transparent);margin-bottom:28px;'></div>
 """, unsafe_allow_html=True)
 
-            _l1_cr          = _casc["layer1"]["classification_report"]
-            _l2_cr          = _casc["layer2"]["classification_report"]
-            _nr_support     = int(_l1_cr["the_nuanced_rest"]["support"])
-            _nr_recall_act  = _l1_cr["the_nuanced_rest"]["recall"]
-            _l2_sm_r        = _l2_cr["strategic_mismatch"]["recall"]
-            _l2_ev_r        = _l2_cr["expected_value_gamble"]["recall"]
-            _l2_ac_r        = _l2_cr["accepted"]["recall"]
-            _mono_cr        = _mono["classification_report"]
-            _m_sm_r         = _mono_cr.get("strategic_mismatch",    {}).get("recall", 0)
-            _m_ev_r         = _mono_cr.get("expected_value_gamble", {}).get("recall", 0)
-            _m_ac_r         = _mono_cr.get("accepted",              {}).get("recall", 0)
+            @st.cache_data(show_spinner=False)
+            def _load_sim_parquet():
+                from io import BytesIO
+                _b = storage.Client().bucket("pienza-streamlit")
+                return pd.read_parquet(BytesIO(_b.blob("0509_sim_proba.parquet").download_as_bytes()))
 
-            _thresh = st.slider(
-                "Layer 1 — nuanced_rest recall",
-                min_value=0, max_value=100,
-                value=int(round(_nr_recall_act * 100)),
-                step=1, format="%d%%",
-                help="Simulates tightening or relaxing Layer 1's decision boundary for nuanced_rest. Higher recall routes more signal to Layer 2 — at the cost of increased noise."
+            _df_sim = _load_sim_parquet()
+
+            _thresh_pct = st.slider(
+                "Layer 1 — nuanced_rest classification threshold",
+                min_value=1, max_value=99, value=50, step=1, format="%d%%",
+                help="Adjusts the probability cutoff at which Layer 1 routes an observation to Layer 2 as nuanced_rest. At 50% (sklearn default) the behavior matches the static matrices above. Lower = more signal captured, more noise introduced."
             )
+            _T = _thresh_pct / 100
 
-            _captured  = round(_thresh / 100 * _nr_support)
-            _ete_sm    = _thresh / 100 * _l2_sm_r
-            _ete_ev    = _thresh / 100 * _l2_ev_r
-            _ete_ac    = _thresh / 100 * _l2_ac_r
+            # Normalize labels from parquet (may be uppercase from le.inverse_transform)
+            import re as _re2
+            def _norm(s): return _re2.sub(r'[^\w]+', '_', str(s)).strip('_').lower()
 
-            def _delta_arrow(cascade_val, mono_val):
-                diff = round((cascade_val - mono_val) * 100)
-                if diff > 0:
-                    return f"<span style='color:#21918c;font-size:0.65rem;'>▲ +{diff}pp vs monolith</span>"
-                elif diff < 0:
-                    return f"<span style='color:#94a3b8;font-size:0.65rem;'>▼ {diff}pp vs monolith</span>"
-                return f"<span style='color:#94a3b8;font-size:0.65rem;'>= monolith</span>"
+            # L1 predictions: nuanced_rest if P >= T, else argmax of other 4
+            _l1_other_cols = ["dropoff_non_operational", "dropoff_proxy_zone", "long_pickup_time", "low_profitability"]
+            _pred_l1 = _df_sim[_l1_other_cols].idxmax(axis=1).copy()
+            _pred_l1[_df_sim["the_nuanced_rest"] >= _T] = "the_nuanced_rest"
+
+            # L1 confusion matrix
+            _SIM_L1_ORDER = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time", "the_nuanced_rest"]
+            _sim_l1_ytrue = _df_sim["y_true_l1"].apply(_norm)
+            _sim_l1_cm = [
+                [int(((_sim_l1_ytrue == tc) & (_pred_l1 == pc)).sum()) for pc in _SIM_L1_ORDER]
+                for tc in _SIM_L1_ORDER
+            ]
+            _sim_l1_n = len(_SIM_L1_ORDER)
+            _sim_l1_row_sums = [sum(r) for r in _sim_l1_cm]
+            _sim_l1_display = {"the_nuanced_rest": "nuanced rest"}
+            _sim_l1_cw = 76
+            _sim_l1_grid = f"90px " + " ".join([f"{_sim_l1_cw}px"] * _sim_l1_n)
+
+            _sim_l1_rows = ""
+            for i, tc in enumerate(_SIM_L1_ORDER):
+                _rt = _sim_l1_row_sums[i] or 1
+                _lbl = _sim_l1_display.get(tc, tc).replace("_", " ")
+                _sim_l1_rows += f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-bottom:3px;'>"
+                _sim_l1_rows += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_lbl}</div>"
+                for j, pc in enumerate(_SIM_L1_ORDER):
+                    _val = _sim_l1_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
+                    if _diag:
+                        _alpha = max(0.14, _pct * 0.85)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw = "700"
+                    elif _val == 0:
+                        _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
+                    else:
+                        _bg = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw = "500"
+                    if _diag and tc == "the_nuanced_rest":
+                        _ico = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#f59e0b;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>→</span>"
+                    elif _diag:
+                        _ico = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
+                    else:
+                        _ico = ""
+                    _sim_l1_rows += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'>{_ico}<div style='font-size:0.85rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                _sim_l1_rows += "</div>"
+            _sim_l1_bot = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-top:4px;'><div></div>"
+            for _lbl in _SIM_L1_ORDER:
+                _sim_l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_sim_l1_display.get(_lbl,_lbl).replace('_',' ')}</div>"
+            _sim_l1_bot += "</div>"
+            _sim_l1_pred = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};margin-top:8px;'><div></div><div style='grid-column:2/{_sim_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+
+            # L2: routed = predicted nuanced AND true nuanced (have L2 probas)
+            _routed_mask = (_pred_l1 == "the_nuanced_rest") & _df_sim["y_true_l2"].notna()
+            _fp_count    = int(((_pred_l1 == "the_nuanced_rest") & _df_sim["y_true_l2"].isna()).sum())
+            _df_routed   = _df_sim[_routed_mask]
+            _SIM_L2_ORDER  = ["strategic_mismatch", "expected_value_gamble", "accepted"]
+            _l2_col_map    = {c: f"l2_{c}" for c in _SIM_L2_ORDER}
+            _pred_l2       = _df_routed[[f"l2_{c}" for c in _SIM_L2_ORDER]].idxmax(axis=1).str.replace("l2_", "", regex=False)
+            _ytrue_l2_sim  = _df_routed["y_true_l2"].apply(_norm)
+            _sim_l2_cm = [
+                [int(((_ytrue_l2_sim == tc) & (_pred_l2 == pc)).sum()) for pc in _SIM_L2_ORDER]
+                for tc in _SIM_L2_ORDER
+            ]
+            _sim_l2_n = len(_SIM_L2_ORDER)
+            _sim_l2_row_sums = [sum(r) for r in _sim_l2_cm]
+            _sim_l2_cw = 76
+            _sim_l2_grid = f"90px " + " ".join([f"{_sim_l2_cw}px"] * _sim_l2_n)
+
+            _sim_l2_rows = ""
+            for i, tc in enumerate(_SIM_L2_ORDER):
+                _rt = _sim_l2_row_sums[i] or 1
+                _sim_l2_rows += f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:3px;margin-bottom:3px;'>"
+                _sim_l2_rows += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{tc.replace('_',' ')}</div>"
+                for j, pc in enumerate(_SIM_L2_ORDER):
+                    _val = _sim_l2_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
+                    if _diag:
+                        _alpha = max(0.14, _pct * 0.85)
+                        _bg = f"rgba(33,145,140,{_alpha:.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw = "700"
+                    elif _val == 0:
+                        _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
+                    else:
+                        _bg = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw = "500"
+                    _ico = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>" if _diag else ""
+                    _sim_l2_rows += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'>{_ico}<div style='font-size:0.85rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+                _sim_l2_rows += "</div>"
+            _sim_l2_bot = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:3px;margin-top:4px;'><div></div>"
+            for _lbl in _SIM_L2_ORDER:
+                _sim_l2_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
+            _sim_l2_bot += "</div>"
+            _sim_l2_pred = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};margin-top:8px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+
+            _nr_routed    = int(_routed_mask.sum())
+            _nr_total     = int((_sim_l1_ytrue == "the_nuanced_rest").sum())
 
             st.markdown(f"""
-<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px;'>
-  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.25);border-radius:8px;padding:18px 14px;text-align:center;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>L1 Capture</div>
-    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#21918c;line-height:1;'>{_captured}</div>
-    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>of {_nr_support} nuanced samples</div>
-    <div style='font-size:0.65rem;color:#334155;margin-top:4px;'>routed to Layer 2</div>
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;'>Cascade · Threshold @ {_thresh_pct}%</div>
+<div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:8px;'>
+  Layer 1 routes <strong style='color:#21918c;'>{_nr_routed} of {_nr_total}</strong> true nuanced observations to Layer 2
+  {f"(+{_fp_count} non-nuanced false positives also routed)." if _fp_count > 0 else "."}
+</div>
+<div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:25px;'>
+  <div>
+    <div style='display:flex;gap:2px;align-items:center;'>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div>{_sim_l1_rows}{_sim_l1_bot}{_sim_l1_pred}</div>
+    </div>
   </div>
-  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.15);border-radius:8px;padding:18px 14px;text-align:center;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>Strategic Mismatch</div>
-    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#e2e8f0;line-height:1;'>{round(_ete_sm*100)}%</div>
-    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>end-to-end recall</div>
-    <div style='margin-top:6px;'>{_delta_arrow(_ete_sm, _m_sm_r)}</div>
+  <div style='display:flex;align-items:center;justify-content:center;'>
+    <div style='width:32px;height:32px;border-radius:999px;background:rgba(33,145,140,0.10);display:flex;align-items:center;justify-content:center;'>
+      <span style='color:#21918c;font-size:1rem;line-height:1;'>→</span>
+    </div>
   </div>
-  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.15);border-radius:8px;padding:18px 14px;text-align:center;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>Expected Value Gamble</div>
-    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#e2e8f0;line-height:1;'>{round(_ete_ev*100)}%</div>
-    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>end-to-end recall</div>
-    <div style='margin-top:6px;'>{_delta_arrow(_ete_ev, _m_ev_r)}</div>
-  </div>
-  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.15);border-radius:8px;padding:18px 14px;text-align:center;'>
-    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>Accepted</div>
-    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#e2e8f0;line-height:1;'>{round(_ete_ac*100)}%</div>
-    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>end-to-end recall</div>
-    <div style='margin-top:6px;'>{_delta_arrow(_ete_ac, _m_ac_r)}</div>
+  <div>
+    <div style='display:flex;gap:2px;align-items:center;'>
+      <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
+      <div>{_sim_l2_rows}{_sim_l2_bot}{_sim_l2_pred}</div>
+    </div>
   </div>
 </div>
-<div style='margin-top:10px;font-size:0.65rem;color:#334155;font-family:monospace;text-align:right;'>
-  monolith baseline &mdash; strategic {round(_m_sm_r*100)}% &nbsp;·&nbsp; ev gamble {round(_m_ev_r*100)}% &nbsp;·&nbsp; accepted {round(_m_ac_r*100)}%
+""", unsafe_allow_html=True)
+
+            st.markdown("""
+<div style='margin-top:28px;background:#ffff00;border-left:3px solid #eab308;border-radius:0 6px 6px 0;padding:14px 18px;'>
+  <div style='font-size:0.62rem;font-weight:700;color:#854d0e;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;'>Simulator Scope &amp; Design Decisions</div>
+  <div style='font-size:0.82rem;color:#1c1917;line-height:1.7;'>Para las observaciones non-nuanced que L1 manda a L2 por error (false positives), correr <code style='font-size:0.75rem;background:rgba(33,145,140,0.12);padding:1px 5px;border-radius:3px;'>model_champion_L2.predict_proba(X_L2_features)</code> sobre ellas y guardarlo en el parquet. En el simulador, al bajar el umbral y entrar más false positives, aparecerían en la L2 matrix asignados a la clase que L2 crea más probable &#8212; aunque ese guess sea incorrecto por diseño.</div>
+  <div style='font-size:0.75rem;font-weight:700;color:#854d0e;margin-top:12px;margin-bottom:4px;'>El problema de features</div>
+  <div style='font-size:0.82rem;color:#1c1917;line-height:1.7;'>L2 fue entrenado con features específicas de observaciones nuanced. Las non-nuanced tienen los mismos campos en el dataset original &#8212; solo que L2 nunca los vio en training. El modelo igual daría un vector de probabilidades, pero sería una extrapolación out-of-distribution. En producción pasaría exactamente lo mismo.</div>
+  <div style='font-size:0.75rem;font-weight:700;color:#854d0e;margin-top:12px;margin-bottom:4px;'>Decisión de diseño</div>
+  <div style='font-size:0.82rem;color:#1c1917;line-height:1.7;'>Para el simulador, incluir esos false positives en L2 sería más realista pero también más complejo de implementar. El valor narrativo es claro: muestra que bajar el umbral no es gratis &#8212; L2 recibe &#8220;basura&#8221; que no sabe manejar.</div>
+  <div style='font-size:0.82rem;color:#1c1917;line-height:1.7;margin-top:12px;'>Al subir el umbral al máximo, Layer 2 alcanza una precisión del 100%, pero es una victoria inútil para el negocio. Matamos el recall operativo dejando pasar solo 8 de 164 ofertas. Este simulador demuestra que buscar la &#8220;perfección&#8221; en Layer 1 asfixia el volumen del pipeline, y que el arte de esta arquitectura es encontrar el umbral exacto donde el negocio es rentable.</div>
 </div>
 """, unsafe_allow_html=True)
 

@@ -57,6 +57,11 @@ MANIFEST = [
         "local": "0509_l2_proba.parquet",
         "gcs":   "0509_l2_proba.parquet",
     },
+    {
+        "page": "0007",
+        "local": "0509_sim_proba.parquet",
+        "gcs":   "0509_sim_proba.parquet",
+    },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
 
