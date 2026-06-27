@@ -886,7 +886,7 @@ See the fitted polynomial model in action. Adjust the upfront fare and time spre
     st.markdown(r"""
 <div style='text-align:center;'>
 
-$$\small \widehat{Fare}(\Delta T) = \begin{cases} \text{Base Payout} & \text{if } \Delta T \leq 1.0 \\ \text{Upfront Fare} \times (0.9915 - 0.3645\,\Delta T + 0.1945\,\Delta T^2) & \text{if } \Delta T > 1.0 \end{cases}$$
+$$\small \widehat{Fare}(\Delta T) = \begin{cases} 6.31 + 0.79 \cdot \text{Upfront Fare} & \text{if } \Delta T \leq 1.0 \\ \text{Upfront Fare} \times (0.9915 - 0.3645\,\Delta T + 0.1945\,\Delta T^2) & \text{if } \Delta T > 1.0 \end{cases}$$
 
 </div>
 """, unsafe_allow_html=True)
@@ -910,14 +910,13 @@ $$\small \widehat{Fare}(\Delta T) = \begin{cases} \text{Base Payout} & \text{if 
         )
 
     # --- 2. LIVE MATH ENGINE ---
-    base_yield = 0.9915 - (0.3645 * 1.0) + (0.1945 * (1.0 ** 2))
-    base_pred = test_fare * base_yield
+    base_pred = 6.3081 + (0.7906 * test_fare)
 
     if time_spread <= 1.0:
-        quad_yield = base_yield
+        quad_pred = base_pred
     else:
         quad_yield = 0.9915 - (0.3645 * time_spread) + (0.1945 * (time_spread ** 2))
-    quad_pred = test_fare * quad_yield
+        quad_pred = test_fare * quad_yield
 
     true_delta_usd = quad_pred - base_pred
     true_delta_pct = (quad_pred / base_pred) - 1
@@ -948,12 +947,12 @@ $$\small \widehat{Fare}(\Delta T) = \begin{cases} \text{Base Payout} & \text{if 
     # --- 4. THE DIVERGENCE CHART ---
     t_range = np.linspace(0.5, 3.0, 100)
     ols_curve = np.full_like(t_range, ols_pred)
-    quad_curve_yield = np.where(
+    ols_base = 6.3081 + (0.7906 * test_fare)
+    quad_curve = np.where(
         t_range <= 1.0,
-        base_yield,
-        0.9915 - (0.3645 * t_range) + (0.1945 * (t_range ** 2))
+        ols_base,
+        test_fare * (0.9915 - (0.3645 * t_range) + (0.1945 * (t_range ** 2)))
     )
-    quad_curve = test_fare * quad_curve_yield
 
     fig_sandbox = go.Figure()
     fig_sandbox.add_trace(go.Scatter(x=t_range, y=ols_curve, mode='lines', name='Naive OLS (Blind to Time)', line=dict(color="#cccccc", width=3, dash='dash'), hovertemplate="OLS Baseline: $%{y:.2f}<extra></extra>"))
