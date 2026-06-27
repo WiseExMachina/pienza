@@ -414,10 +414,8 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
 
         # --- STEP 3: LASSO (dynamic from notebook output) ---
         import json as _json, os as _os
-        _lasso_path = _os.path.join(_os.path.dirname(__file__), '..', 'assets', 'lasso_liga_a.json')
         try:
-            with open(_lasso_path) as _f:
-                _lasso = _json.load(_f)
+            _lasso = _json.loads(storage.Client().bucket("pienza-streamlit").blob("lasso_liga_a.json").download_as_text())
             _survivors = _lasso['survivors']   # {feature: coef}
             _casualties = _lasso['casualties'] # [feature, ...]
             _sorted = sorted(_survivors.items(), key=lambda x: x[1], reverse=True)
@@ -813,8 +811,10 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     with sci3:
         import json as _json
 
-        _mono  = _json.load(open("/workspaces/pienza/data/dumped_files/0508_monolith_metrics.json"))
-        _casc  = _json.load(open("/workspaces/pienza/data/dumped_files/0509_cascade_metrics.json"))
+        _client = storage.Client()
+        _bucket = _client.bucket("pienza-streamlit")
+        _mono = _json.loads(_bucket.blob("0508_monolith_metrics.json").download_as_text())
+        _casc = _json.loads(_bucket.blob("0509_cascade_metrics.json").download_as_text())
         _l1    = _casc["layer1"]
         _l2    = _casc["layer2"]
 
@@ -911,12 +911,14 @@ This section shows how a monolithic class architecture fails because determinist
 </div>
 """, unsafe_allow_html=True)
 
+        st.markdown('<div class="c3-hidden-btns">', unsafe_allow_html=True)
         if st.button("mono", key="btn_c3_mono"):
             st.session_state["c3_selected"] = "Monolith"
             st.rerun()
         if st.button("casc", key="btn_c3_casc"):
             st.session_state["c3_selected"] = "Cognitive Cascade"
             st.rerun()
+        st.markdown('</div><style>.c3-hidden-btns{display:none!important;}</style>', unsafe_allow_html=True)
 
 
 
@@ -971,6 +973,26 @@ This section shows how a monolithic class architecture fails because determinist
                 _bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_label_map.get(_lbl, _lbl).replace('_',' ')}</div>"
             _bot += "</div>"
 
+            # "nuanced →" bracket under the 3 nuanced columns
+            _nuanced_cols = ["strategic_mismatch", "expected_value_gamble", "accepted"]
+            _nc_positions = [i for i, l in enumerate(_mono_labels) if l in _nuanced_cols]
+            if _nc_positions:
+                _cw_mono       = 66    # px por columna del monolito
+                _nc_offset_px  = 0     # ← ajuste fino en px (positivo = derecha, negativo = izquierda)
+                _nc_margin     = 130 + min(_nc_positions) * _cw_mono + _nc_offset_px
+                _nc_width      = len(_nc_positions) * _cw_mono
+                _nuanced_bracket = (
+                    f"<div style='margin-top:4px;margin-left:{_nc_margin}px;width:{_nc_width}px;"
+                    f"display:flex;align-items:center;gap:4px;'>"
+                    f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);margin-left:40px;'></div>"
+                    f"<span style='font-size:0.52rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;"
+                    f"text-transform:uppercase;white-space:nowrap;'>nuanced</span>"
+                    f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);'></div>"
+                    f"</div>"
+                )
+            else:
+                _nuanced_bracket = ""
+
             # "Predicted" axis label centered under the data columns only
             _pred_label = f"<div style='display:grid;grid-template-columns:{_grid_cols};margin-top:8px;'>"
             _pred_label += "<div></div>"
@@ -996,6 +1018,7 @@ This section shows how a monolithic class architecture fails because determinist
   <div>
     {_rows_html}
     {_bot}
+    {_nuanced_bracket}
     {_pred_label}
   </div>
 </div></div>
@@ -1004,7 +1027,7 @@ This section shows how a monolithic class architecture fails because determinist
 
             st.markdown("""<div style='margin-top:40px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 18px;'>
   <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Diagnostic</div>
-  <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>While deterministic rejections achieve high separation (&gt;80% recall), the nuanced classes severely underperform. Due to the high similarity in their feature spaces, the model defaults to a "lazy" information gain strategy: it absorbs these complex, minority decisions into the <code style='font-size:0.75rem;background:rgba(33,145,140,0.12);padding:1px 5px;border-radius:3px;'>dropoff_non_operational</code> majority class instead of executing the deep splits required to isolate them.</div>
+  <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>Due to the high similarity in the feature space of the nuanced classes, the model defaults to a "lazy" information gain strategy: it absorbs these complex, minority decisions into the <code style='font-size:0.75rem;background:rgba(33,145,140,0.12);padding:1px 5px;border-radius:3px;'>dropoff_non_operational</code> majority class instead of executing the deep splits required to isolate them.</div>
 </div>""", unsafe_allow_html=True)
 
             st.markdown(f"""
@@ -1091,9 +1114,9 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
       <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Layer 2</div>
     </div>
     <div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>
-      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>accepted</div>
       <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>strategic_mismatch</div>
       <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>expected_value_gamble</div>
+      <div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;'>accepted</div>
     </div>
   </div>
 </div>
@@ -1101,8 +1124,14 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 """, unsafe_allow_html=True)
 
             # ── Sections 3 + 4: L1 and L2 side by side ───────────────────────────
-            _l1_cm = _l1["confusion_matrix"]
-            _l1_labels = _l1["labels"]
+            # Canonical display order: mirrors Layer 1 box order (logical, matches monolith)
+            # dropoff_non_op → proxy_zone → low_profitability → long_pickup → nuanced_rest
+            _L1_CANONICAL = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time", "the_nuanced_rest"]
+            _l1_cm_raw = _l1["confusion_matrix"]
+            _l1_labels_raw = _l1["labels"]
+            _l1_idx = [_l1_labels_raw.index(c) for c in _L1_CANONICAL if c in _l1_labels_raw]
+            _l1_labels = [_l1_labels_raw[i] for i in _l1_idx]
+            _l1_cm = [[_l1_cm_raw[r][c] for c in _l1_idx] for r in _l1_idx]
             _l1_n = len(_l1_labels)
             _l1_row_sums = [sum(_l1_cm[i]) for i in range(_l1_n)]
             _l1_cw = 76
@@ -1110,8 +1139,8 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             _l1_rows_html = ""
             for i in range(_l1_n):
                 _rt = _l1_row_sums[i] if _l1_row_sums[i] > 0 else 1
-                _l1_lmap = {"non_operational": "dropoff non operational"}
-                _display_lbl = _l1_lmap.get(_l1_labels[i], _l1_labels[i]).replace('_', ' ')
+                _l1_display = {"the_nuanced_rest": "nuanced rest"}
+                _display_lbl = _l1_display.get(_l1_labels[i], _l1_labels[i]).replace('_', ' ')
                 _l1_rows_html += f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};gap:3px;margin-bottom:3px;'>"
                 _l1_rows_html += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_display_lbl}</div>"
                 for j in range(_l1_n):
@@ -1129,7 +1158,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
                         _alpha = max(0.04, _pct * 0.35)
                         _bg = f"rgba(33,145,140,{_alpha:.2f})"
                         _tc = "#94a3b8"; _fw = "500"
-                    if _diag and _l1_labels[i] == "nuanced_rest":
+                    if _diag and _l1_labels[i] == "the_nuanced_rest":
                         _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#f59e0b;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>→</span>"
                     elif _diag:
                         _icon = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#22c55e;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>✓</span>"
@@ -1139,12 +1168,28 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
                 _l1_rows_html += "</div>"
             _l1_bot = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};gap:3px;margin-top:4px;'><div></div>"
             for _lbl in _l1_labels:
-                _l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_lbl.replace('_',' ')}</div>"
+                _l1_display_b = {"the_nuanced_rest": "nuanced rest"}
+                _l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_l1_display_b.get(_lbl, _lbl).replace('_',' ')}</div>"
             _l1_bot += "</div>"
+            # "nuanced →" bracket over the last 4 columns (all except col 1 which is nuanced_rest itself)
+            _l1_nuanced_bracket = (
+                f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};margin-top:6px;'>"
+                f"<div></div>"
+                f"<div style='grid-column:2/{_l1_n+2};display:flex;align-items:center;gap:4px;padding:0 2px;'>"
+                f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);'></div>"
+                f"<span style='font-size:0.52rem;font-weight:700;color:#94a3b8;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>nuanced →</span>"
+                f"<div style='flex:1;height:1px;background:rgba(100,116,139,0.3);'></div>"
+                f"</div></div>"
+            )
             _l1_pred = f"<div style='display:grid;grid-template-columns:{_l1_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
-            _l2_cm = _l2["confusion_matrix"]
-            _l2_labels = _l2["labels"]
+            # Canonical L2 order: matches monolith column order for cognitive consistency
+            _L2_CANONICAL = ["strategic_mismatch", "expected_value_gamble", "accepted"]
+            _l2_cm_raw = _l2["confusion_matrix"]
+            _l2_labels_raw = _l2["labels"]
+            _l2_idx = [_l2_labels_raw.index(c) for c in _L2_CANONICAL if c in _l2_labels_raw]
+            _l2_labels = [_l2_labels_raw[i] for i in _l2_idx]
+            _l2_cm = [[_l2_cm_raw[r][c] for c in _l2_idx] for r in _l2_idx]
             _l2_n = len(_l2_labels)
             _l2_row_sums = [sum(_l2_cm[i]) for i in range(_l2_n)]
             _l2_cw = 76
@@ -1185,7 +1230,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             st.markdown(f"""
 <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade · Theoretical Ceiling</div>
 <div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>Layer 2 was evaluated in strict isolation using 100% of the ground-truth nuanced holdout. This prevents selection bias and establishes the theoretical performance ceiling of the Nuance Engine before introducing cascading errors from Layer 1.</div>
-<div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:90px;'>
+<div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:25px;'>
   <div>
     <div><div style='display:flex;gap:2px;align-items:center;'>
       <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
@@ -1205,12 +1250,160 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
   </div>
 </div>""", unsafe_allow_html=True)
 
-            # ── Final callout ──────────────────────────────────────────────────────
+            # ── Cascade Autopsy Report ─────────────────────────────────────────────
+            _l1_cr  = _l1["classification_report"]
+            _l2_cr  = _l2["classification_report"]
+            _nr     = _l1_cr.get("the_nuanced_rest", {})
+            _c_sm   = _l2_cr.get("strategic_mismatch", {})
+            _c_ev   = _l2_cr.get("expected_value_gamble", {})
+            _c_ac   = _l2_cr.get("accepted", {})
+            _nr_t2  = round((1 - _nr.get("recall", 1))     * 100)
+            _nr_t1  = round((1 - _nr.get("precision", 1))  * 100)
+            _csm_t2 = round((1 - _c_sm.get("recall", 1))   * 100)
+            _csm_t1 = round((1 - _c_sm.get("precision", 1))* 100)
+            _cev_t2 = round((1 - _c_ev.get("recall", 1))   * 100)
+            _cev_t1 = round((1 - _c_ev.get("precision", 1))* 100)
+            _cac_t2 = round((1 - _c_ac.get("recall", 1))   * 100)
+            _cac_t1 = round((1 - _c_ac.get("precision", 1))* 100)
+            _mono_cr      = _mono["classification_report"]
+            _m_sm_r       = round(_mono_cr.get("strategic_mismatch",    {}).get("recall", 0) * 100)
+            _m_ev_r       = round(_mono_cr.get("expected_value_gamble", {}).get("recall", 0) * 100)
+            _m_ac_r       = round(_mono_cr.get("accepted",              {}).get("recall", 0) * 100)
+            _l2_min_recall = min(100 - _csm_t2, 100 - _cev_t2, 100 - _cac_t2)
+            st.markdown(f"""
+<div style='margin-top:0;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:20px;'>
+  <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Diagnostic</div>
+  <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>Shattering the monolith&#8217;s baseline of {_m_sm_r}%, {_m_ev_r}%, and {_m_ac_r}%, Layer 2 achieves a theoretical recall ceiling of &gt;{_l2_min_recall}% across all three nuanced classes.</div>
+</div>
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;margin-top:50px;'>Autopsy Report</div>
+<div style='margin:0 auto;max-width:900px;border:1px solid rgba(33,145,140,0.2);border-radius:8px;overflow:hidden;'>
+  <div style='display:grid;grid-template-columns:140px 1fr 1fr 1fr 1fr;'>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);'></div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Nuanced Rest<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L1</span></div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Strategic Mismatch<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L2</span></div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Expected Value Gamble<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L2</span></div>
+    <div style='background:#f8fafc;padding:10px 14px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.58rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Accepted<br><span style='font-size:0.52rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>L2</span></div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);'>
+      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type II</div>
+      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Negative</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_nr_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_csm_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_cev_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:#21918c;line-height:1;'>{_cac_t2}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>undetected</div>
+    </div>
+    <div style='padding:14px;'>
+      <div style='font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;'>Type I</div>
+      <div style='font-size:0.76rem;color:#94a3b8;margin-top:2px;'>False Positive</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_nr_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_csm_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_cev_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+    <div style='padding:14px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
+      <div style='font-family:monospace;font-size:1.6rem;font-weight:700;color:rgba(33,145,140,0.6);line-height:1;'>{_cac_t1}%</div>
+      <div style='font-size:0.60rem;color:#94a3b8;margin-top:4px;'>false alarms</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
             st.markdown("""
-<div style='margin-top:48px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 6px 6px 0;padding:14px 16px;'>
-  <div style='font-size:0.72rem;font-weight:700;color:#21918c;margin-bottom:8px;'>The Architecture as the Answer</div>
-  <div style='font-size:0.88rem;color:#334155;line-height:1.7;'>The monolith&#8217;s failure was not a data problem or a hyperparameter problem &#8212; it was a structural one. No amount of tuning resolves a 7:1 class imbalance when a dominant class shares feature space with a minority class. The Cognitive Cascade does not fight the gravity well. It sidesteps it entirely.</div>
-</div>""", unsafe_allow_html=True)
+<div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>
+  This autopsy validates the hierarchical pivot. Layer&#160;1&#8217;s controlled 31% signal loss acts as a necessary firewall, driving Layer&#160;2&#8217;s false alarms and undetected rates down from 96% to single digits. To simulate real-world production, the interactive module below allows you to tune Layer&#160;1&#8217;s recall threshold, visualizing exactly how upstream signal capture impacts the data routed to Layer&#160;2.
+</div>
+""", unsafe_allow_html=True)
+
+            # ── Threshold Simulator ───────────────────────────────────────────────
+            st.markdown("""
+<div style='margin-top:56px;margin-bottom:4px;font-size:0.60rem;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>THRESHOLD SIMULATOR</div>
+<div style='height:1px;background:linear-gradient(90deg,#21918c,transparent);margin-bottom:28px;'></div>
+""", unsafe_allow_html=True)
+
+            _l1_cr          = _casc["layer1"]["classification_report"]
+            _l2_cr          = _casc["layer2"]["classification_report"]
+            _nr_support     = int(_l1_cr["the_nuanced_rest"]["support"])
+            _nr_recall_act  = _l1_cr["the_nuanced_rest"]["recall"]
+            _l2_sm_r        = _l2_cr["strategic_mismatch"]["recall"]
+            _l2_ev_r        = _l2_cr["expected_value_gamble"]["recall"]
+            _l2_ac_r        = _l2_cr["accepted"]["recall"]
+            _mono_cr        = _mono["classification_report"]
+            _m_sm_r         = _mono_cr.get("strategic_mismatch",    {}).get("recall", 0)
+            _m_ev_r         = _mono_cr.get("expected_value_gamble", {}).get("recall", 0)
+            _m_ac_r         = _mono_cr.get("accepted",              {}).get("recall", 0)
+
+            _thresh = st.slider(
+                "Layer 1 — nuanced_rest recall",
+                min_value=0, max_value=100,
+                value=int(round(_nr_recall_act * 100)),
+                step=1, format="%d%%",
+                help="Simulates tightening or relaxing Layer 1's decision boundary for nuanced_rest. Higher recall routes more signal to Layer 2 — at the cost of increased noise."
+            )
+
+            _captured  = round(_thresh / 100 * _nr_support)
+            _ete_sm    = _thresh / 100 * _l2_sm_r
+            _ete_ev    = _thresh / 100 * _l2_ev_r
+            _ete_ac    = _thresh / 100 * _l2_ac_r
+
+            def _delta_arrow(cascade_val, mono_val):
+                diff = round((cascade_val - mono_val) * 100)
+                if diff > 0:
+                    return f"<span style='color:#21918c;font-size:0.65rem;'>▲ +{diff}pp vs monolith</span>"
+                elif diff < 0:
+                    return f"<span style='color:#94a3b8;font-size:0.65rem;'>▼ {diff}pp vs monolith</span>"
+                return f"<span style='color:#94a3b8;font-size:0.65rem;'>= monolith</span>"
+
+            st.markdown(f"""
+<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px;'>
+  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.25);border-radius:8px;padding:18px 14px;text-align:center;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>L1 Capture</div>
+    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#21918c;line-height:1;'>{_captured}</div>
+    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>of {_nr_support} nuanced samples</div>
+    <div style='font-size:0.65rem;color:#334155;margin-top:4px;'>routed to Layer 2</div>
+  </div>
+  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.15);border-radius:8px;padding:18px 14px;text-align:center;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>Strategic Mismatch</div>
+    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#e2e8f0;line-height:1;'>{round(_ete_sm*100)}%</div>
+    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>end-to-end recall</div>
+    <div style='margin-top:6px;'>{_delta_arrow(_ete_sm, _m_sm_r)}</div>
+  </div>
+  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.15);border-radius:8px;padding:18px 14px;text-align:center;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>Expected Value Gamble</div>
+    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#e2e8f0;line-height:1;'>{round(_ete_ev*100)}%</div>
+    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>end-to-end recall</div>
+    <div style='margin-top:6px;'>{_delta_arrow(_ete_ev, _m_ev_r)}</div>
+  </div>
+  <div style='background:#0f172a;border:1px solid rgba(33,145,140,0.15);border-radius:8px;padding:18px 14px;text-align:center;'>
+    <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;'>Accepted</div>
+    <div style='font-family:monospace;font-size:2rem;font-weight:700;color:#e2e8f0;line-height:1;'>{round(_ete_ac*100)}%</div>
+    <div style='font-size:0.65rem;color:#475569;margin-top:6px;'>end-to-end recall</div>
+    <div style='margin-top:6px;'>{_delta_arrow(_ete_ac, _m_ac_r)}</div>
+  </div>
+</div>
+<div style='margin-top:10px;font-size:0.65rem;color:#334155;font-family:monospace;text-align:right;'>
+  monolith baseline &mdash; strategic {round(_m_sm_r*100)}% &nbsp;·&nbsp; ev gamble {round(_m_ev_r*100)}% &nbsp;·&nbsp; accepted {round(_m_ac_r*100)}%
+</div>
+""", unsafe_allow_html=True)
+
 
         components.html("""<script>
 setTimeout(function() {
