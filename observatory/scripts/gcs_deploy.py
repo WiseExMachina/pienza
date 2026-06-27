@@ -47,6 +47,16 @@ MANIFEST = [
         "local": "lasso_liga_a.json",
         "gcs":   "lasso_liga_a.json",
     },
+    {
+        "page": "0007",
+        "local": "0509_l1_proba.parquet",
+        "gcs":   "0509_l1_proba.parquet",
+    },
+    {
+        "page": "0007",
+        "local": "0509_l2_proba.parquet",
+        "gcs":   "0509_l2_proba.parquet",
+    },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
 
