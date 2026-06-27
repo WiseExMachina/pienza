@@ -109,23 +109,7 @@ st.markdown("""
 <div style="height: 50px;"></div>
 """, unsafe_allow_html=True)
 
-# --- 5. THE HERO VISUAL (3D MANIFOLD) ---
-st.markdown("### The Playground: Machine Discovered Hubs")
-
-try:
-    with open("/workspaces/pienza/observatory/assets/kepler_3D.html", 'r', encoding='utf-8') as f:
-        html_data = f.read()
-        
-    force_white_css = "<style>body { background-color: white !important; }</style>"
-    components.html(force_white_css + html_data, height=600)
-    
-except FileNotFoundError:
-    st.error("Map file not found. Check path: /workspaces/pienza/observatory/assets/kepler_3D.html")
-
-st.caption("Manifold Visualization: 44 HDBSCAN clusters defining the primary decision playground. Height represents offer density; color encodes topological gravity wells. Clusters are highlighted against the Agent's hand-crafted polygons representing the operational zone theatre.")
-
-
-# --- 6. NAVIGATE THE OBSERVATORY ---
+# --- 5. NAVIGATE THE OBSERVATORY (rendered before heavy map so cards are immediately clickable) ---
 st.markdown("### The Observatory Architecture")
 st.markdown("Navigate through the core modules of the Pienza digital twin.")
 
@@ -229,7 +213,24 @@ for i, (path, icon, title, desc) in enumerate(modules):
 
 st.markdown("---")
 
-# --- 8. CALL TO ACTION (The LLM Ingestion Gateway) ---
+# --- 6. THE HERO VISUAL (3D MANIFOLD) — after nav cards so page is interactive immediately ---
+st.markdown("### The Playground: Machine Discovered Hubs")
+
+try:
+    with open("/workspaces/pienza/observatory/assets/kepler_3D.html", 'r', encoding='utf-8') as f:
+        html_data = f.read()
+
+    force_white_css = "<style>body { background-color: white !important; }</style>"
+    components.html(force_white_css + html_data, height=600)
+
+except FileNotFoundError:
+    st.error("Map file not found. Check path: /workspaces/pienza/observatory/assets/kepler_3D.html")
+
+st.caption("Manifold Visualization: 44 HDBSCAN clusters defining the primary decision playground. Height represents offer density; color encodes topological gravity wells. Clusters are highlighted against the Agent's hand-crafted polygons representing the operational zone theatre.")
+
+st.markdown("---")
+
+# --- 7. CALL TO ACTION (The LLM Ingestion Gateway) ---
 st.markdown("""
 <div class="ingestion-panel">
     <div class="ingestion-title">LLM Knowledge Base</div>
