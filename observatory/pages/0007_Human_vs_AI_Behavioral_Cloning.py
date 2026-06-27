@@ -250,11 +250,16 @@ with tab1:
   </div>
   <div class="ci-step">
     <div class="ci-dot">P4</div>
+    <div class="ci-step-label">Threshold Calibrator</div>
+    <div class="ci-step-sub">Optimal operating point</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P5</div>
     <div class="ci-step-label">SHAPs</div>
     <div class="ci-step-sub">Behavioral DNA decoded</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P5</div>
+    <div class="ci-dot">P6</div>
     <div class="ci-step-label">Bias-Variance Tradeoff</div>
     <div class="ci-step-sub">Lightweight champion emerges</div>
   </div>
@@ -294,10 +299,11 @@ setTimeout(function() {
 </script>
 """, height=0)
 
-    sci1, sci2, sci3, sci4, sci5 = st.tabs([
+    sci1, sci2, sci3, sci4, sci5, sci6 = st.tabs([
         "Feature Selection",
         "Model Tournament",
         "Cognitive Cascade",
+        "Threshold Calibrator",
         "SHAPs",
         "Bias-Variance Tradeoff",
     ])
@@ -1350,162 +1356,185 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 </div>
 """, unsafe_allow_html=True)
 
-            # ── Threshold Simulator ───────────────────────────────────────────────
-            st.markdown("""
-<div style='margin-top:56px;margin-bottom:4px;font-size:0.75rem;font-weight:700;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>THRESHOLD SIMULATOR</div>
-<div style='height:1px;background:linear-gradient(90deg,#21918c,transparent);margin-bottom:16px;'></div>
-<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>To simulate real-world production, this interactive module allows you to tune Layer&#160;1&#8217;s nuanced recall threshold, visualizing exactly how upstream signal capture impacts the data routed to Layer&#160;2.</div>
+
+
+
+
+        components.html("""<script>
+setTimeout(function() {
+  var doc = window.parent.document;
+  var cardMono = doc.getElementById('c3card-mono');
+  var cardCasc = doc.getElementById('c3card-casc');
+  var btns = doc.querySelectorAll('button');
+  var btnMono = null, btnCasc = null;
+  btns.forEach(function(b) {
+    var t = b.innerText.trim();
+    if (t === 'mono') btnMono = b;
+    if (t === 'casc') btnCasc = b;
+  });
+  if (btnMono) {
+    var wrap = btnMono.closest('[data-testid="stElementContainer"]') || btnMono.parentElement;
+    if (wrap) wrap.style.display = 'none';
+    if (cardMono) cardMono.addEventListener('click', function() { btnMono.click(); });
+  }
+  if (btnCasc) {
+    var wrap2 = btnCasc.closest('[data-testid="stElementContainer"]') || btnCasc.parentElement;
+    if (wrap2) wrap2.style.display = 'none';
+    if (cardCasc) cardCasc.addEventListener('click', function() { btnCasc.click(); });
+  }
+}, 400);
+</script>""", height=1)
+
+    with sci4:
+        # ── Threshold Simulator ───────────────────────────────────────────────
+        st.markdown("""
+<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>To simulate real-world production, this interactive module enables tuning Layer&#160;1&#8217;s <code style='font-size:0.82rem;background:rgba(33,145,140,0.08);color:#21918c;padding:1px 5px;border-radius:3px;'>nuanced_rest</code> recall threshold, visualizing exactly what survives the initial filter to feed Layer&#160;2.</div>
 """, unsafe_allow_html=True)
 
-            @st.cache_data(show_spinner=False)
-            def _load_sim_parquet_v3():
-                from io import BytesIO
-                _b = storage.Client().bucket("pienza-streamlit")
-                return pd.read_parquet(BytesIO(_b.blob("0509_sim_proba.parquet").download_as_bytes()))
+        @st.cache_data(show_spinner=False)
+        def _load_sim_parquet_v3():
+            from io import BytesIO
+            _b = storage.Client().bucket("pienza-streamlit")
+            return pd.read_parquet(BytesIO(_b.blob("0509_sim_proba.parquet").download_as_bytes()))
 
-            _df_sim = _load_sim_parquet_v3()
+        _df_sim = _load_sim_parquet_v3()
 
-            if "sim_thresh_pct" not in st.session_state:
-                st.session_state["sim_thresh_pct"] = 50
+        if "sim_thresh_pct" not in st.session_state:
+            st.session_state["sim_thresh_pct"] = 50
 
-            st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>Layer 1 · nuanced_rest classification threshold</div>", unsafe_allow_html=True)
-            st.slider(
-                label="threshold",
-                label_visibility="collapsed",
-                key="sim_thresh_pct",
-                min_value=1, max_value=99, step=1, format="%d%%",
-                help="Adjusts the probability cutoff at which Layer 1 routes an observation to Layer 2 as nuanced_rest. At 50% (sklearn default) the behavior matches the static matrices above. Lower = more signal captured, more noise introduced."
-            )
-            _thresh_pct = st.session_state["sim_thresh_pct"]
-            _T = _thresh_pct / 100
+        _thresh_pct = st.session_state["sim_thresh_pct"]
+        _T = _thresh_pct / 100
 
-            # Normalize labels from parquet (may be uppercase from le.inverse_transform)
-            import re as _re2
-            def _norm(s): return _re2.sub(r'[^\w]+', '_', str(s)).strip('_').lower()
+        st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>Layer 1 · nuanced_rest classification threshold</div>", unsafe_allow_html=True)
+        st.slider(
+            label="threshold",
+            label_visibility="collapsed",
+            key="sim_thresh_pct",
+            min_value=1, max_value=99, step=1, format="%d%%",
+            help="Adjusts the probability cutoff at which Layer 1 routes an observation to Layer 2 as nuanced_rest. At 50% (sklearn default) the behavior matches the static matrices above. Lower = more signal captured, more noise introduced."
+        )
 
-            # L1 predictions: nuanced_rest if P >= T, else argmax of other 4
-            _l1_other_cols = ["dropoff_non_operational", "dropoff_proxy_zone", "long_pickup_time", "low_profitability"]
-            _pred_l1 = _df_sim[_l1_other_cols].idxmax(axis=1).copy()
-            _pred_l1[_df_sim["the_nuanced_rest"] >= _T] = "the_nuanced_rest"
+        import re as _re2
+        def _norm(s): return _re2.sub(r'[^\w]+', '_', str(s)).strip('_').lower()
 
-            # L1 confusion matrix
-            _SIM_L1_ORDER = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time", "the_nuanced_rest"]
-            _sim_l1_ytrue = _df_sim["y_true_l1"].apply(_norm)
-            _sim_l1_cm = [
-                [int(((_sim_l1_ytrue == tc) & (_pred_l1 == pc)).sum()) for pc in _SIM_L1_ORDER]
-                for tc in _SIM_L1_ORDER
-            ]
-            _sim_l1_n = len(_SIM_L1_ORDER)
-            _sim_l1_row_sums = [sum(r) for r in _sim_l1_cm]
-            _sim_l1_display = {"the_nuanced_rest": "nuanced rest"}
-            _sim_l1_cw = 96
-            _sim_l1_grid = f"110px " + " ".join([f"{_sim_l1_cw}px"] * _sim_l1_n)
+        _l1_other_cols = ["dropoff_non_operational", "dropoff_proxy_zone", "long_pickup_time", "low_profitability"]
+        _pred_l1 = _df_sim[_l1_other_cols].idxmax(axis=1).copy()
+        _pred_l1[_df_sim["the_nuanced_rest"] >= _T] = "the_nuanced_rest"
 
-            _sim_l1_rows = ""
-            for i, tc in enumerate(_SIM_L1_ORDER):
-                _rt = _sim_l1_row_sums[i] or 1
-                _lbl = _sim_l1_display.get(tc, tc).replace("_", " ")
-                _sim_l1_rows += f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-bottom:3px;'>"
-                _sim_l1_rows += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_lbl}</div>"
-                for j, pc in enumerate(_SIM_L1_ORDER):
-                    _val = _sim_l1_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
-                    if _diag:
-                        _alpha = max(0.14, _pct * 0.85)
-                        _bg = f"rgba(33,145,140,{_alpha:.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw = "700"
-                    elif _val == 0:
-                        _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
-                    else:
-                        _bg = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw = "500"
-                    if _diag and tc == "the_nuanced_rest":
-                        _ico = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#f59e0b;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>→</span>"
-                    else:
-                        _ico = ""
-                    _border = "box-shadow:0 0 0 2px rgba(245,158,11,0.55);" if (_diag and tc == "the_nuanced_rest") else ""
-                    _sim_l1_rows += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;{_border}'>{_ico}<div style='font-size:0.85rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
-                _sim_l1_rows += "</div>"
-            _sim_l1_bot = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-top:4px;'><div></div>"
-            for _lbl in _SIM_L1_ORDER:
-                _sim_l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_sim_l1_display.get(_lbl,_lbl).replace('_',' ')}</div>"
-            _sim_l1_bot += "</div>"
-            _sim_l1_pred = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};margin-top:8px;'><div></div><div style='grid-column:2/{_sim_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
+        _SIM_L1_ORDER = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time", "the_nuanced_rest"]
+        _sim_l1_ytrue = _df_sim["y_true_l1"].apply(_norm)
+        _sim_l1_cm = [
+            [int(((_sim_l1_ytrue == tc) & (_pred_l1 == pc)).sum()) for pc in _SIM_L1_ORDER]
+            for tc in _SIM_L1_ORDER
+        ]
+        _sim_l1_n = len(_SIM_L1_ORDER)
+        _sim_l1_row_sums = [sum(r) for r in _sim_l1_cm]
+        _sim_l1_display = {"the_nuanced_rest": "nuanced rest"}
+        _sim_l1_cw = 96
+        _sim_l1_grid = f"110px " + " ".join([f"{_sim_l1_cw}px"] * _sim_l1_n)
 
-            # L2: true nuanced routed to L2
-            _SIM_L2_ORDER  = ["strategic_mismatch", "expected_value_gamble", "accepted"]
-            _routed_mask   = (_pred_l1 == "the_nuanced_rest") & _df_sim["y_true_l2"].notna()
-            _df_routed     = _df_sim[_routed_mask]
-            _pred_l2       = _df_routed[[f"l2_{c}" for c in _SIM_L2_ORDER]].idxmax(axis=1).str.replace("l2_", "", regex=False)
-            _ytrue_l2_sim  = _df_routed["y_true_l2"].apply(_norm)
-            _sim_l2_cm     = [
-                [int(((_ytrue_l2_sim == tc) & (_pred_l2 == pc)).sum()) for pc in _SIM_L2_ORDER]
-                for tc in _SIM_L2_ORDER
-            ]
-            _sim_l2_n        = len(_SIM_L2_ORDER)
-            _sim_l2_row_sums = [sum(r) for r in _sim_l2_cm]
-            _sm_cw  = 52   # cell width for small matrices
-            _sm_lw  = 70   # label width for small matrices
-            _sim_l2_grid = f"{_sm_lw}px " + " ".join([f"{_sm_cw}px"] * _sim_l2_n)
-
-            _sim_l2_rows = ""
-            for i, tc in enumerate(_SIM_L2_ORDER):
-                _rt = _sim_l2_row_sums[i] or 1
-                _sim_l2_rows += f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:2px;margin-bottom:2px;'>"
-                _sim_l2_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{tc.replace('_',' ')}</div>"
-                for j, pc in enumerate(_SIM_L2_ORDER):
-                    _val = _sim_l2_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
-                    if _diag:
-                        _bg = f"rgba(33,145,140,{max(0.14,_pct*0.85):.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw = "700"
-                    elif _val == 0:
-                        _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
-                    else:
-                        _bg = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw = "500"
+        _sim_l1_rows = ""
+        for i, tc in enumerate(_SIM_L1_ORDER):
+            _rt = _sim_l1_row_sums[i] or 1
+            _lbl = _sim_l1_display.get(tc, tc).replace("_", " ")
+            _sim_l1_rows += f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-bottom:3px;'>"
+            _sim_l1_rows += f"<div style='font-size:0.56rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;white-space:normal;word-break:break-word;line-height:1.3;'>{_lbl}</div>"
+            for j, pc in enumerate(_SIM_L1_ORDER):
+                _val = _sim_l1_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
+                if _diag:
+                    _alpha = max(0.14, _pct * 0.85)
+                    _bg = f"rgba(33,145,140,{_alpha:.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw = "700"
+                elif _val == 0:
+                    _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
+                else:
+                    _bg = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw = "500"
+                if _diag and tc == "the_nuanced_rest":
+                    _ico = "<span style='position:absolute;top:-8px;right:-6px;font-size:0.75rem;color:#f59e0b;background:#fff;border-radius:999px;line-height:1;padding:2px;box-shadow:0 1px 3px rgba(0,0,0,0.12);'>→</span>"
+                else:
                     _ico = ""
-                    _sim_l2_rows += f"<div style='background:{_bg};border-radius:3px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'>{_ico}<div style='font-size:0.72rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
-                _sim_l2_rows += "</div>"
-            _sim_l2_bot  = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:2px;margin-top:4px;'><div></div>"
-            _sim_l2_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _SIM_L2_ORDER)
-            _sim_l2_bot += "</div>"
-            _sim_l2_pred = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted</div></div>"
+                _border = "box-shadow:0 0 0 2px rgba(245,158,11,0.55);" if (_diag and tc == "the_nuanced_rest") else ""
+                _sim_l1_rows += f"<div style='background:{_bg};border-radius:4px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;{_border}'>{_ico}<div style='font-size:0.85rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+            _sim_l1_rows += "</div>"
+        _sim_l1_bot = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};gap:3px;margin-top:4px;'><div></div>"
+        for _lbl in _SIM_L1_ORDER:
+            _sim_l1_bot += f"<div style='font-size:0.56rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.3;'>{_sim_l1_display.get(_lbl,_lbl).replace('_',' ')}</div>"
+        _sim_l1_bot += "</div>"
+        _sim_l1_pred = f"<div style='display:grid;grid-template-columns:{_sim_l1_grid};margin-top:8px;'><div></div><div style='grid-column:2/{_sim_l1_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
-            # FP matrix: non-nuanced routed to L2 by L1 (false positives)
-            _fp_mask       = (_pred_l1 == "the_nuanced_rest") & (_sim_l1_ytrue != "the_nuanced_rest")
-            _df_fp         = _df_sim[_fp_mask]
-            _fp_count      = len(_df_fp)
-            _FP_ROW_ORDER  = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time"]
-            _pred_fp_l2    = _df_fp[[f"l2_{c}" for c in _SIM_L2_ORDER]].fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
-            _ytrue_fp      = _sim_l1_ytrue[_fp_mask]
-            _sim_fp_display = {"dropoff_non_operational": "non operational", "dropoff_proxy_zone": "proxy zone",
-                               "low_profitability": "low profit", "long_pickup_time": "long pickup"}
-            _sim_fp_cm     = [
-                [int(((_ytrue_fp == tc) & (_pred_fp_l2 == pc)).sum()) for pc in _SIM_L2_ORDER]
-                for tc in _FP_ROW_ORDER
-            ]
-            _sim_fp_row_sums = [sum(r) for r in _sim_fp_cm]
+        _SIM_L2_ORDER  = ["strategic_mismatch", "expected_value_gamble", "accepted"]
+        _routed_mask   = (_pred_l1 == "the_nuanced_rest") & _df_sim["y_true_l2"].notna()
+        _df_routed     = _df_sim[_routed_mask]
+        _pred_l2       = _df_routed[[f"l2_{c}" for c in _SIM_L2_ORDER]].idxmax(axis=1).str.replace("l2_", "", regex=False)
+        _ytrue_l2_sim  = _df_routed["y_true_l2"].apply(_norm)
+        _sim_l2_cm     = [
+            [int(((_ytrue_l2_sim == tc) & (_pred_l2 == pc)).sum()) for pc in _SIM_L2_ORDER]
+            for tc in _SIM_L2_ORDER
+        ]
+        _sim_l2_n        = len(_SIM_L2_ORDER)
+        _sim_l2_row_sums = [sum(r) for r in _sim_l2_cm]
+        _sm_cw  = 52
+        _sm_lw  = 70
+        _sim_l2_grid = f"{_sm_lw}px " + " ".join([f"{_sm_cw}px"] * _sim_l2_n)
 
-            _sim_fp_rows = ""
-            for i, tc in enumerate(_FP_ROW_ORDER):
-                _rt = _sim_fp_row_sums[i] or 1
-                _lbl = _sim_fp_display.get(tc, tc)
-                _sim_fp_rows += f"<div style='display:grid;grid-template-columns:{_sm_lw}px {' '.join([f'{_sm_cw}px']*_sim_l2_n)};gap:2px;margin-bottom:2px;'>"
-                _sim_fp_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{_lbl}</div>"
-                for j, pc in enumerate(_SIM_L2_ORDER):
-                    _val = _sim_fp_cm[i][j]; _pct = _val / _rt
-                    if _val == 0:
-                        _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
-                    else:
-                        _bg = f"rgba(100,116,139,{max(0.08,_pct*0.55):.2f})"; _tc2 = "#1e293b"; _fw = "500"
-                    _sim_fp_rows += f"<div style='background:{_bg};border-radius:3px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;'><div style='font-size:0.72rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
-                _sim_fp_rows += "</div>"
+        _sim_l2_rows = ""
+        for i, tc in enumerate(_SIM_L2_ORDER):
+            _rt = _sim_l2_row_sums[i] or 1
+            _sim_l2_rows += f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:2px;margin-bottom:2px;'>"
+            _sim_l2_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{tc.replace('_',' ')}</div>"
+            for j, pc in enumerate(_SIM_L2_ORDER):
+                _val = _sim_l2_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
+                if _diag:
+                    _bg = f"rgba(33,145,140,{max(0.14,_pct*0.85):.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw = "700"
+                elif _val == 0:
+                    _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
+                else:
+                    _bg = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw = "500"
+                _sim_l2_rows += f"<div style='background:{_bg};border-radius:3px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;'><div style='font-size:0.72rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+            _sim_l2_rows += "</div>"
+        _sim_l2_bot  = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};gap:2px;margin-top:4px;'><div></div>"
+        _sim_l2_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _SIM_L2_ORDER)
+        _sim_l2_bot += "</div>"
+        _sim_l2_pred = f"<div style='display:grid;grid-template-columns:{_sim_l2_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted</div></div>"
 
-            _sim_fp_grid = f"{_sm_lw}px " + " ".join([f"{_sm_cw}px"] * _sim_l2_n)
-            _sim_fp_bot  = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};gap:2px;margin-top:4px;'><div></div>"
-            _sim_fp_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _SIM_L2_ORDER)
-            _sim_fp_bot += "</div>"
-            _sim_fp_pred = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>L2 Predicted</div></div>"
+        _fp_mask       = (_pred_l1 == "the_nuanced_rest") & (_sim_l1_ytrue != "the_nuanced_rest")
+        _df_fp         = _df_sim[_fp_mask]
+        _fp_count      = len(_df_fp)
+        _FP_ROW_ORDER  = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time"]
+        _pred_fp_l2    = _df_fp[[f"l2_{c}" for c in _SIM_L2_ORDER]].fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
+        _ytrue_fp      = _sim_l1_ytrue[_fp_mask]
+        _sim_fp_display = {"dropoff_non_operational": "non operational", "dropoff_proxy_zone": "proxy zone",
+                           "low_profitability": "low profit", "long_pickup_time": "long pickup"}
+        _sim_fp_cm     = [
+            [int(((_ytrue_fp == tc) & (_pred_fp_l2 == pc)).sum()) for pc in _SIM_L2_ORDER]
+            for tc in _FP_ROW_ORDER
+        ]
+        _sim_fp_row_sums = [sum(r) for r in _sim_fp_cm]
 
-            _nr_routed = int(_routed_mask.sum())
-            _nr_total  = int((_sim_l1_ytrue == "the_nuanced_rest").sum())
+        _sim_fp_rows = ""
+        for i, tc in enumerate(_FP_ROW_ORDER):
+            _rt = _sim_fp_row_sums[i] or 1
+            _lbl = _sim_fp_display.get(tc, tc)
+            _sim_fp_rows += f"<div style='display:grid;grid-template-columns:{_sm_lw}px {' '.join([f'{_sm_cw}px']*_sim_l2_n)};gap:2px;margin-bottom:2px;'>"
+            _sim_fp_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{_lbl}</div>"
+            for j, pc in enumerate(_SIM_L2_ORDER):
+                _val = _sim_fp_cm[i][j]; _pct = _val / _rt
+                if _val == 0:
+                    _bg = "#f8fafc"; _tc2 = "#e2e8f0"; _fw = "400"
+                else:
+                    _bg = f"rgba(100,116,139,{max(0.08,_pct*0.55):.2f})"; _tc2 = "#1e293b"; _fw = "500"
+                _sim_fp_rows += f"<div style='background:{_bg};border-radius:3px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;'><div style='font-size:0.72rem;color:{_tc2};font-weight:{_fw};'>{_pct*100:.0f}%</div></div>"
+            _sim_fp_rows += "</div>"
 
-            st.markdown(f"""
+        _sim_fp_grid = f"{_sm_lw}px " + " ".join([f"{_sm_cw}px"] * _sim_l2_n)
+        _sim_fp_bot  = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};gap:2px;margin-top:4px;'><div></div>"
+        _sim_fp_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _SIM_L2_ORDER)
+        _sim_fp_bot += "</div>"
+        _sim_fp_pred = f"<div style='display:grid;grid-template-columns:{_sim_fp_grid};margin-top:6px;'><div></div><div style='grid-column:2/{_sim_l2_n+2};text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>L2 Predicted</div></div>"
+
+        _nr_routed = int(_routed_mask.sum())
+        _nr_total  = int((_sim_l1_ytrue == "the_nuanced_rest").sum())
+
+        st.markdown(f"""
 <div style='display:flex;align-items:center;gap:0;margin-bottom:28px;justify-content:center;'>
   <div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>
     <div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'>
@@ -1575,75 +1604,66 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 </div>
 """, unsafe_allow_html=True)
 
-            # ── Accepted class tracking table ─────────────────────────────────────
-            import re as _re3
-            def _norm2(s): return _re3.sub(r'[^\w]+', '_', str(s)).strip('_').lower()
+        # ── Accepted class tracking table ─────────────────────────────────────
+        import re as _re3
+        def _norm2(s): return _re3.sub(r'[^\w]+', '_', str(s)).strip('_').lower()
 
-            _l2_cols = ["l2_strategic_mismatch", "l2_expected_value_gamble", "l2_accepted"]
-            _l2_pred_all = _df_sim[_l2_cols].fillna(0).idxmax(axis=1).str.replace("l2_", "").apply(_norm2)
+        _l2_cols = ["l2_strategic_mismatch", "l2_expected_value_gamble", "l2_accepted"]
+        _l2_pred_all = _df_sim[_l2_cols].fillna(0).idxmax(axis=1).str.replace("l2_", "").apply(_norm2)
 
-            _true_accepted_mask = _df_sim["y_true_l2"].apply(_norm2) == "accepted"
-            _a1_total = int(_true_accepted_mask.sum())
+        _true_accepted_mask = _df_sim["y_true_l2"].apply(_norm2) == "accepted"
+        _a1_total = int(_true_accepted_mask.sum())
 
-            # ── Fare data from BQ ──────────────────────────────────────────────
-            _accepted_offer_ids = _df_sim.loc[_true_accepted_mask, "offer_id"].tolist()
-            _ids_sql = ", ".join([f"'{x}'" for x in _accepted_offer_ids])
+        _accepted_offer_ids = _df_sim.loc[_true_accepted_mask, "offer_id"].tolist()
+        _ids_sql = ", ".join([f"'{x}'" for x in _accepted_offer_ids])
 
-            @st.cache_data(show_spinner=False)
-            def _load_realized_fares(ids_key: str) -> dict:
-                _q = f"""
-                SELECT offer_id, realized_fare
-                FROM `645009831643.pienza_mini.v_mission_dossier`
-                WHERE offer_id IN ({ids_key})
-                  AND realized_fare IS NOT NULL
-                """
-                _df = fetch_data_from_bq(_q)
-                return dict(zip(_df["offer_id"], _df["realized_fare"]))
+        @st.cache_data(show_spinner=False)
+        def _load_realized_fares(ids_key: str) -> dict:
+            _q = f"""
+            SELECT offer_id, realized_fare
+            FROM `645009831643.pienza_mini.v_mission_dossier`
+            WHERE offer_id IN ({ids_key})
+              AND realized_fare IS NOT NULL
+            """
+            _df = fetch_data_from_bq(_q)
+            return dict(zip(_df["offer_id"], _df["realized_fare"]))
 
-            _fare_map = _load_realized_fares(_ids_sql)
+        _fare_map = _load_realized_fares(_ids_sql)
+        _a1_earnings = sum(_fare_map.get(oid, 0) for oid in _accepted_offer_ids)
 
-            # Human total earnings: sum realized_fare for all A1 accepted trips
-            _a1_earnings = sum(_fare_map.get(oid, 0) for oid in _accepted_offer_ids)
+        def _accepted_breakdown(pred_l1_series):
+            _routed = pred_l1_series == "the_nuanced_rest"
+            _ta_routed = _true_accepted_mask & _routed
+            _n_routed  = int(_ta_routed.sum())
+            _l2p = _l2_pred_all[_ta_routed]
+            _fp_routed = _routed & ~_true_accepted_mask & _df_sim["y_true_l2"].isna()
+            _phantom = int((_l2_pred_all[_fp_routed] == "accepted").sum())
+            _correct_ids = _df_sim.loc[_ta_routed & (_l2_pred_all == "accepted"), "offer_id"].tolist()
+            _earn_correct = sum(_fare_map.get(oid, 0) for oid in _correct_ids)
+            _phantom_uf   = _df_sim.loc[_fp_routed & (_l2_pred_all == "accepted"), "upfront_fare"]
+            _earn_phantom = float((6.31 + 0.79 * _phantom_uf).sum())
+            return {
+                "routed":        _n_routed,
+                "correct":       int((_l2p == "accepted").sum()),
+                "to_sm":         int((_l2p == "strategic_mismatch").sum()),
+                "to_ev":         int((_l2p == "expected_value_gamble").sum()),
+                "phantom":       _phantom,
+                "earn_correct":  _earn_correct,
+                "earn_phantom":  _earn_phantom,
+                "earn_total":    _earn_correct + _earn_phantom,
+            }
 
-            def _accepted_breakdown(pred_l1_series):
-                _routed = pred_l1_series == "the_nuanced_rest"
-                _ta_routed = _true_accepted_mask & _routed
-                _n_routed  = int(_ta_routed.sum())
-                _l2p = _l2_pred_all[_ta_routed]
-                # FP obs (non-nuanced routed by L1 error) that L2 predicted as "accepted"
-                _fp_routed = _routed & ~_true_accepted_mask & _df_sim["y_true_l2"].isna()
-                _phantom = int((_l2_pred_all[_fp_routed] == "accepted").sum())
-                # Earnings: correct accepted → realized_fare; phantom → imputed formula at ΔT=1.0
-                _correct_ids = _df_sim.loc[_ta_routed & (_l2_pred_all == "accepted"), "offer_id"].tolist()
-                _earn_correct = sum(_fare_map.get(oid, 0) for oid in _correct_ids)
-                _phantom_ids  = _df_sim.loc[_fp_routed & (_l2_pred_all == "accepted"), "offer_id"].tolist()
-                _phantom_uf   = _df_sim.loc[_fp_routed & (_l2_pred_all == "accepted"), "upfront_fare"]
-                _earn_phantom = float((6.31 + 0.79 * _phantom_uf).sum())
-                return {
-                    "routed":        _n_routed,
-                    "correct":       int((_l2p == "accepted").sum()),
-                    "to_sm":         int((_l2p == "strategic_mismatch").sum()),
-                    "to_ev":         int((_l2p == "expected_value_gamble").sum()),
-                    "phantom":       _phantom,
-                    "earn_correct":  _earn_correct,
-                    "earn_phantom":  _earn_phantom,
-                    "earn_total":    _earn_correct + _earn_phantom,
-                }
+        _pred_l1_50 = _df_sim[_l1_other_cols].idxmax(axis=1).copy()
+        _pred_l1_50[_df_sim["the_nuanced_rest"] >= 0.5] = "the_nuanced_rest"
+        _a2 = _accepted_breakdown(_pred_l1_50)
+        _a3 = _accepted_breakdown(_pred_l1)
 
-            # A2: fixed at T=50%
-            _pred_l1_50 = _df_sim[_l1_other_cols].idxmax(axis=1).copy()
-            _pred_l1_50[_df_sim["the_nuanced_rest"] >= 0.5] = "the_nuanced_rest"
-            _a2 = _accepted_breakdown(_pred_l1_50)
+        def _pct(n, d): return f"({round(n/d*100)}%)" if d > 0 else ""
 
-            # A3: current threshold (dynamic)
-            _a3 = _accepted_breakdown(_pred_l1)
+        _ai_ne_human_a2 = _a2["to_sm"] + _a2["to_ev"] + _a2["phantom"]
+        _ai_ne_human_a3 = _a3["to_sm"] + _a3["to_ev"] + _a3["phantom"]
 
-            def _pct(n, d): return f"({round(n/d*100)}%)" if d > 0 else ""
-
-            _ai_ne_human_a2 = _a2["to_sm"] + _a2["to_ev"] + _a2["phantom"]
-            _ai_ne_human_a3 = _a3["to_sm"] + _a3["to_ev"] + _a3["phantom"]
-
-            st.markdown(f"""
+        st.markdown(f"""
 <div style='margin-top:16px;background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0;padding:14px 18px;'>
   <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Precision–Recall Tradeoff</div>
   <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>Pushing the threshold toward 100% maximizes conditional precision in Layer 2 at the cost of a recall collapse, allowing very few offers to pass the initial filter. Conversely, pushing it toward 0% preserves recall but introduces a high volume of False Positives into Layer 2, degrading the decision boundaries required to resolve strategic intent.</div>
@@ -1713,41 +1733,18 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
   <div style='font-size:0.82rem;color:#334155;line-height:1.6;'>Both mathematical extremes would fail in real-world operations. While very low thresholds imply a volume that breaks physical transit constraints, extreme high thresholds starve the agent of operational volume, leaving them with too few viable options to generate meaningful earnings.</div>
 </div>
 <div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
-  Cognitive Cascade &middot; threshold optimized &middot; <span style='color:#21918c;'>✓ behavioral signal confirmed</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Decoding Behavioral DNA <span style='color:#21918c;'>→</span>
+  Cognitive Cascade &middot; threshold optimized &middot; <span style='color:#21918c;'>✓ behavioral signal confirmed</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Decode Behavioral DNA <span style='color:#21918c;'>→</span>
+</div>
+<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:16px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;color:#cc6600;'>⚠ PENDING — Layout experiment</span><br><br>
+  Jugar con el orden de matrices: idea: mover la matriz de FP hacia abajo y colocar la tabla de Accepted en el espacio vacío que quedaría a la derecha de L1 (actualmente ocupado por el layout de L2+FP). Esto pondría la narrativa de earnings directamente al lado de la acción de L1, sin hacer scroll.
 </div>
 """, unsafe_allow_html=True)
 
-
-
-        components.html("""<script>
-setTimeout(function() {
-  var doc = window.parent.document;
-  var cardMono = doc.getElementById('c3card-mono');
-  var cardCasc = doc.getElementById('c3card-casc');
-  var btns = doc.querySelectorAll('button');
-  var btnMono = null, btnCasc = null;
-  btns.forEach(function(b) {
-    var t = b.innerText.trim();
-    if (t === 'mono') btnMono = b;
-    if (t === 'casc') btnCasc = b;
-  });
-  if (btnMono) {
-    var wrap = btnMono.closest('[data-testid="stElementContainer"]') || btnMono.parentElement;
-    if (wrap) wrap.style.display = 'none';
-    if (cardMono) cardMono.addEventListener('click', function() { btnMono.click(); });
-  }
-  if (btnCasc) {
-    var wrap2 = btnCasc.closest('[data-testid="stElementContainer"]') || btnCasc.parentElement;
-    if (wrap2) wrap2.style.display = 'none';
-    if (cardCasc) cardCasc.addEventListener('click', function() { btnCasc.click(); });
-  }
-}, 400);
-</script>""", height=1)
-
-    with sci4:
+    with sci5:
         pass
 
-    with sci5:
+    with sci6:
         pass
 
 with tab2:
