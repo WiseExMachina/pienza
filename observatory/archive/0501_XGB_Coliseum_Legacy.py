@@ -1,0 +1,277 @@
+import streamlit as st
+import streamlit.components.v1 as components
+import pandas as pd
+import time
+import io
+from google.cloud import storage
+from components.styles import GLOBAL_CSS
+
+st.set_page_config(layout="wide", page_title="The Coliseum (Legacy)")
+
+# ─────────────────────────────────────────────
+# SIDEBAR
+# ─────────────────────────────────────────────
+def build_sidebar():
+    with st.sidebar:
+        st.markdown("Project Pienza")
+        st.markdown("---")
+        st.page_link("main.py", label="Home")
+        st.page_link("pages/0001_Foundations.py", label="Foundations")
+        st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines")
+        st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
+        st.page_link("pages/0004_Data_Census_(The_Basics).py", label="Data Census: The Basics")
+        st.page_link("pages/0005_The_Cost_of_Patience.py", label="The Cost of Patience: Optimal Stopping")
+        st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
+        st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
+        st.page_link("pages/0501_XGB_Coliseum_Legacy.py", label="The Coliseum (Legacy)")
+        st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
+        st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
+        st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
+        st.page_link("pages/0604_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
+        st.markdown("---")
+        st.markdown("**Author:** Bernardo Lozano Wise")
+        st.markdown("**Domain:** Autonomous AV Simulation")
+        st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
+        st.markdown("---")
+        try:
+            with open("assets/Pienza_Papers.pdf", "rb") as f:
+                pdf_data = f.read()
+            st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
+        except FileNotFoundError:
+            pass
+        st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
+        st.markdown("---")
+
+build_sidebar()
+
+# ─────────────────────────────────────────────
+# STYLES
+# ─────────────────────────────────────────────
+quantum_scroll_js = """
+<script>
+const syncQuantumScroll = () => {
+    const gems = document.querySelectorAll('[class*="quantum-link-"]');
+    gems.forEach(gem => {
+        gem.addEventListener('mouseenter', function() {
+            const quantumClass = Array.from(this.classList).find(c => c.startsWith('quantum-link-'));
+            if (!quantumClass) return;
+            const siblings = document.querySelectorAll('.' + quantumClass);
+            siblings.forEach(sib => {
+                if (sib !== this) {
+                    const bucket = sib.closest('.bucket');
+                    if (bucket) {
+                        const targetPos = sib.offsetTop - bucket.offsetTop - (bucket.clientHeight / 2) + (sib.clientHeight / 2);
+                        bucket.scrollTo({ top: targetPos, behavior: 'smooth' });
+                    }
+                }
+            });
+        });
+    });
+};
+const observer = new MutationObserver(syncQuantumScroll);
+observer.observe(document.body, { childList: true, subtree: true });
+</script>
+"""
+
+base_css = """
+<style>
+    .offer-gem {
+        background-color: #ffffff; border-left: 4px solid #21918c;
+        padding: 4px 8px; margin-bottom: 3px; border-radius: 4px;
+        font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.2;
+        box-shadow: 1px 1px 3px rgba(0,0,0,0.1); color: #121212;
+        transition: all 0.2s ease;
+    }
+    .nuance-gem { border-left: 4px solid #f5a623 !important; background-color: #fff9e6 !important; font-weight: bold; }
+    .tower-label { font-weight: bold; font-size: 11px; text-align: center; color: white; background-color: #440154; padding: 5px; border-radius: 5px 5px 0 0; }
+    .bucket {
+        background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 0 0 5px 5px; padding: 5px;
+        height: 350px !important; overflow-y: auto !important;
+        display: flex; flex-direction: column;
+    }
+    .agent-header { text-align: center; font-weight: 800; font-size: 14px; padding: 8px; background: #21918c; color: white; border-radius: 8px; margin-bottom: 5px; }
+    .bucket::-webkit-scrollbar { width: 6px; }
+    .bucket::-webkit-scrollbar-thumb { background: #21918c; border-radius: 4px; }
+    .badge-agreed { background-color: #2ca02c; color: white; padding: 2px 4px; border-radius: 3px; font-size: 8px; margin-right: 4px; font-weight: bold; }
+    .badge-human { background-color: #440154; color: white; padding: 2px 4px; border-radius: 3px; font-size: 8px; margin-right: 4px; font-weight: bold; }
+    .badge-ai { background-color: #21918c; color: white; padding: 2px 4px; border-radius: 3px; font-size: 8px; margin-right: 4px; font-weight: bold; }
+</style>
+"""
+
+max_ofertas = 150
+hover_css = "<style>\n"
+for i in range(max_ofertas):
+    hover_css += f"""
+    body:has(.quantum-link-{i}:hover) .quantum-link-{i} {{
+        box-shadow: 0px 0px 15px 3px #f5a623 !important;
+        border-left: 8px solid #f5a623 !important;
+        background-color: #fffce6 !important;
+        transform: scale(1.04);
+        z-index: 99;
+    }}
+    """
+hover_css += "</style>"
+
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+st.markdown(base_css, unsafe_allow_html=True)
+st.markdown(hover_css, unsafe_allow_html=True)
+st.markdown(quantum_scroll_js, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# SESSION STATE
+# ─────────────────────────────────────────────
+KEY_PATH = "/workspaces/pienza/observatory/.streamlit/service-account.json"
+
+if 'arena_idx' not in st.session_state: st.session_state.arena_idx = 0
+if 'arena_running' not in st.session_state: st.session_state.arena_running = False
+if 'bank' not in st.session_state: st.session_state.bank = {"human": 0.0, "full": 0.0, "light": 0.0}
+if 'trips' not in st.session_state: st.session_state.trips = {"human": 0, "full": 0, "light": 0}
+
+if 'towers_l1' not in st.session_state:
+    st.session_state.towers_l1 = {k: [] for k in ["THE_NUANCED_REST", "Long Pickup Time", "Low Profitability", "Dropoff: Non-Operational", "Dropoff: Proxy Zone"]}
+if 'towers_l2' not in st.session_state:
+    st.session_state.towers_l2 = {ag: {k: [] for k in ["ACCEPTED", "Expected Value Gamble", "Strategic Mismatch"]} for ag in ["human", "full", "light"]}
+
+@st.cache_data
+def load_tournament_ledger():
+    client = storage.Client.from_service_account_json(KEY_PATH)
+    bucket = client.bucket("pienza-streamlit")
+    blob = bucket.blob("260420_resultados_torneo_iter2v3.parquet")
+    buffer = io.BytesIO()
+    blob.download_to_file(buffer)
+    buffer.seek(0)
+    df = pd.read_parquet(buffer)
+    if 'offer_timestamp' in df.columns:
+        df['offer_timestamp'] = pd.to_datetime(df['offer_timestamp'])
+        df = df.sort_values('offer_timestamp')
+    return df
+
+df_master = load_tournament_ledger()
+
+# ─────────────────────────────────────────────
+# PAGE LAYOUT
+# ─────────────────────────────────────────────
+st.markdown("# The Coliseum (Legacy)")
+st.markdown("""
+<div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+Legacy hierarchical tournament visualization — the original animated arena showing real-time
+classification of offers across Layer 1 (The Bouncer Junction) and Layer 2 (Strategic Strategist Duel).
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("### The Coliseum: Hierarchical Flow")
+
+c_ctrl1, c_ctrl2, c_ctrl3 = st.columns([2, 2, 1])
+lista_sesiones = ["ALL SESSIONS"] + sorted(df_master['session_fk'].dropna().unique().tolist())
+sid = c_ctrl1.selectbox("Choose Shift:", lista_sesiones)
+speed_mult = c_ctrl2.slider("Simulation Speed", 1, 20, 5, step=1)
+
+if sid == "ALL SESSIONS":
+    df_session = df_master.copy().reset_index(drop=True)
+else:
+    df_session = df_master[df_master['session_fk'] == sid].reset_index(drop=True)
+
+if c_ctrl3.button("🚀 START TOURNAMENT", use_container_width=True):
+    st.session_state.arena_idx = 0
+    st.session_state.bank = {k: 0.0 for k in st.session_state.bank}
+    st.session_state.trips = {k: 0 for k in st.session_state.trips}
+    st.session_state.towers_l1 = {k: [] for k in st.session_state.towers_l1}
+    st.session_state.towers_l2 = {ag: {k: [] for k in st.session_state.towers_l2[ag]} for ag in st.session_state.towers_l2}
+    st.session_state.arena_running = True
+
+st.markdown("---")
+l1, l2, l3 = st.columns(3)
+l1.metric("👤 Human Bank", f"${st.session_state.bank['human']:,.2f}")
+l2.metric("🤖 Full Model Bank", f"${st.session_state.bank['full']:,.2f}")
+l3.metric("🛡️ Lightweight Bank", f"${st.session_state.bank['light']:,.2f}")
+
+# --- LAYER 1 RENDER ---
+st.markdown("### 1. Layer 1: The Bouncer Junction")
+t1_cols = st.columns(5)
+l1_keys = list(st.session_state.towers_l1.keys())
+
+for i, key in enumerate(l1_keys):
+    with t1_cols[i]:
+        st.markdown(f'<div class="tower-label" style="{"background-color:#21918c" if key == "THE_NUANCED_REST" else ""}">{key}</div>', unsafe_allow_html=True)
+        gem_html = "".join(st.session_state.towers_l1[key][-30:])
+        st.markdown(f'<div class="bucket">{gem_html}</div>', unsafe_allow_html=True)
+
+# --- LAYER 2 RENDER ---
+st.markdown("---")
+st.markdown("### 2. Layer 2: Strategic Strategist Duel")
+duel_cols = st.columns(3)
+agents = ["human", "full", "light"]
+titles = ["👤 HUMAN AGENT", "🤖 FULL FEATURE MODEL", "🛡️ LIGHTWEIGHT MODEL"]
+
+for i, ag in enumerate(agents):
+    with duel_cols[i]:
+        st.markdown(f'<div class="agent-header">{titles[i]}</div>', unsafe_allow_html=True)
+        sub_c = st.columns(3)
+        for j, buck in enumerate(["ACCEPTED", "Expected Value Gamble", "Strategic Mismatch"]):
+            with sub_c[j]:
+                st.markdown(f'<div style="font-size:9px; text-align:center; font-weight:bold;">{buck.split()[-1].upper()}</div>', unsafe_allow_html=True)
+                gem_html_l2 = "".join(st.session_state.towers_l2[ag][buck][-30:])
+                st.markdown(f'<div class="bucket" style="height:250px !important;">{gem_html_l2}</div>', unsafe_allow_html=True)
+
+# --- SIMULATION ENGINE ---
+if st.session_state.arena_running and len(df_session) > 0:
+    idx = st.session_state.arena_idx
+    row = df_session.iloc[idx]
+
+    fare = float(row['upfront_fare'])
+    pickup_m = int(float(row['time_to_pickup_sec'] or 0)/60)
+    trip_m = int(float(row['est_trip_time_sec'] or 0)/60)
+    base_info = f"${fare:.0f} | {pickup_m}m | {trip_m}m | {str(row['final_zone_name'])[:10]}"
+    q_class = f"quantum-link-{idx}"
+
+    badge_match = "<span class='badge-agreed'>🤝 MATCH</span>"
+    badge_hum = "<span class='badge-human'>👤 HUM</span>"
+    badge_ai = "<span class='badge-ai'>🤖 AI</span>"
+
+    h_l1, ai_l1 = row['human_l1_bucket'], row['ai_l1_bucket']
+    gem_template = f"<div class='offer-gem {{extra_class}} {q_class}'>{{badge}} {base_info}</div>"
+
+    if row['is_l1_match']:
+        gem = gem_template.format(
+            extra_class="nuance-gem" if h_l1 == "THE_NUANCED_REST" else "",
+            badge=badge_match
+        )
+        st.session_state.towers_l1[h_l1].append(gem)
+    else:
+        gem_h = gem_template.format(
+            extra_class="nuance-gem" if h_l1 == "THE_NUANCED_REST" else "",
+            badge=badge_hum
+        )
+        st.session_state.towers_l1[h_l1].append(gem_h)
+
+        gem_ai = gem_template.format(
+            extra_class="nuance-gem" if ai_l1 == "THE_NUANCED_REST" else "",
+            badge=badge_ai
+        )
+        st.session_state.towers_l1[ai_l1].append(gem_ai)
+
+    l2_gem = f"<div class='offer-gem nuance-gem {q_class}'>{base_info}</div>"
+
+    if h_l1 == "THE_NUANCED_REST":
+        h_dec = row['human_decision']
+        if h_dec in st.session_state.towers_l2["human"]:
+            st.session_state.towers_l2["human"][h_dec].append(l2_gem)
+            if h_dec == "ACCEPTED": st.session_state.bank['human'] += fare
+
+    if ai_l1 == "THE_NUANCED_REST":
+        for mod, col in [("full", "ai_l2_full_decision"), ("light", "ai_l2_spartan_decision")]:
+            dec = row[col]
+            if dec in st.session_state.towers_l2[mod]:
+                st.session_state.towers_l2[mod][dec].append(l2_gem)
+                if dec == "ACCEPTED": st.session_state.bank[mod] += fare
+
+    if idx < len(df_session) - 1:
+        st.session_state.arena_idx += 1
+        time.sleep(1.0 / speed_mult)
+        st.rerun()
+    else:
+        st.session_state.arena_running = False
+        st.balloons()
+
+# --- PLACEHOLDER DE PENDIENTES ---
+st.info("Pending: Time in Session Counter, Auditoria de Discrepancias, asegurar que el hover jale bien, stop tournament, otros.")

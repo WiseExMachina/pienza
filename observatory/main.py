@@ -16,10 +16,13 @@ def build_sidebar():
         st.page_link("pages/0005_The_Cost_of_Patience.py", label="The Cost of Patience: Optimal Stopping")
         st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
         st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
-        st.page_link("pages/0601_O1_NLP1.py", label="The Quest to (O)1: NLP")
-        st.page_link("pages/0602_cGAN_Engine.py", label="cGAN Keras Engine")
-        st.page_link("pages/0603_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
-        st.page_link("pages/0604_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
+        st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer")
+        st.page_link("pages/0009_Generative_Moonshots.py", label="Generative Moonshots")
+        st.markdown("---")
+        st.markdown("**Archive**")
+        st.page_link("pages/9001_cGAN_Engine.py", label="cGAN Keras Engine")
+        st.page_link("pages/9002_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
+        st.page_link("pages/9003_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
         st.markdown("---")
         st.markdown("**Author:** Bernardo Lozano Wise")
         st.markdown("**Domain:** Autonomous AV Simulation")
@@ -188,13 +191,13 @@ modules = [
     ("pages/0601_O1_NLP1.py", "⚡", "The Quest to (O)1: NLP", 
      "A real-time diagnostic pipeline contrasting Cloud API latency against a custom local neural engine for spatial inference."),
      
-    ("pages/0602_cGAN_Engine.py", "🏭", "cGAN Keras Engine", 
+    ("pages/9001_cGAN_Engine.py", "🏭", "cGAN Keras Engine", 
      "The Generative Forge: dynamically synthesizes hyper-realistic ride-hailing demand from a 1M-row neural manifold."),
      
-    ("pages/0603_Network_Graph.py", "🔭", "Network Graph Analysis", 
+    ("pages/9002_Network_Graph.py", "🔭", "Network Graph Analysis", 
      "Analyzes the urban geofence using network graph theory to observe topological centrality and dynamic capital flows."),
      
-    ("pages/0604_Markov_Fleet_Sim_Dashboard.py", "🤖", "Markov Fleet Simulator", 
+    ("pages/9003_Markov_Fleet_Sim_Dashboard.py", "🤖", "Markov Fleet Simulator", 
      "A tactical fleet deployment simulator using a Markov Decision Process for sequential routing and demand absorption.")
 ]
 
