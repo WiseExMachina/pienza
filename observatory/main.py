@@ -188,7 +188,7 @@ modules = [
     ("pages/0007_Human_vs_AI_Behavioral_Cloning.py", "⚔️", "Human vs AI: Behavioral Cloning",
      "An interactive coliseum comparing the decision-making of the human agent against hierarchical AI models."),
      
-    ("pages/0601_O1_NLP1.py", "⚡", "The Quest to (O)1: NLP", 
+    ("pages/0008_The_Quest_to_O1_NLP.py", "⚡", "The Quest to (O)1: NLP Transformer",
      "A real-time diagnostic pipeline contrasting Cloud API latency against a custom local neural engine for spatial inference."),
      
     ("pages/9001_cGAN_Engine.py", "🏭", "cGAN Keras Engine", 

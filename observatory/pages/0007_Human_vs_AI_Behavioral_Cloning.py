@@ -254,7 +254,7 @@ with tab1:
   <div class="ci-step">
     <div class="ci-dot">P4</div>
     <div class="ci-step-label">Precision-Recall Tradeoff</div>
-    <div class="ci-step-sub">Threshold Calibrator</div>
+    <div class="ci-step-sub">Threshold Tuning</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P5</div>
@@ -1814,7 +1814,7 @@ setTimeout(function() {
             base = alt.Chart(df).encode(
                 y=alt.Y("label_clean:N", sort=None, axis=alt.Axis(
                     labelFontSize=11, labelColor="#475569", labelLimit=220,
-                    ticks=False, domain=False, title=None, labelPadding=2,
+                    ticks=False, domain=False, title=None, labelPadding=-8,
                 )),
                 x=alt.X("directional_impact:Q", axis=alt.Axis(
                     title="Directional Impact  (mean |SHAP| × correlation sign)",
@@ -1832,16 +1832,15 @@ setTimeout(function() {
                 ],
             )
             bars = base.mark_bar(cornerRadiusTopRight=3, cornerRadiusBottomRight=3, cornerRadiusTopLeft=3, cornerRadiusBottomLeft=3)
-            _xmin = df["directional_impact"].min() * 1.15
-            _xmax = df["directional_impact"].max() * 1.15
+            _dom = x_domain or [-0.30, 0.30]
             _df_lead = df[["label_clean"]].copy()
-            _df_lead["x0"] = _xmin
-            _df_lead["x1"] = _xmax
+            _df_lead["x0"] = _dom[0]
+            _df_lead["x1"] = _dom[1]
             leaders = alt.Chart(_df_lead).mark_rule(
                 strokeDash=[3, 4], strokeWidth=0.8, color="#c8d0da",
             ).encode(
                 y=alt.Y("label_clean:N", sort=list(df["label_clean"])),
-                x=alt.X("x0:Q", scale=alt.Scale(domain=[_xmin, _xmax])),
+                x=alt.X("x0:Q", scale=alt.Scale(domain=_dom, clamp=True)),
                 x2="x1:Q",
             )
             rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#cbd5e1", strokeWidth=1).encode(x="x:Q")
@@ -1854,7 +1853,7 @@ setTimeout(function() {
         st.markdown("""
 <div style='margin-top:8px;margin-bottom:4px;font-size:0.52rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;'>Layer 1 · nuanced_rest class</div>
 """, unsafe_allow_html=True)
-        st.altair_chart(_shap_chart(_df_shap_l1, "Signal DNA · What drives nuanced_rest classification"), use_container_width=True)
+        st.altair_chart(_shap_chart(_df_shap_l1, "Signal DNA · What drives nuanced_rest classification", x_domain=[-0.55, 0.35]), use_container_width=True)
 
         # ── L2 carousel ───────────────────────────────────────────────────────
         st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
