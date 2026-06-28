@@ -43,6 +43,48 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown("# Generative Moonshots")
 st.markdown("""
 <div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
-Placeholder — coming soon.
+The generative frontier of Project Pienza — synthesizing behavioral manifolds, topological network metrics,
+and a side-by-side audit of real vs. synthetic offer distributions.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+st.markdown("## Mobility Tensor Dashboard")
+st.markdown("""
+<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+     padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+        color:#cc6600;'>⚠ PENDING FIX — Mobility Tensor Dashboard</span><br><br>
+  Visualization of the cGAN-generated mobility tensor across CDMX zones. Coming soon.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+st.markdown("## Network Metrics")
+st.markdown("""
+<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+     padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+        color:#cc6600;'>⚠ PENDING FIX — Network Metrics</span><br><br>
+  Topological and tensor-based graph metrics derived from the offer network. Coming soon.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+st.markdown("## Real vs. Synthetic")
+st.markdown("""
+<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+     padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+        color:#cc6600;'>⚠ PENDING FIX — Real vs. Synthetic Table</span><br><br>
+  Side-by-side distributional audit comparing real offer records against cGAN-synthesized rows. Coming soon.
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("---")
+st.markdown("""
+<div style='text-align:center;padding:48px 0 24px;font-size:2rem;font-weight:300;
+     color:#21918c;letter-spacing:0.12em;'>
+  THE END.
 </div>
 """, unsafe_allow_html=True)
