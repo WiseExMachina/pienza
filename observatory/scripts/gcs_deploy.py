@@ -72,6 +72,21 @@ MANIFEST = [
         "local": "0509_shap_l2.parquet",
         "gcs":   "0509_shap_l2.parquet",
     },
+    {
+        "page": "0007",
+        "local": "260505_0509_learning_curve_L1.parquet",
+        "gcs":   "260505_0509_learning_curve_L1.parquet",
+    },
+    {
+        "page": "0007",
+        "local": "260505_0509_learning_curve_L2.parquet",
+        "gcs":   "260505_0509_learning_curve_L2.parquet",
+    },
+    {
+        "page": "0007",
+        "local": "260505_0509_spartan_learning_curve.parquet",
+        "gcs":   "260505_0509_spartan_learning_curve.parquet",
+    },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
 

@@ -678,7 +678,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     with sci2:
         st.markdown("""
 <div style='margin-bottom:32px;'>
-  <div style='font-size:0.85rem;color:#777;line-height:1.6;margin-bottom:4px;font-family:Inter,sans-serif;font-weight:400;'>Five algorithms entered the arena in sequence, each benchmarked across all three feature leagues. This multi-trial framework is designed to capture the baseline predictive signal before introducing non-linear complexity.</div>
+  <div style='font-size:0.85rem;color:#777;line-height:1.6;margin-bottom:4px;font-family:'Source Sans Pro',sans-serif;font-weight:400;'>Five algorithms entered the arena in sequence, each benchmarked across all three feature leagues. This multi-trial framework is designed to capture the baseline predictive signal before introducing non-linear complexity.</div>
   <div style='display:flex;gap:28px;margin-top:14px;justify-content:center;'>
     <div style='border-left:3px solid #21918c;padding:6px 12px;background:rgba(33,145,140,0.04);border-radius:0 6px 6px 0;'>
       <div style='font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px;'>Training</div>
@@ -821,7 +821,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
                 f"{_totals_cells}</div>"
             )
             _heatmap_html = (
-                f"<div style='margin-top:56px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>A temporal breakdown of the target variables confirms the structural integrity of the dataset. Tracking class distribution across the six-week horizon validates that the agent&#8217;s decision policy does not suffer from fundamental concept drift, safely clearing the path for K-Fold shuffling.</div>"
+                f"<div style='margin-top:56px;font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;'>A temporal breakdown of the target variables confirms the structural integrity of the dataset. Tracking class distribution across the six-week horizon validates that the agent&#8217;s decision policy does not suffer from fundamental concept drift, safely clearing the path for K-Fold shuffling.</div>"
                 f"<div style='margin-top:28px;border-top:1px solid rgba(0,0,0,0.06);padding-top:20px;max-width:820px;margin-left:auto;margin-right:auto;'>"
                 f"<div style='font-size:0.59rem;font-weight:700;color:#64748b;letter-spacing:1.5px;margin-bottom:10px;'>CLASS DISTRIBUTION BY WEEK &nbsp;&#8212;&nbsp; REASON PRIMARY</div>"
                 f"<div style='display:grid;grid-template-columns:{_grid_cols};gap:4px;padding:0 0 6px;'><span></span>{_week_headers}</div>"
@@ -843,7 +843,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
 
         # ── Intro + comparison banner (always visible, above tabs) ────────────
         st.markdown("""
-<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:32px;'>
+<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;margin-bottom:32px;'>
 This section shows how a monolithic class architecture fails because deterministic noise acts as a "gravitational well," cannibalizing nuanced decisions. The Cognitive Cascade resolves this through a dual-layer hierarchy: Layer 1 isolates deterministic rejections, clearing a noise-free subset for Layer 2 to decode the agent's true strategic intent.
 </div>
 <style>
@@ -1098,7 +1098,7 @@ This section shows how a monolithic class architecture fails because determinist
 """, unsafe_allow_html=True)
 
             st.markdown("""
-<div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>
+<div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;'>
   A simultaneous collapse across both Type I and Type II metrics confirms a complete failure to map mathematical boundaries. With up to 96% of critical events undetected and severe false-alarm rates when triggered, the model isn&#8217;t inferring complex intent&#8202;&#8212;&#8202;it is simply guessing blindly.
 </div>
 <div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
@@ -1108,7 +1108,7 @@ This section shows how a monolithic class architecture fails because determinist
 
 
         elif _c3_view == "Cognitive Cascade":
-            st.markdown("""<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:32px;'>
+            st.markdown("""<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;margin-bottom:32px;'>
 In this hierarchical architecture, Layer 1 collapses the overlapping minority classes into a single <code>nuanced_rest</code> bucket. Recalled observations from this bucket then pass to Layer 2 to decode the agent&#8217;s final decision policy.
 </div>""", unsafe_allow_html=True)
 
@@ -1251,7 +1251,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             _l2_pred = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
             st.markdown(f"""
-<div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>Layer 2 was evaluated in strict isolation using 100% of the ground-truth nuanced holdout. This prevents selection bias and establishes the theoretical performance ceiling of the Nuance Engine before introducing cascading errors from Layer 1.</div>
+<div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;margin-bottom:24px;'>Layer 2 was evaluated in strict isolation using 100% of the ground-truth nuanced holdout. This prevents selection bias and establishes the theoretical performance ceiling of the Nuance Engine before introducing cascading errors from Layer 1.</div>
 <div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:25px;'>
   <div>
     <div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Layer 1</div>
@@ -1352,7 +1352,7 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 """, unsafe_allow_html=True)
 
             st.markdown("""
-<div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>
+<div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;'>
   This autopsy validates the hierarchical pivot. Layer&#160;1&#8217;s controlled 31% signal loss acts as a necessary firewall, driving Layer&#160;2&#8217;s false alarms and undetected rates down from 96% to single digits.
 </div>
 <div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
@@ -1392,7 +1392,7 @@ setTimeout(function() {
     with sci4:
         # ── Threshold Simulator ───────────────────────────────────────────────
         st.markdown("""
-<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>To simulate real-world production, this interactive module enables tuning Layer&#160;1&#8217;s <code style='font-size:0.82rem;background:rgba(33,145,140,0.08);color:#21918c;padding:1px 5px;border-radius:3px;'>nuanced_rest</code> recall threshold, visualizing exactly what survives the initial filter to feed Layer&#160;2.</div>
+<div style='font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;margin-bottom:24px;'>To simulate real-world production, this interactive module enables tuning Layer&#160;1&#8217;s <code style='font-size:0.82rem;background:rgba(33,145,140,0.08);color:#21918c;padding:1px 5px;border-radius:3px;'>nuanced_rest</code> recall threshold, visualizing exactly what survives the initial filter to feed Layer&#160;2.</div>
 """, unsafe_allow_html=True)
 
         @st.cache_data(show_spinner=False)
@@ -1672,7 +1672,7 @@ setTimeout(function() {
   <div style='font-size:0.62rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Precision–Recall Tradeoff</div>
   <div style='font-size:0.82rem;color:#334155;line-height:1.7;'>Pushing the threshold toward 100% maximizes conditional precision in Layer 2 at the cost of a recall collapse, allowing very few offers to pass the initial filter. Conversely, pushing it toward 0% preserves recall but introduces a high volume of False Positives into Layer 2, degrading the decision boundaries required to resolve strategic intent.</div>
 </div>
-<div style='margin-top:32px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:20px;'>To measure the real-world impact of this tradeoff, the scorecard below translates classification thresholds into financial outcomes, comparing the AI's dynamic yield against the human baseline.</div>
+<div style='margin-top:32px;font-size:0.85rem;color:#777;line-height:1.6;font-family:'Source Sans Pro',sans-serif;font-weight:400;margin-bottom:20px;'>To measure the real-world impact of this tradeoff, the scorecard below translates classification thresholds into financial outcomes, comparing the AI's dynamic yield against the human baseline.</div>
 <div style='display:flex;justify-content:center;'><div style='display:inline-block;border:1px solid rgba(33,145,140,0.2);border-radius:6px;overflow:hidden;'>
   <div style='display:grid;grid-template-columns:200px 160px 160px 160px;'>
     <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;'>Accepted</div>
@@ -1887,7 +1887,7 @@ setTimeout(function() {
         # ── L1 chart ──────────────────────────────────────────────────────────
         st.markdown("""
 <p style='font-size:0.84rem;color:#475569;line-height:1.65;margin-bottom:20px;'>This SHAP analysis decodes the behavioral logic of the cascade — first, what separates a deterministic rejection from a nuanced offer at Layer 1, then how each of the three strategic outcomes is weighted at Layer 2. Each bar reflects the mean contribution of a feature to that classification decision.</p>
-<div style='margin-top:8px;margin-bottom:4px;font-size:1.1rem;font-weight:700;color:#21918c;font-family:Inter,sans-serif;'>Layer 1 · nuanced_rest class</div>
+<div style='margin-top:8px;margin-bottom:4px;font-size:1.1rem;font-weight:700;color:#21918c;font-family:'Source Sans Pro',sans-serif;'>Layer 1 · nuanced_rest class</div>
 """, unsafe_allow_html=True)
         st.plotly_chart(_shap_chart(_df_shap_l1, "What drives nuanced_rest classification", x_domain=[-0.55, 0.35], x_title="← deterministic rejections", x_title_right="nuanced_rest · passes to L2 →"), use_container_width=True)
 
@@ -1901,7 +1901,7 @@ setTimeout(function() {
         # ── L2 carousel ───────────────────────────────────────────────────────
         st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
         st.markdown("""
-<div style='margin-bottom:4px;font-size:1.1rem;font-weight:700;color:#21918c;font-family:Inter,sans-serif;'>Layer 2 · strategic classes</div>
+<div style='margin-bottom:4px;font-size:1.1rem;font-weight:700;color:#21918c;font-family:'Source Sans Pro',sans-serif;'>Layer 2 · strategic classes</div>
 """, unsafe_allow_html=True)
 
         _L2_ORDER   = ["Strategic Mismatch", "Expected Value Gamble", "ACCEPTED"]
@@ -2020,7 +2020,224 @@ setTimeout(function() {
 """, unsafe_allow_html=True)
 
     with sci6:
-        pass
+
+        @st.cache_data(show_spinner=False)
+        def _load_lc_l1():
+            from io import BytesIO
+            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L1.parquet").download_as_bytes()))
+
+        @st.cache_data(show_spinner=False)
+        def _load_lc_l2():
+            from io import BytesIO
+            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L2.parquet").download_as_bytes()))
+
+        @st.cache_data(show_spinner=False)
+        def _load_lc_spartan():
+            from io import BytesIO
+            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("260505_0509_spartan_learning_curve.parquet").download_as_bytes()))
+
+        _df_lc_l1      = _load_lc_l1()
+        _df_lc_l2      = _load_lc_l2()
+        _df_lc_spartan = _load_lc_spartan()
+
+        def _prep_lc(df):
+            tc = [c for c in df.columns if c.startswith("train_s_")]
+            vc = [c for c in df.columns if c.startswith("test_s_")]
+            return df.assign(
+                train_mean = df[tc].mean(axis=1),
+                val_mean   = df[vc].mean(axis=1),
+                val_std    = df[vc].std(axis=1),
+            )
+
+        _lc1 = _prep_lc(_df_lc_l1)
+        _lc2 = _prep_lc(_df_lc_l2)
+        _lcs = _prep_lc(_df_lc_spartan)
+
+        def _lc_chart(df, title, show_stats=True):
+            import plotly.graph_objects as _go
+            fig = _go.Figure()
+            # train — slate
+            fig.add_trace(_go.Scatter(
+                x=df["train_sizes"], y=df["train_mean"],
+                name="Train", mode="lines+markers",
+                line=dict(color="#8896a5", width=2, dash="dot"),
+                marker=dict(size=4, color="#8896a5"),
+            ))
+            # val band
+            fig.add_trace(_go.Scatter(
+                x=pd.concat([df["train_sizes"], df["train_sizes"][::-1]]),
+                y=pd.concat([df["val_mean"] + df["val_std"], (df["val_mean"] - df["val_std"])[::-1]]),
+                fill="toself", fillcolor="rgba(33,145,140,0.08)",
+                line=dict(color="rgba(255,255,255,0)"), showlegend=False, hoverinfo="skip",
+            ))
+            # val — teal
+            fig.add_trace(_go.Scatter(
+                x=df["train_sizes"], y=df["val_mean"],
+                name="Validation", mode="lines+markers",
+                line=dict(color="#21918c", width=2),
+                marker=dict(size=5, color="#21918c"),
+            ))
+            fig.update_layout(
+                title=dict(text=title, font=dict(size=11, color="#21918c", family="Inter"), x=0),
+                paper_bgcolor="#fafafa", plot_bgcolor="#fafafa",
+                font=dict(family="Inter", size=11, color="#475569"),
+                xaxis=dict(title="training samples", showgrid=False,
+                           tickfont=dict(size=10, color="#94a3b8"),
+                           title_font=dict(size=10, color="#94a3b8")),
+                yaxis=dict(title="F1-Macro", range=[0, 1.05], gridcolor="#e2e8f0", griddash="dot",
+                           zeroline=False, tickfont=dict(size=10, color="#94a3b8"),
+                           title_font=dict(size=10, color="#94a3b8")),
+                legend=dict(orientation="h", y=-0.22, x=0, font=dict(size=11, color="#475569"),
+                            bgcolor="rgba(0,0,0,0)"),
+                margin=dict(l=0, r=10, t=40, b=64),
+                height=320,
+            )
+            if show_stats:
+                _tr = df["train_mean"].iloc[-1]
+                _vl = df["val_mean"].iloc[-1]
+                _gp = _tr - _vl
+                fig.add_annotation(
+                    x=1, y=0, xref="paper", yref="paper", xanchor="right", yanchor="bottom",
+                    text=f"<span style='color:#8896a5;'>train</span> {_tr:.2f} &nbsp; <span style='color:#21918c;'>val</span> {_vl:.2f} &nbsp; <span style='color:#475569;'>gap</span> {_gp:.2f}",
+                    showarrow=False, font=dict(size=11, family="Inter"), align="right",
+                    bgcolor="rgba(250,250,250,0.85)", borderpad=4,
+                )
+            return fig
+
+        # ── L1 healthy ─────────────────────────────────────────────────────────
+        st.markdown("""
+<div style='margin:8px 0 16px;padding:0 4px;'>
+  <div style='font-size:0.85rem;font-weight:700;letter-spacing:2.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;'>Layer 1 · learning curve</div>
+  <div style='height:1px;background:linear-gradient(to right,rgba(33,145,140,0.35),transparent);'></div>
+</div>
+<p style='font-size:0.84rem;color:#475569;line-height:1.65;margin-bottom:12px;'>With ~3,000 training samples, Layer 1 converges cleanly. Train and validation curves close in steadily — no memorization, no collapse. A gap of 0.15 at full data is healthy for a real-world behavioral model.</p>
+""", unsafe_allow_html=True)
+        st.plotly_chart(_lc_chart(_lc1, "L1 Bouncer · learning curve"), use_container_width=True)
+
+        # ── L2 problem intro ───────────────────────────────────────────────────
+        st.markdown("""
+<div style='margin:32px 0 16px;padding:0 4px;'>
+  <div style='font-size:0.85rem;font-weight:700;letter-spacing:2.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;'>Layer 2 · the overfitting problem</div>
+  <div style='height:1px;background:linear-gradient(to right,rgba(33,145,140,0.35),transparent);'></div>
+</div>
+<p style='font-size:0.84rem;color:#475569;line-height:1.65;margin-bottom:20px;'>Layer 2 memorized the training set — a textbook high-variance failure. With only ~600 samples, the model learns noise. The solution: a lightweight model of 6 features, selected for behavioral meaning over raw performance. The gap collapses from 0.24 to 0.11 at the cost of ~0.09 in validation score — a deliberate tradeoff favoring generalization.</p>
+""", unsafe_allow_html=True)
+
+        # ── 6 lightweight features — stepper ──────────────────────────────────
+        st.markdown("""
+<div style='display:flex;justify-content:center;margin-bottom:24px;'><div style='display:flex;gap:0;max-width:320px;width:100%;'>
+
+  <!-- stepper spine -->
+  <div style='display:flex;flex-direction:column;align-items:center;margin-right:16px;flex-shrink:0;'>
+    <div style='width:34px;height:34px;border-radius:50%;background:#21918c;display:flex;align-items:center;justify-content:center;'>
+      <span style='color:#fff;font-size:0.95rem;font-weight:700;line-height:1;font-family:'Source Sans Pro',sans-serif;'>L</span>
+    </div>
+    <div style='width:1px;background:#d1d5db;flex:1;margin-top:4px;'></div>
+  </div>
+
+  <!-- content -->
+  <div style='padding-top:6px;padding-bottom:20px;'>
+    <div style='font-size:0.68rem;font-weight:700;color:#21918c;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:12px;'>Lightweight Feature Set</div>
+    <div style='border-left:3px solid #21918c;padding-left:14px;display:flex;flex-direction:column;gap:6px;'>
+      <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;'>session_progress_ratio</span>
+      <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;'>total_accumulated_deadhead_sec</span>
+      <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;'>cycle_rolling_avg_spread</span>
+      <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;'>eph_operational_index</span>
+      <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;'>cycle_cumulative_net_earnings</span>
+      <span style='font-family:monospace;font-size:0.68rem;color:#94a3b8;'>home_vector_alignment_score</span>
+    </div>
+  </div>
+
+</div></div>
+""", unsafe_allow_html=True)
+
+        # ── learning curves side by side ───────────────────────────────────────
+        _col_l2, _col_sp = st.columns(2)
+        with _col_l2:
+            st.plotly_chart(_lc_chart(_lc2, "L2 Full · 25+ features"), use_container_width=True)
+        with _col_sp:
+            st.plotly_chart(_lc_chart(_lcs, "L2 Lightweight · 6 features"), use_container_width=True)
+
+        # ── comparison table ───────────────────────────────────────────────────
+        st.markdown("""
+<div style='margin-top:12px;font-family:'Source Sans Pro',sans-serif;'>
+  <table style='width:auto;border-collapse:collapse;line-height:1.2;margin:0 auto;'>
+    <thead>
+      <tr style='background:#f8fafc;'>
+        <th style='padding:4px 8px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(33,145,140,0.12);'></th>
+        <th style='padding:4px 8px;text-align:center;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);font-weight:normal;white-space:nowrap;'>
+          <span style='font-size:0.58rem;font-weight:700;color:#334155;letter-spacing:1.2px;text-transform:uppercase;'>Train F1</span>
+        </th>
+        <th style='padding:4px 8px;text-align:center;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);font-weight:normal;white-space:nowrap;'>
+          <span style='font-size:0.58rem;font-weight:700;color:#334155;letter-spacing:1.2px;text-transform:uppercase;'>Val F1</span>
+        </th>
+        <th style='padding:4px 8px;text-align:center;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);font-weight:normal;white-space:nowrap;'>
+          <span style='font-size:0.58rem;font-weight:700;color:#334155;letter-spacing:1.2px;text-transform:uppercase;'>Gap</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style='padding:4px 8px;border-bottom:1px solid #f1f5f9;'>
+          <span style='font-size:0.58rem;font-weight:700;color:#334155;letter-spacing:1.2px;text-transform:uppercase;'>Layer 1</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#21918c;'>0.97</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#64b5b1;'>0.82</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#475569;'>0.15</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#21918c;margin-left:3px;'>healthy</span>
+        </td>
+      </tr>
+      <tr>
+        <td style='padding:4px 8px;border-bottom:1px solid #f1f5f9;'>
+          <span style='font-size:0.58rem;font-weight:700;color:#334155;letter-spacing:1.2px;text-transform:uppercase;'>L2 Full</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#21918c;'>0.94</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#64b5b1;'>0.70</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#475569;'>0.24</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#f59e0b;margin-left:3px;'>overfit</span>
+        </td>
+      </tr>
+      <tr>
+        <td style='padding:4px 8px;'>
+          <span style='font-size:0.58rem;font-weight:700;color:#334155;letter-spacing:1.2px;text-transform:uppercase;'>L2 Lightweight</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#21918c;'>0.72</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#64b5b1;'>0.61</span>
+        </td>
+        <td style='padding:4px 8px;text-align:center;border-left:1px solid rgba(33,145,140,0.12);'>
+          <span style='font-size:0.75rem;font-weight:700;color:#475569;'>0.11</span>
+          <span style='font-size:0.58rem;font-weight:600;color:#21918c;margin-left:3px;'>generalizes</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+""", unsafe_allow_html=True)
+
+        st.markdown("""
+<div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:20px;'>
+<span style='font-size:0.82rem;color:#334155;line-height:1.65;'>While the initial model suffered from high variance, the lightweight iteration corrects this at the cost of increased bias, trading complexity for generalization. This ensures the learned decision policy remains robust across diverse operational states.</span>
+</div>
+""", unsafe_allow_html=True)
+
+        st.markdown("""
+<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
+  Behavioral Cloning &middot; <span style='color:#21918c;'>✓ dimensionality reduction · success</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Sensitivity Analysis <span style='color:#21918c;'>→</span>
+</div>
+""", unsafe_allow_html=True)
 
 with tab2:
     pass
