@@ -649,7 +649,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>A-LEAGUE</span>
         <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>41 numerical + 5 categorical</div>
-        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Wide Set · Control Group</div>
+        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Wide Set:Control Group</div>
         <div style='font-size:0.75rem;color:#64748b;line-height:1.5;'>Validates that expert pruning did not destroy latent signal.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
@@ -657,7 +657,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>B-LEAGUE</span>
         <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>20 numerical + 5 categorical</div>
-        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · Raw</div>
+        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated:Raw</div>
         <div style='font-size:0.75rem;color:#64748b;line-height:1.5;'>Expert-selected raw scaled variables — preserves geometric splits for tree models.</div>
       </div>
       <div style='flex:1;min-width:180px;'>
@@ -665,7 +665,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
           padding:3px 10px;border-radius:4px;background:rgba(33,145,140,0.10);
           color:#21918c;border:1px solid rgba(33,145,140,0.3);margin-bottom:8px;'>C-LEAGUE</span>
         <div style='font-size:0.72rem;color:#21918c;font-weight:600;margin-bottom:4px;'>12 components + 5 categorical</div>
-        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated · PCA</div>
+        <div style='font-size:0.80rem;font-weight:600;color:#334155;margin-bottom:2px;'>Curated:PCA</div>
         <div style='font-size:0.75rem;color:#64748b;line-height:1.5;'>Orthogonal projection of B-League designed for linear and Bayesian purity.</div>
       </div>
     </div>
@@ -864,7 +864,7 @@ This section shows how a monolithic class architecture fails because determinist
 <div style='display:grid;grid-template-columns:1fr auto 2fr;align-items:center;gap:0;margin-bottom:36px;'>
   <div class='bento-card'>
     <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;'>Monolith</div>
-    <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Single Stage · 7 Classes</div>
+    <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Single Stage:7 Classes</div>
     <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
       <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.61</div>
       <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
@@ -879,7 +879,7 @@ This section shows how a monolithic class architecture fails because determinist
     <div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;'>Cognitive Cascade</div>
     <div style='display:grid;grid-template-columns:1fr 1px 1fr;gap:0;'>
       <div style='padding-right:16px;'>
-        <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Layer 1 · 5 Classes</div>
+        <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Layer 1:5 Classes</div>
         <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
           <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.76</div>
           <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
@@ -891,7 +891,7 @@ This section shows how a monolithic class architecture fails because determinist
       </div>
       <div style='background:#e2e8f0;'></div>
       <div style='padding-left:16px;'>
-        <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Layer 2 · 3 Classes</div>
+        <div style='font-size:0.55rem;color:#64748b;margin-bottom:6px;'>Layer 2:3 Classes</div>
         <div style='display:flex;align-items:baseline;gap:6px;margin-bottom:10px;'>
           <div style='font-family:monospace;font-size:1.8rem;font-weight:700;color:#64748b;line-height:1;'>0.91</div>
           <div style='font-size:0.55rem;font-weight:700;color:#b0bec5;letter-spacing:1px;text-transform:uppercase;'>F1-Macro</div>
@@ -1034,7 +1034,7 @@ This section shows how a monolithic class architecture fails because determinist
             _ac_t1 = round((1 - _ac["precision"]) * 100)
 
             st.markdown(f"""
-<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:40px;'>Monolith Confusion Matrix · W6 OOT Holdout</div>
+<div style='font-size:0.72rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:40px;'>Monolith Confusion Matrix:W6 OOT Holdout</div>
 <div style='padding-bottom:90px;'>
 <div style='width:fit-content;margin:0 auto;transform:scale(1.15) translateX(-70px);transform-origin:top center;'><div style='display:flex;gap:8px;align-items:center;'>
   <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;align-self:center;'>Real</div>
@@ -1409,7 +1409,7 @@ setTimeout(function() {
         _thresh_pct = st.session_state["sim_thresh_pct"]
         _T = _thresh_pct / 100
 
-        st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>Layer 1 · nuanced_rest classification threshold</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>Layer 1:nuanced_rest classification threshold</div>", unsafe_allow_html=True)
         st.slider(
             label="threshold",
             label_visibility="collapsed",
@@ -1598,7 +1598,7 @@ setTimeout(function() {
       </div>
     </div>
     <div>
-      <div style='font-size:0.72rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>L1 False Positives · Routed to L2</div>
+      <div style='font-size:0.72rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>L1 False Positives:Routed to L2</div>
       <div style='display:flex;gap:2px;align-items:center;'>
         <div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;align-self:center;'>L1 Real</div>
         <div>{_sim_fp_rows}{_sim_fp_bot}{_sim_fp_pred}</div>
@@ -1678,7 +1678,7 @@ setTimeout(function() {
     <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;'>Accepted</div>
     <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Human <span style='font-size:0.58rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>Ground Truth</span></div>
     <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>AI <span style='font-size:0.58rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>Default Threshold</span></div>
-    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:2px solid rgba(33,145,140,0.4);text-align:center;font-size:0.65rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>AI <span style='font-size:0.58rem;color:#21918c;font-weight:500;letter-spacing:0;text-transform:none;'>Active · {_thresh_pct}%</span></div>
+    <div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:2px solid rgba(33,145,140,0.4);text-align:center;font-size:0.65rem;font-weight:700;color:#21918c;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>AI <span style='font-size:0.58rem;color:#21918c;font-weight:500;letter-spacing:0;text-transform:none;'>Active:{_thresh_pct}%</span></div>
     <div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'>
       <div style='font-size:0.72rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Human Only</div>
     </div>
@@ -1719,7 +1719,7 @@ setTimeout(function() {
     </div>
     <div style='position:relative;padding:8px 10px;'>
       <div style='font-size:0.72rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Cumulative earnings</div>
-      <span class='fn-wrap' style='position:absolute;top:6px;right:8px;'><span class='fn-mark' style='color:#21918c;font-size:0.6rem;'>ⓘ</span><span class='fn-tooltip' style='width:380px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400;color:#334155;'><strong>Imputation method (AI ≠ Human trips)</strong><br>Human earnings are verified realized fares. Non-realized AI fares are estimated via the Causal Inference polynomial model at ΔT = 1.0:<br><br><span style='font-family:monospace;font-size:0.78rem;background:rgba(33,145,140,0.08);padding:4px 8px;border-radius:4px;display:block;white-space:nowrap;'>F̂(ΔT=1) = 6.31 + 0.79 · Upfront Fare</span></span></span>
+      <span class='fn-wrap' style='position:absolute;top:6px;right:8px;'><span class='fn-mark' style='color:#21918c;font-size:0.6rem;'>ⓘ</span><span class='fn-tooltip' style='width:380px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400;color:#334155;'><strong>Imputation method (AI ≠ Human trips)</strong><br>Human earnings are verified realized fares. Non-realized AI fares are estimated via the Causal Inference polynomial model at ΔT = 1.0:<br><br><span style='font-family:monospace;font-size:0.78rem;background:rgba(33,145,140,0.08);padding:4px 8px;border-radius:4px;display:block;white-space:nowrap;'>F̂(ΔT=1) = 6.31 + 0.79:Upfront Fare</span></span></span>
     </div>
     <div style='padding:8px 10px;border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>
       <div style='font-family:monospace;font-size:1.15rem;font-weight:700;color:#21918c;line-height:1;'>${_a1_earnings:,.0f}</div>
@@ -1760,34 +1760,62 @@ setTimeout(function() {
         _df_shap_l1 = _load_shap_l1()
         _df_shap_l2 = _load_shap_l2()
 
-        # ── Clean labels ──────────────────────────────────────────────────────
+        # ── Clean labels — snake_case, strip implementation suffixes ─────────
         _LABEL_CLEAN = {
-            "time_to_pickup_sec":                   "Time to pickup (sec)",
-            "upfront_fare":                         "Upfront fare",
-            "log_upfront_fare":                     "Upfront fare (log)",
-            "eph_operational_index":                "EPH · operational index",
-            "log_total_accumulated_deadhead_sec":   "Accumulated deadhead (log)",
-            "consecutive_rejects":                  "Consecutive rejects",
-            "heuristic_flag":                       "Heuristic flag",
-            "trip_distance_km":                     "Trip distance (km)",
-            "pickup_distance_km":                   "Pickup distance (km)",
-            "session_offers_seen":                  "Offers seen · session",
-            "log_session_elapsed_sec":              "Session elapsed (log)",
-            "hour_of_day":                          "Hour of day",
-            "day_of_week":                          "Day of week",
-            "is_weekend":                           "Weekend",
-            "driver_state_at_request_fk":           "Driver state",
-            "fare_per_km":                          "Fare per km",
-            "log_fare_per_km":                      "Fare per km (log)",
-            "time_block":                           "Time block",
+            # L1
+            "time_to_pickup_sec":                   "time_to_pickup",
+            "upfront_fare":                         "upfront_fare",
+            "log_upfront_fare":                     "upfront_fare",
+            "eph_operational_index":                "eph_operational_index",
+            "est_trip_time_sec":                    "est_trip_time",
+            "historical_rolling_avg_traffic_index": "rolling_avg_traffic_index",
+            "traffic_index_base_120":               "traffic_index_base_120",
+            "traffic_volatility_index_ml":          "traffic_volatility_index",
+            "log_traffic_volatility_index_ml":      "traffic_volatility_index",
+            "log_traffic_index_base_120":           "traffic_index_base_120",
+            "time_since_last_offer":                "time_since_last_offer",
+            "consecutive_rejects":                  "consecutive_rejects",
+            "session_progress_ratio":               "session_progress_ratio",
+            "hour_of_day_7":                        "hour_of_day: 7am",
+            "hour_of_day_8":                        "hour_of_day: 8am",
+            "hour_of_day_13":                       "hour_of_day: 1pm",
+            "day_of_week_Wednesday":                "day_of_week: wednesday",
+            "day_of_week_Thursday":                 "day_of_week: thursday",
+            "product_category_fk_3":                "category: business_comfort",
+            # L2
+            "log_total_accumulated_deadhead_sec":   "accumulated_deadhead",
+            "log_cycle_cumulative_net_earnings":    "cycle_cumulative_earnings",
+            "log_est_trip_time_sec":                "est_trip_time",
+            "dispatch_lead_time_sec":               "dispatch_lead_time",
+            "home_vector_alignment_score":          "home_vector_alignment",
+            "cycle_avg_dtp_km":                     "cycle_avg_dtp_km",
+            "cycle_ttp_dtp_ratio":                  "cycle_ttp_dtp_ratio",
+            "cycle_rolling_avg_spread":             "cycle_rolling_avg_spread",
+            "cycle_std_dtp_km":                     "cycle_std_dtp_km",
+            "eph_complete_index_ML":                "eph_complete_index",
+            "category: comfort":                    "category: comfort",
+            "category: business_comfort":           "category: business_comfort",
+            "Zona: santa_fe_ibero":                 "zona: santa_fe_ibero",
+            "dropoff: Unassigned Area":             "dropoff: unassigned",
+            "dropoff: roma_condesa_2":              "dropoff: roma_condesa_2",
+            "dropoff: tamarindos":                  "dropoff: tamarindos",
+            "dropoff: terminal_1_aicm":             "dropoff: terminal_1_aicm",
+            "dropoff: terminal_2_aicm":             "dropoff: terminal_2_aicm",
+            "dropoff: juarez_soho_house":           "dropoff: juarez_soho_house",
+            "dropoff: lomas_verdes":                "dropoff: lomas_verdes",
         }
 
         def _clean_label(raw):
             if raw in _LABEL_CLEAN:
                 return _LABEL_CLEAN[raw]
-            raw = raw.replace("_", " ").strip()
-            # capitalize first word
-            return raw[0].upper() + raw[1:] if raw else raw
+            # strip common implementation suffixes
+            import re as _re_lbl
+            s = str(raw)
+            s = _re_lbl.sub(r'^log_', '', s)
+            s = _re_lbl.sub(r'_sec$', '', s)
+            s = _re_lbl.sub(r'_ml$', '', s)
+            s = _re_lbl.sub(r'_fk$', '', s)
+            return s
 
         _df_shap_l1["label_clean"] = _df_shap_l1["label"].apply(_clean_label)
         _df_shap_l2["label_clean"] = _df_shap_l2["label"].apply(_clean_label)
@@ -1796,81 +1824,112 @@ setTimeout(function() {
         _df_shap_l1["direction"] = _df_shap_l1["directional_impact"].apply(lambda x: "Motor ↑" if x >= 0 else "Brake ↓")
         _df_shap_l2["direction"] = _df_shap_l2["directional_impact"].apply(lambda x: "Motor ↑" if x >= 0 else "Brake ↓")
 
-        import altair as alt
+        import plotly.graph_objects as go
 
-        def _shap_chart(df, title, x_domain=None, color_field="color"):
-            df = df.sort_values("mean_abs_shap", ascending=False).copy()
-            # deduplicate labels to avoid Altair silently dropping rows
-            seen, unique_labels = {}, []
-            for lbl in df["label_clean"]:
-                if lbl in seen:
-                    seen[lbl] += 1
-                    unique_labels.append(f"{lbl} ({seen[lbl]})")
-                else:
-                    seen[lbl] = 0
-                    unique_labels.append(lbl)
-            df["label_clean"] = unique_labels
-            df["label_clean"] = pd.Categorical(df["label_clean"], categories=unique_labels, ordered=True)
-            base = alt.Chart(df).encode(
-                y=alt.Y("label_clean:N", sort=None, axis=alt.Axis(
-                    labelFontSize=11, labelColor="#475569", labelLimit=220,
-                    ticks=False, domain=False, title=None, labelPadding=-8,
-                )),
-                x=alt.X("directional_impact:Q", axis=alt.Axis(
-                    title="Directional Impact  (mean |SHAP| × correlation sign)",
-                    titleFontSize=10, titleColor="#94a3b8",
-                    labelFontSize=9, labelColor="#94a3b8",
-                    grid=False,
-                    domain=False, ticks=False,
-                ), scale=alt.Scale(domain=x_domain or [-0.30, 0.30], clamp=True)),
-                color=alt.Color("color:N", scale=None, legend=None),
-                tooltip=[
-                    alt.Tooltip("label_clean:N", title="Feature"),
-                    alt.Tooltip("directional_impact:Q", title="Impact", format=".3f"),
-                    alt.Tooltip("mean_abs_shap:Q", title="Mean |SHAP|", format=".3f"),
-                    alt.Tooltip("direction:N", title="Role"),
-                ],
-            )
-            bars = base.mark_bar(cornerRadiusTopRight=3, cornerRadiusBottomRight=3, cornerRadiusTopLeft=3, cornerRadiusBottomLeft=3)
+        def _interp_color(t, c_light, c_dark):
+            def _hex(h): return tuple(int(h[i:i+2], 16) for i in (1, 3, 5))
+            r1, g1, b1 = _hex(c_light)
+            r2, g2, b2 = _hex(c_dark)
+            return f"rgb({int(r1+(r2-r1)*t)},{int(g1+(g2-g1)*t)},{int(b1+(b2-b1)*t)})"
+
+        def _shap_chart(df, title, x_domain=None, x_title=None, x_title_right=None):
+            df = df.sort_values("mean_abs_shap", ascending=True).copy()
             _dom = x_domain or [-0.30, 0.30]
-            _df_lead = df[["label_clean"]].copy()
-            _df_lead["x0"] = _dom[0]
-            _df_lead["x1"] = _dom[1]
-            leaders = alt.Chart(_df_lead).mark_rule(
-                strokeDash=[3, 4], strokeWidth=0.8, color="#c8d0da",
-            ).encode(
-                y=alt.Y("label_clean:N", sort=list(df["label_clean"])),
-                x=alt.X("x0:Q", scale=alt.Scale(domain=_dom, clamp=True)),
-                x2="x1:Q",
-            )
-            rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#cbd5e1", strokeWidth=1).encode(x="x:Q")
-            return (leaders + bars + rule).properties(
-                title=alt.TitleParams(title, fontSize=13, fontWeight=600, color="#334155", anchor="start"),
+            _norm = (df["mean_abs_shap"] - df["mean_abs_shap"].min()) / \
+                    (df["mean_abs_shap"].max() - df["mean_abs_shap"].min() + 1e-9)
+            _colors = [
+                _interp_color(t, "#b2dbd9", "#21918c") if v >= 0 else _interp_color(t, "#e8eaed", "#8896a5")
+                for t, v in zip(_norm, df["directional_impact"])
+            ]
+            fig = go.Figure(go.Bar(
+                x=df["directional_impact"],
+                y=df["label_clean"],
+                orientation="h",
+                marker=dict(color=_colors, line=dict(width=0), cornerradius=4),
+                hovertemplate="<b>%{y}</b><br>Impact: %{x:.3f}<extra></extra>",
+            ))
+            _annotations = []
+            if x_title:
+                _annotations.append(dict(
+                    x=0, y=-0.14, xref="paper", yref="paper",
+                    text=f"<b>{x_title}</b>",
+                    showarrow=False, xanchor="left",
+                    font=dict(size=12, color="#8896a5", family="Inter"),
+                ))
+            if x_title_right:
+                _annotations.append(dict(
+                    x=1, y=-0.14, xref="paper", yref="paper",
+                    text=f"<b>{x_title_right}</b>",
+                    showarrow=False, xanchor="right",
+                    font=dict(size=12, color="#21918c", family="Inter"),
+                ))
+            fig.update_layout(
+                paper_bgcolor="#fafafa",
+                plot_bgcolor="#fafafa",
+                font=dict(family="Inter", color="#475569", size=12),
+                annotations=_annotations,
+                margin=dict(l=0, r=20, t=40, b=72),
+                title=dict(text=title, font=dict(size=13, color="#334155"), x=0),
+                xaxis=dict(
+                    range=_dom,
+                    zeroline=True, zerolinecolor="#cbd5e1", zerolinewidth=1,
+                    showgrid=False, tickfont=dict(size=10, color="#94a3b8"),
+                    title=dict(text="mean SHAP value", font=dict(size=10, color="#94a3b8"), standoff=4),
+                ),
+                yaxis=dict(
+                    showgrid=True, gridcolor="#dde3ea", gridwidth=1, griddash="dot",
+                    tickfont=dict(size=11, color="#475569"), title=None,
+                ),
                 height=560,
-            ).configure_view(strokeWidth=0).configure_axis(labelFont="Inter", titleFont="Inter")
+            )
+            return fig
 
         # ── L1 chart ──────────────────────────────────────────────────────────
         st.markdown("""
-<div style='margin-top:8px;margin-bottom:4px;font-size:0.52rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;'>Layer 1 · nuanced_rest class</div>
+<p style='font-size:0.84rem;color:#475569;line-height:1.65;margin-bottom:20px;'>This SHAP analysis decodes the behavioral logic of the cascade — first, what separates a deterministic rejection from a nuanced offer at Layer 1, then how each of the three strategic outcomes is weighted at Layer 2. Each bar reflects the mean contribution of a feature to that classification decision.</p>
+<div style='margin-top:8px;margin-bottom:4px;font-size:1.1rem;font-weight:700;color:#21918c;font-family:Inter,sans-serif;'>Layer 1 · nuanced_rest class</div>
 """, unsafe_allow_html=True)
-        st.altair_chart(_shap_chart(_df_shap_l1, "Signal DNA · What drives nuanced_rest classification", x_domain=[-0.55, 0.35]), use_container_width=True)
+        st.plotly_chart(_shap_chart(_df_shap_l1, "What drives nuanced_rest classification", x_domain=[-0.55, 0.35], x_title="← deterministic rejections", x_title_right="nuanced_rest · passes to L2 →"), use_container_width=True)
+
+        # ── L1 insight — editorial callout ────────────────────────────────────
+        st.markdown("""
+<div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:24px;'>
+<span style='font-size:0.82rem;color:#334155;line-height:1.65;'>High baseline congestion pushes offers into the Nuanced category — the agent actively hunts high-friction market states to secure high EPH rides. Yet friction and risk are not the same thing: while known traffic is desired, unpredicted risk is not. High <code>traffic_volatility_index</code> signals margin erosion and drives immediate rejection.</span>
+</div>
+""", unsafe_allow_html=True)
 
         # ── L2 carousel ───────────────────────────────────────────────────────
         st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
         st.markdown("""
-<div style='margin-bottom:4px;font-size:0.52rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;'>Layer 2 · strategic classes</div>
+<div style='margin-bottom:4px;font-size:1.1rem;font-weight:700;color:#21918c;font-family:Inter,sans-serif;'>Layer 2 · strategic classes</div>
 """, unsafe_allow_html=True)
 
-        _L2_CLASSES  = _df_shap_l2["class_name"].unique().tolist()
+        _L2_ORDER   = ["Strategic Mismatch", "Expected Value Gamble", "ACCEPTED"]
+        _L2_CLASSES = _L2_ORDER
         _L2_LABELS   = {
             "ACCEPTED":             "Accepted",
             "Expected Value Gamble":"Expected Value Gamble",
             "Strategic Mismatch":   "Strategic Mismatch",
         }
         _L2_TITLES = {
-            "ACCEPTED":             "Strategic DNA · What drives the agent to Accept",
-            "Expected Value Gamble":"Strategic DNA · What drives Expected Value Gamble",
-            "Strategic Mismatch":   "Strategic DNA · What drives Strategic Mismatch",
+            "ACCEPTED":             "What drives the agent to Accept",
+            "Expected Value Gamble":"What drives Expected Value Gamble",
+            "Strategic Mismatch":   "What drives Strategic Mismatch",
+        }
+        _L2_DOMAINS = {
+            "ACCEPTED":             [-0.30, 0.50],
+            "Expected Value Gamble":[-0.40, 0.30],
+            "Strategic Mismatch":   [-0.35, 0.30],
+        }
+        _L2_XTITLE_LEFT = {
+            "ACCEPTED":             "← pulls towards nuanced rejection",
+            "Expected Value Gamble":"← pulls towards nuanced rejection",
+            "Strategic Mismatch":   "← pulls towards nuanced rejection",
+        }
+        _L2_XTITLE_RIGHT = {
+            "ACCEPTED":             "drives acceptance →",
+            "Expected Value Gamble":"drives the gamble →",
+            "Strategic Mismatch":   "forces strategic mismatch →",
         }
 
         if "shap_l2_class" not in st.session_state:
@@ -1892,10 +1951,73 @@ setTimeout(function() {
             if _cols_l2[_ci].button(_L2_LABELS.get(_cls, _cls), key=f"shap_l2_btn_{_ci}", use_container_width=True):
                 st.session_state["shap_l2_class"] = _cls
                 st.rerun()
+        _btn_labels = [_L2_LABELS.get(_cls, _cls) for _cls in _L2_CLASSES]
+        import streamlit.components.v1 as _cv1
+        _cv1.html(f"""<script>
+(function wire() {{
+    const labels = {_btn_labels};
+    const doc = window.parent.document;
+
+    // find hidden buttons
+    const btnMap = {{}};
+    doc.querySelectorAll('button').forEach(btn => {{
+        const t = btn.innerText.trim();
+        if (labels.includes(t)) btnMap[t] = btn;
+    }});
+
+    // find chip divs (divs whose sole text matches a label)
+    const chips = [];
+    doc.querySelectorAll('div').forEach(div => {{
+        if (labels.includes(div.innerText.trim()) && div.children.length === 0) chips.push(div);
+    }});
+
+    if (Object.keys(btnMap).length < labels.length || chips.length < labels.length) {{
+        setTimeout(wire, 50); return;
+    }}
+
+    // hide buttons
+    labels.forEach(l => {{
+        const el = btnMap[l].closest('[data-testid="stButton"]');
+        if (el) el.style.display = 'none';
+    }});
+
+    // wire chip clicks → button clicks
+    chips.forEach(chip => {{
+        const label = chip.innerText.trim();
+        chip.style.cursor = 'pointer';
+        chip.addEventListener('click', () => {{ if (btnMap[label]) btnMap[label].click(); }});
+    }});
+}})();
+</script>""", height=0)
 
         # Chart for active class
         _df_active = _df_shap_l2[_df_shap_l2["class_name"] == _active_l2].copy()
-        st.altair_chart(_shap_chart(_df_active, _L2_TITLES.get(_active_l2, _active_l2)), use_container_width=True)
+        st.plotly_chart(_shap_chart(_df_active, _L2_TITLES.get(_active_l2, _active_l2),
+            x_domain=_L2_DOMAINS.get(_active_l2, [-0.30, 0.30]),
+            x_title=_L2_XTITLE_LEFT.get(_active_l2),
+            x_title_right=_L2_XTITLE_RIGHT.get(_active_l2),
+        ), use_container_width=True)
+
+        if _active_l2 == "ACCEPTED":
+            st.markdown("""
+<div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:8px;'>
+<span style='font-size:0.82rem;color:#334155;line-height:1.65;'>Acceptance is driven by clean economics above all — <code>eph_operational_index</code> and <code>upfront_fare</code> dominate: the agent accepts when the money is unambiguously good. As expected, <code>accumulated_deadhead</code> also drives acceptance — deep into an unpaid stretch, the agent grows less selective to stop the bleeding.</span>
+</div>
+""", unsafe_allow_html=True)
+
+        if _active_l2 == "Expected Value Gamble":
+            st.markdown("""
+<div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:8px;'>
+<span style='font-size:0.82rem;color:#334155;line-height:1.65;'>The strongest brake on the gamble is <code>accumulated_deadhead</code> — the more unpaid time already sunk into the cycle, the less willing the agent is to bet. Notably, <code>upfront_fare</code> also pulls toward caution: the gamble isn't a naive "chase the high fare" reflex, but a context-aware bet weighed against time already spent.</span>
+</div>
+""", unsafe_allow_html=True)
+
+        if _active_l2 == "Strategic Mismatch":
+            st.markdown("""
+<div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:8px;'>
+<span style='font-size:0.82rem;color:#334155;line-height:1.65;'>As a session advances (<code>session_progress_ratio</code>) and daily financial targets are secured (<code>cycle_cumulative_earnings</code>), the agent abandons pure revenue maximization for an exit strategy. Trips that pull the driver away from their baseline zone (a negative <code>home_vector_alignment</code>) aggressively trigger a mismatch rejection, as the driver refuses to be dragged further away at the end of their day.</span>
+</div>
+""", unsafe_allow_html=True)
 
     with sci6:
         pass
