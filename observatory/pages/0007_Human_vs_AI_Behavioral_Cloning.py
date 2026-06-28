@@ -245,13 +245,13 @@ with tab1:
   </div>
   <div class="ci-step">
     <div class="ci-dot">P3</div>
-    <div class="ci-step-label">Cognitive Cascade</div>
-    <div class="ci-step-sub">Hierarchical architecture</div>
+    <div class="ci-step-label">Architecture Design</div>
+    <div class="ci-step-sub">Monolith vs Cascade</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P4</div>
-    <div class="ci-step-label">Threshold Calibrator</div>
-    <div class="ci-step-sub">Optimal operating point</div>
+    <div class="ci-step-label">Precision-Recall Tradeoff</div>
+    <div class="ci-step-sub">Threshold Calibrator</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P5</div>
@@ -261,7 +261,7 @@ with tab1:
   <div class="ci-step">
     <div class="ci-dot">P6</div>
     <div class="ci-step-label">Bias-Variance Tradeoff</div>
-    <div class="ci-step-sub">Lightweight champion emerges</div>
+    <div class="ci-step-sub">Lightweight model emerges</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1248,8 +1248,6 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             _l2_pred = f"<div style='display:grid;grid-template-columns:{_l2_grid_cols};margin-top:8px;'><div></div><div style='grid-column:2/{_l2_n+2};text-align:center;font-size:0.62rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;'>Predicted</div></div>"
 
             st.markdown(f"""
-<div style='margin-top:56px;margin-bottom:4px;font-size:0.75rem;font-weight:700;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-family:monospace;'>Cognitive Cascade · Theoretical Ceiling</div>
-<div style='height:1px;background:linear-gradient(90deg,#21918c,transparent);margin-bottom:28px;'></div>
 <div style='font-size:0.82rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;margin-bottom:24px;'>Layer 2 was evaluated in strict isolation using 100% of the ground-truth nuanced holdout. This prevents selection bias and establishes the theoretical performance ceiling of the Nuance Engine before introducing cascading errors from Layer 1.</div>
 <div style='display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;padding-bottom:25px;'>
   <div>
@@ -1353,6 +1351,9 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
             st.markdown("""
 <div style='margin-top:28px;font-size:0.85rem;color:#777;line-height:1.6;font-family:Inter,sans-serif;font-weight:400;'>
   This autopsy validates the hierarchical pivot. Layer&#160;1&#8217;s controlled 31% signal loss acts as a necessary firewall, driving Layer&#160;2&#8217;s false alarms and undetected rates down from 96% to single digits.
+</div>
+<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
+  Cognitive Cascade &middot; theoretical ceiling established &middot; <span style='color:#21918c;'>✓ cascade architecture validated</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; next phase: threshold tuning <span style='color:#21918c;'>→</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1733,7 +1734,7 @@ setTimeout(function() {
   <div style='font-size:0.82rem;color:#334155;line-height:1.6;'>Both mathematical extremes would fail in real-world operations. While very low thresholds imply a volume that breaks physical transit constraints, extreme high thresholds starve the agent of operational volume, leaving them with too few viable options to generate meaningful earnings.</div>
 </div>
 <div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
-  Cognitive Cascade &middot; threshold optimized &middot; <span style='color:#21918c;'>✓ behavioral signal confirmed</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Decode Behavioral DNA <span style='color:#21918c;'>→</span>
+  Cognitive Cascade &middot; <span style='color:#21918c;'>✓ behavioral cloning · success</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Decode Behavioral DNA <span style='color:#21918c;'>→</span>
 </div>
 <div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:16px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
   <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;color:#cc6600;'>⚠ PENDING — Layout experiment</span><br><br>
@@ -1742,7 +1743,157 @@ setTimeout(function() {
 """, unsafe_allow_html=True)
 
     with sci5:
-        pass
+        # ── Load SHAP data ────────────────────────────────────────────────────
+        @st.cache_data(show_spinner=False)
+        def _load_shap_l1():
+            from io import BytesIO
+            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("0509_shap_l1_nuanced.parquet").download_as_bytes()))
+
+        @st.cache_data(show_spinner=False)
+        def _load_shap_l2():
+            from io import BytesIO
+            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("0509_shap_l2.parquet").download_as_bytes()))
+
+        _df_shap_l1 = _load_shap_l1()
+        _df_shap_l2 = _load_shap_l2()
+
+        # ── Clean labels ──────────────────────────────────────────────────────
+        _LABEL_CLEAN = {
+            "time_to_pickup_sec":                   "Time to pickup (sec)",
+            "upfront_fare":                         "Upfront fare",
+            "log_upfront_fare":                     "Upfront fare (log)",
+            "eph_operational_index":                "EPH · operational index",
+            "log_total_accumulated_deadhead_sec":   "Accumulated deadhead (log)",
+            "consecutive_rejects":                  "Consecutive rejects",
+            "heuristic_flag":                       "Heuristic flag",
+            "trip_distance_km":                     "Trip distance (km)",
+            "pickup_distance_km":                   "Pickup distance (km)",
+            "session_offers_seen":                  "Offers seen · session",
+            "log_session_elapsed_sec":              "Session elapsed (log)",
+            "hour_of_day":                          "Hour of day",
+            "day_of_week":                          "Day of week",
+            "is_weekend":                           "Weekend",
+            "driver_state_at_request_fk":           "Driver state",
+            "fare_per_km":                          "Fare per km",
+            "log_fare_per_km":                      "Fare per km (log)",
+            "time_block":                           "Time block",
+        }
+
+        def _clean_label(raw):
+            if raw in _LABEL_CLEAN:
+                return _LABEL_CLEAN[raw]
+            raw = raw.replace("_", " ").strip()
+            # capitalize first word
+            return raw[0].upper() + raw[1:] if raw else raw
+
+        _df_shap_l1["label_clean"] = _df_shap_l1["label"].apply(_clean_label)
+        _df_shap_l2["label_clean"] = _df_shap_l2["label"].apply(_clean_label)
+        _df_shap_l1["color"] = _df_shap_l1["directional_impact"].apply(lambda x: "#21918c" if x >= 0 else "#c8d0d8")
+        _df_shap_l2["color"] = _df_shap_l2["directional_impact"].apply(lambda x: "#21918c" if x >= 0 else "#c8d0d8")
+        _df_shap_l1["direction"] = _df_shap_l1["directional_impact"].apply(lambda x: "Motor ↑" if x >= 0 else "Brake ↓")
+        _df_shap_l2["direction"] = _df_shap_l2["directional_impact"].apply(lambda x: "Motor ↑" if x >= 0 else "Brake ↓")
+
+        import altair as alt
+
+        def _shap_chart(df, title, x_domain=None, color_field="color"):
+            df = df.sort_values("mean_abs_shap", ascending=False).copy()
+            # deduplicate labels to avoid Altair silently dropping rows
+            seen, unique_labels = {}, []
+            for lbl in df["label_clean"]:
+                if lbl in seen:
+                    seen[lbl] += 1
+                    unique_labels.append(f"{lbl} ({seen[lbl]})")
+                else:
+                    seen[lbl] = 0
+                    unique_labels.append(lbl)
+            df["label_clean"] = unique_labels
+            df["label_clean"] = pd.Categorical(df["label_clean"], categories=unique_labels, ordered=True)
+            base = alt.Chart(df).encode(
+                y=alt.Y("label_clean:N", sort=None, axis=alt.Axis(
+                    labelFontSize=11, labelColor="#475569", labelLimit=220,
+                    ticks=False, domain=False, title=None, labelPadding=2,
+                )),
+                x=alt.X("directional_impact:Q", axis=alt.Axis(
+                    title="Directional Impact  (mean |SHAP| × correlation sign)",
+                    titleFontSize=10, titleColor="#94a3b8",
+                    labelFontSize=9, labelColor="#94a3b8",
+                    grid=False,
+                    domain=False, ticks=False,
+                ), scale=alt.Scale(domain=x_domain or [-0.30, 0.30], clamp=True)),
+                color=alt.Color("color:N", scale=None, legend=None),
+                tooltip=[
+                    alt.Tooltip("label_clean:N", title="Feature"),
+                    alt.Tooltip("directional_impact:Q", title="Impact", format=".3f"),
+                    alt.Tooltip("mean_abs_shap:Q", title="Mean |SHAP|", format=".3f"),
+                    alt.Tooltip("direction:N", title="Role"),
+                ],
+            )
+            bars = base.mark_bar(cornerRadiusTopRight=3, cornerRadiusBottomRight=3, cornerRadiusTopLeft=3, cornerRadiusBottomLeft=3)
+            _xmin = df["directional_impact"].min() * 1.15
+            _xmax = df["directional_impact"].max() * 1.15
+            _df_lead = df[["label_clean"]].copy()
+            _df_lead["x0"] = _xmin
+            _df_lead["x1"] = _xmax
+            leaders = alt.Chart(_df_lead).mark_rule(
+                strokeDash=[3, 4], strokeWidth=0.8, color="#c8d0da",
+            ).encode(
+                y=alt.Y("label_clean:N", sort=list(df["label_clean"])),
+                x=alt.X("x0:Q", scale=alt.Scale(domain=[_xmin, _xmax])),
+                x2="x1:Q",
+            )
+            rule = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#cbd5e1", strokeWidth=1).encode(x="x:Q")
+            return (leaders + bars + rule).properties(
+                title=alt.TitleParams(title, fontSize=13, fontWeight=600, color="#334155", anchor="start"),
+                height=560,
+            ).configure_view(strokeWidth=0).configure_axis(labelFont="Inter", titleFont="Inter")
+
+        # ── L1 chart ──────────────────────────────────────────────────────────
+        st.markdown("""
+<div style='margin-top:8px;margin-bottom:4px;font-size:0.52rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;'>Layer 1 · nuanced_rest class</div>
+""", unsafe_allow_html=True)
+        st.altair_chart(_shap_chart(_df_shap_l1, "Signal DNA · What drives nuanced_rest classification"), use_container_width=True)
+
+        # ── L2 carousel ───────────────────────────────────────────────────────
+        st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+        st.markdown("""
+<div style='margin-bottom:4px;font-size:0.52rem;font-weight:700;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;'>Layer 2 · strategic classes</div>
+""", unsafe_allow_html=True)
+
+        _L2_CLASSES  = _df_shap_l2["class_name"].unique().tolist()
+        _L2_LABELS   = {
+            "ACCEPTED":             "Accepted",
+            "Expected Value Gamble":"Expected Value Gamble",
+            "Strategic Mismatch":   "Strategic Mismatch",
+        }
+        _L2_TITLES = {
+            "ACCEPTED":             "Strategic DNA · What drives the agent to Accept",
+            "Expected Value Gamble":"Strategic DNA · What drives Expected Value Gamble",
+            "Strategic Mismatch":   "Strategic DNA · What drives Strategic Mismatch",
+        }
+
+        if "shap_l2_class" not in st.session_state:
+            st.session_state["shap_l2_class"] = _L2_CLASSES[0]
+
+        _active_l2 = st.session_state["shap_l2_class"]
+
+        # Selector chips
+        _chip_html = "<div style='display:flex;gap:8px;margin-bottom:16px;'>"
+        for _cls in _L2_CLASSES:
+            _is_active = (_cls == _active_l2)
+            _chip_html += f"""<div style='padding:5px 14px;border-radius:999px;border:1px solid {'#21918c' if _is_active else '#e2e8f0'};background:{'rgba(33,145,140,0.10)' if _is_active else '#fff'};font-size:0.72rem;font-weight:{'700' if _is_active else '500'};color:{'#21918c' if _is_active else '#94a3b8'};'>{_L2_LABELS.get(_cls, _cls)}</div>"""
+        _chip_html += "</div>"
+        st.markdown(_chip_html, unsafe_allow_html=True)
+
+        # Hidden buttons for interactivity
+        _cols_l2 = st.columns(len(_L2_CLASSES))
+        for _ci, _cls in enumerate(_L2_CLASSES):
+            if _cols_l2[_ci].button(_L2_LABELS.get(_cls, _cls), key=f"shap_l2_btn_{_ci}", use_container_width=True):
+                st.session_state["shap_l2_class"] = _cls
+                st.rerun()
+
+        # Chart for active class
+        _df_active = _df_shap_l2[_df_shap_l2["class_name"] == _active_l2].copy()
+        st.altair_chart(_shap_chart(_df_active, _L2_TITLES.get(_active_l2, _active_l2)), use_container_width=True)
 
     with sci6:
         pass
