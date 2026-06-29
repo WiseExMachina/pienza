@@ -281,14 +281,14 @@ setTimeout(function() {
   }
 
   var initIdx = 0;
-  for (var j = 3; j < allTabs.length; j++) {
-    if (allTabs[j].getAttribute('aria-selected') === 'true') { initIdx = j - 3; break; }
+  for (var j = 2; j < allTabs.length; j++) {
+    if (allTabs[j].getAttribute('aria-selected') === 'true') { initIdx = j - 2; break; }
   }
   setActive(initIdx);
 
   steps.forEach(function(step, i) {
     step.addEventListener('click', function() {
-      var target = allTabs[i + 3];
+      var target = allTabs[i + 2];
       if (target) {
         var sy = window.parent.scrollY;
         target.click();
@@ -2240,4 +2240,871 @@ setTimeout(function() {
 """, unsafe_allow_html=True)
 
 with tab2:
-    pass
+    from io import BytesIO as _BytesIO2
+
+    # ── Load parquets ─────────────────────────────────────────────────────────
+    @st.cache_data(show_spinner=False)
+    def _po_load_full():
+        return pd.read_parquet(_BytesIO2(storage.Client().bucket("pienza-streamlit").blob("0509_sim_proba.parquet").download_as_bytes()))
+
+    @st.cache_data(show_spinner=False)
+    def _po_load_light():
+        return pd.read_parquet(_BytesIO2(storage.Client().bucket("pienza-streamlit").blob("0509_spartan_proba.parquet").download_as_bytes()))
+
+    @st.cache_data(show_spinner=False)
+    def _po_load_mono():
+        return pd.read_parquet(_BytesIO2(storage.Client().bucket("pienza-streamlit").blob("0508_monolith_proba.parquet").download_as_bytes()))
+
+    _po_full  = _po_load_full()
+    _po_light = _po_load_light()
+    _po_mono  = _po_load_mono()
+
+    # ── Human baseline ────────────────────────────────────────────────────────
+    _po_h_mask  = _po_mono["y_true"] == "accepted"
+    _po_h_total = int(_po_h_mask.sum())
+    _po_h_ids   = _po_mono.loc[_po_h_mask, "offer_id"].tolist()
+
+    # ── Realized fare map (BQ) ────────────────────────────────────────────────
+    @st.cache_data(show_spinner=False)
+    def _po_load_fares(ids_key: str) -> dict:
+        _q = f"""
+        SELECT offer_id, realized_fare
+        FROM `645009831643.pienza_mini.v_mission_dossier`
+        WHERE offer_id IN ({ids_key})
+          AND realized_fare IS NOT NULL
+        """
+        return dict(zip(*[fetch_data_from_bq(_q)[c].tolist() for c in ["offer_id", "realized_fare"]]))
+
+    _po_fare_map = _po_load_fares(", ".join([f"'{x}'" for x in _po_h_ids]))
+    _po_h_earn   = sum(_po_fare_map.get(oid, 0) for oid in _po_h_ids)
+
+    # ── Breakdown helper ──────────────────────────────────────────────────────
+    def _po_breakdown(df, pred_mask, true_mask):
+        both     = pred_mask & true_mask
+        ai_only  = pred_mask & ~true_mask
+        earn_b   = sum(_po_fare_map.get(oid, 0) for oid in df.loc[both, "offer_id"])
+        earn_ai  = float((6.31 + 0.79 * df.loc[ai_only, "upfront_fare"]).sum())
+        return {
+            "human_eq_ai": int(both.sum()),
+            "ai_ne_human": int(ai_only.sum()),
+            "earn":        earn_b + earn_ai,
+        }
+
+    # ── Monolith ──────────────────────────────────────────────────────────────
+    _mono_cols      = [c for c in _po_mono.columns if c.startswith("mono_")]
+    _mono_pred_acc  = _po_mono[_mono_cols].idxmax(axis=1) == "mono_accepted"
+    _mono_true_acc  = _po_mono["y_true"] == "accepted"
+    _mb = _po_breakdown(_po_mono, _mono_pred_acc, _mono_true_acc)
+
+    # ── CC Full (default 50%) ─────────────────────────────────────────────────
+    _po_l1_det   = ["dropoff_non_operational", "dropoff_proxy_zone", "long_pickup_time", "low_profitability"]
+    _full_l1     = _po_full[_po_l1_det].idxmax(axis=1).copy()
+    _full_l1[_po_full["the_nuanced_rest"] >= 0.5] = "the_nuanced_rest"
+    _full_routed = _full_l1 == "the_nuanced_rest"
+    _full_l2     = pd.Series("_", index=_po_full.index)
+    _full_l2[_full_routed] = (
+        _po_full.loc[_full_routed, ["l2_strategic_mismatch", "l2_expected_value_gamble", "l2_accepted"]]
+        .fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
+    )
+    _full_pred_acc = _full_l2 == "accepted"
+    _full_true_acc = _po_full["offer_id"].isin(_po_h_ids)
+    _fb = _po_breakdown(_po_full, _full_pred_acc, _full_true_acc)
+
+    # ── CC Lightweight (default 50%) ──────────────────────────────────────────
+    _light_l1    = _po_light[_po_l1_det].idxmax(axis=1).copy()
+    _light_l1[_po_light["the_nuanced_rest"] >= 0.5] = "the_nuanced_rest"
+    _light_routed = _light_l1 == "the_nuanced_rest"
+    _light_l2    = pd.Series("_", index=_po_light.index)
+    _light_l2[_light_routed] = (
+        _po_light.loc[_light_routed, ["spartan_l2_strategic_mismatch", "spartan_l2_expected_value_gamble", "spartan_l2_accepted"]]
+        .fillna(0).idxmax(axis=1).str.replace("spartan_l2_", "", regex=False)
+    )
+    _light_pred_acc = _light_l2 == "accepted"
+    _light_true_acc = _po_light["offer_id"].isin(_po_h_ids)
+    _lb = _po_breakdown(_po_light, _light_pred_acc, _light_true_acc)
+
+    # ── Winner detection ──────────────────────────────────────────────────────
+    _po_earnings = {"human": _po_h_earn, "mono": _mb["earn"], "full": _fb["earn"], "light": _lb["earn"]}
+    _po_winner   = max(_po_earnings, key=_po_earnings.get)
+
+    def _pct_po(n, d): return f"({round(n/d*100)}%)" if d > 0 else ""
+
+    def _col_header(key, label, sublabel):
+        is_win  = _po_winner == key
+        bg      = "rgba(33,145,140,0.07)" if is_win else "#f8fafc"
+        bdr     = "border-left:2px solid #21918c;" if is_win else "border-left:1px solid rgba(33,145,140,0.12);"
+        color   = "#21918c" if is_win else "#64748b"
+        sub_col = "#21918c" if is_win else "#94a3b8"
+        crown   = " ★" if is_win else ""
+        return (
+            f"<div style='background:{bg};padding:6px 10px;"
+            f"border-bottom:1px solid rgba(33,145,140,0.12);{bdr}"
+            f"text-align:center;font-size:0.65rem;font-weight:700;color:{color};"
+            f"letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>"
+            f"{label}{crown} <span style='font-size:0.58rem;color:{sub_col};font-weight:500;"
+            f"letter-spacing:0;text-transform:none;'>{sublabel}</span></div>"
+        )
+
+    def _cell(key, val, muted=False):
+        is_win  = _po_winner == key
+        bdr     = "border-left:2px solid rgba(33,145,140,0.4);" if is_win else "border-left:1px solid rgba(33,145,140,0.12);"
+        color   = "rgba(33,145,140,0.55)" if muted else ("#21918c" if not muted else "#21918c")
+        return f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);{bdr}text-align:center;'>{val}</div>"
+
+    def _num(val, muted=False, size="0.88rem"):
+        color = "rgba(33,145,140,0.55)" if muted else "#21918c"
+        return f"<span style='font-family:monospace;font-size:{size};font-weight:700;color:{color};line-height:1;'>{val}</span>"
+
+    def _num_kpi(val):
+        return _num(val, size="1.0rem")
+
+    def _num_pct(n, d, muted=False):
+        return f"<div style='display:flex;align-items:baseline;justify-content:center;gap:4px;'>{_num(n, muted)}<span style='font-size:0.52rem;color:#94a3b8;'>{_pct_po(n,d)}</span></div>"
+
+    _dash = "<div style='font-family:monospace;font-size:0.88rem;font-weight:700;color:#94a3b8;line-height:1;'>—</div>"
+    _kpi_bg   = "background:rgba(33,145,140,0.04);"
+    _grid_cols = "195px 125px 125px 125px 125px;"
+
+    # pre-compute all HTML fragments to keep the markdown call flat (no blank lines / comments)
+    _hdr_mono  = _col_header("mono",  "Monolith",       "Flat Multiclass")
+    _hdr_full  = _col_header("full",  "CC Full",        "L1 + L2 Champion")
+    _hdr_light = _col_header("light", "CC Lightweight", "L1 + L2 Spartan")
+
+    _row_ho_mono  = _cell("mono",  _dash)
+    _row_ho_full  = _cell("full",  _dash)
+    _row_ho_light = _cell("light", _dash)
+
+    _row_eq_mono  = _cell("mono",  _num_pct(_mb["human_eq_ai"], _po_h_total))
+    _row_eq_full  = _cell("full",  _num_pct(_fb["human_eq_ai"], _po_h_total))
+    _row_eq_light = _cell("light", _num_pct(_lb["human_eq_ai"], _po_h_total))
+
+    _row_ne_mono  = _cell("mono",  _num_pct(_mb["ai_ne_human"], _po_h_total, muted=True))
+    _row_ne_full  = _cell("full",  _num_pct(_fb["ai_ne_human"], _po_h_total, muted=True))
+    _row_ne_light = _cell("light", _num_pct(_lb["ai_ne_human"], _po_h_total, muted=True))
+
+    _earn_bdr_h     = "1px solid rgba(33,145,140,0.12)"
+    _earn_bdr_mono  = "2px solid rgba(33,145,140,0.4)" if _po_winner == "mono"  else "1px solid rgba(33,145,140,0.12)"
+    _earn_bdr_full  = "2px solid rgba(33,145,140,0.4)" if _po_winner == "full"  else "1px solid rgba(33,145,140,0.12)"
+    _earn_bdr_light = "2px solid rgba(33,145,140,0.4)" if _po_winner == "light" else "1px solid rgba(33,145,140,0.12)"
+
+    _num_h     = _num_kpi(f"${_po_h_earn:,.0f}")
+    _num_mono  = _num_kpi(f"${_mb['earn']:,.0f}")
+    _num_full  = _num_kpi(f"${_fb['earn']:,.0f}")
+    _num_light = _num_kpi(f"${_lb['earn']:,.0f}")
+
+    # static: total accepted & avg per ride
+    _tot_h     = _po_h_total
+    _tot_mono  = _mb["human_eq_ai"] + _mb["ai_ne_human"]
+    _tot_full  = _fb["human_eq_ai"] + _fb["ai_ne_human"]
+    _tot_light = _lb["human_eq_ai"] + _lb["ai_ne_human"]
+
+    def _avg(earn, total): return f"${earn/total:,.2f}" if total > 0 else "—"
+
+    def _stat_row_total(bdr_mono, bdr_full, bdr_light):
+        return (
+            "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Total Accepted</div><div style='font-size:0.50rem;color:#94a3b8;margin-top:1px;'>human=AI + AI≠human</div></div>"
+            f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_num(_tot_h)}</div>"
+            f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:{bdr_mono};text-align:center;'>{_num(_tot_mono)}</div>"
+            f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:{bdr_full};text-align:center;'>{_num(_tot_full)}</div>"
+            f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:{bdr_light};text-align:center;'>{_num(_tot_light)}</div>"
+        )
+
+    def _stat_row_avg(earn_h, earn_mono, earn_full, earn_light, tot_mono, tot_full, tot_light, bdr_mono, bdr_full, bdr_light):
+        return (
+            "<div style='padding:8px 10px;background:rgba(33,145,140,0.04);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Avg / Accepted Ride</div></div>"
+            f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_num_kpi(_avg(earn_h, _tot_h))}</div>"
+            f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:{bdr_mono};text-align:center;'>{_num_kpi(_avg(earn_mono, tot_mono))}</div>"
+            f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:{bdr_full};text-align:center;'>{_num_kpi(_avg(earn_full, tot_full))}</div>"
+            f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:{bdr_light};text-align:center;'>{_num_kpi(_avg(earn_light, tot_light))}</div>"
+        )
+
+    _scorecard_html = (
+        "<div style='font-size:0.85rem;color:#777;line-height:1.6;margin-bottom:28px;margin-top:8px;'>"
+        "Four contenders. Same 780-offer holdout. One financial outcome. The scorecard below measures each model's accepted decisions against the human ground truth — translating classification behavior into realized earnings."
+        "</div>"
+        "<div style='display:flex;justify-content:center;'>"
+        "<div style='display:inline-block;border:1px solid rgba(33,145,140,0.2);border-radius:6px;overflow:hidden;'>"
+        "<div style='display:grid;grid-template-columns:195px 125px 125px 125px 125px;'>"
+        "<div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;'>Accepted</div>"
+        "<div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Human <span style='font-size:0.55rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>Ground Truth</span></div>"
+        f"{_hdr_mono}{_hdr_full}{_hdr_light}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Human Only</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_num(_po_h_total)}</div>"
+        f"{_row_ho_mono}{_row_ho_full}{_row_ho_light}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:#21918c;text-transform:uppercase;letter-spacing:0.5px;'>Human = AI</div><div style='font-size:0.50rem;color:#94a3b8;margin-top:1px;'>both accepted</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_dash}</div>"
+        f"{_row_eq_mono}{_row_eq_full}{_row_eq_light}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:rgba(33,145,140,0.55);text-transform:uppercase;letter-spacing:0.5px;'>AI ≠ Human</div><div style='font-size:0.50rem;color:#94a3b8;margin-top:1px;'>AI accepted, human rejected</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_dash}</div>"
+        f"{_row_ne_mono}{_row_ne_full}{_row_ne_light}"
+        + _stat_row_total(_earn_bdr_mono, _earn_bdr_full, _earn_bdr_light)
+        + "<div style='position:relative;padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Cumulative Earnings</div>"
+        "<span class='fn-wrap' style='position:absolute;top:6px;right:8px;'><span class='fn-mark' style='color:#21918c;font-size:0.6rem;'>&#9432;</span>"
+        "<span class='fn-tooltip' style='width:340px;white-space:normal;font-family:sans-serif;font-size:0.73rem;line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400;color:#334155;'><strong>Imputation method (AI ≠ Human trips)</strong><br>Human earnings are verified realized fares. Non-realized AI fares are estimated via the Causal Inference polynomial model at ΔT = 1.0:<br><br><span style='font-family:monospace;font-size:0.78rem;background:rgba(33,145,140,0.08);padding:4px 8px;border-radius:4px;display:block;white-space:nowrap;'>F&#770;(ΔT=1) = 6.31 + 0.79 × Upfront Fare</span></span></span></div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_earn_bdr_h};text-align:center;'>{_num_h}</div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_earn_bdr_mono};text-align:center;'>{_num_mono}</div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_earn_bdr_full};text-align:center;'>{_num_full}</div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_earn_bdr_light};text-align:center;'>{_num_light}</div>"
+        + _stat_row_avg(_po_h_earn, _mb["earn"], _fb["earn"], _lb["earn"], _tot_mono, _tot_full, _tot_light, _earn_bdr_mono, _earn_bdr_full, _earn_bdr_light)
+        + "</div></div></div>"
+        "<div style='margin-top:12px;text-align:center;font-size:0.58rem;color:#94a3b8;'>"
+        "All models evaluated on the same 780-offer week-6 holdout · threshold fixed at 50% (default) · ★ highest earner"
+        "</div>"
+    )
+    # ── 1. Slider ─────────────────────────────────────────────────────────────
+    if "po_thresh_pct" not in st.session_state:
+        st.session_state["po_thresh_pct"] = 50
+
+    st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>CC Full — Layer 1: nuanced_rest classification threshold</div>", unsafe_allow_html=True)
+    st.slider(
+        label="po_threshold",
+        label_visibility="collapsed",
+        key="po_thresh_pct",
+        min_value=1, max_value=99, step=1, format="%d%%",
+        help="Adjusts the L1 probability cutoff for CC Full only. Human, Monolith and CC Lightweight stay pinned at their default 50% threshold."
+    )
+
+    _po_T            = st.session_state["po_thresh_pct"] / 100
+    _po_thresh_label = f"{st.session_state['po_thresh_pct']}%"
+
+    # ── 2. Bento routing cards (CC Full, dynamic) ─────────────────────────────
+    _po_l1_dyn = _po_full[_po_l1_det].idxmax(axis=1).copy()
+    _po_l1_dyn[_po_full["the_nuanced_rest"] >= _po_T] = "the_nuanced_rest"
+
+    # CC Full routing stats (dynamic)
+    _po_routed_mask  = (_po_l1_dyn == "the_nuanced_rest") & _po_full["y_true_l2"].notna()
+    _po_fp_mask      = (_po_l1_dyn == "the_nuanced_rest") & _po_full["y_true_l2"].isna()
+    _po_nr_routed    = int(_po_routed_mask.sum())
+    _po_fp_count     = int(_po_fp_mask.sum())
+    _po_total_routed = _po_nr_routed + _po_fp_count
+    _po_pct_routed   = round(_po_total_routed / len(_po_full) * 100, 1)
+
+    # CC Lightweight routing stats (same dynamic L1 as CC Full — L1 is shared)
+    _pl_routed_mask  = (_po_l1_dyn == "the_nuanced_rest") & _po_light["y_true_l2"].notna()
+    _pl_fp_mask      = (_po_l1_dyn == "the_nuanced_rest") & _po_light["y_true_l2"].isna()
+    _pl_nr_routed    = int(_pl_routed_mask.sum())
+    _pl_fp_count     = int(_pl_fp_mask.sum())
+    _pl_total_routed = _pl_nr_routed + _pl_fp_count
+    _pl_pct_routed   = round(_pl_total_routed / len(_po_light) * 100, 1)
+
+    def _bento_col(label, total_holdout, total_routed, pct_routed, nr_routed, fp_count):
+        return (
+            f"<div style='display:flex;flex-direction:column;align-items:center;gap:0;'>"
+            f"<div style='text-align:center;font-size:0.58rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;'>{label}</div>"
+            "<div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>"
+            "<div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'><div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Layer 1</div></div>"
+            "<div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>"
+            f"<div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;display:flex;justify-content:space-between;'><span>total holdout</span><span style='font-weight:700;color:#64748b;'>{total_holdout}</span></div>"
+            f"<div style='background:rgba(33,145,140,0.08);border:1px solid rgba(33,145,140,0.3);border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#21918c;font-weight:700;display:flex;justify-content:space-between;'><span>→ nuanced_rest</span><span>{total_routed}</span></div>"
+            "</div></div>"
+            f"<div style='display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;'><div style='color:#21918c;font-size:1.1rem;'>↓</div><div style='font-size:0.55rem;font-weight:700;color:#64748b;'>{pct_routed}%</div></div>"
+            "<div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:200px;'>"
+            "<div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'><div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>Recall Autopsy</div></div>"
+            "<div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>"
+            f"<div style='background:rgba(33,145,140,0.08);border:1px solid rgba(33,145,140,0.3);border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#21918c;font-weight:700;display:flex;justify-content:space-between;'><span>true nuanced</span><span>{nr_routed}</span></div>"
+            f"<div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;font-weight:600;display:flex;justify-content:space-between;'><span>false positives</span><span>{fp_count}</span></div>"
+            "</div></div></div>"
+        )
+
+    _routing_html = (
+        "<div style='display:flex;justify-content:center;gap:40px;margin-bottom:28px;'>"
+        + _bento_col("CC Full &mdash; Routing Breakdown", len(_po_full), _po_total_routed, _po_pct_routed, _po_nr_routed, _po_fp_count)
+        + _bento_col("CC Lightweight &mdash; Routing Breakdown", len(_po_light), _pl_total_routed, _pl_pct_routed, _pl_nr_routed, _pl_fp_count)
+        + "</div>"
+    )
+    st.markdown(_routing_html, unsafe_allow_html=True)
+
+    # ── shared norm helper (used by all matrices below) ───────────────────────
+    import re as _re_po
+    def _po_norm(s): return _re_po.sub(r'[^\w]+', '_', str(s)).strip('_').lower()
+    _po_l1_ytrue = _po_full["y_true_l1"].apply(_po_norm)
+
+    # ── L1 binary confusion (nuanced_rest vs not) ─────────────────────────────
+    _l1_tp = int(((_po_l1_dyn == "the_nuanced_rest") & (_po_l1_ytrue == "the_nuanced_rest")).sum())
+    _l1_fp = int(((_po_l1_dyn == "the_nuanced_rest") & (_po_l1_ytrue != "the_nuanced_rest")).sum())
+    _l1_fn = int(((_po_l1_dyn != "the_nuanced_rest") & (_po_l1_ytrue == "the_nuanced_rest")).sum())
+    _l1_tn = int(((_po_l1_dyn != "the_nuanced_rest") & (_po_l1_ytrue != "the_nuanced_rest")).sum())
+
+    _l1_2x2 = [[_l1_tp, _l1_fn], [_l1_fp, _l1_tn]]
+    _l1_cw  = 72; _l1_lw = 90
+    _l1_2x2_grid = f"{_l1_lw}px {_l1_cw}px {_l1_cw}px"
+    _l1_row_labels = ["nuanced_rest", "not nuanced"]
+    _l1_col_labels = ["nuanced_rest", "not nuanced"]
+    _l1_cell_meta  = [
+        [("TP", "#21918c", f"rgba(33,145,140,{max(0.14,_l1_tp/780*0.85):.2f})"),
+         ("FN", "#92400e", "rgba(253,224,71,0.25)")],
+        [("FP", "#92400e", "rgba(253,224,71,0.25)"),
+         ("TN", "#475569", f"rgba(33,145,140,{max(0.06,_l1_tn/780*0.4):.2f})")],
+    ]
+    _l1_2x2_rows = ""
+    for i, rl in enumerate(_l1_row_labels):
+        _l1_2x2_rows += f"<div style='display:grid;grid-template-columns:{_l1_2x2_grid};gap:3px;margin-bottom:3px;'>"
+        _l1_2x2_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;'>{rl}</div>"
+        for j in range(2):
+            _v = _l1_2x2[i][j]; _tag, _tc2, _bg2 = _l1_cell_meta[i][j]
+            _l1_2x2_rows += (
+                f"<div style='background:{_bg2};border-radius:4px;aspect-ratio:1;"
+                f"display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;'>"
+                f"<div style='font-size:0.80rem;font-weight:700;color:{_tc2};'>{_v}</div>"
+                f"<div style='font-size:0.42rem;font-weight:700;color:{_tc2};opacity:0.7;letter-spacing:0.5px;'>{_tag}</div>"
+                f"</div>"
+            )
+        _l1_2x2_rows += "</div>"
+    _l1_2x2_bot  = f"<div style='display:grid;grid-template-columns:{_l1_2x2_grid};gap:3px;margin-top:4px;'><div></div>"
+    _l1_2x2_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;'>{l}</div>" for l in _l1_col_labels)
+    _l1_2x2_bot += "</div>"
+    _l1_2x2_pred = f"<div style='display:grid;grid-template-columns:{_l1_2x2_grid};margin-top:5px;'><div></div><div style='grid-column:2/4;text-align:center;font-size:0.48rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted</div></div>"
+    _l1_real     = "<div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.46rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;align-self:center;'>Actual</div>"
+
+    _l1_shared_note = (
+        "<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;width:220px;gap:6px;'>"
+        "<div style='background:rgba(33,145,140,0.06);border:1px dashed rgba(33,145,140,0.3);border-radius:10px;padding:12px 16px;text-align:center;'>"
+        "<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;'>Shared Layer 1</div>"
+        "<div style='font-size:0.52rem;color:#64748b;line-height:1.5;'>CC Full and CC Lightweight share the same L1 model.<br>These numbers are identical for both cascade variants.</div>"
+        "</div>"
+        "</div>"
+    )
+    _l1_2x2_html = (
+        "<div style='display:flex;justify-content:center;gap:40px;margin:20px 0 28px;'>"
+        "<div style='display:flex;flex-direction:column;align-items:center;gap:6px;'>"
+        "<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;'>L1 Binary Confusion &mdash; Both Cascade Variants</div>"
+        f"<div style='display:flex;gap:6px;align-items:center;'>{_l1_real}<div>{_l1_2x2_rows}{_l1_2x2_bot}{_l1_2x2_pred}</div></div>"
+        "</div>"
+        + _l1_shared_note
+        + "</div>"
+    )
+    st.markdown(_l1_2x2_html, unsafe_allow_html=True)
+
+    # ── CC Full confusion matrices (L2 + FP) ─────────────────────────────────
+    _PO_L2_ORDER  = ["strategic_mismatch", "expected_value_gamble", "accepted"]
+
+    # Layer 2 matrix — true nuanced rows routed correctly
+    _po_routed_l2_mask = (_po_l1_dyn == "the_nuanced_rest") & _po_full["y_true_l2"].notna()
+    _po_df_routed      = _po_full[_po_routed_l2_mask]
+    _po_pred_l2        = _po_df_routed[[f"l2_{c}" for c in _PO_L2_ORDER]].fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
+    _po_ytrue_l2       = _po_df_routed["y_true_l2"].apply(_po_norm)
+    _po_l2_cm          = [
+        [int(((_po_ytrue_l2 == tc) & (_po_pred_l2 == pc)).sum()) for pc in _PO_L2_ORDER]
+        for tc in _PO_L2_ORDER
+    ]
+    _po_l2_row_sums = [sum(r) for r in _po_l2_cm]
+
+    _po_sm_cw = 52; _po_sm_lw = 82
+    _po_l2_grid = f"{_po_sm_lw}px " + " ".join([f"{_po_sm_cw}px"] * 3)
+
+    _po_l2_rows = ""
+    for i, tc in enumerate(_PO_L2_ORDER):
+        _rt = _po_l2_row_sums[i] or 1
+        _po_l2_rows += f"<div style='display:grid;grid-template-columns:{_po_l2_grid};gap:2px;margin-bottom:2px;'>"
+        _po_l2_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{tc.replace('_',' ')}</div>"
+        for j, pc in enumerate(_PO_L2_ORDER):
+            _val = _po_l2_cm[i][j]; _pct = _val / _rt; _diag = (i == j)
+            if _diag:
+                _bg2 = f"rgba(33,145,140,{max(0.14,_pct*0.85):.2f})"; _tc2 = "#fff" if _pct > 0.45 else "#21918c"; _fw2 = "700"
+            elif _val == 0:
+                _bg2 = "#f8fafc"; _tc2 = "#e2e8f0"; _fw2 = "400"
+            else:
+                _bg2 = f"rgba(33,145,140,{max(0.04,_pct*0.35):.2f})"; _tc2 = "#94a3b8"; _fw2 = "500"
+            _po_l2_rows += f"<div style='background:{_bg2};border-radius:3px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;'><div style='font-size:0.72rem;color:{_tc2};font-weight:{_fw2};'>{_pct*100:.0f}%</div></div>"
+        _po_l2_rows += "</div>"
+    _po_l2_bot = f"<div style='display:grid;grid-template-columns:{_po_l2_grid};gap:2px;margin-top:4px;'><div></div>"
+    _po_l2_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _PO_L2_ORDER)
+    _po_l2_bot += "</div>"
+    _po_l2_pred = f"<div style='display:grid;grid-template-columns:{_po_l2_grid};margin-top:6px;'><div></div><div style='grid-column:2/5;text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted</div></div>"
+
+    # FP matrix — L1 false positives routed to L2
+    _PO_FP_ROW_ORDER = ["dropoff_non_operational", "dropoff_proxy_zone", "low_profitability", "long_pickup_time"]
+    _po_fp_mask      = (_po_l1_dyn == "the_nuanced_rest") & (_po_l1_ytrue != "the_nuanced_rest")
+    _po_df_fp        = _po_full[_po_fp_mask]
+    _po_ytrue_fp     = _po_l1_ytrue[_po_fp_mask]
+    _po_pred_fp_l2   = _po_df_fp[[f"l2_{c}" for c in _PO_L2_ORDER]].fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
+    _po_fp_display   = {"dropoff_non_operational": "non operational", "dropoff_proxy_zone": "proxy zone",
+                        "low_profitability": "low profit", "long_pickup_time": "long pickup"}
+    _po_fp_cm        = [
+        [int(((_po_ytrue_fp == tc) & (_po_pred_fp_l2 == pc)).sum()) for pc in _PO_L2_ORDER]
+        for tc in _PO_FP_ROW_ORDER
+    ]
+    _po_fp_row_sums = [sum(r) for r in _po_fp_cm]
+
+    _po_fp_rows = ""
+    for i, tc in enumerate(_PO_FP_ROW_ORDER):
+        _rt = _po_fp_row_sums[i] or 1
+        _lbl = _po_fp_display.get(tc, tc)
+        _po_fp_rows += f"<div style='display:grid;grid-template-columns:{_po_l2_grid};gap:2px;margin-bottom:2px;'>"
+        _po_fp_rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:6px;align-self:center;white-space:normal;word-break:break-word;line-height:1.2;'>{_lbl}</div>"
+        for j, pc in enumerate(_PO_L2_ORDER):
+            _val = _po_fp_cm[i][j]; _pct = _val / _rt
+            if _val == 0:
+                _bg2 = "#f8fafc"; _tc2 = "#e2e8f0"; _fw2 = "400"
+            else:
+                _bg2 = f"rgba(100,116,139,{max(0.08,_pct*0.55):.2f})"; _tc2 = "#1e293b"; _fw2 = "500"
+            _po_fp_rows += f"<div style='background:{_bg2};border-radius:3px;text-align:center;aspect-ratio:1;display:flex;align-items:center;justify-content:center;'><div style='font-size:0.72rem;color:{_tc2};font-weight:{_fw2};'>{_pct*100:.0f}%</div></div>"
+        _po_fp_rows += "</div>"
+    _po_fp_bot = f"<div style='display:grid;grid-template-columns:{_po_l2_grid};gap:2px;margin-top:4px;'><div></div>"
+    _po_fp_bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;word-break:break-word;line-height:1.2;'>{l.replace('_',' ')}</div>" for l in _PO_L2_ORDER)
+    _po_fp_bot += "</div>"
+    _po_fp_pred = f"<div style='display:grid;grid-template-columns:{_po_l2_grid};margin-top:6px;'><div></div><div style='grid-column:2/5;text-align:center;font-size:0.50rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>L2 Predicted</div></div>"
+
+    _po_real_label = "<div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.46rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;align-self:center;'>Real</div>"
+    _po_l1real_label = "<div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.46rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;align-self:center;'>L1 Real</div>"
+
+    _po_matrices_html = (
+        "<div style='display:flex;justify-content:center;margin:28px 0 36px;'>"
+        "<div style='display:flex;flex-direction:column;gap:32px;'>"
+        "<div>"
+        "<div style='font-size:0.60rem;font-weight:700;color:#21918c;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;'>Layer 2</div>"
+        f"<div style='display:flex;gap:6px;align-items:center;'>{_po_real_label}<div>{_po_l2_rows}{_po_l2_bot}{_po_l2_pred}</div></div>"
+        "</div>"
+        "<div>"
+        "<div style='font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;'>L1 False Positives · Routed to L2</div>"
+        f"<div style='display:flex;gap:6px;align-items:center;'>{_po_l1real_label}<div>{_po_fp_rows}{_po_fp_bot}{_po_fp_pred}</div></div>"
+        "</div>"
+        "</div></div>"
+    )
+    # ── L2 data: CC Full ──────────────────────────────────────────────────────
+    _po_l2_tp = int(((_po_pred_l2 == "accepted") & (_po_ytrue_l2 == "accepted")).sum())
+    _po_l2_fn = int(((_po_pred_l2 != "accepted") & (_po_ytrue_l2 == "accepted")).sum())
+    _po_l2_fp = int(((_po_pred_l2 == "accepted") & (_po_ytrue_l2 != "accepted")).sum())
+    _po_l2_tn = int(((_po_pred_l2 != "accepted") & (_po_ytrue_l2 != "accepted")).sum())
+    _po_l2_fp_accepted = int((_po_df_fp[[f"l2_{c}" for c in _PO_L2_ORDER]].fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False) == "accepted").sum())
+    _po_l2_n_true = int(_po_routed_l2_mask.sum())
+
+    # ── L2 data: CC Lightweight ───────────────────────────────────────────────
+    _PLW_L2_COLS  = ["spartan_l2_strategic_mismatch", "spartan_l2_expected_value_gamble", "spartan_l2_accepted"]
+    _po_lw_routed_mask = (_po_l1_dyn == "the_nuanced_rest") & _po_light["y_true_l2"].notna()
+    _po_lw_df_routed   = _po_light[_po_lw_routed_mask]
+    _po_lw_pred_l2     = _po_lw_df_routed[_PLW_L2_COLS].fillna(0).idxmax(axis=1).str.replace("spartan_l2_", "", regex=False)
+    _po_lw_ytrue_l2    = _po_lw_df_routed["y_true_l2"].apply(_po_norm)
+    _po_lw_df_fp       = _po_light[(_po_l1_dyn == "the_nuanced_rest") & (_po_l1_ytrue != "the_nuanced_rest")]
+    _po_lw_tp = int(((_po_lw_pred_l2 == "accepted") & (_po_lw_ytrue_l2 == "accepted")).sum())
+    _po_lw_fn = int(((_po_lw_pred_l2 != "accepted") & (_po_lw_ytrue_l2 == "accepted")).sum())
+    _po_lw_fp = int(((_po_lw_pred_l2 == "accepted") & (_po_lw_ytrue_l2 != "accepted")).sum())
+    _po_lw_tn = int(((_po_lw_pred_l2 != "accepted") & (_po_lw_ytrue_l2 != "accepted")).sum())
+    _po_lw_fp_accepted = int((_po_lw_df_fp[_PLW_L2_COLS].fillna(0).idxmax(axis=1).str.replace("spartan_l2_", "", regex=False) == "accepted").sum())
+    _po_lw_n_true = int(_po_lw_routed_mask.sum())
+
+    def _po_decision_card(title, n_true, tp, tn, fn, fp, fp_acc):
+        return (
+            "<div style='display:flex;flex-direction:column;align-items:center;gap:0;'>"
+            "<div style='color:#21918c;font-size:1.1rem;'>↓</div>"
+            "<div style='background:#fafafa;border:1px solid #e2e8f0;border-radius:12px;padding:0;overflow:hidden;width:220px;'>"
+            "<div style='padding:8px 12px;border-bottom:1px solid #f1f5f9;'>"
+            f"<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;'>{title}</div>"
+            f"<div style='font-size:0.48rem;color:#94a3b8;margin-top:2px;'>{n_true} true nuanced · ground truth available</div>"
+            "</div>"
+            "<div style='padding:8px 10px;display:flex;flex-direction:column;gap:4px;'>"
+            f"<div style='background:rgba(33,145,140,0.08);border:1px solid rgba(33,145,140,0.3);border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#21918c;font-weight:700;display:flex;justify-content:space-between;'><span>Accepted <span style='font-size:0.50rem;font-weight:400;opacity:0.7;'>(TP)</span></span><span>{tp}</span></div>"
+            f"<div style='background:rgba(33,145,140,0.03);border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#64748b;font-weight:600;display:flex;justify-content:space-between;'><span>Correctly Rejected <span style='font-size:0.50rem;font-weight:400;color:#94a3b8;'>(TN)</span></span><span>{tn}</span></div>"
+            "<div style='border-top:1px dashed #e2e8f0;margin:2px 0;'></div>"
+            f"<div style='background:#fff;border:1px solid #fde68a;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#92400e;font-weight:600;display:flex;justify-content:space-between;'><span>Type I Error <span style='font-size:0.50rem;font-weight:400;color:#b45309;'>(FN · missed clone)</span></span><span>{fn}</span></div>"
+            f"<div style='background:#fff;border:1px solid #fde68a;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#92400e;font-weight:600;display:flex;justify-content:space-between;'><span>Type II Error <span style='font-size:0.50rem;font-weight:400;color:#b45309;'>(FP · over-accepted)</span></span><span>{fp}</span></div>"
+            "<div style='border-top:1px dashed #e2e8f0;margin:2px 0;'></div>"
+            f"<div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:5px 10px;font-size:0.6rem;color:#94a3b8;font-weight:500;display:flex;justify-content:space-between;'><span>L1 FP &rarr; accepted by L2 <span style='font-size:0.50rem;'>(no ground truth)</span></span><span>{fp_acc}</span></div>"
+            "</div></div></div>"
+        )
+
+    _po_l2_summary_html = (
+        "<div style='display:flex;justify-content:center;gap:40px;margin-bottom:28px;'>"
+        + _po_decision_card("CC Full · L2 Final Decision",  _po_l2_n_true, _po_l2_tp, _po_l2_tn, _po_l2_fn, _po_l2_fp, _po_l2_fp_accepted)
+        + _po_decision_card("CC Lightweight · L2 Final Decision", _po_lw_n_true, _po_lw_tp, _po_lw_tn, _po_lw_fn, _po_lw_fp, _po_lw_fp_accepted)
+        + "</div>"
+    )
+    st.markdown(_po_l2_summary_html, unsafe_allow_html=True)
+
+    # ── 2×2 binary confusion: CC Full + CC Lightweight side by side ───────────
+    def _po_build_2x2(tp, fn, fp, tn, n_total):
+        _cw = 72; _lw = 90
+        _grid = f"{_lw}px {_cw}px {_cw}px"
+        _rl = ["accepted", "not accepted"]
+        _cl = ["accepted", "not accepted"]
+        _meta = [
+            [("TP", "#21918c", f"rgba(33,145,140,{max(0.14,tp/n_total*0.85):.2f})"),
+             ("FN", "#92400e", "rgba(253,224,71,0.25)")],
+            [("FP", "#92400e", "rgba(253,224,71,0.25)"),
+             ("TN", "#475569", f"rgba(33,145,140,{max(0.06,tn/n_total*0.4):.2f})")],
+        ]
+        _vals = [[tp, fn], [fp, tn]]
+        _rows = ""
+        for i, rl in enumerate(_rl):
+            _rows += f"<div style='display:grid;grid-template-columns:{_grid};gap:3px;margin-bottom:3px;'>"
+            _rows += f"<div style='font-size:0.50rem;color:#64748b;font-weight:600;text-align:right;padding-right:8px;align-self:center;'>{rl}</div>"
+            for j in range(2):
+                _v = _vals[i][j]; _tag, _tc2, _bg2 = _meta[i][j]
+                _rows += (
+                    f"<div style='background:{_bg2};border-radius:4px;aspect-ratio:1;"
+                    f"display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;'>"
+                    f"<div style='font-size:0.80rem;font-weight:700;color:{_tc2};'>{_v}</div>"
+                    f"<div style='font-size:0.42rem;font-weight:700;color:{_tc2};opacity:0.7;letter-spacing:0.5px;'>{_tag}</div>"
+                    f"</div>"
+                )
+            _rows += "</div>"
+        _bot = f"<div style='display:grid;grid-template-columns:{_grid};gap:3px;margin-top:4px;'><div></div>"
+        _bot += "".join(f"<div style='font-size:0.46rem;font-weight:600;color:#64748b;text-align:center;'>{l}</div>" for l in _cl)
+        _bot += "</div>"
+        _pred = f"<div style='display:grid;grid-template-columns:{_grid};margin-top:5px;'><div></div><div style='grid-column:2/4;text-align:center;font-size:0.48rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted (Accepted?)</div></div>"
+        _actual = "<div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.46rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;align-self:center;'>Actual</div>"
+        return f"<div style='display:flex;gap:6px;align-items:center;'>{_actual}<div>{_rows}{_bot}{_pred}</div></div>"
+
+    _po_2x2_html = (
+        "<div style='display:flex;justify-content:center;gap:40px;margin-bottom:28px;'>"
+        "<div style='display:flex;flex-direction:column;align-items:center;gap:6px;'>"
+        "<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;'>CC Full · Binary Confusion</div>"
+        + _po_build_2x2(_po_l2_tp, _po_l2_fn, _po_l2_fp, _po_l2_tn, _po_l2_n_true)
+        + "</div>"
+        "<div style='display:flex;flex-direction:column;align-items:center;gap:6px;'>"
+        "<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;'>CC Lightweight · Binary Confusion</div>"
+        + _po_build_2x2(_po_lw_tp, _po_lw_fn, _po_lw_fp, _po_lw_tn, _po_lw_n_true)
+        + "</div>"
+        "</div>"
+    )
+    st.markdown(_po_2x2_html, unsafe_allow_html=True)
+
+
+    # ── 3. Static scorecard (all models at 50%) ───────────────────────────────
+    st.markdown(_scorecard_html, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:40px;border-top:1px solid #e2e8f0;padding-top:32px;'></div>", unsafe_allow_html=True)
+
+    # ── Dynamic scorecard (CC Full + CC Lightweight respond to slider) ────────
+    _dyn_routed = _po_l1_dyn == "the_nuanced_rest"
+
+    _po_l2_dyn = pd.Series("_", index=_po_full.index)
+    _po_l2_dyn[_dyn_routed] = (
+        _po_full.loc[_dyn_routed, ["l2_strategic_mismatch", "l2_expected_value_gamble", "l2_accepted"]]
+        .fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
+    )
+    _dyn_pred_acc = _po_l2_dyn == "accepted"
+    _dyn_b = _po_breakdown(_po_full, _dyn_pred_acc, _full_true_acc)
+
+    _pl_l2_dyn = pd.Series("_", index=_po_light.index)
+    _pl_l2_dyn[_dyn_routed] = (
+        _po_light.loc[_dyn_routed, ["spartan_l2_strategic_mismatch", "spartan_l2_expected_value_gamble", "spartan_l2_accepted"]]
+        .fillna(0).idxmax(axis=1).str.replace("spartan_l2_", "", regex=False)
+    )
+    _pl_dyn_pred_acc = _pl_l2_dyn == "accepted"
+    _lb_dyn = _po_breakdown(_po_light, _pl_dyn_pred_acc, _light_true_acc)
+
+    # winner among the dynamic column + static columns
+    _dyn_earnings = {"human": _po_h_earn, "mono": _mb["earn"], "full": _dyn_b["earn"], "light": _lb_dyn["earn"]}
+    _dyn_winner   = max(_dyn_earnings, key=_dyn_earnings.get)
+
+    def _dyn_col_header(key, label, sublabel, is_active=False):
+        is_win  = _dyn_winner == key
+        bg      = "rgba(33,145,140,0.07)" if is_win else "#f8fafc"
+        bdr     = "border-left:2px solid #21918c;" if is_win else "border-left:1px solid rgba(33,145,140,0.12);"
+        color   = "#21918c" if is_win else "#64748b"
+        sub_col = "#21918c" if is_win else "#94a3b8"
+        crown   = " ★" if is_win else ""
+        active_badge = f" <span style='font-size:0.5rem;background:#21918c;color:#fff;border-radius:3px;padding:1px 4px;vertical-align:middle;'>ACTIVE</span>" if is_active else ""
+        return (
+            f"<div style='background:{bg};padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);{bdr}"
+            f"text-align:center;font-size:0.65rem;font-weight:700;color:{color};letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>"
+            f"{label}{crown}{active_badge} <span style='font-size:0.58rem;color:{sub_col};font-weight:500;letter-spacing:0;text-transform:none;'>{sublabel}</span></div>"
+        )
+
+    def _dyn_cell(key, val):
+        is_win = _dyn_winner == key
+        bdr = "border-left:2px solid rgba(33,145,140,0.4);" if is_win else "border-left:1px solid rgba(33,145,140,0.12);"
+        return f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);{bdr}text-align:center;'>{val}</div>"
+
+    _dyn_earn_bdr_h     = "1px solid rgba(33,145,140,0.12)"
+    _dyn_earn_bdr_mono  = "2px solid rgba(33,145,140,0.4)" if _dyn_winner == "mono"  else "1px solid rgba(33,145,140,0.12)"
+    _dyn_earn_bdr_full  = "2px solid rgba(33,145,140,0.4)" if _dyn_winner == "full"  else "1px solid rgba(33,145,140,0.12)"
+    _dyn_earn_bdr_light = "2px solid rgba(33,145,140,0.4)" if _dyn_winner == "light" else "1px solid rgba(33,145,140,0.12)"
+
+    _num_dyn_full  = _num_kpi(f"${_dyn_b['earn']:,.0f}")
+    _num_dyn_light = _num_kpi(f"${_lb_dyn['earn']:,.0f}")
+
+    _dyn_tot_mono  = _mb["human_eq_ai"]    + _mb["ai_ne_human"]
+    _dyn_tot_full  = _dyn_b["human_eq_ai"] + _dyn_b["ai_ne_human"]
+    _dyn_tot_light = _lb_dyn["human_eq_ai"] + _lb_dyn["ai_ne_human"]
+
+    _dyn_scorecard = (
+        "<div style='display:flex;justify-content:center;'>"
+        "<div style='display:inline-block;border:1px solid rgba(33,145,140,0.2);border-radius:6px;overflow:hidden;'>"
+        "<div style='display:grid;grid-template-columns:195px 125px 125px 125px 125px;'>"
+        "<div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;'>Accepted</div>"
+        "<div style='background:#f8fafc;padding:6px 10px;border-bottom:1px solid rgba(33,145,140,0.12);border-left:1px solid rgba(33,145,140,0.12);text-align:center;font-size:0.60rem;font-weight:700;color:#64748b;letter-spacing:0.8px;text-transform:uppercase;white-space:nowrap;'>Human <span style='font-size:0.55rem;color:#94a3b8;font-weight:500;letter-spacing:0;text-transform:none;'>Ground Truth</span></div>"
+        f"{_dyn_col_header('mono',  'Monolith',       '50% fixed')}"
+        f"{_dyn_col_header('full',  'CC Full',        _po_thresh_label, is_active=True)}"
+        f"{_dyn_col_header('light', 'CC Lightweight', _po_thresh_label, is_active=True)}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Human Only</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_num(_po_h_total)}</div>"
+        f"{_dyn_cell('mono', _dash)}{_dyn_cell('full', _dash)}{_dyn_cell('light', _dash)}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:#21918c;text-transform:uppercase;letter-spacing:0.5px;'>Human = AI</div><div style='font-size:0.50rem;color:#94a3b8;margin-top:1px;'>both accepted</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_dash}</div>"
+        f"{_dyn_cell('mono', _num_pct(_mb['human_eq_ai'], _po_h_total))}"
+        f"{_dyn_cell('full', _num_pct(_dyn_b['human_eq_ai'], _po_h_total))}"
+        f"{_dyn_cell('light', _num_pct(_lb_dyn['human_eq_ai'], _po_h_total))}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:rgba(33,145,140,0.55);text-transform:uppercase;letter-spacing:0.5px;'>AI ≠ Human</div><div style='font-size:0.50rem;color:#94a3b8;margin-top:1px;'>AI accepted, human rejected</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_dash}</div>"
+        f"{_dyn_cell('mono', _num_pct(_mb['ai_ne_human'], _po_h_total, muted=True))}"
+        f"{_dyn_cell('full', _num_pct(_dyn_b['ai_ne_human'], _po_h_total, muted=True))}"
+        f"{_dyn_cell('light', _num_pct(_lb_dyn['ai_ne_human'], _po_h_total, muted=True))}"
+        "<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Total Accepted</div><div style='font-size:0.50rem;color:#94a3b8;margin-top:1px;'>human=AI + AI≠human</div></div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_num(_tot_h)}</div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:{_dyn_earn_bdr_mono};text-align:center;'>{_num(_dyn_tot_mono)}</div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:{_dyn_earn_bdr_full};text-align:center;'>{_num(_dyn_tot_full)}</div>"
+        f"<div style='padding:7px 10px;border-bottom:1px solid rgba(33,145,140,0.08);border-left:{_dyn_earn_bdr_light};text-align:center;'>{_num(_dyn_tot_light)}</div>"
+        "<div style='position:relative;padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Cumulative Earnings</div></div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_h};text-align:center;'>{_num_h}</div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_mono};text-align:center;'>{_num_mono}</div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_full};text-align:center;'>{_num_dyn_full}</div>"
+        f"<div style='padding:8px 10px;border-bottom:1px solid rgba(33,145,140,0.08);background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_light};text-align:center;'>{_num_dyn_light}</div>"
+        "<div style='padding:8px 10px;background:rgba(33,145,140,0.04);'><div style='font-size:0.62rem;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.5px;'>Avg / Accepted Ride</div></div>"
+        f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:1px solid rgba(33,145,140,0.12);text-align:center;'>{_num_kpi(_avg(_po_h_earn, _tot_h))}</div>"
+        f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_mono};text-align:center;'>{_num_kpi(_avg(_mb['earn'], _dyn_tot_mono))}</div>"
+        f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_full};text-align:center;'>{_num_kpi(_avg(_dyn_b['earn'], _dyn_tot_full))}</div>"
+        f"<div style='padding:8px 10px;background:rgba(33,145,140,0.04);border-left:{_dyn_earn_bdr_light};text-align:center;'>{_num_kpi(_avg(_lb_dyn['earn'], _dyn_tot_light))}</div>"
+        "</div></div></div>"
+        f"<div style='margin-top:12px;text-align:center;font-size:0.58rem;color:#94a3b8;'>CC Full &amp; CC Lightweight evaluated at {_po_thresh_label} threshold · Human &amp; Monolith fixed · ★ highest earner</div>"
+    )
+    st.markdown(_dyn_scorecard, unsafe_allow_html=True)
+
+    # ── 5. Threshold sensitivity curve ───────────────────────────────────────
+    st.markdown("<div style='margin-top:56px;border-top:1px solid #e2e8f0;padding-top:40px;'></div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div style='font-size:0.85rem;font-weight:700;letter-spacing:2.5px;color:#94a3b8;"
+        "text-transform:uppercase;margin-bottom:6px;'>Threshold Sensitivity</div>"
+        "<div style='height:1px;background:linear-gradient(to right,rgba(33,145,140,0.35),transparent);margin-bottom:14px;'></div>"
+        "<p style='font-size:0.84rem;color:#475569;line-height:1.65;margin-bottom:4px;'>"
+        "How much does each cascade model earn as we sweep the L1 acceptance threshold from 1% to 99%? "
+        "The vertical dashed line marks the 50% default. Both models share the same L1 gating logic — "
+        "the divergence between them is purely driven by L2: CC Full's richer feature set vs. CC Lightweight's 6-feature Spartan."
+        "</p>",
+        unsafe_allow_html=True,
+    )
+
+    @st.cache_data(show_spinner=False)
+    def _po_sensitivity_curve(_df_f, _df_l, _fmap_items):
+        _fmap    = dict(_fmap_items)
+        _l1_det  = ["dropoff_non_operational", "dropoff_proxy_zone", "long_pickup_time", "low_profitability"]
+        _l1_base = _df_f[_l1_det].idxmax(axis=1)
+        _true_f  = _df_f["y_true_l2"] == "accepted"
+        _true_l  = _df_l["y_true_l2"] == "accepted"
+
+        def _earn(df, pred_mask, true_mask):
+            both    = pred_mask & true_mask
+            ai_only = pred_mask & ~true_mask
+            earn_b  = sum(_fmap.get(oid, 0) for oid in df.loc[both, "offer_id"])
+            earn_ai = float((6.31 + 0.79 * df.loc[ai_only, "upfront_fare"]).sum())
+            return earn_b + earn_ai
+
+        rows = []
+        for t in range(1, 100):
+            _l1_dyn = _l1_base.copy()
+            _l1_dyn[_df_f["the_nuanced_rest"] >= t / 100] = "the_nuanced_rest"
+            _routed = _l1_dyn == "the_nuanced_rest"
+
+            _l2_f = pd.Series("_", index=_df_f.index)
+            _l2_f[_routed] = (
+                _df_f.loc[_routed, ["l2_strategic_mismatch", "l2_expected_value_gamble", "l2_accepted"]]
+                .fillna(0).idxmax(axis=1).str.replace("l2_", "", regex=False)
+            )
+
+            _l2_l = pd.Series("_", index=_df_l.index)
+            _l2_l[_routed] = (
+                _df_l.loc[_routed, ["spartan_l2_strategic_mismatch", "spartan_l2_expected_value_gamble", "spartan_l2_accepted"]]
+                .fillna(0).idxmax(axis=1).str.replace("spartan_l2_", "", regex=False)
+            )
+
+            _acc_f = int((_l2_f == "accepted").sum())
+            _acc_l = int((_l2_l == "accepted").sum())
+            rows.append({"threshold": t,
+                         "cc_full":       _earn(_df_f, _l2_f == "accepted", _true_f),
+                         "cc_light":      _earn(_df_l, _l2_l == "accepted", _true_l),
+                         "acc_full":      _acc_f,
+                         "acc_light":     _acc_l})
+
+        return pd.DataFrame(rows)
+
+    _sens_df = _po_sensitivity_curve(
+        _po_full,
+        _po_light,
+        tuple(sorted(_po_fare_map.items())),
+    )
+
+    import plotly.graph_objects as _go_sens
+
+    _base_full  = float(_sens_df.loc[_sens_df["threshold"] == 50, "cc_full"].iloc[0])
+    _base_light = float(_sens_df.loc[_sens_df["threshold"] == 50, "cc_light"].iloc[0])
+    _cur_t      = st.session_state["po_thresh_pct"]
+    _cur_full   = float(_sens_df.loc[_sens_df["threshold"] == _cur_t, "cc_full"].iloc[0])
+    _cur_light  = float(_sens_df.loc[_sens_df["threshold"] == _cur_t, "cc_light"].iloc[0])
+
+    _fig_sens = _go_sens.Figure()
+    _sens_vis = _sens_df[_sens_df["threshold"] >= 5].copy()
+
+    # shaded band between the two curves
+    _fig_sens.add_trace(_go_sens.Scatter(
+        x=list(_sens_vis["threshold"]) + list(_sens_vis["threshold"][::-1]),
+        y=list(_sens_vis["cc_full"]) + list(_sens_vis["cc_light"][::-1]),
+        fill="toself", fillcolor="rgba(33,145,140,0.06)",
+        line=dict(color="rgba(255,255,255,0)"), showlegend=False, hoverinfo="skip",
+    ))
+
+    # accepted rides — filled area traces (right axis); bars break on log X
+    _fig_sens.add_trace(_go_sens.Scatter(
+        x=_sens_vis["threshold"], y=_sens_vis["acc_full"],
+        name="Accepted (CC Full)", yaxis="y2", mode="lines",
+        fill="tozeroy", fillcolor="rgba(33,145,140,0.08)",
+        line=dict(color="rgba(33,145,140,0.20)", width=1),
+        hovertemplate="<b>Accepted · CC Full</b><br>Threshold: %{x}%<br>Rides: %{y}<extra></extra>",
+    ))
+    _fig_sens.add_trace(_go_sens.Scatter(
+        x=_sens_vis["threshold"], y=_sens_vis["acc_light"],
+        name="Accepted (CC Lightweight)", yaxis="y2", mode="lines",
+        fill="tozeroy", fillcolor="rgba(33,145,140,0.04)",
+        line=dict(color="rgba(33,145,140,0.12)", width=1),
+        hovertemplate="<b>Accepted · CC Lightweight</b><br>Threshold: %{x}%<br>Rides: %{y}<extra></extra>",
+    ))
+
+    # CC Full
+    _fig_sens.add_trace(_go_sens.Scatter(
+        x=_sens_vis["threshold"], y=_sens_vis["cc_full"],
+        name="CC Full", mode="lines",
+        line=dict(color="#21918c", width=2.5),
+        hovertemplate="<b>CC Full</b><br>Threshold: %{x}%<br>Earnings: $%{y:,.0f}<extra></extra>",
+    ))
+
+    # CC Lightweight
+    _fig_sens.add_trace(_go_sens.Scatter(
+        x=_sens_vis["threshold"], y=_sens_vis["cc_light"],
+        name="CC Lightweight", mode="lines",
+        line=dict(color="#21918c", width=2, dash="dash"),
+        hovertemplate="<b>CC Lightweight</b><br>Threshold: %{x}%<br>Earnings: $%{y:,.0f}<extra></extra>",
+    ))
+
+    # 50% baseline vertical — use add_shape, add_vline breaks on log X axes
+    _fig_sens.add_shape(type="line", xref="x", yref="paper",
+        x0=50, x1=50, y0=0, y1=1,
+        line=dict(dash="dot", color="#94a3b8", width=1.5))
+    _fig_sens.add_annotation(x=50, y=1, xref="x", yref="paper",
+        text="50% default", showarrow=False, yanchor="bottom",
+        font=dict(size=10, color="#94a3b8"), xanchor="left")
+
+    # current slider position
+    if _cur_t != 50:
+        _fig_sens.add_shape(type="line", xref="x", yref="paper",
+            x0=_cur_t, x1=_cur_t, y0=0, y1=1,
+            line=dict(dash="dot", color="rgba(33,145,140,0.45)", width=1.5))
+        _fig_sens.add_annotation(x=_cur_t, y=1, xref="x", yref="paper",
+            text=f"{_cur_t}% active", showarrow=False, yanchor="bottom",
+            font=dict(size=10, color="#21918c"), xanchor="right")
+
+    # star markers at current threshold
+    _fig_sens.add_trace(_go_sens.Scatter(
+        x=[_cur_t, _cur_t], y=[_cur_full, _cur_light],
+        mode="markers", showlegend=False,
+        marker=dict(symbol="star", size=14, color="#21918c",
+                    line=dict(color="#fff", width=1)),
+        hovertemplate=["<b>CC Full @ %{x}%</b><br>$%{y:,.0f}<extra></extra>",
+                       "<b>CC Lightweight @ %{x}%</b><br>$%{y:,.0f}<extra></extra>"],
+    ))
+
+    _fig_sens.update_layout(
+        paper_bgcolor="#fafafa", plot_bgcolor="#fafafa",
+        font=dict(family="Inter", size=11, color="#475569"),
+        xaxis=dict(
+            title="Classification Threshold (%) — log scale",
+            type="log",
+            tickvals=[5, 10, 20, 30, 50, 70, 99],
+            ticktext=["5%", "10%", "20%", "30%", "50%", "70%", "99%"],
+            showgrid=False, zeroline=False,
+            tickfont=dict(size=10, color="#94a3b8"),
+            title_font=dict(size=11, color="#94a3b8"),
+        ),
+        yaxis=dict(
+            title="Cumulative Earnings — log scale ($ MXN)",
+            type="log",
+            gridcolor="#e2e8f0", griddash="dot", zeroline=False,
+            tickfont=dict(size=10, color="#94a3b8"),
+            title_font=dict(size=11, color="#94a3b8"),
+            tickformat="$,.0f",
+        ),
+        yaxis2=dict(
+            title="Accepted Rides",
+            overlaying="y", side="right",
+            showgrid=False, zeroline=False,
+            tickfont=dict(size=10, color="rgba(33,145,140,0.45)"),
+            title_font=dict(size=11, color="rgba(33,145,140,0.45)"),
+            rangemode="tozero",
+        ),
+        legend=dict(
+            orientation="h", y=1.08, x=0,
+            font=dict(size=11, color="#475569"),
+            bgcolor="rgba(0,0,0,0)",
+        ),
+        margin=dict(l=0, r=20, t=40, b=60),
+        height=380,
+        hovermode="x unified",
+    )
+
+    st.plotly_chart(_fig_sens, use_container_width=True)
+
+    st.markdown(
+        "<div style='background:#fef9c3;border:1px solid #fde047;border-left:4px solid #eab308;"
+        "border-radius:4px;padding:14px 18px;margin-top:8px;max-width:680px;"
+        "font-family:Inter,sans-serif;box-shadow:2px 2px 6px rgba(0,0,0,0.07);'>"
+        "<div style='font-size:0.65rem;font-weight:700;color:#92400e;letter-spacing:1.2px;"
+        "text-transform:uppercase;margin-bottom:8px;'>Pending Fix</div>"
+        "<div style='font-size:0.82rem;color:#78350f;line-height:1.6;'>"
+        "Plotly <code style='background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:3px;font-size:0.78rem;'>add_vline</code> "
+        "is bugged on log X axes — it interprets <code style='background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:3px;font-size:0.78rem;'>x</code> "
+        "in log10 space instead of data coordinates, placing the reference line at 10<sup>50</sup> "
+        "and blowing up the auto-range so all data collapses to the left edge. "
+        "Replaced with <code style='background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:3px;font-size:0.78rem;'>add_shape</code> "
+        "but the chart layout is still not rendering correctly."
+        "<br><br>"
+        "<strong>Goal:</strong> dual-axis chart (log X, log Y) showing cumulative earnings per model vs. threshold, "
+        "with accepted ride count as a soft filled area on a secondary right Y-axis. "
+        "Log X stretches the sensitive 5–30% region so threshold sensitivity between CC Full and CC Lightweight is clearly visible. "
+        "Vertical reference lines at 50% default and current slider position."
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        "<div style='background:#fef9c3;border:1px solid #fde047;border-left:4px solid #eab308;"
+        "border-radius:4px;padding:14px 18px;margin-top:12px;max-width:680px;"
+        "font-family:Inter,sans-serif;box-shadow:2px 2px 6px rgba(0,0,0,0.07);'>"
+        "<div style='font-size:0.65rem;font-weight:700;color:#92400e;letter-spacing:1.2px;"
+        "text-transform:uppercase;margin-bottom:10px;'>Next</div>"
+        "<div style='font-size:0.82rem;color:#78350f;line-height:1.7;'>"
+        "Right &#8212; the whole page is about training a model to replicate human accept/reject decisions, not to maximize earnings. The scorecard measuring earnings is a downstream consequence of those decisions, not the objective."
+        "<br><br>"
+        "So the sensitivity chart framing is slightly off. What it&#8217;s actually showing is: as we relax or tighten the L1 gate, how does the model&#8217;s decision boundary shift away from the human baseline? The earnings are just the financial translation of that divergence."
+        "<br><br>"
+        "That reframes what the axes should communicate:"
+        "<br><br>"
+        "&#8226; A model perfectly cloning the human would have maximum Human=AI overlap and zero AI&#8800;Human &#8212; earnings would match the human exactly<br>"
+        "&#8226; As threshold drops, the model over-accepts beyond what the human would &rarr; AI&#8800;Human grows, earnings go up (imputed) but fidelity to the human drops<br>"
+        "&#8226; As threshold rises, the model under-accepts &rarr; misses rides the human took &rarr; earnings drop and fidelity also drops"
+        "<br><br>"
+        "So a more honest X/Y framing for the sensitivity chart might be:"
+        "<br><br>"
+        "<table style='font-size:0.78rem;border-collapse:collapse;width:100%;'>"
+        "<tr style='border-bottom:1px solid #fde047;'>"
+        "<th style='text-align:left;padding:4px 8px;color:#92400e;'>Axis</th>"
+        "<th style='text-align:left;padding:4px 8px;color:#92400e;'>Option A (current)</th>"
+        "<th style='text-align:left;padding:4px 8px;color:#92400e;'>Option B (behavioral)</th>"
+        "</tr>"
+        "<tr style='border-bottom:1px solid rgba(253,224,71,0.4);'>"
+        "<td style='padding:4px 8px;'>X</td><td style='padding:4px 8px;'>Threshold %</td><td style='padding:4px 8px;'>Threshold %</td>"
+        "</tr>"
+        "<tr style='border-bottom:1px solid rgba(253,224,71,0.4);'>"
+        "<td style='padding:4px 8px;'>Y (left)</td><td style='padding:4px 8px;'>Cumulative Earnings</td><td style='padding:4px 8px;'>Human=AI overlap (count or %)</td>"
+        "</tr>"
+        "<tr>"
+        "<td style='padding:4px 8px;'>Y (right)</td><td style='padding:4px 8px;'>Accepted rides</td><td style='padding:4px 8px;'>AI&#8800;Human count</td>"
+        "</tr>"
+        "</table>"
+        "<br>"
+        "The sweet spot is then visible as the threshold where Human=AI is maximized &#8212; not where earnings peak. That&#8217;s the behavioral cloning optimum."
+        "<br><br>"
+        "<code style='background:rgba(0,0,0,0.06);padding:3px 8px;border-radius:3px;font-size:0.80rem;display:inline-block;'>"
+        "Cloning Fidelity Score = (Human=AI) / (Human=AI + AI&#8800;Human)"
+        "</code>"
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
