@@ -2454,14 +2454,13 @@ with tab2:
     # ── 1. Slider ─────────────────────────────────────────────────────────────
     if "po_thresh_pct" not in st.session_state:
         st.session_state["po_thresh_pct"] = 50
-
-    st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>CC Full — Layer 1: nuanced_rest classification threshold</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.52rem;font-weight:600;color:#21918c;letter-spacing:1.5px;text-transform:uppercase;font-family:monospace;margin-bottom:4px;'>L1 threshold — nuanced_rest classification</div>", unsafe_allow_html=True)
     st.slider(
         label="po_threshold",
         label_visibility="collapsed",
         key="po_thresh_pct",
         min_value=1, max_value=99, step=1, format="%d%%",
-        help="Adjusts the L1 probability cutoff for CC Full only. Human, Monolith and CC Lightweight stay pinned at their default 50% threshold."
+        help="Adjusts the L1 probability cutoff for CC Full and CC Lightweight. Human and Monolith stay pinned at 50%."
     )
 
     _po_T            = st.session_state["po_thresh_pct"] / 100
@@ -2712,7 +2711,7 @@ with tab2:
     st.markdown(_po_l2_summary_html, unsafe_allow_html=True)
 
     # ── 2×2 binary confusion: CC Full + CC Lightweight side by side ───────────
-    def _po_build_2x2(tp, fn, fp, tn, n_total):
+    def _po_build_2x2(tp, fn, fp, tn, n_total, fp_acc):
         _cw = 72; _lw = 90
         _grid = f"{_lw}px {_cw}px {_cw}px"
         _rl = ["accepted", "not accepted"]
@@ -2743,22 +2742,30 @@ with tab2:
         _bot += "</div>"
         _pred = f"<div style='display:grid;grid-template-columns:{_grid};margin-top:5px;'><div></div><div style='grid-column:2/4;text-align:center;font-size:0.48rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;'>Predicted (Accepted?)</div></div>"
         _actual = "<div style='writing-mode:vertical-rl;transform:rotate(180deg);font-size:0.46rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;align-self:center;'>Actual</div>"
-        return f"<div style='display:flex;gap:6px;align-items:center;'>{_actual}<div>{_rows}{_bot}{_pred}</div></div>"
+        _total_ai_neq = fp + fp_acc
+        _recon = (
+            f"<div style='margin-top:10px;font-size:0.48rem;color:#94a3b8;border-top:1px dashed #e2e8f0;padding-top:8px;'>"
+            f"<div style='display:flex;justify-content:space-between;'><span>FP (over-accepted, ground truth)</span><span style='color:#92400e;font-weight:700;'>{fp}</span></div>"
+            f"<div style='display:flex;justify-content:space-between;'><span>L1 FP &#8594; accepted by L2 (no GT)</span><span style='color:#92400e;font-weight:700;'>{fp_acc}</span></div>"
+            f"<div style='display:flex;justify-content:space-between;border-top:1px solid #e2e8f0;margin-top:4px;padding-top:4px;font-weight:700;color:#64748b;'>"
+            f"<span>Total AI&#8800;Human (accepted)</span><span style='color:#b45309;'>{_total_ai_neq}</span></div>"
+            f"</div>"
+        )
+        return f"<div style='display:flex;gap:6px;align-items:center;'>{_actual}<div>{_rows}{_bot}{_pred}{_recon}</div></div>"
 
     _po_2x2_html = (
         "<div style='display:flex;justify-content:center;gap:40px;margin-bottom:28px;'>"
         "<div style='display:flex;flex-direction:column;align-items:center;gap:6px;'>"
         "<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;'>CC Full · Binary Confusion</div>"
-        + _po_build_2x2(_po_l2_tp, _po_l2_fn, _po_l2_fp, _po_l2_tn, _po_l2_n_true)
+        + _po_build_2x2(_po_l2_tp, _po_l2_fn, _po_l2_fp, _po_l2_tn, _po_l2_n_true, _po_l2_fp_accepted)
         + "</div>"
         "<div style='display:flex;flex-direction:column;align-items:center;gap:6px;'>"
         "<div style='font-size:0.55rem;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;'>CC Lightweight · Binary Confusion</div>"
-        + _po_build_2x2(_po_lw_tp, _po_lw_fn, _po_lw_fp, _po_lw_tn, _po_lw_n_true)
+        + _po_build_2x2(_po_lw_tp, _po_lw_fn, _po_lw_fp, _po_lw_tn, _po_lw_n_true, _po_lw_fp_accepted)
         + "</div>"
         "</div>"
     )
     st.markdown(_po_2x2_html, unsafe_allow_html=True)
-
 
     # ── 3. Static scorecard (all models at 50%) ───────────────────────────────
     st.markdown(_scorecard_html, unsafe_allow_html=True)
@@ -3105,6 +3112,46 @@ with tab2:
         "<code style='background:rgba(0,0,0,0.06);padding:3px 8px;border-radius:3px;font-size:0.80rem;display:inline-block;'>"
         "Cloning Fidelity Score = (Human=AI) / (Human=AI + AI&#8800;Human)"
         "</code>"
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        "<div style='background:#fef9c3;border:1px solid #fde047;border-left:4px solid #eab308;"
+        "border-radius:6px;padding:16px 20px;margin:16px 0;max-width:640px;'>"
+        "<div style='font-size:0.65rem;font-weight:700;color:#92400e;letter-spacing:1px;"
+        "text-transform:uppercase;margin-bottom:8px;'>Deuda Conceptual &mdash; Weighted CFS</div>"
+        "<div style='font-size:0.78rem;color:#78350f;line-height:1.65;'>"
+        "El CFS simple ya captura el tradeoff correctamente: <code>Human=AI + AI&#8800;Human = total</code> es constante, "
+        "por lo que maximizar uno es id&#233;ntico a minimizar el otro. Son complementos perfectos."
+        "<br><br>"
+        "Sin embargo, dentro de <strong>AI&#8800;Human</strong> existen dos tipos de error con gravedad distinta:"
+        "<br><br>"
+        "<table style='font-size:0.74rem;border-collapse:collapse;width:100%;'>"
+        "<tr style='background:rgba(0,0,0,0.05);'>"
+        "<th style='padding:5px 10px;text-align:left;font-weight:700;'>Tipo</th>"
+        "<th style='padding:5px 10px;text-align:left;font-weight:700;'>Qu&#233; ocurre</th>"
+        "<th style='padding:5px 10px;text-align:left;font-weight:700;'>Gravedad</th>"
+        "</tr>"
+        "<tr>"
+        "<td style='padding:5px 10px;'>AI acepta, Humano rechaza</td>"
+        "<td style='padding:5px 10px;'>AI trae basura</td>"
+        "<td style='padding:5px 10px;color:#b45309;font-weight:700;'>&#x1F534; peor</td>"
+        "</tr>"
+        "<tr style='background:rgba(0,0,0,0.03);'>"
+        "<td style='padding:5px 10px;'>AI rechaza, Humano acepta</td>"
+        "<td style='padding:5px 10px;'>AI es conservador</td>"
+        "<td style='padding:5px 10px;color:#92400e;'>&#x1F7E1; menos malo</td>"
+        "</tr>"
+        "</table>"
+        "<br>"
+        "El score actual trata ambos errores como equivalentes. Una versi&#243;n ponderada podr&#237;a ser:"
+        "<br><br>"
+        "<code style='background:rgba(0,0,0,0.06);padding:3px 8px;border-radius:3px;font-size:0.80rem;display:inline-block;'>"
+        "Weighted CFS = Human=AI / (Human=AI + &#945;&#183;FP + &#946;&#183;FN) &nbsp;&nbsp; donde &#945; &gt; &#946;"
+        "</code>"
+        "<br><br>"
+        "Los pesos &#945; y &#946; son una decisi&#243;n de negocio a&#250;n sin calibrar. Pendiente."
         "</div></div>",
         unsafe_allow_html=True,
     )
