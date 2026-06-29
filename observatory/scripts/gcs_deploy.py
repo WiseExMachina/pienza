@@ -87,6 +87,16 @@ MANIFEST = [
         "local": "260505_0509_spartan_learning_curve.parquet",
         "gcs":   "260505_0509_spartan_learning_curve.parquet",
     },
+    {
+        "page": "0007",
+        "local": "0508_monolith_proba.parquet",
+        "gcs":   "0508_monolith_proba.parquet",
+    },
+    {
+        "page": "0007",
+        "local": "0509_spartan_proba.parquet",
+        "gcs":   "0509_spartan_proba.parquet",
+    },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
 
