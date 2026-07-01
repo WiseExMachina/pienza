@@ -12,6 +12,7 @@ import pandas as pd
 
 # IMPORTAMOS SOLO LO NECESARIO (Babel)
 from utils.gcp_client import load_babel_assets
+from utils.bq_client import fetch_data_from_bq
 from components.styles import GLOBAL_CSS
 
 
@@ -358,7 +359,7 @@ with tab_science:
     _XS = [20, 55, 90, 125, 160]
     _Y  = 62
 
-    _EX = {
+    _EX_DEFAULT = {
         'ocrRaw':     '"CALLE QUERETAR0 168 ROMA NORTE 0670O CUAUHTEM0C"',
         'ocrCleaned': '"Calle Querétaro 168, Roma Norte, 06700 Cuauhtémoc"',
         'ocrFixes':   '0 → <b>O</b>&nbsp;&nbsp;·&nbsp;&nbsp;O → <b>0</b>&nbsp;&nbsp;·&nbsp;&nbsp;accents restored (Querétaro, Cuauhtémoc)',
@@ -367,7 +368,43 @@ with tab_science:
         'headQueries':['queretaro_168', 'roma_norte', 'cuauhtemoc', 'cp06700'],
         'headWeights':[[0.60,0.15,0.13,0.06,0.06],[0.14,0.58,0.14,0.07,0.07],[0.16,0.16,0.14,0.54,0.00],[0.16,0.16,0.52,0.08,0.08]],
         'zone': 'condesa_roma_1', 'confidence': '92%',
+        'label': 'Roma Norte · Example 1',
     }
+    if 'arch_ex' not in st.session_state:
+        st.session_state['arch_ex'] = _EX_DEFAULT
+
+    import random as _random
+
+    @st.cache_data(show_spinner=False)
+    def _load_address_pool():
+        df = fetch_data_from_bq(
+            "SELECT dropoff_address FROM `645009831643.pienza_mini.raw_offers_ocr` "
+            "WHERE dropoff_address IS NOT NULL AND LENGTH(dropoff_address) > 5 "
+            "ORDER BY RAND() LIMIT 10"
+        )
+        return df['dropoff_address'].tolist() if not df.empty else []
+
+    def _fetch_random_address():
+        pool = _load_address_pool()
+        return _random.choice(pool) if pool else None
+
+    def _build_ex_from_address(raw: str) -> dict:
+        cleaned = standardize_mexico_city_address(raw)
+        tokens_raw = cleaned.split()[:4]
+        tokens = tokens_raw + ['<pad>'] * (5 - len(tokens_raw))
+        return {
+            'ocrRaw':     f'"{raw}"',
+            'ocrCleaned': f'"{raw}"',
+            'ocrFixes':   'standardized via linguistic pipeline',
+            'soldered':   tokens[0] if tokens else 'unknown',
+            'tokens':     tokens,
+            'headQueries': tokens[:4],
+            'headWeights': [[0.60,0.15,0.13,0.06,0.06],[0.14,0.58,0.14,0.07,0.07],[0.16,0.16,0.14,0.54,0.00],[0.16,0.16,0.52,0.08,0.08]],
+            'zone': '—', 'confidence': '—',
+            'label': raw[:40] + ('…' if len(raw) > 40 else ''),
+        }
+
+    _EX = st.session_state['arch_ex']
 
     def _head_svg(n, query_label, weights, token_labels):
         import math as _math
@@ -393,13 +430,18 @@ with tab_science:
                 f'<div style="font-size:10px;font-family:\'Courier New\',monospace;color:#555;text-align:center;margin-top:2px;">Head {n} · from "{query_label}"</div>'
                 f'</div>')
 
-    def _stage(num, title, desc, spec, sub_items, recap_html=None, is_last=False):
+    def _stage(num, title, desc, spec, sub_items, recap_html=None, is_last=False, state=None):
         rows = ''.join(
             f'<div style="display:flex;align-items:center;border-left:3px solid rgba(33,145,140,{it["opacity"]});padding:7px 12px;gap:12px;margin-bottom:4px;">'
             f'<span style="font-size:0.65rem;font-weight:700;color:#64748b;width:150px;flex-shrink:0;letter-spacing:0.5px;">{it["label"]}</span>'
             f'<span style="font-family:\'Courier New\',monospace;font-size:0.68rem;color:#64748b;">{it["value"]}</span>'
             f'</div>' for it in sub_items)
         recap = f'<div style="font-size:0.85rem;color:#333;margin-top:12px;">{recap_html}</div>' if recap_html else ''
+        state_strip = (
+            f'<div style="margin-top:14px;margin-left:auto;max-width:62%;border-left:3px solid {_A};border-radius:0 4px 4px 0;padding:8px 12px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+            f'<span style="font-family:\'Courier New\',monospace;font-size:0.75rem;font-weight:700;color:#334155;line-height:1.6;">{state}</span>'
+            f'</div>'
+        ) if state else ''
         line  = '' if is_last else '<div class="step-line"></div>'
         return (
             f'<div class="step-row">'
@@ -409,7 +451,7 @@ with tab_science:
             f'<div class="step-why">{desc}</div>'
             f'<div style="font-size:0.75rem;color:#64748b;margin-bottom:10px;">{spec}</div>'
             f'<div style="display:flex;flex-direction:column;gap:2px;">{rows}</div>'
-            f'{recap}</div></div>')
+            f'{recap}{state_strip}</div></div>')
 
     def _conn():
         return (f'<div style="display:flex;flex-direction:column;align-items:center;padding:4px 0;">'
@@ -420,18 +462,18 @@ with tab_science:
     _head_svgs = ''.join(_head_svg(i+1, ex['headQueries'][i], ex['headWeights'][i], ex['tokens']) for i in range(4))
 
     _pre = (
-        _stage(1,'Raw OCR Capture','The Observatory OCR engine reads a dropoff label or handwritten slip — glyph confusables (0/O, l/1) and missing accents are common at this stage.','scanned / photographed source · noisy character stream',[{'label':'OCR Output','value':ex['ocrRaw'],'opacity':1}],recap_html=ex['ocrFixes']) +
-        _stage(2,'Raw Address String','The corrected, human-readable dropoff address, ready for standardization.','raw text · Spanish / English mixed',[{'label':'Corrected String','value':ex['ocrCleaned'],'opacity':1}]) +
-        _stage(3,'Linguistic Standardization','Strips slash-suffixes, unifies street prefixes, isolates postal codes, and solders street + number tokens together before anything reaches the network.','5 rule passes · Level 0 preprocessing, no learned weights',[{'label':'Hard-Cut Guillotine','value':'drop trailing "/ colonia" suffix','opacity':1.0},{'label':'Accent & Unicode','value':'NFKD normalize · lowercase','opacity':0.8},{'label':'Prefix Unification','value':'av/avenida → av · cll/calle → calle','opacity':0.62},{'label':'Postal Code Isolation','value':r'\d{5} → cp#####','opacity':0.45},{'label':'Token Soldering','value':f"street + number → {ex['soldered']}",'opacity':0.3}]) +
-        _stage(4,'Token Embedding','Each token is mapped to a learned 128-dimensional vector.','nn.Embedding · scaled by √d_model before the encoder',[{'label':'Vocabulary','value':'2,502 tokens','opacity':1.0},{'label':'Embedding Dim','value':'128 (d_model)','opacity':0.7},{'label':'Output Shape','value':'[batch, 30] → [batch, 30, 128]','opacity':0.45}],recap_html=f'2,502 tokens (<b style="border-bottom:1px dotted {_A};">2,500 learned</b> + <b style="border-bottom:1px dotted {_A};">2 special</b>: &lt;pad&gt;, &lt;unk&gt;)') +
-        _stage(5,'Positional Encoding','Sin/cos signals tell the model token order — which street name came before the house number.','sinusoidal · fixed, non-learned · added element-wise',[{'label':'Function','value':'sin/cos(pos / 10000^(2i/d))','opacity':1.0},{'label':'Max Length','value':'30 tokens','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128]','opacity':0.45}],is_last=True)
+        _stage(1,'Raw OCR Capture','The Observatory OCR engine reads a dropoff label or handwritten slip — glyph confusables (0/O, l/1) and missing accents are common at this stage.','scanned / photographed source · noisy character stream',[{'label':'OCR Output','value':ex['ocrRaw'],'opacity':1}],recap_html=ex['ocrFixes'],state=ex['ocrRaw']) +
+        _stage(2,'Raw Address String','The corrected, human-readable dropoff address, ready for standardization.','raw text · Spanish / English mixed',[{'label':'Corrected String','value':ex['ocrCleaned'],'opacity':1}],state=ex['ocrCleaned']) +
+        _stage(3,'Linguistic Standardization','Strips slash-suffixes, unifies street prefixes, isolates postal codes, and solders street + number tokens together before anything reaches the network.','5 rule passes · Level 0 preprocessing, no learned weights',[{'label':'Hard-Cut Guillotine','value':'drop trailing "/ colonia" suffix','opacity':1.0},{'label':'Accent & Unicode','value':'NFKD normalize · lowercase','opacity':0.8},{'label':'Prefix Unification','value':'av/avenida → av · cll/calle → calle','opacity':0.62},{'label':'Postal Code Isolation','value':r'\d{5} → cp#####','opacity':0.45},{'label':'Token Soldering','value':f"street + number → {ex['soldered']}",'opacity':0.3}],state=f'calle {ex["soldered"]} roma_norte cp06700 cuauhtemoc') +
+        _stage(4,'Token Embedding','Each token is mapped to a learned 128-dimensional vector.','nn.Embedding · scaled by √d_model before the encoder',[{'label':'Vocabulary','value':'2,502 tokens','opacity':1.0},{'label':'Embedding Dim','value':'128 (d_model)','opacity':0.7},{'label':'Output Shape','value':'[batch, 30] → [batch, 30, 128]','opacity':0.45}],recap_html=f'2,502 tokens (<b style="border-bottom:1px dotted {_A};">2,500 learned</b> + <b style="border-bottom:1px dotted {_A};">2 special</b>: &lt;pad&gt;, &lt;unk&gt;)',state='[queretaro_168] [roma_norte] [cp06700] [cuauhtemoc] [&lt;pad&gt;] → 128-dim vectors × 5') +
+        _stage(5,'Positional Encoding','Sin/cos signals tell the model token order — which street name came before the house number.','sinusoidal · fixed, non-learned · added element-wise',[{'label':'Function','value':'sin/cos(pos / 10000^(2i/d))','opacity':1.0},{'label':'Max Length','value':'30 tokens','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128]','opacity':0.45}],is_last=True,state='embedding[i] + pos_enc[i]  →  [batch, 30, 128]  (order-aware)')
     )
 
     _post = (
-        _stage(6,'Dual Pooling Fusion','Average pooling captures overall sentence context; max pooling captures the single sharpest signal, like one distinctive street name.','mean-pool ⊕ max-pool, concatenated after the encoder',[{'label':'Mean Pool','value':'128-dim · avg over sequence','opacity':1.0},{'label':'Max Pool','value':'128-dim · strongest signal','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128] → [batch, 256]','opacity':0.45}],recap_html=f'256-dim fused vector (<b style="border-bottom:1px dotted {_A};">128 mean-pool</b> + <b style="border-bottom:1px dotted {_A};">128 max-pool</b>)') +
-        _stage(7,'Bottleneck Dropout','Regularizes the fused representation, curbing overfitting on a modest 3.4k-record training set.','p = 0.3, applied once before the classifier',[{'label':'Dropout Rate','value':'p = 0.3','opacity':1.0},{'label':'Applied To','value':'256-dim fused vector','opacity':0.7}]) +
-        _stage(8,'Linear Classifier','Projects the fused vector to 63 geographic zone logits; softmax turns them into class probabilities.','Linear(256 → 63) → softmax',[{'label':'Input Dim','value':'256','opacity':1.0},{'label':'Output Classes','value':'63 zones (P_ polygon · C_ cluster ids)','opacity':0.7},{'label':'Activation','value':'softmax','opacity':0.45}]) +
-        _stage(9,'Predicted Zone','The zone with highest probability wins, alongside its confidence score.','argmax + confidence, returned to the Observatory UI',[{'label':'Decision Rule','value':'argmax(probs)','opacity':1.0},{'label':'Result','value':f"{ex['zone']} @ {ex['confidence']}",'opacity':0.7},{'label':'Latency','value':'< 10ms, on-device','opacity':0.45}],is_last=True)
+        _stage(6,'Dual Pooling Fusion','Average pooling captures overall sentence context; max pooling captures the single sharpest signal, like one distinctive street name.','mean-pool ⊕ max-pool, concatenated after the encoder',[{'label':'Mean Pool','value':'128-dim · avg over sequence','opacity':1.0},{'label':'Max Pool','value':'128-dim · strongest signal','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128] → [batch, 256]','opacity':0.45}],recap_html=f'256-dim fused vector (<b style="border-bottom:1px dotted {_A};">128 mean-pool</b> + <b style="border-bottom:1px dotted {_A};">128 max-pool</b>)',state='mean([h₁…h₃₀]) ⊕ max([h₁…h₃₀])  →  [batch, 256]') +
+        _stage(7,'Bottleneck Dropout','Regularizes the fused representation, curbing overfitting on a modest 3.4k-record training set.','p = 0.3, applied once before the classifier',[{'label':'Dropout Rate','value':'p = 0.3','opacity':1.0},{'label':'Applied To','value':'256-dim fused vector','opacity':0.7}],state='[batch, 256]  →  dropout(p=0.3)  →  [batch, 256]') +
+        _stage(8,'Linear Classifier','Projects the fused vector to 63 geographic zone logits; softmax turns them into class probabilities.','Linear(256 → 63) → softmax',[{'label':'Input Dim','value':'256','opacity':1.0},{'label':'Output Classes','value':'63 zones (P_ polygon · C_ cluster ids)','opacity':0.7},{'label':'Activation','value':'softmax','opacity':0.45}],state='[batch, 256]  →  Linear(256→63)  →  softmax  →  [batch, 63]') +
+        _stage(9,'Predicted Zone','The zone with highest probability wins, alongside its confidence score.','argmax + confidence, returned to the Observatory UI',[{'label':'Decision Rule','value':'argmax(probs)','opacity':1.0},{'label':'Result','value':f"{ex['zone']} @ {ex['confidence']}",'opacity':0.7},{'label':'Latency','value':'< 10ms, on-device','opacity':0.45}],is_last=True,state=f"argmax → <b>{ex['zone']}</b>  ·  confidence {ex['confidence']}  ·  &lt; 10ms")
     )
 
     _enc = (
@@ -473,10 +515,27 @@ with tab_science:
 .step-why { font-size:0.85rem; color:#777; line-height:1.6; margin-bottom:4px; }
 </style>"""
 
-    pill = f'<div style="display:flex;justify-content:flex-end;margin:12px 0 44px;"><span style="display:inline-block;background:{_A};color:#fff;border-radius:20px;padding:5px 16px;font-size:0.68rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;">Roma Norte · Example 1</span></div>'
-
     st.markdown(_step_css, unsafe_allow_html=True)
-    st.markdown(pill + _pre + _conn() + _enc + _conn() + _post + _lat, unsafe_allow_html=True)
+    st.markdown("""<style>
+div[data-testid="stButton"].arch-pill > button {
+    background:#21918c;color:#fff;border:none;border-radius:20px;
+    padding:5px 18px;font-size:0.68rem;font-weight:700;letter-spacing:0.8px;
+    text-transform:uppercase;cursor:pointer;white-space:nowrap;
+}
+div[data-testid="stButton"].arch-pill > button:hover { background:#1a7a76; }
+</style>""", unsafe_allow_html=True)
+
+    _pill_col1, _pill_col2 = st.columns([3, 1])
+    with _pill_col2:
+        st.markdown('<div class="arch-pill">', unsafe_allow_html=True)
+        if st.button(_EX.get('label', 'Roma Norte · Example 1'), key='arch_random'):
+            addr = _fetch_random_address()
+            if addr:
+                st.session_state['arch_ex'] = _build_ex_from_address(addr)
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown(_pre + _conn() + _enc + _conn() + _post + _lat, unsafe_allow_html=True)
 
 with tab_dashboard:
 
