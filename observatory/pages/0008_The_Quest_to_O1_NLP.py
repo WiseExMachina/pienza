@@ -60,7 +60,8 @@ build_sidebar()
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
-st.markdown("# The Quest to (O)1: NLP Transformer")
+st.markdown("# miniBabel: Custom NLP Transformer")
+st.markdown(f"<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>A Real-Time Spatial Classifier — CDMX Address → Geographic Zone</h4>", unsafe_allow_html=True)
 st.markdown("""
 <div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
 While the geocoding pipeline used during the Unsupervised Phase works for offline research, it is too fragile for real-time production.
@@ -267,31 +268,6 @@ def render_sovereign_map(pred_name, true_name, google_coords, df_h3_master, geoj
         tooltip={"text": "Zone: {final_zone_name}"}
     ))
 
-# ==========================================
-# 3. INITIALIZATION (NLP + SPATIAL)
-# ==========================================
-try:
-    # 1. Carga de Motores NLP (Singleton Cache)
-    if 'minibabel' not in st.session_state:
-        st.session_state['minibabel'], st.session_state['token_to_idx'], st.session_state['idx_to_zone'] = load_babel_assets()
-    
-    # 2. Carga de Activos (Guardarlos en session_state para que vivan siempre)
-    if 'geojson_data' not in st.session_state:
-        st.session_state['geojson_data'], st.session_state['df_h3_master'], st.session_state['df_holdout'] = load_production_assets()
-        st.session_state['df_audit'] = load_parity_audit()
-
-except Exception as e:
-    st.error(f"🔴 Critical Load Failure: {e}")
-    st.stop()
-
-# Alias cortos para que tu código de abajo no truene
-minibabel = st.session_state['minibabel']
-token_to_idx = st.session_state['token_to_idx']
-idx_to_zone = st.session_state['idx_to_zone']
-geojson_data = st.session_state['geojson_data']
-df_h3_master = st.session_state['df_h3_master']
-df_audit = st.session_state['df_audit']
-
 tab_science, tab_dashboard = st.tabs(["The Science", "Dashboard — miniBabel O(1) Engine"])
 
 with tab_science:
@@ -332,33 +308,197 @@ with tab_science:
 <div class="ci-stepper">
   <div class="ci-step ci-active">
     <div class="ci-dot">P1</div>
-    <div class="ci-step-label">Urban Standardizer</div>
-    <div class="ci-step-sub">OCR Parsing &amp; Noise Reduction</div>
-  </div>
-  <div class="ci-step">
-    <div class="ci-dot">P2</div>
-    <div class="ci-step-label">Semantic Baselines</div>
-    <div class="ci-step-sub">TF-IDF &amp; Word2Vec</div>
-  </div>
-  <div class="ci-step">
-    <div class="ci-dot">P3</div>
     <div class="ci-step-label">Custom miniBabel</div>
     <div class="ci-step-sub">Purpose-Built PyTorch Transformer</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P4</div>
+    <div class="ci-dot">P2</div>
     <div class="ci-step-label">State-of-the-Art Adaptation</div>
     <div class="ci-step-sub">BETO Fine-Tuning</div>
   </div>
   <div class="ci-step">
-    <div class="ci-dot">P5</div>
+    <div class="ci-dot">P3</div>
     <div class="ci-step-label">Model Audit</div>
     <div class="ci-step-sub">Hits &amp; Misses</div>
   </div>
 </div>
+
+<!-- P1: INTRO -->
+<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
+<b style="color:#121212;font-weight:600;font-size:0.95rem;">ZoneClassifierTransformer</b> is a custom encoder-only Transformer trained from scratch to resolve messy, human-written Mexico City dropoff addresses into one of 63 geographic zones — benchmarked live against the Google Maps Geocoding API inside the Observatory's Phase 6 diagnostic page.
+</div>
+
+<!-- P1: STAT GRID -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:28px 0 8px;">
+  <div style="background:#fff; border:1px solid #eaeaea; border-radius:12px; padding:18px 20px; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
+    <div style="font-size:0.72rem; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Vocabulary</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#121212; letter-spacing:-0.5px;">2,502</div>
+    <div style="font-size:0.72rem; color:#888; margin-top:4px;">standardized tokens</div>
+  </div>
+  <div style="background:#fff; border:1px solid #eaeaea; border-radius:12px; padding:18px 20px; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
+    <div style="font-size:0.72rem; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Model Dim</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#121212; letter-spacing:-0.5px;">128</div>
+    <div style="font-size:0.72rem; color:#888; margin-top:4px;">d_model · 4 heads × 2 layers</div>
+  </div>
+  <div style="background:#fff; border:1px solid #eaeaea; border-radius:12px; padding:18px 20px; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
+    <div style="font-size:0.72rem; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Zones Classified</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#121212; letter-spacing:-0.5px;">63</div>
+    <div style="font-size:0.72rem; color:#888; margin-top:4px;">polygon + HDBSCAN clusters</div>
+  </div>
+  <div style="background:#fff; border:1px solid #eaeaea; border-radius:12px; padding:18px 20px; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
+    <div style="font-size:0.72rem; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Inference Latency</div>
+    <div style="font-size:1.6rem; font-weight:800; color:#121212; letter-spacing:-0.5px;">&lt; 10ms</div>
+    <div style="font-size:0.72rem; color:#888; margin-top:4px;">on-device, CPU</div>
+  </div>
+</div>
 """, unsafe_allow_html=True)
 
+    # ── ARCHITECTURE EXPLAINER ───────────────────────────────────────────────
+    _A = '#21918c'
+    _XS = [20, 55, 90, 125, 160]
+    _Y  = 62
+
+    _EX = {
+        'ocrRaw':     '"CALLE QUERETAR0 168 ROMA NORTE 0670O CUAUHTEM0C"',
+        'ocrCleaned': '"Calle Querétaro 168, Roma Norte, 06700 Cuauhtémoc"',
+        'ocrFixes':   '0 → <b>O</b>&nbsp;&nbsp;·&nbsp;&nbsp;O → <b>0</b>&nbsp;&nbsp;·&nbsp;&nbsp;accents restored (Querétaro, Cuauhtémoc)',
+        'soldered':   'queretaro_168',
+        'tokens':     ['queretaro_168', 'roma_norte', 'cp06700', 'cuauhtemoc', '<pad>'],
+        'headQueries':['queretaro_168', 'roma_norte', 'cuauhtemoc', 'cp06700'],
+        'headWeights':[[0.60,0.15,0.13,0.06,0.06],[0.14,0.58,0.14,0.07,0.07],[0.16,0.16,0.14,0.54,0.00],[0.16,0.16,0.52,0.08,0.08]],
+        'zone': 'condesa_roma_1', 'confidence': '92%',
+    }
+
+    def _head_svg(n, query_label, weights, token_labels):
+        import math as _math
+        query_idx = token_labels.index(query_label) if query_label in token_labels else 0
+        qx = _XS[query_idx]
+        parts = []
+        for i, w in enumerate(weights):
+            if i == query_idx:
+                bump = 10 + w * 26
+                d = f"M {qx-7} {_Y-2} C {qx-15} {_Y-bump} {qx+15} {_Y-bump} {qx+7} {_Y-2}"
+            else:
+                x2, mid_x, mid_y = _XS[i], (qx+_XS[i])/2, _Y-26-w*46
+                d = f"M {qx} {_Y} Q {mid_x} {mid_y} {x2} {_Y}"
+            parts.append(f'<path d="{d}" fill="none" stroke="{_A}" stroke-width="{1+w*5:.1f}" opacity="{0.25+w*0.65:.2f}" stroke-linecap="round"/>')
+        for i, lbl in enumerate(token_labels):
+            r = 5.5 if i == query_idx else 4
+            fill = _A if i == query_idx else '#ffffff'
+            parts.append(f'<circle cx="{_XS[i]}" cy="{_Y}" r="{r}" fill="{fill}" stroke="{_A}" stroke-width="1.3"/>')
+            parts.append(f'<text x="{_XS[i]}" y="76" font-size="7" font-family="Courier New,monospace" text-anchor="middle" fill="#888">{lbl[:9]}</text>')
+        svg = ''.join(parts)
+        return (f'<div style="border:1px solid #eaeaea;background:#f8f9fa;border-radius:8px;padding:8px 8px 6px;flex:1;min-width:140px;">'
+                f'<svg viewBox="0 0 180 80" style="width:100%;height:auto;display:block;overflow:visible;">{svg}</svg>'
+                f'<div style="font-size:10px;font-family:\'Courier New\',monospace;color:#555;text-align:center;margin-top:2px;">Head {n} · from "{query_label}"</div>'
+                f'</div>')
+
+    def _stage(num, title, desc, spec, sub_items, recap_html=None, is_last=False):
+        rows = ''.join(
+            f'<div style="display:flex;align-items:center;border-left:3px solid rgba(33,145,140,{it["opacity"]});padding:7px 12px;gap:12px;margin-bottom:4px;">'
+            f'<span style="font-size:0.65rem;font-weight:700;color:#64748b;width:150px;flex-shrink:0;letter-spacing:0.5px;">{it["label"]}</span>'
+            f'<span style="font-family:\'Courier New\',monospace;font-size:0.68rem;color:#64748b;">{it["value"]}</span>'
+            f'</div>' for it in sub_items)
+        recap = f'<div style="font-size:0.85rem;color:#333;margin-top:12px;">{recap_html}</div>' if recap_html else ''
+        line  = '' if is_last else '<div class="step-line"></div>'
+        return (
+            f'<div class="step-row">'
+            f'<div class="step-spine"><div class="step-circle" style="background:{_A};">{num}</div>{line}</div>'
+            f'<div class="step-body">'
+            f'<div class="step-label" style="color:{_A};font-size:17px;">{title}</div>'
+            f'<div class="step-why">{desc}</div>'
+            f'<div style="font-size:0.75rem;color:#64748b;margin-bottom:10px;">{spec}</div>'
+            f'<div style="display:flex;flex-direction:column;gap:2px;">{rows}</div>'
+            f'{recap}</div></div>')
+
+    def _conn():
+        return (f'<div style="display:flex;flex-direction:column;align-items:center;padding:4px 0;">'
+                f'<div style="width:2px;height:16px;background:rgba(150,150,150,0.2);"></div>'
+                f'<div style="font-size:14px;color:{_A};line-height:1;margin-top:-1px;">▾</div></div>')
+
+    ex = _EX
+    _head_svgs = ''.join(_head_svg(i+1, ex['headQueries'][i], ex['headWeights'][i], ex['tokens']) for i in range(4))
+
+    _pre = (
+        _stage(1,'Raw OCR Capture','The Observatory OCR engine reads a dropoff label or handwritten slip — glyph confusables (0/O, l/1) and missing accents are common at this stage.','scanned / photographed source · noisy character stream',[{'label':'OCR Output','value':ex['ocrRaw'],'opacity':1}],recap_html=ex['ocrFixes']) +
+        _stage(2,'Raw Address String','The corrected, human-readable dropoff address, ready for standardization.','raw text · Spanish / English mixed',[{'label':'Corrected String','value':ex['ocrCleaned'],'opacity':1}]) +
+        _stage(3,'Linguistic Standardization','Strips slash-suffixes, unifies street prefixes, isolates postal codes, and solders street + number tokens together before anything reaches the network.','5 rule passes · Level 0 preprocessing, no learned weights',[{'label':'Hard-Cut Guillotine','value':'drop trailing "/ colonia" suffix','opacity':1.0},{'label':'Accent & Unicode','value':'NFKD normalize · lowercase','opacity':0.8},{'label':'Prefix Unification','value':'av/avenida → av · cll/calle → calle','opacity':0.62},{'label':'Postal Code Isolation','value':r'\d{5} → cp#####','opacity':0.45},{'label':'Token Soldering','value':f"street + number → {ex['soldered']}",'opacity':0.3}]) +
+        _stage(4,'Token Embedding','Each token is mapped to a learned 128-dimensional vector.','nn.Embedding · scaled by √d_model before the encoder',[{'label':'Vocabulary','value':'2,502 tokens','opacity':1.0},{'label':'Embedding Dim','value':'128 (d_model)','opacity':0.7},{'label':'Output Shape','value':'[batch, 30] → [batch, 30, 128]','opacity':0.45}],recap_html=f'2,502 tokens (<b style="border-bottom:1px dotted {_A};">2,500 learned</b> + <b style="border-bottom:1px dotted {_A};">2 special</b>: &lt;pad&gt;, &lt;unk&gt;)') +
+        _stage(5,'Positional Encoding','Sin/cos signals tell the model token order — which street name came before the house number.','sinusoidal · fixed, non-learned · added element-wise',[{'label':'Function','value':'sin/cos(pos / 10000^(2i/d))','opacity':1.0},{'label':'Max Length','value':'30 tokens','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128]','opacity':0.45}],is_last=True)
+    )
+
+    _post = (
+        _stage(6,'Dual Pooling Fusion','Average pooling captures overall sentence context; max pooling captures the single sharpest signal, like one distinctive street name.','mean-pool ⊕ max-pool, concatenated after the encoder',[{'label':'Mean Pool','value':'128-dim · avg over sequence','opacity':1.0},{'label':'Max Pool','value':'128-dim · strongest signal','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128] → [batch, 256]','opacity':0.45}],recap_html=f'256-dim fused vector (<b style="border-bottom:1px dotted {_A};">128 mean-pool</b> + <b style="border-bottom:1px dotted {_A};">128 max-pool</b>)') +
+        _stage(7,'Bottleneck Dropout','Regularizes the fused representation, curbing overfitting on a modest 3.4k-record training set.','p = 0.3, applied once before the classifier',[{'label':'Dropout Rate','value':'p = 0.3','opacity':1.0},{'label':'Applied To','value':'256-dim fused vector','opacity':0.7}]) +
+        _stage(8,'Linear Classifier','Projects the fused vector to 63 geographic zone logits; softmax turns them into class probabilities.','Linear(256 → 63) → softmax',[{'label':'Input Dim','value':'256','opacity':1.0},{'label':'Output Classes','value':'63 zones (P_ polygon · C_ cluster ids)','opacity':0.7},{'label':'Activation','value':'softmax','opacity':0.45}]) +
+        _stage(9,'Predicted Zone','The zone with highest probability wins, alongside its confidence score.','argmax + confidence, returned to the Observatory UI',[{'label':'Decision Rule','value':'argmax(probs)','opacity':1.0},{'label':'Result','value':f"{ex['zone']} @ {ex['confidence']}",'opacity':0.7},{'label':'Latency','value':'< 10ms, on-device','opacity':0.45}],is_last=True)
+    )
+
+    _enc = (
+        f'<div style="position:relative;border:2px dashed {_A};border-radius:16px;padding:30px 24px 24px;background:rgba(33,145,140,0.03);margin-bottom:8px;">'
+        f'<div style="position:absolute;top:-14px;left:24px;background:#fafafa;padding:0 10px;font-size:12px;font-weight:700;color:{_A};letter-spacing:0.3px;">TRANSFORMER ENCODER LAYER</div>'
+        f'<div style="position:absolute;top:-14px;right:24px;background:{_A};color:#fff;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;letter-spacing:0.3px;">🔁 Stacked × 2</div>'
+        f'<div style="background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:20px 22px;box-shadow:0 4px 6px rgba(0,0,0,0.02);margin-bottom:10px;">'
+        f'<div style="font-size:18px;font-weight:800;letter-spacing:0.3px;color:{_A};text-transform:uppercase;margin-bottom:10px;">Multi-Head Self-Attention</div>'
+        f'<div style="font-size:13.5px;color:#555;line-height:1.65;margin-bottom:6px;">Every token attends to every other token in the address — letting "reforma" and "115" bind together regardless of order, while separate heads specialize in street names, colonias, or postal codes.</div>'
+        f'<div style="font-size:13px;color:#333;margin-bottom:14px;">4 heads · d_k = 32 each · scaled dot-product · Add &amp; Norm</div>'
+        f'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">{_head_svgs}</div>'
+        f'<div style="font-size:10.5px;color:#999;margin-top:6px;line-height:1.4;">Teal node = the token doing the attending; arc thickness/opacity = attention weight onto each other token.</div>'
+        f'</div>'
+        f'<div style="display:flex;flex-direction:column;align-items:center;padding:2px 0;"><div style="width:2px;height:12px;background:#dddddd;"></div><div style="font-size:13px;color:{_A};line-height:1;margin-top:-1px;">▾</div></div>'
+        f'<div style="background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:20px 22px;box-shadow:0 4px 6px rgba(0,0,0,0.02);">'
+        f'<div style="font-size:18px;font-weight:800;letter-spacing:0.3px;color:{_A};text-transform:uppercase;margin-bottom:10px;">Position-wise Feed-Forward</div>'
+        f'<div style="font-size:13.5px;color:#555;line-height:1.65;margin-bottom:6px;">Expands each token\'s representation to 256 dimensions and back, giving the model room to combine attention outputs non-linearly before the residual Add &amp; Norm.</div>'
+        f'<div style="font-size:13px;color:#333;">Linear(128→256) → ReLU → Linear(256→128) · dropout 0.3 · Add &amp; Norm</div>'
+        f'</div></div>'
+    )
+
+    _lat = (
+        f'<div style="margin-top:40px;">'
+        f'<div style="color:{_A};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;">Cloud API vs. Local Neural Engine</div>'
+        f'<div style="font-size:13.5px;color:#555;line-height:1.65;margin-bottom:20px;">The Observatory\'s diagnostic page races miniBabel against the Google Maps Geocoding API on every scan, live.</div>'
+        f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">'
+        f'<div style="background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:22px 24px;box-shadow:0 4px 6px rgba(0,0,0,0.02);"><div style="font-size:14px;font-weight:700;color:#121212;margin-bottom:10px;">🌐 Google Maps API (Cloud)</div><div style="font-size:1.7rem;font-weight:800;color:#121212;letter-spacing:-0.5px;margin-bottom:6px;">~150–400ms</div><div style="font-size:12.5px;color:#888;">network round-trip, per request</div></div>'
+        f'<div style="background:#fff;border:1px solid {_A};border-radius:12px;padding:22px 24px;box-shadow:0 4px 6px rgba(0,0,0,0.02);"><div style="font-size:14px;font-weight:700;color:#121212;margin-bottom:10px;">🏎️ miniBabel (Local Neural)</div><div style="font-size:1.7rem;font-weight:800;color:{_A};letter-spacing:-0.5px;margin-bottom:6px;">&lt; 10ms</div><div style="font-size:12.5px;color:#888;">on-device forward pass, no network</div></div>'
+        f'</div></div>'
+    )
+
+    _step_css = """<style>
+.step-row { display:flex; gap:0; align-items:stretch; margin-bottom:0; }
+.step-spine { display:flex; flex-direction:column; align-items:center; width:44px; flex-shrink:0; }
+.step-circle { width:30px; height:30px; border-radius:50%; color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; z-index:1; }
+.step-line { width:2px; background:rgba(150,150,150,0.2); flex:1; min-height:16px; }
+.step-body { flex:1; padding:0 0 28px 12px; }
+.step-label { font-size:17px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; padding-top:6px; }
+.step-why { font-size:0.85rem; color:#777; line-height:1.6; margin-bottom:4px; }
+</style>"""
+
+    pill = f'<div style="display:flex;justify-content:flex-end;margin:12px 0 44px;"><span style="display:inline-block;background:{_A};color:#fff;border-radius:20px;padding:5px 16px;font-size:0.68rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;">Roma Norte · Example 1</span></div>'
+
+    st.markdown(_step_css, unsafe_allow_html=True)
+    st.markdown(pill + _pre + _conn() + _enc + _conn() + _post + _lat, unsafe_allow_html=True)
+
 with tab_dashboard:
+
+    # ==========================================
+    # 3. INITIALIZATION (NLP + SPATIAL) — lazy, only when Dashboard tab is opened
+    # ==========================================
+    try:
+        if 'minibabel' not in st.session_state:
+            st.session_state['minibabel'], st.session_state['token_to_idx'], st.session_state['idx_to_zone'] = load_babel_assets()
+        if 'geojson_data' not in st.session_state:
+            st.session_state['geojson_data'], st.session_state['df_h3_master'], st.session_state['df_holdout'] = load_production_assets()
+            st.session_state['df_audit'] = load_parity_audit()
+    except Exception as e:
+        st.error(f"🔴 Critical Load Failure: {e}")
+        st.stop()
+
+    minibabel = st.session_state['minibabel']
+    token_to_idx = st.session_state['token_to_idx']
+    idx_to_zone = st.session_state['idx_to_zone']
+    geojson_data = st.session_state['geojson_data']
+    df_h3_master = st.session_state['df_h3_master']
+    df_audit = st.session_state['df_audit']
 
     st.divider()
 
