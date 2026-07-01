@@ -12,6 +12,7 @@ import pandas as pd
 
 # IMPORTAMOS SOLO LO NECESARIO (Babel)
 from utils.gcp_client import load_babel_assets
+from components.styles import GLOBAL_CSS
 
 
 # ==========================================
@@ -57,6 +58,19 @@ def build_sidebar():
 
 build_sidebar()
 
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+
+st.markdown("# The Quest to (O)1: NLP Transformer")
+st.markdown("""
+<div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+While the geocoding pipeline used during the Unsupervised Phase works for offline research, it is too fragile for real-time production.
+Relying on live external APIs while on the road is computationally expensive, introduces latency, and creates a critical point of failure.
+<br><br>
+What if geocoding could be bypassed entirely? Using a baseline of 4,000+ historically verified addresses, the routing problem was reframed as a direct Natural Language Processing task.
+<b>miniBabel</b> is a custom, lightweight Transformer that learns the linguistic DNA of raw addresses to map them directly into operational zones.
+By eliminating third-party APIs, it is optimized for fast, reliable, on-device (edge) execution.
+</div>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # 0. SESSION STATE INITIALIZATION (THE ANCHOR)
@@ -265,7 +279,6 @@ try:
     if 'geojson_data' not in st.session_state:
         st.session_state['geojson_data'], st.session_state['df_h3_master'], st.session_state['df_holdout'] = load_production_assets()
         st.session_state['df_audit'] = load_parity_audit()
-        st.success("✅ Neural Engines & Spatial Sovereign Mesh Armed and Loaded.")
 
 except Exception as e:
     st.error(f"🔴 Critical Load Failure: {e}")
@@ -279,256 +292,298 @@ geojson_data = st.session_state['geojson_data']
 df_h3_master = st.session_state['df_h3_master']
 df_audit = st.session_state['df_audit']
 
-st.divider()
+tab_science, tab_dashboard = st.tabs(["The Science", "Dashboard — miniBabel O(1) Engine"])
 
-# ==========================================
-# TOURNAMENT HIGHLIGHTS: THE PARITY LEDGER
-# ==========================================
-st.subheader("🏆 Tournament Highlights: Model Audit")
+with tab_science:
+    st.markdown("""
+<style>
+.ci-stepper { display:flex; align-items:flex-start; gap:0; margin:18px 0 6px 0; }
+.ci-step {
+  display:flex; flex-direction:column; align-items:center; flex:1;
+  position:relative; cursor:pointer;
+}
+.ci-step:not(:last-child)::after {
+  content:''; position:absolute; top:14px; left:calc(50% + 14px);
+  width:calc(100% - 28px); height:2px; background:rgba(33,145,140,0.2); z-index:0;
+}
+.ci-dot {
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(33,145,140,0.12); border:1.5px solid rgba(33,145,140,0.4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.60rem; font-weight:700; color:#21918c;
+  z-index:1; position:relative; flex-shrink:0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ci-step:hover .ci-dot { background:rgba(33,145,140,0.22); border-color:#21918c; }
+.ci-step-label {
+  font-size:0.68rem; font-weight:600; color:#334155;
+  text-align:center; margin-top:6px; line-height:1.3;
+}
+.ci-step-sub {
+  font-size:0.60rem; color:#64748b;
+  text-align:center; margin-top:2px; line-height:1.3;
+}
+.ci-step:hover .ci-step-label { color:#21918c; }
+.ci-step.ci-active .ci-dot {
+  background:#21918c !important; border-color:#21918c !important; color:#fff !important;
+}
+.ci-step.ci-active .ci-step-label { color:#21918c !important; font-weight:700; }
+</style>
+<div class="ci-stepper">
+  <div class="ci-step ci-active">
+    <div class="ci-dot">P1</div>
+    <div class="ci-step-label">Urban Standardizer</div>
+    <div class="ci-step-sub">OCR Parsing &amp; Noise Reduction</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P2</div>
+    <div class="ci-step-label">Semantic Baselines</div>
+    <div class="ci-step-sub">TF-IDF &amp; Word2Vec</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P3</div>
+    <div class="ci-step-label">Custom miniBabel</div>
+    <div class="ci-step-sub">Purpose-Built PyTorch Transformer</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P4</div>
+    <div class="ci-step-label">State-of-the-Art Adaptation</div>
+    <div class="ci-step-sub">BETO Fine-Tuning</div>
+  </div>
+  <div class="ci-step">
+    <div class="ci-dot">P5</div>
+    <div class="ci-step-label">Model Audit</div>
+    <div class="ci-step-sub">Hits &amp; Misses</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-# --- 1. UTILS: OBFUSCATION & STYLING ---
-def obfuscate_urban_string(text):
-    """Ofusca números excepto CPs de 5 dígitos (1 -> *, 22 -> **, etc)"""
-    import re
-    if not isinstance(text, str): return text
-    # Busca bloques de números: si tienen longitud 5 se quedan, si no, asteriscos
-    return re.sub(r'\d+', lambda m: m.group(0) if len(m.group(0)) == 5 else '*' * len(m.group(0)), text)
+with tab_dashboard:
 
-def style_conf(val):
-    """Versión minimalista de confianza"""
-    if val > 0.9: return f"{int(val*100)}% ✨"
-    if val > 0.7: return f"{int(val*100)}% ⚡"
-    return f"{int(val*100)}% 🧊"
+    st.divider()
 
-# --- 2. INITIALIZE SESSION STATES ---
-if 'hits_view' not in st.session_state: st.session_state['hits_view'] = 'top'
-if 'misses_view' not in st.session_state: st.session_state['misses_view'] = 'top'
+    # ==========================================
+    # TOURNAMENT HIGHLIGHTS: THE PARITY LEDGER
+    # ==========================================
+    st.subheader("🏆 Tournament Highlights: Model Audit")
 
-if not df_audit.empty:
-    # Definimos anchos quirúrgicos para forzar espacio a la dirección
-    table_config = {
-        "address": st.column_config.TextColumn("Urban String (Obfuscated)", width="large"),
-        "true_name": st.column_config.TextColumn("Truth", width="small"),
-        "babel_pred_name": st.column_config.TextColumn("Predicted", width="small"),
-        "formatted_conf": st.column_config.TextColumn("C.", width="small") # "C." para ahorrar espacio
-    }
-    display_cols = ['address', 'true_name', 'babel_pred_name', 'formatted_conf']
+    # --- 1. UTILS: OBFUSCATION & STYLING ---
+    def obfuscate_urban_string(text):
+        import re
+        if not isinstance(text, str): return text
+        return re.sub(r'\d+', lambda m: m.group(0) if len(m.group(0)) == 5 else '*' * len(m.group(0)), text)
 
-    # --- SECTION: HITS ---
-    col_h_head, col_h_btn = st.columns([5, 1])
-    with col_h_head:
-        h_label = "🟢 Top Confidence Hits" if st.session_state['hits_view'] == 'top' else "🎲 Random Hits"
-        st.markdown(f"##### {h_label}")
-    with col_h_btn:
-        if st.button("Generate Random", key="btn_hits"):
-            st.session_state['hits_view'] = 'random'; st.rerun()
+    def style_conf(val):
+        if val > 0.9: return f"{int(val*100)}% ✨"
+        if val > 0.7: return f"{int(val*100)}% ⚡"
+        return f"{int(val*100)}% 🧊"
 
-    hits_df = df_audit[df_audit['babel_hit'] == 1].copy()
-    hits_display = hits_df.sort_values('babel_conf', ascending=False).head(5) if st.session_state['hits_view'] == 'top' else hits_df.sample(5)
-    
-    # Aplicar transformaciones
-    hits_display['address'] = hits_display['address'].apply(obfuscate_urban_string)
-    hits_display['formatted_conf'] = hits_display['babel_conf'].apply(style_conf)
-    
-    st.dataframe(hits_display[display_cols], column_config=table_config, hide_index=True, use_container_width=True)
+    # --- 2. INITIALIZE SESSION STATES ---
+    if 'hits_view' not in st.session_state: st.session_state['hits_view'] = 'top'
+    if 'misses_view' not in st.session_state: st.session_state['misses_view'] = 'top'
 
+    if not df_audit.empty:
+        table_config = {
+            "address": st.column_config.TextColumn("Urban String (Obfuscated)", width="large"),
+            "true_name": st.column_config.TextColumn("Truth", width="small"),
+            "babel_pred_name": st.column_config.TextColumn("Predicted", width="small"),
+            "formatted_conf": st.column_config.TextColumn("C.", width="small")
+        }
+        display_cols = ['address', 'true_name', 'babel_pred_name', 'formatted_conf']
 
-    # --- SECTION: MISSES ---
-    col_m_head, col_m_btn = st.columns([5, 1])
-    with col_m_head:
-        m_label = "🔴 High-Confidence Misses" if st.session_state['misses_view'] == 'top' else "🎲 Random Misses"
-        st.markdown(f"##### {m_label}")
-    with col_m_btn:
-        if st.button("Generate Random", key="btn_misses"):
-            st.session_state['misses_view'] = 'random'; st.rerun()
+        # --- SECTION: HITS ---
+        col_h_head, col_h_btn = st.columns([5, 1])
+        with col_h_head:
+            h_label = "🟢 Top Confidence Hits" if st.session_state['hits_view'] == 'top' else "🎲 Random Hits"
+            st.markdown(f"##### {h_label}")
+        with col_h_btn:
+            if st.button("Generate Random", key="btn_hits"):
+                st.session_state['hits_view'] = 'random'; st.rerun()
 
-    miss_df = df_audit[df_audit['babel_hit'] == 0].copy()
-    miss_display = miss_df.sort_values('babel_conf', ascending=False).head(5) if st.session_state['misses_view'] == 'top' else miss_df.sample(5)
-    
-    # Aplicar transformaciones
-    miss_display['address'] = miss_display['address'].apply(obfuscate_urban_string)
-    miss_display['formatted_conf'] = miss_display['babel_conf'].apply(style_conf)
-        
-    st.dataframe(miss_display[display_cols], column_config=table_config, hide_index=True, use_container_width=True)
+        hits_df = df_audit[df_audit['babel_hit'] == 1].copy()
+        hits_display = hits_df.sort_values('babel_conf', ascending=False).head(5) if st.session_state['hits_view'] == 'top' else hits_df.sample(5)
+        hits_display['address'] = hits_display['address'].apply(obfuscate_urban_string)
+        hits_display['formatted_conf'] = hits_display['babel_conf'].apply(style_conf)
+        st.dataframe(hits_display[display_cols], column_config=table_config, hide_index=True, use_container_width=True)
 
-    # --- RESET BUTTON ---
-    if st.session_state['hits_view'] == 'random' or st.session_state['misses_view'] == 'random':
-        if st.button("↩️ Reset to Tops"):
-            st.session_state['hits_view'] = 'top'; st.session_state['misses_view'] = 'top'; st.rerun()
+        # --- SECTION: MISSES ---
+        col_m_head, col_m_btn = st.columns([5, 1])
+        with col_m_head:
+            m_label = "🔴 High-Confidence Misses" if st.session_state['misses_view'] == 'top' else "🎲 Random Misses"
+            st.markdown(f"##### {m_label}")
+        with col_m_btn:
+            if st.button("Generate Random", key="btn_misses"):
+                st.session_state['misses_view'] = 'random'; st.rerun()
 
+        miss_df = df_audit[df_audit['babel_hit'] == 0].copy()
+        miss_display = miss_df.sort_values('babel_conf', ascending=False).head(5) if st.session_state['misses_view'] == 'top' else miss_df.sample(5)
+        miss_display['address'] = miss_display['address'].apply(obfuscate_urban_string)
+        miss_display['formatted_conf'] = miss_display['babel_conf'].apply(style_conf)
+        st.dataframe(miss_display[display_cols], column_config=table_config, hide_index=True, use_container_width=True)
 
-st.divider()
+        # --- RESET BUTTON ---
+        if st.session_state['hits_view'] == 'random' or st.session_state['misses_view'] == 'random':
+            if st.button("↩️ Reset to Tops"):
+                st.session_state['hits_view'] = 'top'; st.session_state['misses_view'] = 'top'; st.rerun()
 
+    st.divider()
 
-# ==========================================
-# 5. THE VERTICAL INFERENCE PIPELINE
-# ==========================================
-st.subheader("🚀 The O(1) Diagnostic Pipeline")
-st.markdown("""
-Trigger a real-time benchmarking race. This action selects a random record from the **Holdout Set**, 
-processes it through the **Linguistic Guillotine**, and contrasts **Cloud API** vs. **Local Neural**.
-""")
+    # ==========================================
+    # 5. THE VERTICAL INFERENCE PIPELINE
+    # ==========================================
+    st.subheader("🚀 The O(1) Diagnostic Pipeline")
+    st.markdown("""
+    Trigger a real-time benchmarking race. This action selects a random record from the **Holdout Set**,
+    processes it through the **Linguistic Guillotine**, and contrasts **Cloud API** vs. **Local Neural**.
+    """)
 
-# --- TRIGGER: THE ENGINE START ---
-if st.button("🎲 Generate & Execute Random Tournament Scan", type="primary", use_container_width=True):
-    # 1. SELECCIÓN ALEATORIA
-    random_row = df_audit.sample(1).iloc[0]
-    raw_address = str(random_row['address'])
-    true_name = str(random_row['true_name'])
-    
-    # 2. DEBUG PIPELINE (Step-by-Step for UI)
-    def run_debug_pipeline(text):
-        steps = {}
-        t = text.lower()
-        t = "".join(c for c in unicodedata.normalize('NFKD', t) if not unicodedata.combining(c))
-        steps["1. Unicode Normalization"] = t
-        
-        t = re.sub(r'\s*\S+\s*/.*$', '', t)
-        steps["2. The Hard-Cut Guillotine"] = t
-        
-        t = t.replace('sante fe', 'santa fe').replace('sta fe', 'santa fe').replace('aicm', 'aeropuerto')
-        t = re.sub(r'\b(av|ave|avenida|av\.|av_)\b', 'av', t)
-        t = re.sub(r'\b(cll|calle|cll\.|cl\.)\b', 'calle', t)
-        t = re.sub(r'\b(pº|p de|paseo de|pso|p\.º)\b', 'paseo', t)
-        steps["3. Grammar & Heuristics"] = t
-        
-        t = re.sub(r'\b(\d{5})\b', r'cp\1', t)
-        steps["4. Zip Code Isolation"] = t
-        
-        for _ in range(3):
-            t = re.sub(r'(\b\p{L}+(?:_\p{L}+|_\d+)*)\s+(\d{1,4}|norte|sur|este|oeste|poniente|oriente)\b', r'\1_\2', t)
-        steps["5. Token Soldering (Street + #)"] = t
-        
-        t = re.sub(r'[^a-z0-9áéíóúüñ_\s]', ' ', t)
-        t = re.sub(r'\s+', ' ', t).strip()
-        steps["6. Final Neural Signal"] = t
-        return t, steps
+    # --- TRIGGER: THE ENGINE START ---
+    if st.button("🎲 Generate & Execute Random Tournament Scan", type="primary", use_container_width=True):
+        # 1. SELECCIÓN ALEATORIA
+        random_row = df_audit.sample(1).iloc[0]
+        raw_address = str(random_row['address'])
+        true_name = str(random_row['true_name'])
 
-    clean_text, pipeline_steps = run_debug_pipeline(raw_address)
+        # 2. DEBUG PIPELINE (Step-by-Step for UI)
+        def run_debug_pipeline(text):
+            steps = {}
+            t = text.lower()
+            t = "".join(c for c in unicodedata.normalize('NFKD', t) if not unicodedata.combining(c))
+            steps["1. Unicode Normalization"] = t
+            t = re.sub(r'\s*\S+\s*/.*$', '', t)
+            steps["2. The Hard-Cut Guillotine"] = t
+            t = t.replace('sante fe', 'santa fe').replace('sta fe', 'santa fe').replace('aicm', 'aeropuerto')
+            t = re.sub(r'\b(av|ave|avenida|av\.|av_)\b', 'av', t)
+            t = re.sub(r'\b(cll|calle|cll\.|cl\.)\b', 'calle', t)
+            t = re.sub(r'\b(pº|p de|paseo de|pso|p\.º)\b', 'paseo', t)
+            steps["3. Grammar & Heuristics"] = t
+            t = re.sub(r'\b(\d{5})\b', r'cp\1', t)
+            steps["4. Zip Code Isolation"] = t
+            for _ in range(3):
+                t = re.sub(r'(\b\p{L}+(?:_\p{L}+|_\d+)*)\s+(\d{1,4}|norte|sur|este|oeste|poniente|oriente)\b', r'\1_\2', t)
+            steps["5. Token Soldering (Street + #)"] = t
+            t = re.sub(r'[^a-z0-9áéíóúüñ_\s]', ' ', t)
+            t = re.sub(r'\s+', ' ', t).strip()
+            steps["6. Final Neural Signal"] = t
+            return t, steps
 
-    # 3. EXECUTION: GOOGLE VS BABEL
-    gmap_res, gmap_lat, gmap_coords = get_google_maps_latency(raw_address)
-    
-    start_babel = time.perf_counter()
-    tokens = clean_text.split()
-    indices = [token_to_idx.get(t, token_to_idx.get('<unk>', 1)) for t in tokens]
-    indices = indices[:30] + [token_to_idx.get('<pad>', 0)] * max(0, 30 - len(indices))
-    tensor_in = torch.tensor(indices, dtype=torch.long).unsqueeze(0)
-    
-    with torch.no_grad():
-        logits = minibabel(tensor_in)
-        probs = torch.softmax(logits, dim=1)
-        conf, pred_idx = torch.max(probs, dim=1)
-    
-    babel_lat = (time.perf_counter() - start_babel) * 1000
-    pred_name = idx_to_zone.get(str(pred_idx.item()), 'Unknown')
-    
-    # 4. ROBUST COMPARISON (THE SOVEREIGN EQUALITY)
-    def normalize_for_comparison(text):
-        if not text: return ""
-        t = "".join(c for c in unicodedata.normalize('NFKD', str(text).lower()) if not unicodedata.combining(c))
-        return re.sub(r'[^a-z0-9]', '', t)
-    
-    is_hit = normalize_for_comparison(pred_name) == normalize_for_comparison(true_name)
+        clean_text, pipeline_steps = run_debug_pipeline(raw_address)
 
-    # 5. SAVE TO SESSION STATE
-    st.session_state['active_scan'] = {
-        "raw": raw_address,
-        "obfuscated": obfuscate_urban_string(raw_address),
-        "truth": true_name,
-        "pipeline": pipeline_steps,
-        "gmaps": {"res": gmap_res, "lat": gmap_lat, "coords": gmap_coords},
-        "babel": {"res": pred_name, "lat": babel_lat, "conf": conf.item(), "hit": is_hit}
-    }
-    
-    # 6. LOG TO AUDIT TRAIL
-    st.session_state['address_history'].insert(0, {
-        "address": obfuscate_urban_string(raw_address), 
-        "gmaps": gmap_res, 
-        "babel": f"{pred_name} ({'✅' if is_hit else '❌'})",
-        "timestamp": time.strftime("%H:%M:%S")
-    })
+        # 3. EXECUTION: GOOGLE VS BABEL
+        gmap_res, gmap_lat, gmap_coords = get_google_maps_latency(raw_address)
 
-# --- RENDER ENGINE ROOM (UI) ---
-if 'active_scan' in st.session_state:
-    scan = st.session_state['active_scan']
-    
-    # STEP 1: RAW VS TRUTH (Industrial Box)
-    st.markdown("### 1. Raw Input & Target Verification")
-    st.markdown(f"""
-        <div style="background-color: #f8f9fa; padding: 12px; border-radius: 5px; border-left: 5px solid #2e6b6b; border-right: 1px solid #ddd; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;">
-            <p style="margin-bottom: 2px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Input Address:</p>
-            <p style="margin-bottom: 10px; font-size: 15px; font-weight: bold;">{scan['obfuscated']}</p>
-            <p style="margin-bottom: 2px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Target Ground Truth Class:</p>
-            <p style="margin-bottom: 0px; font-size: 15px; font-weight: bold; color: #2e6b6b;">🎯 {scan['truth']}</p>
+        start_babel = time.perf_counter()
+        tokens = clean_text.split()
+        indices = [token_to_idx.get(t, token_to_idx.get('<unk>', 1)) for t in tokens]
+        indices = indices[:30] + [token_to_idx.get('<pad>', 0)] * max(0, 30 - len(indices))
+        tensor_in = torch.tensor(indices, dtype=torch.long).unsqueeze(0)
+
+        with torch.no_grad():
+            logits = minibabel(tensor_in)
+            probs = torch.softmax(logits, dim=1)
+            conf, pred_idx = torch.max(probs, dim=1)
+
+        babel_lat = (time.perf_counter() - start_babel) * 1000
+        pred_name = idx_to_zone.get(str(pred_idx.item()), 'Unknown')
+
+        # 4. ROBUST COMPARISON
+        def normalize_for_comparison(text):
+            if not text: return ""
+            t = "".join(c for c in unicodedata.normalize('NFKD', str(text).lower()) if not unicodedata.combining(c))
+            return re.sub(r'[^a-z0-9]', '', t)
+
+        is_hit = normalize_for_comparison(pred_name) == normalize_for_comparison(true_name)
+
+        # 5. SAVE TO SESSION STATE
+        st.session_state['active_scan'] = {
+            "raw": raw_address,
+            "obfuscated": obfuscate_urban_string(raw_address),
+            "truth": true_name,
+            "pipeline": pipeline_steps,
+            "gmaps": {"res": gmap_res, "lat": gmap_lat, "coords": gmap_coords},
+            "babel": {"res": pred_name, "lat": babel_lat, "conf": conf.item(), "hit": is_hit}
+        }
+
+        # 6. LOG TO AUDIT TRAIL
+        st.session_state['address_history'].insert(0, {
+            "address": obfuscate_urban_string(raw_address),
+            "gmaps": gmap_res,
+            "babel": f"{pred_name} ({'✅' if is_hit else '❌'})",
+            "timestamp": time.strftime("%H:%M:%S")
+        })
+
+    # --- RENDER ENGINE ROOM (UI) ---
+    if 'active_scan' in st.session_state:
+        scan = st.session_state['active_scan']
+
+        # STEP 1: RAW VS TRUTH
+        st.markdown("### 1. Raw Input & Target Verification")
+        st.markdown(f"""
+            <div style="background-color: #f8f9fa; padding: 12px; border-radius: 5px; border-left: 5px solid #2e6b6b; border-right: 1px solid #ddd; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;">
+                <p style="margin-bottom: 2px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Input Address:</p>
+                <p style="margin-bottom: 10px; font-size: 15px; font-weight: bold;">{scan['obfuscated']}</p>
+                <p style="margin-bottom: 2px; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Target Ground Truth Class:</p>
+                <p style="margin-bottom: 0px; font-size: 15px; font-weight: bold; color: #2e6b6b;">🎯 {scan['truth']}</p>
+            </div>
+        """, unsafe_allow_html=True)
+        st.write("")
+
+        # STEP 2: LINGUISTIC PIPELINE
+        st.markdown("### 2. Hierarchical Linguistic Engineering")
+        for step_name, step_val in scan['pipeline'].items():
+            st.markdown(f"<p style='font-size: 12px; color: #888; margin-bottom: -5px; margin-top: 10px;'>{step_name}</p>", unsafe_allow_html=True)
+            st.code(obfuscate_urban_string(step_val), language="text")
+        st.divider()
+
+        # STEP 3: LATENCY & INFERENCE TOURNAMENT
+        st.markdown("### 3. Latency & Inference Tournament")
+        col_api, col_neu = st.columns(2)
+
+        with col_api:
+            st.markdown("**🌐 Google Maps API (Cloud)**")
+            st.metric("Latency", f"{scan['gmaps']['lat']:.1f} ms")
+            st.caption(f"Result: {scan['gmaps']['res']}")
+
+        with col_neu:
+            st.markdown("**🏎️ miniBabel (Local Neural)**")
+            st.metric(
+                "Latency", f"{scan['babel']['lat']:.1f} ms",
+                delta="✅ HIT" if scan['babel']['hit'] else "❌ MISS",
+                delta_color="normal" if scan['babel']['hit'] else "inverse"
+            )
+            st.success(f"Result: {scan['babel']['res']} ({scan['babel']['conf']:.1%})")
+        st.divider()
+
+        # STEP 4: SPATIAL OVERLAY
+        st.markdown("### 4. Spatial Sovereign Mesh (Neural Footprint)")
+        current_pred = scan['babel']['res'].split(" (")[0]
+        current_truth = scan['truth']
+        google_coords = scan['gmaps'].get('coords')
+        render_sovereign_map(current_pred, current_truth, google_coords, df_h3_master, geojson_data)
+        st.markdown(f"""
+        <div style="font-size: 12px; color: gray;">
+            🟡 <b>Yellow Pin:</b> Geocoded Google Location<br>
+            ⚪ <b>White Glow:</b> Target Ground Truth<br>
+            ✨ <b>Teal Glow:</b> Neural Hit (Correct Prediction)<br>
+            🔴 <b>Red Glow:</b> Neural Miss (Incorrect Prediction)
         </div>
-    """, unsafe_allow_html=True)
-    st.write("")
+        """, unsafe_allow_html=True)
 
-    # STEP 2: LINGUISTIC PIPELINE (Dense Code Blocks)
-    st.markdown("### 2. Hierarchical Linguistic Engineering")
-    for step_name, step_val in scan['pipeline'].items():
-        st.markdown(f"<p style='font-size: 12px; color: #888; margin-bottom: -5px; margin-top: 10px;'>{step_name}</p>", unsafe_allow_html=True)
-        st.code(obfuscate_urban_string(step_val), language="text")
-    st.divider()
+    # ==========================================
+    # 6. LIVE SESSION AUDIT TRAIL
+    # ==========================================
+    st.subheader("📜 Live Session Audit Trail")
+    if st.session_state['address_history']:
+        for entry in st.session_state['address_history']:
+            with st.container(border=True):
+                cols = st.columns([2, 1, 1])
+                cols[0].write(f"**{entry['address']}**")
+                cols[1].write(f"🌐 {entry['gmaps']}")
+                cols[2].write(f"🏎️ {entry['babel']}")
 
-    # STEP 3: LATENCY & INFERENCE TOURNAMENT
-    st.markdown("### 3. Latency & Inference Tournament")
-    col_api, col_neu = st.columns(2)
-    
-    with col_api:
-        st.markdown("**🌐 Google Maps API (Cloud)**")
-        st.metric("Latency", f"{scan['gmaps']['lat']:.1f} ms")
-        st.caption(f"Result: {scan['gmaps']['res']}")
+        if st.button("🗑️ Clear Audit Log"):
+            st.session_state['address_history'] = []
+            st.session_state.pop('active_scan', None)
+            st.rerun()
 
-    with col_neu:
-        st.markdown("**🏎️ miniBabel (Local Neural)**")
-        st.metric(
-            "Latency", f"{scan['babel']['lat']:.1f} ms", 
-            delta="✅ HIT" if scan['babel']['hit'] else "❌ MISS",
-            delta_color="normal" if scan['babel']['hit'] else "inverse"
-        )
-        st.success(f"Result: {scan['babel']['res']} ({scan['babel']['conf']:.1%})")
-    st.divider()
-
-    # STEP 4: SPATIAL OVERLAY
-    st.markdown("### 4. Spatial Sovereign Mesh (Neural Footprint)")
-    
-    # Extraemos info necesaria
-    current_pred = scan['babel']['res'].split(" (")[0]
-    current_truth = scan['truth']
-    google_coords = scan['gmaps'].get('coords') # Asegúrate que esto se guarde en session_state
-    
-    render_sovereign_map(current_pred, current_truth, google_coords, df_h3_master, geojson_data)
-    
-    # Leyenda explicativa
-    st.markdown(f"""
-    <div style="font-size: 12px; color: gray;">
-        🟡 <b>Yellow Pin:</b> Geocoded Google Location<br>
-        ⚪ <b>White Glow:</b> Target Ground Truth<br>
-        ✨ <b>Teal Glow:</b> Neural Hit (Correct Prediction)<br>
-        🔴 <b>Red Glow:</b> Neural Miss (Incorrect Prediction)
-    </div>
-    """, unsafe_allow_html=True)
-
-
-# ==========================================
-# 6. LIVE SESSION AUDIT TRAIL
-# ==========================================
-st.subheader("📜 Live Session Audit Trail")
-if st.session_state['address_history']:
-    for entry in st.session_state['address_history']:
-        with st.container(border=True):
-            cols = st.columns([2, 1, 1])
-            cols[0].write(f"**{entry['address']}**")
-            cols[1].write(f"🌐 {entry['gmaps']}")
-            cols[2].write(f"🏎️ {entry['babel']}")
-            
-    if st.button("🗑️ Clear Audit Log"):
-        st.session_state['address_history'] = []
-        st.session_state.pop('active_scan', None)
-        st.rerun()
-
-
-
-st.info("""generate random--- que cada boton solo altere su tabla, linguistic engineering -- ocupa mucho espacio, mapa -- que se vea cdmx, audit trail --mas plano y compacto otras columnas, ** el resultado de google maps tambien debe ser ofuscado los numeros **""") 
+    st.info("""generate random--- que cada boton solo altere su tabla, linguistic engineering -- ocupa mucho espacio, mapa -- que se vea cdmx, audit trail --mas plano y compacto otras columnas, ** el resultado de google maps tambien debe ser ofuscado los numeros **""") 
