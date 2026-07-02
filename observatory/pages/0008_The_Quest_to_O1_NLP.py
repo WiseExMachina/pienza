@@ -145,7 +145,9 @@ def standardize_mexico_city_address(text):
         return "unknown_address"
     t = text.lower()
     t = "".join(c for c in unicodedata.normalize('NFKD', t) if not unicodedata.combining(c))
+    t = re.sub(r'\bs/n\b', '__SN__', t)
     t = re.sub(r'\s*\S+\s*/.*$', '', t)
+    t = t.replace('__SN__', 's/n')
     t = t.replace('sante fe', 'santa fe').replace('sta fe', 'santa fe').replace('aicm', 'aeropuerto')
     t = re.sub(r'\b(av|ave|avenida|av\.|av_)\b', 'av', t)
     t = re.sub(r'\b(cll|calle|cll\.|cl\.)\b', 'calle', t)
@@ -359,19 +361,10 @@ with tab_science:
     _XS = [20, 55, 90, 125, 160]
     _Y  = 62
 
-    _EX_DEFAULT = {
-        'ocrRaw':     '"CALLE QUERETAR0 168 ROMA NORTE 0670O CUAUHTEM0C"',
-        'ocrCleaned': '"Calle Querétaro 168, Roma Norte, 06700 Cuauhtémoc"',
-        'ocrFixes':   '0 → <b>O</b>&nbsp;&nbsp;·&nbsp;&nbsp;O → <b>0</b>&nbsp;&nbsp;·&nbsp;&nbsp;accents restored (Querétaro, Cuauhtémoc)',
-        'soldered':   'queretaro_168',
-        'tokens':     ['queretaro_168', 'roma_norte', 'cp06700', 'cuauhtemoc', '<pad>'],
-        'headQueries':['queretaro_168', 'roma_norte', 'cuauhtemoc', 'cp06700'],
-        'headWeights':[[0.60,0.15,0.13,0.06,0.06],[0.14,0.58,0.14,0.07,0.07],[0.16,0.16,0.14,0.54,0.00],[0.16,0.16,0.52,0.08,0.08]],
-        'zone': 'condesa_roma_1', 'confidence': '92%',
-        'label': 'Roma Norte · Example 1',
-    }
-    if 'arch_ex' not in st.session_state:
-        st.session_state['arch_ex'] = _EX_DEFAULT
+    if 'arch_history' not in st.session_state:
+        st.session_state['arch_history'] = []
+    if 'arch_future' not in st.session_state:
+        st.session_state['arch_future'] = []
 
     import random as _random
 
@@ -380,7 +373,7 @@ with tab_science:
         df = fetch_data_from_bq(
             "SELECT dropoff_address FROM `645009831643.pienza_mini.raw_offers_ocr` "
             "WHERE dropoff_address IS NOT NULL AND LENGTH(dropoff_address) > 5 "
-            "ORDER BY RAND() LIMIT 10"
+            "ORDER BY RAND() LIMIT 100"
         )
         return df['dropoff_address'].tolist() if not df.empty else []
 
@@ -390,19 +383,27 @@ with tab_science:
 
     def _build_ex_from_address(raw: str) -> dict:
         cleaned = standardize_mexico_city_address(raw)
-        tokens_raw = cleaned.split()[:4]
-        tokens = tokens_raw + ['<pad>'] * (5 - len(tokens_raw))
+        tokens_raw = cleaned.split()[:30]
+        tokens = tokens_raw + ['<pad>'] * (30 - len(tokens_raw))
+        soldered = tokens[0] if tokens else 'unknown'
         return {
             'ocrRaw':     f'"{raw}"',
-            'ocrCleaned': f'"{raw}"',
+            'ocrCleaned': cleaned,
             'ocrFixes':   'standardized via linguistic pipeline',
-            'soldered':   tokens[0] if tokens else 'unknown',
+            'soldered':   soldered,
             'tokens':     tokens,
             'headQueries': tokens[:4],
             'headWeights': [[0.60,0.15,0.13,0.06,0.06],[0.14,0.58,0.14,0.07,0.07],[0.16,0.16,0.14,0.54,0.00],[0.16,0.16,0.52,0.08,0.08]],
             'zone': '—', 'confidence': '—',
             'label': raw[:40] + ('…' if len(raw) > 40 else ''),
         }
+
+    if 'arch_ex' not in st.session_state:
+        addr = _fetch_random_address()
+        if addr:
+            st.session_state['arch_ex'] = _build_ex_from_address(addr)
+        else:
+            st.session_state['arch_ex'] = _build_ex_from_address('Paseo de la Reforma 222, Juárez, 06600 Cuauhtémoc')
 
     _EX = st.session_state['arch_ex']
 
@@ -459,21 +460,20 @@ with tab_science:
                 f'<div style="font-size:14px;color:{_A};line-height:1;margin-top:-1px;">▾</div></div>')
 
     ex = _EX
-    _head_svgs = ''.join(_head_svg(i+1, ex['headQueries'][i], ex['headWeights'][i], ex['tokens']) for i in range(4))
+    _head_svgs = ''.join(_head_svg(i+1, ex['headQueries'][i], ex['headWeights'][i], ex['tokens'][:5]) for i in range(4))
 
     _pre = (
-        _stage(1,'Raw OCR Capture','The Observatory OCR engine reads a dropoff label or handwritten slip — glyph confusables (0/O, l/1) and missing accents are common at this stage.','scanned / photographed source · noisy character stream',[{'label':'OCR Output','value':ex['ocrRaw'],'opacity':1}],recap_html=ex['ocrFixes'],state=ex['ocrRaw']) +
-        _stage(2,'Raw Address String','The corrected, human-readable dropoff address, ready for standardization.','raw text · Spanish / English mixed',[{'label':'Corrected String','value':ex['ocrCleaned'],'opacity':1}],state=ex['ocrCleaned']) +
-        _stage(3,'Linguistic Standardization','Strips slash-suffixes, unifies street prefixes, isolates postal codes, and solders street + number tokens together before anything reaches the network.','5 rule passes · Level 0 preprocessing, no learned weights',[{'label':'Hard-Cut Guillotine','value':'drop trailing "/ colonia" suffix','opacity':1.0},{'label':'Accent & Unicode','value':'NFKD normalize · lowercase','opacity':0.8},{'label':'Prefix Unification','value':'av/avenida → av · cll/calle → calle','opacity':0.62},{'label':'Postal Code Isolation','value':r'\d{5} → cp#####','opacity':0.45},{'label':'Token Soldering','value':f"street + number → {ex['soldered']}",'opacity':0.3}],state=f'calle {ex["soldered"]} roma_norte cp06700 cuauhtemoc') +
-        _stage(4,'Token Embedding','Each token is mapped to a learned 128-dimensional vector.','nn.Embedding · scaled by √d_model before the encoder',[{'label':'Vocabulary','value':'2,502 tokens','opacity':1.0},{'label':'Embedding Dim','value':'128 (d_model)','opacity':0.7},{'label':'Output Shape','value':'[batch, 30] → [batch, 30, 128]','opacity':0.45}],recap_html=f'2,502 tokens (<b style="border-bottom:1px dotted {_A};">2,500 learned</b> + <b style="border-bottom:1px dotted {_A};">2 special</b>: &lt;pad&gt;, &lt;unk&gt;)',state='[queretaro_168] [roma_norte] [cp06700] [cuauhtemoc] [&lt;pad&gt;] → 128-dim vectors × 5') +
-        _stage(5,'Positional Encoding','Sin/cos signals tell the model token order — which street name came before the house number.','sinusoidal · fixed, non-learned · added element-wise',[{'label':'Function','value':'sin/cos(pos / 10000^(2i/d))','opacity':1.0},{'label':'Max Length','value':'30 tokens','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128]','opacity':0.45}],is_last=True,state='embedding[i] + pos_enc[i]  →  [batch, 30, 128]  (order-aware)')
+        _stage(1,'Raw OCR Capture','Ride offers were batch-processed through the Google Gemini Pro Vision API to extract raw dropoff address strings.','Gemini Pro Vision · batch processing',[],state=ex['ocrRaw']) +
+        _stage(2,'Linguistic Standardization','Strips slash-suffixes, unifies street prefixes, isolates postal codes, and solders street + number tokens together before anything reaches the network.','5 rule passes · Level 0 preprocessing, no learned weights',[{'label':'Label Truncation','value':'strips trailing zone pair appended in the address (e.g. "… condesa / roma", "… anzures / polanco")','opacity':1.0},{'label':'Accent & Unicode','value':'NFKD normalize · lowercase','opacity':0.8},{'label':'Prefix Unification','value':'av/avenida → av · cll/calle → calle','opacity':0.62},{'label':'Postal Code Isolation','value':r'\d{5} → cp#####','opacity':0.45},{'label':'Token Soldering','value':'street name + number → reforma_222 · street + cardinal → insurgentes_sur','opacity':0.3}],state=ex['ocrCleaned']) +
+        _stage(3,'Token Embedding','Each token is mapped to a learned 128-dimensional vector.<span class="fn-wrap" style="margin-left:6px;"><span class="fn-mark" style="font-size:0.75rem;color:#21918c;font-weight:900;cursor:default;border-bottom:none;">ⓘ</span><span class="fn-tooltip" style="font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:340px;"><b style="color:#21918c;">Token Embedding Explained</b><br><br><b>Vocabulary (2,500):</b> Not the total dataset — a dictionary of the top 2,500 most frequent unique words. Dropping rare words forces the model to learn actual patterns instead of memorizing noise.<br><br><b>Special Tokens (2):</b><br>&lt;unk&gt;: Tags unseen words in production as "unknown" to prevent crashes.<br>&lt;pad&gt;: Fills shorter addresses with blank spaces so every input meets the strict 30-token length requirement.<br><br><b>Embedding Dim (128):</b> Translates each token into a 128-dimensional mathematical vector, mapping its "semantic DNA" — teaching the network that words like polanco and anzures are geographically related.</span></span>','nn.Embedding · scaled by √d_model before the encoder',[{'label':'Vocabulary','value':'2,502 tokens','opacity':1.0},{'label':'Embedding Dim','value':'128 (d_model)','opacity':0.7},{'label':'Output Shape','value':'[batch, 30] → [batch, 30, 128]','opacity':0.45}],recap_html=f'2,502 tokens (<b style="border-bottom:1px dotted {_A};">2,500 learned</b> + <b style="border-bottom:1px dotted {_A};">2 special</b>: &lt;pad&gt;, &lt;unk&gt;)',state=' '.join(f'[{t}]' for t in ex['tokens']) + ' → 128-dim vectors × 30') +
+        _stage(4,'Positional Encoding','Sin/cos signals tell the model token order, capturing the exact structural sequence of the address.<span class="fn-wrap" style="margin-left:6px;"><span class="fn-mark" style="font-size:0.75rem;color:#21918c;font-weight:900;cursor:default;border-bottom:none;">ⓘ</span><span class="fn-tooltip" style="font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:340px;"><b style="color:#21918c;">Why does the shape stay 128-dim?</b><br><br>Instead of concatenating arrays (which would double the size to 256), the position values are added directly on top of the word embeddings element-by-element (e.g., X&#x2081; + P&#x2081;). This mathematically fuses semantic meaning with structural location into a single vector, keeping the model fast and lightweight.</span></span>','sinusoidal · fixed, non-learned · added element-wise',[{'label':'Function','value':'sin/cos(pos / 10000^(2i/d))','opacity':1.0},{'label':'Max Length','value':'30 tokens','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128]','opacity':0.45}],is_last=True,state='embedding[i] + pos_enc[i]  →  [batch, 30, 128]  (order-aware)')
     )
 
     _post = (
-        _stage(6,'Dual Pooling Fusion','Average pooling captures overall sentence context; max pooling captures the single sharpest signal, like one distinctive street name.','mean-pool ⊕ max-pool, concatenated after the encoder',[{'label':'Mean Pool','value':'128-dim · avg over sequence','opacity':1.0},{'label':'Max Pool','value':'128-dim · strongest signal','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128] → [batch, 256]','opacity':0.45}],recap_html=f'256-dim fused vector (<b style="border-bottom:1px dotted {_A};">128 mean-pool</b> + <b style="border-bottom:1px dotted {_A};">128 max-pool</b>)',state='mean([h₁…h₃₀]) ⊕ max([h₁…h₃₀])  →  [batch, 256]') +
-        _stage(7,'Bottleneck Dropout','Regularizes the fused representation, curbing overfitting on a modest 3.4k-record training set.','p = 0.3, applied once before the classifier',[{'label':'Dropout Rate','value':'p = 0.3','opacity':1.0},{'label':'Applied To','value':'256-dim fused vector','opacity':0.7}],state='[batch, 256]  →  dropout(p=0.3)  →  [batch, 256]') +
-        _stage(8,'Linear Classifier','Projects the fused vector to 63 geographic zone logits; softmax turns them into class probabilities.','Linear(256 → 63) → softmax',[{'label':'Input Dim','value':'256','opacity':1.0},{'label':'Output Classes','value':'63 zones (P_ polygon · C_ cluster ids)','opacity':0.7},{'label':'Activation','value':'softmax','opacity':0.45}],state='[batch, 256]  →  Linear(256→63)  →  softmax  →  [batch, 63]') +
-        _stage(9,'Predicted Zone','The zone with highest probability wins, alongside its confidence score.','argmax + confidence, returned to the Observatory UI',[{'label':'Decision Rule','value':'argmax(probs)','opacity':1.0},{'label':'Result','value':f"{ex['zone']} @ {ex['confidence']}",'opacity':0.7},{'label':'Latency','value':'< 10ms, on-device','opacity':0.45}],is_last=True,state=f"argmax → <b>{ex['zone']}</b>  ·  confidence {ex['confidence']}  ·  &lt; 10ms")
+        _stage(5,'Dual Pooling Fusion','Average pooling captures overall sentence context; max pooling captures the single sharpest signal, like one distinctive street name.','mean-pool ⊕ max-pool, concatenated after the encoder',[{'label':'Mean Pool','value':'128-dim · avg over sequence','opacity':1.0},{'label':'Max Pool','value':'128-dim · strongest signal','opacity':0.7},{'label':'Output Shape','value':'[batch, 30, 128] → [batch, 256]','opacity':0.45}],recap_html=f'256-dim fused vector (<b style="border-bottom:1px dotted {_A};">128 mean-pool</b> + <b style="border-bottom:1px dotted {_A};">128 max-pool</b>)',state='mean([h₁…h₃₀]) ⊕ max([h₁…h₃₀])  →  [batch, 256]') +
+        _stage(6,'Bottleneck Dropout','Regularizes the fused representation, curbing overfitting on a modest 3.4k-record training set.','p = 0.3, applied once before the classifier',[{'label':'Dropout Rate','value':'p = 0.3','opacity':1.0},{'label':'Applied To','value':'256-dim fused vector','opacity':0.7}],state='[batch, 256]  →  dropout(p=0.3)  →  [batch, 256]') +
+        _stage(7,'Linear Classifier','Projects the fused vector to 63 geographic zone logits; softmax turns them into class probabilities.','Linear(256 → 63) → softmax',[{'label':'Input Dim','value':'256','opacity':1.0},{'label':'Output Classes','value':'63 zones (P_ polygon · C_ cluster ids)','opacity':0.7},{'label':'Activation','value':'softmax','opacity':0.45}],state='[batch, 256]  →  Linear(256→63)  →  softmax  →  [batch, 63]') +
+        _stage(8,'Predicted Zone','The zone with highest probability wins, alongside its confidence score.','argmax + confidence, returned to the Observatory UI',[{'label':'Decision Rule','value':'argmax(probs)','opacity':1.0},{'label':'Result','value':f"{ex['zone']} @ {ex['confidence']}",'opacity':0.7},{'label':'Latency','value':'< 10ms, on-device','opacity':0.45}],is_last=True,state=f"argmax → <b>{ex['zone']}</b>  ·  confidence {ex['confidence']}  ·  &lt; 10ms")
     )
 
     _enc = (
@@ -482,8 +482,8 @@ with tab_science:
         f'<div style="position:absolute;top:-14px;right:24px;background:{_A};color:#fff;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;letter-spacing:0.3px;">🔁 Stacked × 2</div>'
         f'<div style="background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:20px 22px;box-shadow:0 4px 6px rgba(0,0,0,0.02);margin-bottom:10px;">'
         f'<div style="font-size:18px;font-weight:800;letter-spacing:0.3px;color:{_A};text-transform:uppercase;margin-bottom:10px;">Multi-Head Self-Attention</div>'
-        f'<div style="font-size:13.5px;color:#555;line-height:1.65;margin-bottom:6px;">Every token attends to every other token in the address — letting "reforma" and "115" bind together regardless of order, while separate heads specialize in street names, colonias, or postal codes.</div>'
-        f'<div style="font-size:13px;color:#333;margin-bottom:14px;">4 heads · d_k = 32 each · scaled dot-product · Add &amp; Norm</div>'
+        f'<div style="font-size:13.5px;color:#555;line-height:1.65;margin-bottom:6px;">Every token attends to every other token in the address simultaneously. Each head learns to specialize so the full context is captured before any classification happens.</div>'
+        f'<div style="font-size:13px;color:#333;margin-bottom:14px;">4 heads · d_k = 32 each · scaled dot-product · Add &amp; Norm<span class="fn-wrap" style="margin-left:6px;"><span class="fn-mark" style="font-size:0.75rem;color:#21918c;font-weight:900;cursor:default;border-bottom:none;">ⓘ</span><span class="fn-tooltip" style="font-family:sans-serif;font-size:0.73rem;line-height:1.6;width:360px;"><b style="color:#21918c;">How the Attention Layer "Thinks"</b><br><br><b>4 Heads (d_k = 32):</b> Instead of looking at the address from a single perspective, the 128-dim bandwidth is split into 4 independent "heads" (32 dimensions each), allowing them to analyze the text simultaneously from multiple angles.<br><br><b>Scaled Dot-Product:</b> It uses a matrix dot-product to multiply the vectors of all words against each other. This operation measures the alignment between tokens, calculating exactly how strongly every single word should "pay attention" to every other word to capture the full context.<br><br><b>Add &amp; Norm:</b> It adds the original word data back into the output (so the model doesn\'t forget the original tokens) and normalizes the numbers to keep the neural network stable and learning efficiently.</span></span></div>'
         f'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">{_head_svgs}</div>'
         f'<div style="font-size:10.5px;color:#999;margin-top:6px;line-height:1.4;">Teal node = the token doing the attending; arc thickness/opacity = attention weight onto each other token.</div>'
         f'</div>'
@@ -525,12 +525,30 @@ div[data-testid="stButton"].arch-pill > button {
 div[data-testid="stButton"].arch-pill > button:hover { background:#1a7a76; }
 </style>""", unsafe_allow_html=True)
 
-    _pill_col1, _pill_col2 = st.columns([3, 1])
+    _, _pill_col_back, _pill_col_fwd, _pill_col2 = st.columns([2, 1, 1, 1])
+    with _pill_col_back:
+        st.markdown('<div class="arch-pill">', unsafe_allow_html=True)
+        _can_back = len(st.session_state['arch_history']) > 0
+        if st.button('← Back', key='arch_back', disabled=not _can_back):
+            st.session_state['arch_future'].append(st.session_state['arch_ex'])
+            st.session_state['arch_ex'] = st.session_state['arch_history'].pop()
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    with _pill_col_fwd:
+        st.markdown('<div class="arch-pill">', unsafe_allow_html=True)
+        _can_fwd = len(st.session_state['arch_future']) > 0
+        if st.button('Forward →', key='arch_fwd', disabled=not _can_fwd):
+            st.session_state['arch_history'].append(st.session_state['arch_ex'])
+            st.session_state['arch_ex'] = st.session_state['arch_future'].pop()
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     with _pill_col2:
         st.markdown('<div class="arch-pill">', unsafe_allow_html=True)
-        if st.button(_EX.get('label', 'Roma Norte · Example 1'), key='arch_random'):
+        if st.button('Generate Random · Limit 100', key='arch_random'):
             addr = _fetch_random_address()
             if addr:
+                st.session_state['arch_history'].append(st.session_state['arch_ex'])
+                st.session_state['arch_future'] = []
                 st.session_state['arch_ex'] = _build_ex_from_address(addr)
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
