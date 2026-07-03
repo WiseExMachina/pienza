@@ -120,7 +120,7 @@ def load_babel_assets():
         d_model=256,
         nhead=8
     )
-    model.load_state_dict(torch.load(babel_path, map_location="cpu"))
+    model.load_state_dict(torch.load(babel_path, map_location="cpu", weights_only=True))
     model.eval()
     
     return model, token_to_idx, idx_to_zone

@@ -97,6 +97,12 @@ MANIFEST = [
         "local": "0509_spartan_proba.parquet",
         "gcs":   "0509_spartan_proba.parquet",
     },
+    # 0008 - The Quest to O1 NLP
+    {
+        "page": "0008",
+        "local": "260422_minibabel_holdout_audit.parquet",
+        "gcs":   "260422_minibabel_holdout_audit.parquet",
+    },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
 
