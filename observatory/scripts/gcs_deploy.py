@@ -100,8 +100,23 @@ MANIFEST = [
     # 0008 - The Quest to O1 NLP
     {
         "page": "0008",
-        "local": "260422_minibabel_holdout_audit.parquet",
-        "gcs":   "260422_minibabel_holdout_audit.parquet",
+        "local": "260702_minibabel_holdout_audit.parquet",
+        "gcs":   "260702_minibabel_holdout_audit.parquet",
+    },
+    {
+        "page": "0008",
+        "local": "260422_pienza_babel_champion.pth",
+        "gcs":   "260422_pienza_babel_champion.pth",
+    },
+    {
+        "page": "0008",
+        "local": "260422_token_to_idx.json",
+        "gcs":   "260422_token_to_idx.json",
+    },
+    {
+        "page": "0008",
+        "local": "260423__idx_to_zone_to_semantics.json",
+        "gcs":   "260423__idx_to_zone_to_semantics.json",
     },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
