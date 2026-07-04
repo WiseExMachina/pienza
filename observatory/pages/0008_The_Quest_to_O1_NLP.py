@@ -332,13 +332,13 @@ with tab_science:
   </div>
   <div class="ci-step">
     <div class="ci-dot">P2</div>
-    <div class="ci-step-label">State-of-the-Art Adaptation</div>
-    <div class="ci-step-sub">BETO Fine-Tuning</div>
+    <div class="ci-step-label">Model Audit</div>
+    <div class="ci-step-sub">Hits &amp; Misses</div>
   </div>
   <div class="ci-step">
     <div class="ci-dot">P3</div>
-    <div class="ci-step-label">Model Audit</div>
-    <div class="ci-step-sub">Hits &amp; Misses</div>
+    <div class="ci-step-label">Latency Test</div>
+    <div class="ci-step-sub">Coming soon</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -376,7 +376,7 @@ setTimeout(function() {
 </script>
 """, height=0)
 
-    _p1_tab, _p2_tab, _p3_tab = st.tabs(["Custom miniBabel", "State-of-the-Art Adaptation", "Model Audit"])
+    _p1_tab, _p2_tab, _p3_tab = st.tabs(["Custom miniBabel", "Model Audit", "Latency Test"])
 
     with _p1_tab:
         st.markdown("""
@@ -742,14 +742,7 @@ setTimeout(function() {
     with _p2_tab:
         st.markdown("""
 <div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-BETO fine-tuning is deprecated in favor of the custom miniBabel Transformer — kept here for reference during the final restructure of this page.
-</div>
-""", unsafe_allow_html=True)
-
-    with _p3_tab:
-        st.markdown("""
-<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">Model Audit</b> surfaces real predictions from the 678-record holdout set used throughout this page, split into confident hits and confident misses — so the model's failure modes are visible, not just its headline accuracy.
+<b style="color:#121212;font-weight:600;font-size:0.95rem;">Model Audit</b> surfaces real predictions from the 678-record holdout set used throughout this page, split into confident hits and confident misses — so the model's failure modes are visible, not just its headline accuracy. Switch between the Hits and Misses tabs in the explorer panel, hover a row to highlight its zone(s) on the map, and use Shuffle to sample a different set of records.
 </div>
 """, unsafe_allow_html=True)
 
@@ -821,6 +814,20 @@ BETO fine-tuning is deprecated in favor of the custom miniBabel Transformer — 
                 f'<script>window.AUDIT_ROWS = {json.dumps(_audit_rows, ensure_ascii=False)};</script>\n<script>\n// ── DATA ──',
             )
             components.html(_zone_map_html, height=650)
+            st.markdown(
+                '<div style="font-size:0.7rem;color:#94a3b8;margin-top:-12px;">'
+                'Ground-truth labels have ~95% parity with their raw address — a small fraction '
+                'may be mislabeled and don\'t reflect the true zone, which can slightly understate '
+                'real accuracy.</div>',
+                unsafe_allow_html=True,
+            )
+
+    with _p3_tab:
+        st.markdown("""
+<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
+<b style="color:#121212;font-weight:600;font-size:0.95rem;">Latency Test</b> — coming soon.
+</div>
+""", unsafe_allow_html=True)
 
 with tab_dashboard:
 
