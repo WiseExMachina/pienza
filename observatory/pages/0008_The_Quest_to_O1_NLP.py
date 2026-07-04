@@ -66,6 +66,12 @@ def build_sidebar():
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
+        if st.button("🧹 Flush Cache", key="flush_cache_btn", use_container_width=True, help="Clears st.cache_data/st.cache_resource and forces model, parquet, and zone map assets to reload, without restarting the process."):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            for _k in ['minibabel', 'token_to_idx', 'idx_to_zone', 'geojson_data', 'df_h3_master', 'df_holdout', 'df_audit']:
+                st.session_state.pop(_k, None)
+            st.rerun()
 
 build_sidebar()
 
@@ -597,7 +603,7 @@ with _p1_tab:
 with _p2_tab:
     st.markdown("""
 <div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">Model Audit</b> surfaces real predictions from the 678-record holdout set used throughout this page, split into confident hits and confident misses — so the model's failure modes are visible, not just its headline accuracy. Switch between the Hits and Misses tabs in the explorer panel, hover a row to highlight its zone(s) on the map, and use Shuffle to sample a different set of records.
+<b style="color:#121212;font-weight:600;font-size:0.95rem;">Model Audit</b> surfaces real predictions from the 678-record holdout set used throughout this page, split into hits and misses — so the model's failure modes are visible. Hover a row to highlight its zone(s) on the map, and use Shuffle to sample a different set of records.
 </div>
 """, unsafe_allow_html=True)
 
