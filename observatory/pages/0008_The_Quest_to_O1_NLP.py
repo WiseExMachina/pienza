@@ -796,74 +796,31 @@ BETO fine-tuning is deprecated in favor of the custom miniBabel Transformer — 
 </div>
 """, unsafe_allow_html=True)
 
-            def _p3_pretty_zone(z):
-                return str(z).replace('_', ' ').title()
-
-            def _p3_obf_addr(v):
-                _mask_digits = lambda m: re.sub(r'\d', '#', m.group(0))
-                return re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', _mask_digits, str(v), count=1)
-
-            if 'audit_hits_mode' not in st.session_state:
-                st.session_state['audit_hits_mode'] = 'top'
-            if 'audit_miss_mode' not in st.session_state:
-                st.session_state['audit_miss_mode'] = 'top'
-
-            _hits_pool = _audit_df[_audit_df['correct'] == True]
-            _miss_pool = _audit_df[_audit_df['correct'] == False]
-
-            _p3_col_h, _p3_col_m = st.columns(2)
-            with _p3_col_h:
-                _h_label = "🟢 Top Confidence Hits" if st.session_state['audit_hits_mode'] == 'top' else "🎲 Random Hits"
-                _hb1, _hb2 = st.columns([3, 2])
-                with _hb1:
-                    st.markdown(f"**{_h_label}**")
-                with _hb2:
-                    if st.button("Shuffle", key="audit_hits_shuffle", use_container_width=True):
-                        st.session_state['audit_hits_mode'] = 'random'
-                        st.rerun()
-                _n_h = min(5, len(_hits_pool))
-                _hits_show = _hits_pool.sort_values('confidence', ascending=False).head(_n_h) if st.session_state['audit_hits_mode'] == 'top' else _hits_pool.sample(_n_h)
-                with st.container(height=340):
-                    for _, _row in _hits_show.iterrows():
-                        st.markdown(f"""
-<div style="background:#fff;border:1px solid #eaeaea;border-left:3px solid #21918c;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:8px;min-height:64px;display:flex;flex-direction:column;justify-content:center;">
-<div style="font-size:0.78rem;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{_p3_obf_addr(_row['raw_address'])}</div>
-<div style="font-size:0.72rem;color:#888;margin-top:4px;">&rarr; <b style="color:#21918c;">{_p3_pretty_zone(_row['predicted_zone'])}</b> &middot; {_row['confidence']*100:.0f}%</div>
-</div>
-""", unsafe_allow_html=True)
-
-            with _p3_col_m:
-                _m_label = "⚫ High-Confidence Misses" if st.session_state['audit_miss_mode'] == 'top' else "🎲 Random Misses"
-                _mb1, _mb2 = st.columns([3, 2])
-                with _mb1:
-                    st.markdown(f"**{_m_label}**")
-                with _mb2:
-                    if st.button("Shuffle", key="audit_miss_shuffle", use_container_width=True):
-                        st.session_state['audit_miss_mode'] = 'random'
-                        st.rerun()
-                _n_m = min(5, len(_miss_pool))
-                _miss_show = _miss_pool.sort_values('confidence', ascending=False).head(_n_m) if st.session_state['audit_miss_mode'] == 'top' else _miss_pool.sample(_n_m)
-                with st.container(height=340):
-                    for _, _row in _miss_show.iterrows():
-                        st.markdown(f"""
-<div style="background:#fff;border:1px solid #eaeaea;border-left:3px solid #64748b;border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:8px;min-height:64px;display:flex;flex-direction:column;justify-content:center;">
-<div style="font-size:0.78rem;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{_p3_obf_addr(_row['raw_address'])}</div>
-<div style="font-size:0.72rem;color:#888;margin-top:4px;">predicted <b style="color:#475569;">{_p3_pretty_zone(_row['predicted_zone'])}</b> &middot; {_row['confidence']*100:.0f}% &nbsp;|&nbsp; truth: <b style="color:#121212;">{_p3_pretty_zone(_row['real_zone_name'])}</b></div>
-</div>
-""", unsafe_allow_html=True)
-
-            if st.session_state['audit_hits_mode'] == 'random' or st.session_state['audit_miss_mode'] == 'random':
-                if st.button("↩️ Reset to Top Confidence"):
-                    st.session_state['audit_hits_mode'] = 'top'
-                    st.session_state['audit_miss_mode'] = 'top'
-                    st.rerun()
-
-            # ── ZONE MAP (placeholder — layout reserved, design coming from Claude Design) ──
-            # The hits/misses columns above are fixed-height (st.container(height=340)) so this
-            # section always sits at the same vertical position regardless of how many
-            # hit/miss cards render. Hover on a hit/miss card is meant to highlight the
-            # corresponding zone polygon on this map once it's built.
+            # ── ZONE MAP — hits/misses hover-highlight (from Claude Design handoff) ──
+            # Replaces the old static two-column hit/miss card lists (deprecated) --
+            # the map's own panel already provides the same Hits/Misses explorer,
+            # with hover-highlight on top.
             st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
+
+            @st.cache_data(show_spinner=False)
+            def _load_zone_map_template():
+                _assets_dir = Path(__file__).resolve().parent.parent / "assets"
+                with open(_assets_dir / "zone_map.html", "r", encoding="utf-8") as f:
+                    _html = f.read()
+                with open(_assets_dir / "zone-paths.js", "r", encoding="utf-8") as f:
+                    _js = f.read()
+                return _html.replace(
+                    '<script src="./zone-paths.js"></script>',
+                    f'<script>{_js}</script>',
+                )
+
+            _zone_map_template = _load_zone_map_template()
+            _audit_rows = _audit_df[['raw_address', 'real_zone_name', 'predicted_zone', 'confidence', 'correct']].to_dict(orient='records')
+            _zone_map_html = _zone_map_template.replace(
+                '<script>\n// ── DATA ──',
+                f'<script>window.AUDIT_ROWS = {json.dumps(_audit_rows, ensure_ascii=False)};</script>\n<script>\n// ── DATA ──',
+            )
+            components.html(_zone_map_html, height=650)
 
 with tab_dashboard:
 
