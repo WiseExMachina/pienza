@@ -182,7 +182,7 @@ import pydeck as pdk
 
 @st.cache_data
 def load_pydeck_assets():
-    df_arcos = pd.read_csv('/workspaces/pienza/observatory/assets/0608_260513_tensor_arcos_w_eph_maestro.csv')
+    df_arcos = pd.read_csv('/workspaces/pienza/data/dumped_files/0608_260513_tensor_arcos_w_eph_maestro.csv')
     gdf_poly = gpd.read_file('/workspaces/pienza/observatory/assets/poly.geojson')
     return df_arcos, gdf_poly
 
