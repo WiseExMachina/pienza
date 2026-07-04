@@ -1,7 +1,7 @@
 import streamlit as st
 from components.styles import GLOBAL_CSS
 
-st.set_page_config(layout="wide", page_title="Generative Moonshots | Pienza")
+st.set_page_config(layout="wide", page_title="Infinite Manifold: cGAN Keras | Pienza")
 
 def build_sidebar():
     with st.sidebar:
@@ -16,7 +16,7 @@ def build_sidebar():
         st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
         st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
         st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer")
-        st.page_link("pages/0009_Generative_Moonshots.py", label="Generative Moonshots")
+        st.page_link("pages/0009_Infinite_Manifold:_cGAN_Keras.py", label="Infinite Manifold: cGAN Keras")
         st.markdown("---")
         st.markdown("**Archive**")
         st.page_link("pages/9001_cGAN_Engine.py", label="cGAN Keras Engine")
@@ -40,7 +40,7 @@ build_sidebar()
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
-st.markdown("# Generative Moonshots")
+st.markdown("# Infinite Manifold: cGAN Keras")
 st.markdown("""
 <div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
 The generative frontier of Project Pienza — synthesizing behavioral manifolds, topological network metrics,
