@@ -199,7 +199,7 @@ st.markdown("""
   <div class="ci-step">
 <div class="ci-dot">P3</div>
 <div class="ci-step-label">Latency Test</div>
-<div class="ci-step-sub">Coming soon</div>
+<div class="ci-step-sub">Race: Cloud vs. Edge</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -243,7 +243,7 @@ with _p1_tab:
     st.markdown("""
 <!-- P1: INTRO -->
 <div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">miniBabel</b> is a custom, lightweight Transformer that learns the linguistic DNA of raw addresses to map them directly into operational zones. By eliminating third-party APIs, it is optimized for fast, reliable, on-device (edge) execution.
+<b style="color:#121212;font-weight:600;font-size:0.95rem;">miniBabel</b> is a custom, lightweight Transformer that learns the linguistic DNA of raw addresses to map them directly into operational zones. By eliminating third-party APIs, it is optimized for fast, reliable local inference with zero network round-trip.
 </div>
 
 <!-- P1: STAT GRID -->
@@ -266,7 +266,7 @@ with _p1_tab:
   <div style="background:#fff; border:1px solid #eaeaea; border-radius:12px; padding:18px 20px; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
 <div style="font-size:0.72rem; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Inference Latency</div>
 <div style="font-size:1.6rem; font-weight:800; color:#121212; letter-spacing:-0.5px;">&lt; 10ms</div>
-<div style="font-size:0.72rem; color:#888; margin-top:4px;">on-device, CPU</div>
+<div style="font-size:0.72rem; color:#888; margin-top:4px;">local inference, CPU</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -440,7 +440,7 @@ with _p1_tab:
 
     _post = (
         _stage(5,'Pooling & Regularization','Dual pooling compresses the encoder output into a fixed vector; dropout then regularizes it before classification.','mean-pool ⊕ max-pool → dropout(p=0.3)',[{'label':'Mean Pool','value':'256-dim · avg over sequence','opacity':1.0},{'label':'Max Pool','value':'256-dim · strongest signal','opacity':0.7},{'label':'Dropout','value':'p = 0.3 · curbs overfitting on 3.4k training set','opacity':0.45}],recap_html=f'512-dim fused vector (<b style="border-bottom:1px dotted {_A};">256 mean-pool</b> + <b style="border-bottom:1px dotted {_A};">256 max-pool</b>)',state='mean([h₁…h₃₀]) ⊕ max([h₁…h₃₀])  →  dropout(p=0.3)  →  [batch, 512]') +
-        _stage(6,'Classification & Output','The fused vector is projected to 59 zone logits; softmax converts them to probabilities and argmax picks the winner.','Linear(512→59) → softmax → argmax',[{'label':'Output Classes','value':'59 zones (P_ polygon · C_ cluster ids)','opacity':1.0},{'label':'Decision Rule','value':'argmax(softmax(logits))','opacity':0.7},{'label':'Latency','value':'< 10ms, on-device','opacity':0.45}],is_last=True,state=f"[batch, 512]  →  Linear(512→59)  →  argmax<br><b style='font-size:0.82rem;color:#21918c;'>{ex['zone']}</b>  \xb7  {ex['confidence']}")
+        _stage(6,'Classification & Output','The fused vector is projected to 59 zone logits; softmax converts them to probabilities and argmax picks the winner.','Linear(512→59) → softmax → argmax',[{'label':'Output Classes','value':'59 zones (P_ polygon · C_ cluster ids)','opacity':1.0},{'label':'Decision Rule','value':'argmax(softmax(logits))','opacity':0.7},{'label':'Latency','value':'< 10ms, local inference','opacity':0.45}],is_last=True,state=f"[batch, 512]  →  Linear(512→59)  →  argmax<br><b style='font-size:0.82rem;color:#21918c;'>{ex['zone']}</b>  \xb7  {ex['confidence']}")
     )
 
     _enc = (
@@ -656,10 +656,9 @@ with _p2_tab:
         # with hover-highlight on top.
         st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
 
-        @st.cache_data(show_spinner=False)
         def _load_zone_map_template():
             _assets_dir = Path(__file__).resolve().parent.parent / "assets"
-            with open(_assets_dir / "zone_map.html", "r", encoding="utf-8") as f:
+            with open(_assets_dir / "model_audit_map.html", "r", encoding="utf-8") as f:
                 _html = f.read()
             with open(_assets_dir / "zone-paths.js", "r", encoding="utf-8") as f:
                 _js = f.read()
@@ -685,8 +684,8 @@ with _p2_tab:
 
 with _p3_tab:
     st.markdown("""
-<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">Latency Test</b> races the Google Maps Geocoding API against miniBabel's on-device inference on a single, freshly sampled holdout address — same model, same ground truth, live.
+<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 4px;">
+<b style="color:#121212;font-weight:600;font-size:0.95rem;">Latency Test</b> races the Google Maps Geocoding API against miniBabel's local inference on a single, freshly sampled holdout address — same model, same ground truth, live.<span class="fn-wrap" style="margin-left:6px;"><span class="fn-mark">&#9432;</span><span class="fn-tooltip" style="width:320px;">Here, 'local' means miniBabel runs directly within this app's process, bypassing the network delays of external APIs. It demonstrates how this lightweight model is ready for edge deployment, where speed depends entirely on compute rather than network round-trips.</span></span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -702,14 +701,11 @@ with _p3_tab:
     def _p3lat_obf_addr(v):
         return re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', lambda m: re.sub(r'\d', '#', m.group(0)), str(v), count=1)
 
-    if st.button("🎲 Generate & Execute Random Trial", type="primary", use_container_width=True, key="p3_latency_trigger"):
-        _pool = _load_latency_pool()
-        _row = _pool.sample(1).iloc[0]
-        _raw_address = str(_row['raw_address'])
-        _true_name = str(_row['real_zone_name'])
+    def _run_latency_trial(_raw_address, _true_name):
         _clean_text = standardize_mexico_city_address(_raw_address)
 
         _gmap_res, _gmap_lat, _gmap_coords = get_google_maps_latency(_raw_address)
+        _gmap_coords = [_gmap_coords['lat'], _gmap_coords['lng']] if _gmap_coords else None
 
         _mb = st.session_state.get('minibabel')
         _t2i = st.session_state.get('token_to_idx')
@@ -727,33 +723,57 @@ with _p3_tab:
         _pred_name = _i2z.get(str(_pred_idx.item()), 'unknown')
         _is_hit = _pred_name == _true_name
 
-        st.session_state['p3_latency_scan'] = {
+        return {
             "obfuscated": _p3lat_obf_addr(_raw_address),
             "truth": _true_name,
             "gmaps": {"res": _gmap_res, "lat": _gmap_lat, "coords": _gmap_coords},
             "babel": {"res": _pred_name, "lat": _babel_lat, "conf": _conf.item(), "hit": _is_hit},
         }
 
-    if 'p3_latency_scan' in st.session_state:
-        _scan = st.session_state['p3_latency_scan']
-        st.markdown(f"""
-<div style="font-size:0.8rem;color:#888;margin:16px 0 6px;">Input address: <span style="color:#334155;">{_scan['obfuscated']}</span> &middot; target zone: <b style="color:#21918c;">{_scan['truth']}</b></div>
-""", unsafe_allow_html=True)
+    def _run_latency_batch(n=15):
+        _pool = _load_latency_pool()
+        _rows = _pool.sample(min(n, len(_pool)))
+        st.session_state['p3_latency_batch'] = [
+            _run_latency_trial(str(_r['raw_address']), str(_r['real_zone_name']))
+            for _, _r in _rows.iterrows()
+        ]
 
-        _col_api, _col_neu = st.columns(2)
-        with _col_api:
-            st.markdown("**🌐 Google Maps API (Cloud)**")
-            st.metric("Latency", f"{_scan['gmaps']['lat']:.1f} ms")
-            st.caption(f"Result: {_scan['gmaps']['res']}")
-        with _col_neu:
-            st.markdown("**🏎️ miniBabel (Local Neural)**")
-            st.metric(
-                "Latency", f"{_scan['babel']['lat']:.1f} ms",
-                delta="✅ HIT" if _scan['babel']['hit'] else "❌ MISS",
-                delta_color="normal" if _scan['babel']['hit'] else "inverse",
+    with st.container(key="p3_batch_hidden"):
+        if st.button("p3-new-batch-hidden-trigger", key="p3_latency_batch_trigger"):
+            _run_latency_batch()
+    st.markdown('<style>.st-key-p3_batch_hidden{display:none;}</style>', unsafe_allow_html=True)
+
+    if 'p3_latency_batch' not in st.session_state:
+        _run_latency_batch()
+
+    if 'p3_latency_batch' in st.session_state:
+        _batch = st.session_state['p3_latency_batch']
+
+        # ── ZONE MAP (from Claude Design handoff, same pattern as P2 Model Audit) ──
+        # Ships a whole batch of live trials up front so "Sample another" cycles
+        # client-side with zero Streamlit rerun -- otherwise every click recreates
+        # the components.html iframe from scratch (map re-init, tile reload, no
+        # seamless transition).
+        def _load_latency_map_template():
+            _assets_dir = Path(__file__).resolve().parent.parent / "assets"
+            with open(_assets_dir / "latency_test_map.html", "r", encoding="utf-8") as f:
+                _html = f.read()
+            with open(_assets_dir / "zone-paths.js", "r", encoding="utf-8") as f:
+                _js = f.read()
+            return _html.replace(
+                '<script src="./zone-paths.js"></script>',
+                f'<script>{_js}</script>',
             )
-            st.success(f"Result: {_scan['babel']['res']} ({_scan['babel']['conf']:.1%})")
 
-        # ── ZONE MAP (placeholder — design coming from Claude Design, same as P2 Model Audit) ──
-        st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
+        _latency_map_template = _load_latency_map_template()
+        _latency_map_html = _latency_map_template.replace(
+            '<script>\n// ── DATA ──',
+            f'<script>window.LATENCY_SAMPLES = {json.dumps(_batch, ensure_ascii=False)};</script>\n<script>\n// ── DATA ──',
+        )
+        with st.container(key="p3_map_wrap"):
+            components.html(_latency_map_html, height=650)
+        st.markdown(
+            '<style>.st-key-p3_map_wrap div[data-testid="stIFrame"]{margin-top:-60px;}</style>',
+            unsafe_allow_html=True,
+        )
 
