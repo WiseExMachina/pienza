@@ -47,15 +47,27 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
-/* Force white background on native bordered containers (st.container(border=True)) to match
-   the hand-styled bento cards elsewhere on this page (e.g. the cGAN circuit box). */
-div[data-testid="stVerticalBlockBorderWrapper"] {
+/* Page-scoped background experiment — override only for this page, not the whole app. */
+[data-testid="stApp"],
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"] { background: #f5f6f7 !important; }
+[data-testid="stHeader"] { background: #f5f6f7 !important; background-color: #f5f6f7 !important; }
+/* Force white background on the Scaffolding section's native bordered containers, to match
+   the hand-styled bento cards elsewhere on this page (e.g. the cGAN circuit box).
+   NOTE: Streamlit 1.58 has no stable data-testid for the bordered-container wrapper div (the
+   border/padding come from an Emotion styled-component with a runtime-hashed class name) — the
+   only stable hook is the "st-key-<key>" class Streamlit adds when st.container(key=...) is used. */
+.st-key-scaffold_undirected,
+.st-key-scaffold_directed,
+.st-key-scaffold_markov {
     background: #fff !important;
     border-radius: 4px !important;
     box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     max-width: 1100px !important;
     margin: 0 auto !important;
-    padding: 4px 24px !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-bottom: 32px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -66,9 +78,9 @@ st.markdown("""
 <h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 44px; color:#121212; white-space:nowrap;">GENERATIVE MOONSHOTS</h1>
 
 <!-- SECTION LABEL -->
-<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+<div style="margin-bottom:10px;">
 <div style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:3px; color:#94a3b8; text-transform:uppercase; white-space:nowrap;">// cGAN &middot; Keras Engine</div>
-<div style="flex:1; height:1px; background:rgba(0,0,0,0.12);"></div>
+<div style="height:2px; margin-top:8px; background:linear-gradient(to right, #21918c, rgba(33,145,140,0));"></div>
 </div>
 <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#21918c; letter-spacing:0.3px; margin-bottom:18px;">5,123 real rides in &rarr; 1,010,001 synthetic rides out</div>
 
@@ -199,10 +211,12 @@ Point the trained Generator at any hour &middot; zone &middot; product combinati
 
 <!-- ============ CLOUD MIGRATION ============ -->
 <div style="margin-top:64px;">
-<div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:3px; color:#94a3b8; text-transform:uppercase; white-space:nowrap;">// Cloud Migration: ELT</div>
-<div style="flex:1; height:1px; background:rgba(0,0,0,0.12);"></div>
+<div style="margin-bottom:24px;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:3px; color:#94a3b8; text-transform:uppercase; white-space:nowrap;">// Cloud Migration</div>
+<div style="height:2px; margin-top:8px; background:linear-gradient(to right, #21918c, rgba(33,145,140,0));"></div>
 </div>
+
+<div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">elt</div>
 
 <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
 <div style="border:1px solid #eaeaea; border-radius:2px; padding:16px 18px; background:#fff; width:230px; min-height:112px;">
@@ -224,7 +238,7 @@ Point the trained Generator at any hour &middot; zone &middot; product combinati
 
 <!-- ============ STACK (sub-piece of Cloud Migration) ============ -->
 <div style="margin-top:36px;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">storage & compute</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">storage & compute</div>
 
 <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:2px; overflow:hidden; max-width:560px; margin:0 auto;">
 <div style="background:#fff; padding:20px 18px; text-align:center;">
@@ -240,25 +254,25 @@ Point the trained Generator at any hour &middot; zone &middot; product combinati
 
 <!-- ============ DEFINITIVE ARCHITECTURE (sub-piece of Cloud Migration) ============ -->
 <div style="margin-top:36px;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">single source of truth</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">single source of truth</div>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:2px; overflow:hidden; max-width:820px; margin:0 auto;">
 <div style="background:#fff; padding:24px 22px;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.95rem; font-weight:800; color:#121212; margin-bottom:10px;">pienza_mini</div>
-<div style="font-size:0.82rem; color:#666; line-height:1.65;">A high-fidelity cloud replica of the ground-truth database (<b style="color:#121212;">pienza.db</b>), preserving the identical relational logic.</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:800; color:#121212; margin-bottom:8px;">pienza_mini</div>
+<div style="font-size:0.78rem; color:#666; line-height:1.5;">A high-fidelity cloud replica of the ground-truth database (<b style="color:#121212;">pienza.db</b>), preserving the identical relational logic.</div>
 </div>
 <div style="background:#fff; padding:24px 22px; border-left:2px solid #21918c;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.95rem; font-weight:800; color:#21918c; margin-bottom:10px;">pienza_big</div>
-<div style="font-size:0.82rem; color:#666; line-height:1.65;">A 1,010,001-row synthetic dataset generated via cGANs, persisted as Parquet artifacts and queried through BigQuery's external table interface.</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:800; color:#21918c; margin-bottom:8px;">pienza_big</div>
+<div style="font-size:0.78rem; color:#666; line-height:1.5;">A 1,010,001-row synthetic dataset generated via cGANs, persisted as Parquet artifacts and queried through BigQuery's external table interface.</div>
 </div>
 </div>
 </div>
 
 <!-- ============ WHERE PIENZA GOES NEXT ============ -->
 <div style="margin-top:56px;">
-<div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+<div style="margin-bottom:24px;">
 <div style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:3px; color:#94a3b8; text-transform:uppercase; white-space:nowrap;">// Scaffolding Toward Pienza 2.0</div>
-<div style="flex:1; height:1px; background:rgba(0,0,0,0.12);"></div>
+<div style="height:2px; margin-top:8px; background:linear-gradient(to right, #21918c, rgba(33,145,140,0));"></div>
 </div>
 </div>
 </div>
@@ -267,23 +281,23 @@ Point the trained Generator at any hour &middot; zone &middot; product combinati
 # --- BLOCK 1: Topological / Undirected Graph — wrapped in a native bordered container so the
 # card boundary can span across the raw-HTML stats strip AND the three.js iframe component
 # (a plain <div> can't span two separate st.markdown/components.html calls). ---
-_block1 = st.container(border=True)
+st.markdown("<div style='font-family:JetBrains Mono,monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;'>zone connectivity / undirected graph &middot; 72 nodes (14-node preview)</div>", unsafe_allow_html=True)
+
+_block1 = st.container(border=True, key="scaffold_undirected")
 with _block1:
     st.markdown("""
-<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">topological / undirected graph &middot; 72 nodes</div>
-
 <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:4px; overflow:hidden; max-width:520px; margin:0 auto 24px;">
-<div style="background:#fff; padding:16px 12px; text-align:center;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:1.05rem; font-weight:800; color:#121212;">4.11</div>
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">sigma</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.92rem; font-weight:800; color:#121212;">4.11</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.51rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.45px;">sigma</div>
 </div>
-<div style="background:#fff; padding:16px 12px; text-align:center;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:1.05rem; font-weight:800; color:#121212;">-0.27</div>
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">omega</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.92rem; font-weight:800; color:#121212;">-0.27</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.51rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.45px;">omega</div>
 </div>
-<div style="background:#fff; padding:16px 12px; text-align:center;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:1.05rem; font-weight:800; color:#121212;">20.5%</div>
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">reforma_palmas share</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.92rem; font-weight:800; color:#121212;">20.5%</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.51rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.45px;">reforma_palmas share</div>
 </div>
 </div>
 """, unsafe_allow_html=True)
@@ -416,45 +430,72 @@ with _block1:
       labelRenderer.render(scene, camera);
     }}
     animate();
+
+    // The iframe/layout may not have settled to its final width when the script first ran
+    // (Streamlit resizes the component after mount), so recompute the canvas size once the
+    // container has its real width, and again on any window resize.
+    function resizeToContainer() {{
+      const w = container.clientWidth;
+      if (!w) return;
+      camera.aspect = w / 520;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, 520);
+      labelRenderer.setSize(w, 520);
+    }}
+    window.addEventListener('resize', resizeToContainer);
+    setTimeout(resizeToContainer, 50);
+    setTimeout(resizeToContainer, 300);
     </script>
     """
     components.html(_threejs_html, height=530)
-    st.markdown("<div style='text-align:center; font-size:0.78rem; color:#666; max-width:640px; margin:8px auto 0;'>Node positions above use a force-directed layout (<code>nx.spring_layout</code>, seed=42) for readability &mdash; not real geography. Super-Node <b style=\"color:#121212;\">nodo_reforma_palmas</b> controls 20.5% of all optimal routing paths and its 7 direct connections are shown above &mdash; the network's highest degree (&sigma;=4.11, &omega;=-0.27 confirm it's small-world efficient).</div>", unsafe_allow_html=True)
-    st.markdown("<div style='text-align:center; font-size:0.78rem; color:#666; max-width:640px; margin:8px auto 0;'><b style=\"color:#121212;\">Ego-network preview</b> &mdash; 2-hop neighborhood of <b style=\"color:#121212;\">nodo_reforma_palmas</b> (14 of 72 nodes in the undirected topological graph). Fading stub lines mark the boundary nodes where the real graph continues beyond this preview.</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:left; font-size:0.68rem; color:#94a3b8; border-top:1px solid #eaeaea; margin-top:16px; padding-top:8px;'>Super-Node reforma_palmas controls 20.5% of all optimal routing paths; the network's highest degree (&sigma;=4.11, &omega;=-0.27 confirm it's small-world efficient).</div>", unsafe_allow_html=True)
 
 # --- BLOCK 2: Mobility Tensor / Directed Graph ---
-_block2 = st.container(border=True)
+st.markdown("<div style='font-family:JetBrains Mono,monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin:32px 0 14px;'>capital flow tensor / directed graph &middot; synthetic manifold</div>", unsafe_allow_html=True)
+
+_block2 = st.container(border=True, key="scaffold_directed")
 with _block2:
     st.markdown("""
-<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">mobility tensor / directed graph &middot; synthetic manifold</div>
-
-<div style="display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; max-width:820px; margin:0 auto 20px;">
-<div style="border:1px solid #eaeaea; border-radius:2px; padding:14px 18px; font-size:0.78rem; color:#333; font-weight:600; background:#fff; text-align:center;">
-Mobility Tensor
-<div style="font-family:'JetBrains Mono',monospace; font-style:normal; font-size:0.68rem; color:#888; font-weight:400; margin-top:4px;">&#119977; &isin; &#8477;<span style="font-size:0.58rem; vertical-align:super;">Z&times;Z&times;H&times;D&times;P&times;C</span></div>
-</div>
-<span style="color:#888; font-family:'JetBrains Mono',monospace; font-size:16px;">&rarr;</span>
-<div style="border:1px solid #eaeaea; border-radius:2px; padding:14px 18px; font-size:0.78rem; color:#333; font-weight:600; background:#fff;">72&times;72 Route Matrix</div>
+<div style="text-align:center; max-width:820px; margin:0 auto 20px;">
+<div style="font-family:'JetBrains Mono',monospace; font-style:normal; font-size:1.3rem; color:#121212; font-weight:700;">&#119977; &isin; &#8477;<span style="font-size:0.85rem; vertical-align:super;">Z&times;Z&times;H&times;D&times;P&times;C</span><span class="fn-wrap" style="margin-left:8px; vertical-align:super;"><span class="fn-mark" style="font-size:0.55rem; color:#94a3b8;">&#9432;</span><span class="fn-tooltip" style="font-family:'Inter',sans-serif; font-weight:400; text-align:left; font-size:0.72rem; line-height:1.5;"><b>Z&times;Z</b> &mdash; Spatial Axis: 72&times;72 origin-destination matrix of directed internal mission vectors.<br><b>H&times;D</b> &mdash; Temporal Axis: 18 hourly blocks over a 7-day cycle.<br><b>P</b> &mdash; Economic Axis: 3 product tiers (Economy, Mid-Tier, Premium).<br><b>C</b> &mdash; Dual-Channel Signal: Volume (frequency) + Value (weighted avg. EPH).</span></span></div>
 </div>
 
+<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; color:#888; text-transform:uppercase; text-align:center; margin-bottom:8px;">Physical vs Economic &middot; the topology flip</div>
 <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:4px; overflow:hidden; max-width:400px; margin:0 auto;">
-<div style="background:#fff; padding:16px 12px; text-align:center;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:1.05rem; font-weight:800; color:#121212;">461,003</div>
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">IPF rows (45.6%)</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.92rem; font-weight:800; color:#121212;">1.05</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.51rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.45px;">sigma &middot; random mesh</div>
 </div>
-<div style="background:#fff; padding:16px 12px; text-align:center;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:1.05rem; font-weight:800; color:#121212;">2</div>
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">IPF diameter</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.92rem; font-weight:800; color:#121212;">21</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.51rem; color:#888; margin-top:4px; text-transform:uppercase; letter-spacing:0.45px;">k-connectivity</div>
 </div>
 </div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; color:#888; text-transform:uppercase; text-align:center; margin:24px 0 8px;">Edge Centrality Audit &middot; top trajectory per metric</div>
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:4px; overflow:hidden; max-width:700px; margin:0 auto;">
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.63rem; font-weight:800; color:#121212; line-height:1.4;">Tamarindos &rarr; Santa Fe CC</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.49rem; color:#888; margin-top:6px; text-transform:uppercase; letter-spacing:0.35px;">Flow Dominance (BC: 1.000)</div>
+</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.63rem; font-weight:800; color:#121212; line-height:1.4;">Roma Condesa 2 &rarr; Bosque 1</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.49rem; color:#888; margin-top:6px; text-transform:uppercase; letter-spacing:0.35px;">Liquidity (Closeness: 1.000)</div>
+</div>
+<div style="background:#fff; padding:12px 9px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.63rem; font-weight:800; color:#121212; line-height:1.4;">Lomas FC Cuernavaca &rarr; Reforma Regina</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.49rem; color:#888; margin-top:6px; text-transform:uppercase; letter-spacing:0.35px;">Prestige (PageRank: 1.000)</div>
+</div>
+</div>
+
+<div style="text-align:left; font-size:0.68rem; color:#94a3b8; border-top:1px solid #eaeaea; margin-top:16px; padding-top:8px;">The same graph, modeled as a closed system, is small-world for zones (&sigma;=4.11) but collapses into a near-complete mesh for capital flow &mdash; geography stops mattering once value, not distance, defines proximity.</div>
 """, unsafe_allow_html=True)
 
 # --- BLOCK 3: Bridge to Markov ---
-_block3 = st.container(border=True)
+st.markdown("<div style='font-family:JetBrains Mono,monospace; font-size:10px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin:32px 0 14px;'>bridge to markov</div>", unsafe_allow_html=True)
+
+_block3 = st.container(border=True, key="scaffold_markov")
 with _block3:
     st.markdown("""
-<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1.5px; color:#aab1bc; text-transform:uppercase; text-align:center; margin-bottom:14px;">bridge to markov</div>
-
 <div style="text-align:center; margin-bottom:16px;">
 <div style="display:inline-block; background:#21918c; border-radius:2px; padding:14px 18px; font-size:0.78rem; color:#fff; font-weight:600;">Markov Decision Process</div>
 </div>
@@ -462,14 +503,9 @@ with _block3:
 <div style="font-size:0.85rem; color:#64748b; line-height:1.7; max-width:640px; margin:0 auto; text-align:center;">
 The weighted 72&times;72 matrix feeds the <b style="color:#121212;">Bellman Equation</b>, computing a State-Value function <b style="color:#121212;">V(s)</b> across the network. The result is a <b style="color:#121212;">Q-Matrix</b> policy &mdash; the mathematical scaffolding that lets an autonomous fleet plan multi-step mission sequences by long-term value, not just the fare sitting in front of it.
 </div>
-""", unsafe_allow_html=True)
 
-# --- RESULT ---
-st.markdown("""
-<div style="max-width:1100px; margin:0 auto; font-family:'Inter',sans-serif; color:#121212;">
-<div style="border:1px solid #eaeaea; border-radius:2px; padding:18px 20px; max-width:640px; margin:32px auto 0; background:#fff;">
+<div style="border:1px solid #eaeaea; border-radius:2px; padding:18px 20px; max-width:640px; margin:24px auto 0; background:#fafafa;">
 <div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Looking ahead &rarr; Pienza 2.0: The Knowledge in the Age of AI</div>
 <div style="font-size:0.8rem; color:#666; line-height:1.6;">This steady-state scaffolding becomes the training ground for high-frequency Reinforcement Learning and Markov Chain Monte Carlo &mdash; moving from a static map of the city's economics to real-time, dynamic optimization.</div>
-</div>
 </div>
 """, unsafe_allow_html=True)
