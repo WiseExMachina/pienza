@@ -4,7 +4,7 @@ import streamlit.components.v1 as components
 import networkx as nx
 from components.styles import GLOBAL_CSS
 
-st.set_page_config(layout="wide", page_title="Infinite Manifold: cGAN Keras | Pienza")
+st.set_page_config(layout="wide", page_title="Generative Moonshots: pienza_big | Pienza")
 
 def build_sidebar():
     with st.sidebar:
@@ -19,7 +19,7 @@ def build_sidebar():
         st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
         st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
         st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer")
-        st.page_link("pages/0009_Infinite_Manifold:_cGAN_Keras.py", label="Infinite Manifold: cGAN Keras")
+        st.page_link("pages/0009_Generative_Moonshots:_pienza_big.py", label="Generative Moonshots: pienza_big")
         st.markdown("---")
         st.markdown("**Archive**")
         st.page_link("pages/9001_cGAN_Engine.py", label="cGAN Keras Engine")

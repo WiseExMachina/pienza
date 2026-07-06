@@ -36,6 +36,10 @@ h4 {
 
 .block-container { padding-top: 2rem; }
 
+/* Streamlit's theme.backgroundColor doesn't reliably paint the fixed top header bar,
+   leaving a mismatched white strip — force it to match the canonical app background. */
+[data-testid="stHeader"] { background: #F5F6F7 !important; background-color: #F5F6F7 !important; }
+
 .kpi-box {
     background-color: #f8f9fa;
     padding: 20px;
