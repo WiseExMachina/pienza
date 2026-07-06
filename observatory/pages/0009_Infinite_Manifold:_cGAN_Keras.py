@@ -47,11 +47,6 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
-/* Page-scoped background experiment — override only for this page, not the whole app. */
-[data-testid="stApp"],
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"] { background: #f5f6f7 !important; }
-[data-testid="stHeader"] { background: #f5f6f7 !important; background-color: #f5f6f7 !important; }
 /* Force white background on the Scaffolding section's native bordered containers, to match
    the hand-styled bento cards elsewhere on this page (e.g. the cGAN circuit box).
    NOTE: Streamlit 1.58 has no stable data-testid for the bordered-container wrapper div (the
@@ -75,7 +70,9 @@ st.markdown("""
 st.markdown("""
 <div style="max-width:1100px; margin:0 auto; padding:16px 0 60px; font-family:'Inter',sans-serif; color:#121212;">
 
-<h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 44px; color:#121212; white-space:nowrap;">GENERATIVE MOONSHOTS</h1>
+<h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 20px; color:#121212; white-space:nowrap;">GENERATIVE MOONSHOTS</h1>
+
+<div style="font-size:0.95rem; color:#64748b; line-height:1.7; max-width:820px; margin-bottom:36px;">This final phase constitutes an experimental transition to scale the project from cloning the human agent to simulating the entire environment. Achieved via a cGAN engine and network graph analysis, this synthesis establishes the scaffolding necessary for autonomous execution using Markov Decision Processes and Reinforcement Learning.</div>
 
 <!-- SECTION LABEL -->
 <div style="margin-bottom:10px;">
@@ -455,11 +452,22 @@ st.markdown("<div style='font-family:JetBrains Mono,monospace; font-size:10px; f
 
 _block2 = st.container(border=True, key="scaffold_directed")
 with _block2:
-    st.markdown("""
-<div style="text-align:center; max-width:820px; margin:0 auto 20px;">
-<div style="font-family:'JetBrains Mono',monospace; font-style:normal; font-size:1.3rem; color:#121212; font-weight:700;">&#119977; &isin; &#8477;<span style="font-size:0.85rem; vertical-align:super;">Z&times;Z&times;H&times;D&times;P&times;C</span><span class="fn-wrap" style="margin-left:8px; vertical-align:super;"><span class="fn-mark" style="font-size:0.55rem; color:#94a3b8;">&#9432;</span><span class="fn-tooltip" style="font-family:'Inter',sans-serif; font-weight:400; text-align:left; font-size:0.72rem; line-height:1.5;"><b>Z&times;Z</b> &mdash; Spatial Axis: 72&times;72 origin-destination matrix of directed internal mission vectors.<br><b>H&times;D</b> &mdash; Temporal Axis: 18 hourly blocks over a 7-day cycle.<br><b>P</b> &mdash; Economic Axis: 3 product tiers (Economy, Mid-Tier, Premium).<br><b>C</b> &mdash; Dual-Channel Signal: Volume (frequency) + Value (weighted avg. EPH).</span></span></div>
-</div>
+    st.markdown(
+        "<div style='position:relative; height:30px;'>"
+        "<div style='position:absolute; left:50%; top:30px; transform:translateX(90px); z-index:50;'>"
+        "<span class='fn-wrap'>"
+        "<span class='fn-mark'>&#9432;</span>"
+        "<span class='fn-tooltip' style='width:300px;font-size:0.72rem;line-height:1.5;text-align:left;'>"
+        "<b>Z&times;Z</b> &mdash; Spatial Axis: 72&times;72 origin-destination matrix of directed internal mission vectors.<br>"
+        "<b>H&times;D</b> &mdash; Temporal Axis: 18 hourly blocks over a 7-day cycle.<br>"
+        "<b>P</b> &mdash; Economic Axis: 3 product tiers (Economy, Mid-Tier, Premium).<br>"
+        "<b>C</b> &mdash; Dual-Channel Signal: Volume (frequency) + Value (weighted avg. EPH)."
+        "</span></span></div></div>",
+        unsafe_allow_html=True,
+    )
+    st.latex(r"\mathcal{N} \in \mathbb{R}^{Z \times Z \times H \times D \times P \times C}")
 
+    st.markdown("""
 <div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; color:#888; text-transform:uppercase; text-align:center; margin-bottom:8px;">Physical vs Economic &middot; the topology flip</div>
 <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:4px; overflow:hidden; max-width:400px; margin:0 auto;">
 <div style="background:#fff; padding:12px 9px; text-align:center;">
@@ -495,17 +503,50 @@ st.markdown("<div style='font-family:JetBrains Mono,monospace; font-size:10px; f
 
 _block3 = st.container(border=True, key="scaffold_markov")
 with _block3:
+    st.markdown(
+        "<div style='position:relative; height:30px;'>"
+        "<div style='position:absolute; left:50%; top:30px; transform:translateX(150px); z-index:50;'>"
+        "<span class='fn-wrap'>"
+        "<span class='fn-mark'>&#9432;</span>"
+        "<span class='fn-tooltip' style='width:300px;font-size:0.72rem;line-height:1.5;text-align:left;'>"
+        "<b>P(s,j)</b> &mdash; Transition Matrix: empirical probability a mission from zone s ends in zone j.<br>"
+        "<b>R(s,j)</b> &mdash; Reward Matrix: weighted-average EPH for that s&rarr;j trip.<br>"
+        "<b>&gamma;</b> &mdash; discount factor (0.85 in this run): how much future value is worth today.<br>"
+        "<b>V(j)</b> &mdash; the destination zone's own long-term value, computed recursively."
+        "</span></span></div></div>",
+        unsafe_allow_html=True,
+    )
+    st.latex(r"V(s) = \sum_{j} P(s,j) \left[ R(s,j) + \gamma V(j) \right]")
+    st.markdown("<div style='font-family:JetBrains Mono,monospace; font-size:0.62rem; color:#888; text-align:center; margin-top:2px;'>Bellman Equation &middot; solved via Value Iteration</div>", unsafe_allow_html=True)
+
     st.markdown("""
-<div style="text-align:center; margin-bottom:16px;">
-<div style="display:inline-block; background:#21918c; border-radius:2px; padding:14px 18px; font-size:0.78rem; color:#fff; font-weight:600;">Markov Decision Process</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; color:#888; text-transform:uppercase; text-align:center; margin:24px 0 8px;">Top 3 by Total State-Value &middot; V(s) future-value premium (at &gamma;=0.85, &theta;=1e-7)</div>
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#eaeaea; border:1px solid #eaeaea; border-radius:4px; overflow:hidden; max-width:700px; margin:0 auto;">
+<div style="background:#fff; padding:14px 10px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:800; color:#121212;">Polanco Parque Lincoln</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px;">R(s) &#8776; $2,750</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; font-weight:800; color:#21918c; margin-top:4px;">+59%</div>
+</div>
+<div style="background:#fff; padding:14px 10px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:800; color:#121212;">Tamarindos</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px;">R(s) &#8776; $1,120</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; font-weight:800; color:#21918c; margin-top:4px;">+149%</div>
+</div>
+<div style="background:#fff; padding:14px 10px; text-align:center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:800; color:#121212;">Lomas Virreyes</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#888; margin-top:4px;">R(s) &#8776; $290</div>
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; font-weight:800; color:#21918c; margin-top:4px;">+608%</div>
+</div>
 </div>
 
-<div style="font-size:0.85rem; color:#64748b; line-height:1.7; max-width:640px; margin:0 auto; text-align:center;">
-The weighted 72&times;72 matrix feeds the <b style="color:#121212;">Bellman Equation</b>, computing a State-Value function <b style="color:#121212;">V(s)</b> across the network. The result is a <b style="color:#121212;">Q-Matrix</b> policy &mdash; the mathematical scaffolding that lets an autonomous fleet plan multi-step mission sequences by long-term value, not just the fare sitting in front of it.
-</div>
+<div style="text-align:left; font-size:0.68rem; color:#94a3b8; border-top:1px solid #eaeaea; margin-top:16px; padding-top:8px;">Lomas Virreyes pays the least upfront but ranks highest in future premium, while Polanco Parque Lincoln already earns most of its value at t=0. Bellman surfaces this positional upside, that a fare-only view would miss.</div>
+""", unsafe_allow_html=True)
 
-<div style="border:1px solid #eaeaea; border-radius:2px; padding:18px 20px; max-width:640px; margin:24px auto 0; background:#fafafa;">
+st.markdown("""
+<div style="max-width:1100px; margin:24px auto 0; font-family:'Inter',sans-serif;">
+<div style="border-left:4px solid #21918c; background:rgba(33,145,140,0.07); border-radius:0 8px 8px 0; padding:18px 20px;">
 <div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Looking ahead &rarr; Pienza 2.0: The Knowledge in the Age of AI</div>
-<div style="font-size:0.8rem; color:#666; line-height:1.6;">This steady-state scaffolding becomes the training ground for high-frequency Reinforcement Learning and Markov Chain Monte Carlo &mdash; moving from a static map of the city's economics to real-time, dynamic optimization.</div>
+<div style="font-size:0.8rem; color:#666; line-height:1.6;">This scaffolding becomes the training ground for full-scale Reinforcement Learning &mdash; moving from a static map of the city's economics to real-time, dynamic optimization.</div>
+</div>
 </div>
 """, unsafe_allow_html=True)
