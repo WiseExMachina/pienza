@@ -3,9 +3,9 @@ import streamlit.components.v1 as components
 import pandas as pd
 import time
 import io
-from google.cloud import storage
 from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
+from utils.gcp_client import _storage_client, fetch_bytes_from_gcs
 from config import FAVICON
 
 
@@ -42,10 +42,9 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            with open("assets/Pienza_Papers.pdf", "rb") as f:
-                pdf_data = f.read()
+            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
             st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
-        except FileNotFoundError:
+        except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
@@ -157,8 +156,6 @@ st.markdown(quantum_scroll_js, unsafe_allow_html=True)
 # ==============================================================================
 # 2. LÓGICA DE DATOS Y ESTADO
 # ==============================================================================
-KEY_PATH = "/workspaces/pienza/observatory/.streamlit/service-account.json"
-
 if 'arena_idx' not in st.session_state: st.session_state.arena_idx = 0
 if 'arena_running' not in st.session_state: st.session_state.arena_running = False
 if 'bank' not in st.session_state: st.session_state.bank = {"human": 0.0, "full": 0.0, "light": 0.0}
@@ -171,7 +168,7 @@ if 'towers_l2' not in st.session_state:
 
 @st.cache_data 
 def load_tournament_ledger(): 
-    client = storage.Client.from_service_account_json(KEY_PATH) 
+    client = _storage_client()
     bucket = client.bucket("pienza-streamlit") 
     blob = bucket.blob("260420_resultados_torneo_iter2v3.parquet") 
     buffer = io.BytesIO() 
@@ -439,7 +436,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
         # --- STEP 3: LASSO (dynamic from notebook output) ---
         import json as _json, os as _os
         try:
-            _lasso = _json.loads(storage.Client().bucket("pienza-streamlit").blob("lasso_liga_a.json").download_as_text())
+            _lasso = _json.loads(_storage_client().bucket("pienza-streamlit").blob("lasso_liga_a.json").download_as_text())
             _survivors = _lasso['survivors']   # {feature: coef}
             _casualties = _lasso['casualties'] # [feature, ...]
             _sorted = sorted(_survivors.items(), key=lambda x: x[1], reverse=True)
@@ -835,7 +832,7 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
     with sci3:
         import json as _json
 
-        _client = storage.Client()
+        _client = _storage_client()
         _bucket = _client.bucket("pienza-streamlit")
         _mono = _json.loads(_bucket.blob("0508_monolith_metrics.json").download_as_text())
         _casc = _json.loads(_bucket.blob("0509_cascade_metrics.json").download_as_text())
@@ -1399,7 +1396,7 @@ setTimeout(function() {
         @st.cache_data(show_spinner=False)
         def _load_sim_parquet_v3():
             from io import BytesIO
-            _b = storage.Client().bucket("pienza-streamlit")
+            _b = _storage_client().bucket("pienza-streamlit")
             return pd.read_parquet(BytesIO(_b.blob("0509_sim_proba.parquet").download_as_bytes()))
 
         _df_sim = _load_sim_parquet_v3()
@@ -1751,12 +1748,12 @@ setTimeout(function() {
         @st.cache_data(show_spinner=False)
         def _load_shap_l1():
             from io import BytesIO
-            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("0509_shap_l1_nuanced.parquet").download_as_bytes()))
+            return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("0509_shap_l1_nuanced.parquet").download_as_bytes()))
 
         @st.cache_data(show_spinner=False)
         def _load_shap_l2():
             from io import BytesIO
-            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("0509_shap_l2.parquet").download_as_bytes()))
+            return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("0509_shap_l2.parquet").download_as_bytes()))
 
         _df_shap_l1 = _load_shap_l1()
         _df_shap_l2 = _load_shap_l2()
@@ -2025,17 +2022,17 @@ setTimeout(function() {
         @st.cache_data(show_spinner=False)
         def _load_lc_l1():
             from io import BytesIO
-            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L1.parquet").download_as_bytes()))
+            return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L1.parquet").download_as_bytes()))
 
         @st.cache_data(show_spinner=False)
         def _load_lc_l2():
             from io import BytesIO
-            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L2.parquet").download_as_bytes()))
+            return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L2.parquet").download_as_bytes()))
 
         @st.cache_data(show_spinner=False)
         def _load_lc_spartan():
             from io import BytesIO
-            return pd.read_parquet(BytesIO(storage.Client().bucket("pienza-streamlit").blob("260505_0509_spartan_learning_curve.parquet").download_as_bytes()))
+            return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("260505_0509_spartan_learning_curve.parquet").download_as_bytes()))
 
         _df_lc_l1      = _load_lc_l1()
         _df_lc_l2      = _load_lc_l2()
@@ -2246,15 +2243,15 @@ with tab2:
     # ── Load parquets ─────────────────────────────────────────────────────────
     @st.cache_data(show_spinner=False)
     def _po_load_full():
-        return pd.read_parquet(_BytesIO2(storage.Client().bucket("pienza-streamlit").blob("0509_sim_proba.parquet").download_as_bytes()))
+        return pd.read_parquet(_BytesIO2(_storage_client().bucket("pienza-streamlit").blob("0509_sim_proba.parquet").download_as_bytes()))
 
     @st.cache_data(show_spinner=False)
     def _po_load_light():
-        return pd.read_parquet(_BytesIO2(storage.Client().bucket("pienza-streamlit").blob("0509_spartan_proba.parquet").download_as_bytes()))
+        return pd.read_parquet(_BytesIO2(_storage_client().bucket("pienza-streamlit").blob("0509_spartan_proba.parquet").download_as_bytes()))
 
     @st.cache_data(show_spinner=False)
     def _po_load_mono():
-        return pd.read_parquet(_BytesIO2(storage.Client().bucket("pienza-streamlit").blob("0508_monolith_proba.parquet").download_as_bytes()))
+        return pd.read_parquet(_BytesIO2(_storage_client().bucket("pienza-streamlit").blob("0508_monolith_proba.parquet").download_as_bytes()))
 
     _po_full  = _po_load_full()
     _po_light = _po_load_light()

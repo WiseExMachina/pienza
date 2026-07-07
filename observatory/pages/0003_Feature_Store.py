@@ -7,6 +7,7 @@ import pandas as pd
 import re
 from utils.bq_client import fetch_data_from_bq
 from config import FAVICON
+from utils.gcp_client import fetch_bytes_from_gcs
 
 st.set_page_config(layout="wide", page_title="Feature Store | Pienza", page_icon=FAVICON)
 
@@ -38,15 +39,14 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            with open("assets/Pienza_Papers.pdf", "rb") as f:
-                pdf_data = f.read()
+            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
             st.download_button(
                 "📄 Download 91-Page Report (PDF)",
                 data=pdf_data,
                 file_name="Project_Pienza_Full_Report.pdf",
                 mime="application/pdf"
             )
-        except FileNotFoundError:
+        except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")

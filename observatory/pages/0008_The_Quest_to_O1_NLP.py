@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 
 # IMPORTAMOS SOLO LO NECESARIO (Babel)
-from utils.gcp_client import load_babel_assets
+from utils.gcp_client import load_babel_assets, fetch_bytes_from_gcs
 from utils.bq_client import fetch_data_from_bq
 from components.styles import GLOBAL_CSS
 from config import FAVICON
@@ -60,10 +60,9 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            with open("assets/Pienza_Papers.pdf", "rb") as f:
-                pdf_data = f.read()
+            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
             st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
-        except FileNotFoundError:
+        except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
@@ -287,11 +286,9 @@ with _p1_tab:
 
     @st.cache_data(show_spinner=False)
     def _load_holdout_pool():
-        from google.cloud import storage as _gcs
         from io import BytesIO as _BytesIO
-        _client = _gcs.Client()
-        _blob = _client.bucket("pienza-streamlit").blob("260702_minibabel_holdout_audit.parquet")
-        df = pd.read_parquet(_BytesIO(_blob.download_as_bytes()))
+        _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
+        df = pd.read_parquet(_BytesIO(_bytes))
         if df.empty:
             return pd.DataFrame()
         return df[['raw_address', 'real_zone_name']].dropna().reset_index(drop=True)
@@ -610,11 +607,9 @@ with _p2_tab:
 
     @st.cache_data(show_spinner=False)
     def _load_audit_full():
-        from google.cloud import storage as _p3_gcs
         from io import BytesIO as _P3BytesIO
-        _client = _p3_gcs.Client()
-        _blob = _client.bucket("pienza-streamlit").blob("260702_minibabel_holdout_audit.parquet")
-        return pd.read_parquet(_P3BytesIO(_blob.download_as_bytes()))
+        _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
+        return pd.read_parquet(_P3BytesIO(_bytes))
 
     _audit_df = _load_audit_full()
 
@@ -658,11 +653,8 @@ with _p2_tab:
         st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
 
         def _load_zone_map_template():
-            _assets_dir = Path(__file__).resolve().parent.parent / "assets"
-            with open(_assets_dir / "model_audit_map.html", "r", encoding="utf-8") as f:
-                _html = f.read()
-            with open(_assets_dir / "zone-paths.js", "r", encoding="utf-8") as f:
-                _js = f.read()
+            _html = fetch_bytes_from_gcs("pienza-streamlit", "model_audit_map.html").decode("utf-8")
+            _js = fetch_bytes_from_gcs("pienza-streamlit", "zone-paths.js").decode("utf-8")
             return _html.replace(
                 '<script src="./zone-paths.js"></script>',
                 f'<script>{_js}</script>',
@@ -692,11 +684,9 @@ with _p3_tab:
 
     @st.cache_data(show_spinner=False)
     def _load_latency_pool():
-        from google.cloud import storage as _p3lat_gcs
         from io import BytesIO as _P3LatBytesIO
-        _client = _p3lat_gcs.Client()
-        _blob = _client.bucket("pienza-streamlit").blob("260702_minibabel_holdout_audit.parquet")
-        _df = pd.read_parquet(_P3LatBytesIO(_blob.download_as_bytes()))
+        _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
+        _df = pd.read_parquet(_P3LatBytesIO(_bytes))
         return _df[['raw_address', 'real_zone_name']].dropna().reset_index(drop=True)
 
     def _p3lat_obf_addr(v):
@@ -756,11 +746,8 @@ with _p3_tab:
         # the components.html iframe from scratch (map re-init, tile reload, no
         # seamless transition).
         def _load_latency_map_template():
-            _assets_dir = Path(__file__).resolve().parent.parent / "assets"
-            with open(_assets_dir / "latency_test_map.html", "r", encoding="utf-8") as f:
-                _html = f.read()
-            with open(_assets_dir / "zone-paths.js", "r", encoding="utf-8") as f:
-                _js = f.read()
+            _html = fetch_bytes_from_gcs("pienza-streamlit", "latency_test_map.html").decode("utf-8")
+            _js = fetch_bytes_from_gcs("pienza-streamlit", "zone-paths.js").decode("utf-8")
             return _html.replace(
                 '<script src="./zone-paths.js"></script>',
                 f'<script>{_js}</script>',

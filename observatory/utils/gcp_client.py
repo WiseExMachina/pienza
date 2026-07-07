@@ -1,5 +1,6 @@
 import pandas as pd
 from google.cloud import storage
+from google.oauth2 import service_account
 from io import BytesIO
 import os
 import streamlit as st
@@ -12,7 +13,28 @@ import joblib
 
 # --- 1. HYGIENE & CONFIG ---
 # Eliminamos transformers porque ya no cargamos a la bestia de 110M de parámetros
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ".streamlit/service-account.json"
+# Credenciales: en Codespaces se usa el JSON local; en Streamlit Community Cloud
+# (donde .streamlit/service-account.json no existe, ver assets/CLAUDE.md) se usa
+# st.secrets["gcp_service_account"] en su lugar.
+if "gcp_service_account" not in st.secrets:
+    os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", ".streamlit/service-account.json")
+
+
+def _get_gcp_credentials():
+    """Returns explicit credentials from st.secrets when deployed, else None
+    (None makes the google-cloud clients fall back to GOOGLE_APPLICATION_CREDENTIALS)."""
+    if "gcp_service_account" in st.secrets:
+        return service_account.Credentials.from_service_account_info(
+            dict(st.secrets["gcp_service_account"])
+        )
+    return None
+
+
+def _storage_client() -> storage.Client:
+    creds = _get_gcp_credentials()
+    if creds is not None:
+        return storage.Client(credentials=creds, project=creds.project_id)
+    return storage.Client()
 
 # ==========================================
 # GCP CONNECTIVITY UTILS
@@ -24,7 +46,7 @@ def fetch_parquet_from_gcp(bucket_name: str, file_name: str) -> pd.DataFrame:
     Fetches a Parquet file securely from a GCP bucket.
     """
     try:
-        client = storage.Client()
+        client = _storage_client()
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(file_name)
         parquet_bytes = blob.download_as_bytes()
@@ -33,12 +55,24 @@ def fetch_parquet_from_gcp(bucket_name: str, file_name: str) -> pd.DataFrame:
         st.error(f"Failed to connect to GCP Vault: {e}")
         return pd.DataFrame()
 
+@st.cache_data(show_spinner=False)
+def fetch_bytes_from_gcs(bucket_name: str, blob_name: str) -> bytes:
+    """
+    Fetches raw bytes for a static asset (PDF, HTML, JS, PNG, geojson) from GCS.
+    Use for anything previously read via a local open() on observatory/assets/.
+    """
+    client = _storage_client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    return blob.download_as_bytes()
+
+
 def download_from_gcs(bucket_name: str, source_blob_name: str, destination_file_name: str) -> None:
     """
     Downloads physical ML artifacts (.pth, .json) to local /tmp storage.
     """
     try:
-        client = storage.Client()
+        client = _storage_client()
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(source_blob_name)
         blob.download_to_filename(destination_file_name)

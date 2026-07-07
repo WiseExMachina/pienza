@@ -9,6 +9,7 @@ import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
 from config import FAVICON
+from utils.gcp_client import fetch_bytes_from_gcs
 
 st.set_page_config(layout="wide", page_title="Acquisition Pipelines | Pienza", page_icon=FAVICON)
 
@@ -40,15 +41,14 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            with open("assets/Pienza_Papers.pdf", "rb") as f:
-                pdf_data = f.read()
+            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
             st.download_button(
                 "📄 Download 91-Page Report (PDF)",
                 data=pdf_data,
                 file_name="Project_Pienza_Full_Report.pdf",
                 mime="application/pdf"
             )
-        except FileNotFoundError:
+        except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
@@ -416,7 +416,7 @@ with subtab3:
     # ── Offer data ─────────────────────────────────────────────
     OFFERS = [
         {
-            "img": "assets/offer_cards/01_IMG_1691.PNG",
+            "img": "01_IMG_1691.PNG",
             "confidence": 0.97, "warnings": [],
             "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████, Col. ████████, CDMX",\n  "dropoff_address":  "████████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.97,\n  "parse_warnings":   []\n}',
             "cleaned": [
@@ -429,7 +429,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/02_IMG_3428.PNG",
+            "img": "02_IMG_3428.PNG",
             "confidence": 0.94, "warnings": ["surge_detected"],
             "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "Comfort",\n  "pickup_address":   "████████████████, Col. ████, CDMX",\n  "dropoff_address":  "████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  true,\n  "ocr_confidence":   0.94,\n  "parse_warnings":   ["surge_detected"]\n}',
             "cleaned": [
@@ -442,7 +442,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/03_IMG_4346.PNG",
+            "img": "03_IMG_4346.PNG",
             "confidence": 0.99, "warnings": [],
             "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "█████████, Col. ████████, CDMX",\n  "dropoff_address":  "███████████████, Col. ████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.99,\n  "parse_warnings":   []\n}',
             "cleaned": [
@@ -455,7 +455,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/04_IMG_5813.PNG",
+            "img": "04_IMG_5813.PNG",
             "confidence": 0.91, "warnings": ["low_confidence_address"],
             "ocr_json": '{\n  "upfront_fare_raw": "$████.██",\n  "product_type":     "Premier",\n  "pickup_address":   "████████████████, Col. ████████, CDMX",\n  "dropoff_address":  "██████████████████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.91,\n  "parse_warnings":   ["low_confidence_address"]\n}',
             "cleaned": [
@@ -468,7 +468,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/05_IMG_6624.PNG",
+            "img": "05_IMG_6624.PNG",
             "confidence": 0.98, "warnings": [],
             "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "███████████, Col. ████, CDMX",\n  "dropoff_address":  "█████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.98,\n  "parse_warnings":   []\n}',
             "cleaned": [
@@ -481,7 +481,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/06_IMG_0038.PNG",
+            "img": "06_IMG_0038.PNG",
             "confidence": 0.96, "warnings": [],
             "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "████████████, Col. ████, CDMX",\n  "dropoff_address":  "██████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.96,\n  "parse_warnings":   []\n}',
             "cleaned": [
@@ -494,7 +494,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/07_IMG_3679.PNG",
+            "img": "07_IMG_3679.PNG",
             "confidence": 0.95, "warnings": ["low_confidence_address"],
             "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████████, Col. ████, CDMX",\n  "dropoff_address":  "████████████████, Col. ████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.95,\n  "parse_warnings":   ["low_confidence_address"]\n}',
             "cleaned": [
@@ -507,7 +507,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/08_IMG_9029.PNG",
+            "img": "08_IMG_9029.PNG",
             "confidence": 0.98, "warnings": [],
             "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "Comfort",\n  "pickup_address":   "█████████████, Col. ████████, CDMX",\n  "dropoff_address":  "███████████, Col. ████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.98,\n  "parse_warnings":   []\n}',
             "cleaned": [
@@ -520,7 +520,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/09_IMG_2793.PNG",
+            "img": "09_IMG_2793.PNG",
             "confidence": 0.93, "warnings": ["surge_detected"],
             "ocr_json": '{\n  "upfront_fare_raw": "$███.██",\n  "product_type":     "UberX",\n  "pickup_address":   "██████████, Col. ████████, CDMX",\n  "dropoff_address":  "████████████████████, CDMX",\n  "pickup_eta_min":   ██,\n  "trip_distance_km": ██.█,\n  "surge_indicator":  true,\n  "ocr_confidence":   0.93,\n  "parse_warnings":   ["surge_detected"]\n}',
             "cleaned": [
@@ -533,7 +533,7 @@ with subtab3:
             ],
         },
         {
-            "img": "assets/offer_cards/10_IMG_9277.PNG",
+            "img": "10_IMG_9277.PNG",
             "confidence": 0.97, "warnings": [],
             "ocr_json": '{\n  "upfront_fare_raw": "$██.██",\n  "product_type":     "UberX",\n  "pickup_address":   "████████████, Col. ████, CDMX",\n  "dropoff_address":  "██████████████, Col. ████████, CDMX",\n  "pickup_eta_min":   █,\n  "trip_distance_km": █.█,\n  "surge_indicator":  false,\n  "ocr_confidence":   0.97,\n  "parse_warnings":   []\n}',
             "cleaned": [
@@ -567,7 +567,7 @@ with subtab3:
 
     # ── Stacked phone frames + filmstrip ──────────────────────
     def _mk_phone(img_path, rotate, tx, ty, opacity, z):
-        b = base64.b64encode(pathlib.Path(img_path).read_bytes()).decode()
+        b = base64.b64encode(fetch_bytes_from_gcs("pienza-streamlit", img_path)).decode()
         return f"""
 <div style="position:absolute;width:235px;border-radius:40px;
  background:#0a0a0a;border:8px solid #1a1a1a;padding:10px 0 14px;
@@ -599,7 +599,7 @@ with subtab3:
     thumb_cols = st.columns(n)
     for i, o in enumerate(OFFERS):
         with thumb_cols[i]:
-            tb = base64.b64encode(pathlib.Path(o["img"]).read_bytes()).decode()
+            tb = base64.b64encode(fetch_bytes_from_gcs("pienza-streamlit", o["img"])).decode()
             border = "2px solid #21918c" if i == idx else "2px solid rgba(255,255,255,0.1)"
             opacity = "1" if i == idx else "0.4"
             st.markdown(f"""

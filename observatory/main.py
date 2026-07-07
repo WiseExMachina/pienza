@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
 from config import FAVICON
+from utils.gcp_client import fetch_bytes_from_gcs
 
 
 # --- 0. SIDEBAR INTEGRADA ---
@@ -31,15 +32,14 @@ def build_sidebar():
         st.markdown("---")
         
         try:
-            with open("assets/Pienza_Papers.pdf", "rb") as f:
-                pdf_data = f.read()
+            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
             st.download_button(
                 "📄 Download 91-Page Report (PDF)", 
                 data=pdf_data, 
                 file_name="Project_Pienza_Full_Report.pdf",
                 mime="application/pdf"
             )
-        except FileNotFoundError:
+        except Exception:
             pass
             
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
@@ -119,14 +119,13 @@ st.markdown("""
 st.markdown("### The Playground: Machine Discovered Hubs")
 
 try:
-    with open("/workspaces/pienza/observatory/assets/kepler_3D.html", 'r', encoding='utf-8') as f:
-        html_data = f.read()
+    html_data = fetch_bytes_from_gcs("pienza-streamlit", "kepler_3D.html").decode("utf-8")
 
     force_white_css = "<style>body { background-color: white !important; }</style>"
     components.html(force_white_css + html_data, height=600)
 
-except FileNotFoundError:
-    st.error("Map file not found. Check path: /workspaces/pienza/observatory/assets/kepler_3D.html")
+except Exception as e:
+    st.error(f"Failed to load Kepler map from GCS: {e}")
 
 st.markdown(
     "<div style='margin-top:-15px;margin-bottom:32px;font-size:0.65rem;color:#64748b;font-style:italic;'>"

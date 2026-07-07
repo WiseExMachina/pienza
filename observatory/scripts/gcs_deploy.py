@@ -1,8 +1,12 @@
 """
 GCS Deploy Script — Project Pienza Observatory
 ===============================================
-Sube artefactos de data/dumped_files/ a GCS bucket pienza-streamlit.
-Correr desde Codespaces despues de un Run All que genere artefactos nuevos.
+Sube artefactos a GCS bucket pienza-streamlit desde dos fuentes posibles:
+- data/dumped_files/      -> salida de notebooks (Run All)
+- observatory/assets/     -> assets de frontend que nunca pasan por un notebook
+  (PDFs, HTML, imagenes, JS/geojson), ver cada entrada del MANIFEST para su "source".
+Correr desde Codespaces despues de un Run All que genere artefactos nuevos,
+o cuando se agregue/actualice un asset de frontend.
 
 Uso:
     python observatory/scripts/gcs_deploy.py              # sube todo el manifiesto
@@ -18,11 +22,20 @@ from google.cloud import storage
 # --- CONFIG ---
 BUCKET_NAME  = "pienza-streamlit"
 DUMPED_FILES = os.path.join(os.path.dirname(__file__), "..", "..", "data", "dumped_files")
+OBS_ASSETS   = os.path.join(os.path.dirname(__file__), "..", "assets")
 KEY_PATH     = os.path.join(os.path.dirname(__file__), "..", ".streamlit", "service-account.json")
+
+SOURCES = {
+    "dumped_files": DUMPED_FILES,
+    "assets": OBS_ASSETS,
+}
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = KEY_PATH
 
 # --- MANIFIESTO ---
+# Cada entrada puede llevar "source": "dumped_files" (default, notebook output)
+# o "source": "assets" (observatory/assets/, archivo de frontend que nunca vivio
+# en dumped_files).
 # Agregar aqui cada archivo que una pagina necesite leer desde GCS.
 # Formato: { "page": "NNNN", "local": "nombre_en_dumped_files", "gcs": "nombre_en_bucket" }
 MANIFEST = [
@@ -118,6 +131,113 @@ MANIFEST = [
         "local": "260423__idx_to_zone_to_semantics.json",
         "gcs":   "260423__idx_to_zone_to_semantics.json",
     },
+    # Compartido (todas las paginas via el boton de descarga del paper)
+    {
+        "page": "shared",
+        "local": "Pienza_Papers.pdf",
+        "gcs":   "Pienza_Papers.pdf",
+        "source": "assets",
+    },
+    # main.py - Home / Kepler 3D
+    {
+        "page": "main",
+        "local": "kepler_3D.html",
+        "gcs":   "kepler_3D.html",
+        "source": "assets",
+    },
+    # 0002 - Acquisition Pipelines (OCR offer card screenshots)
+    {
+        "page": "0002",
+        "local": "offer_cards/01_IMG_1691.PNG",
+        "gcs":   "01_IMG_1691.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/02_IMG_3428.PNG",
+        "gcs":   "02_IMG_3428.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/03_IMG_4346.PNG",
+        "gcs":   "03_IMG_4346.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/04_IMG_5813.PNG",
+        "gcs":   "04_IMG_5813.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/05_IMG_6624.PNG",
+        "gcs":   "05_IMG_6624.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/06_IMG_0038.PNG",
+        "gcs":   "06_IMG_0038.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/07_IMG_3679.PNG",
+        "gcs":   "07_IMG_3679.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/08_IMG_9029.PNG",
+        "gcs":   "08_IMG_9029.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/09_IMG_2793.PNG",
+        "gcs":   "09_IMG_2793.PNG",
+        "source": "assets",
+    },
+    {
+        "page": "0002",
+        "local": "offer_cards/10_IMG_9277.PNG",
+        "gcs":   "10_IMG_9277.PNG",
+        "source": "assets",
+    },
+    # 0008 - The Quest to O1 NLP (map HTML + zone path JS)
+    {
+        "page": "0008",
+        "local": "model_audit_map.html",
+        "gcs":   "model_audit_map.html",
+        "source": "assets",
+    },
+    {
+        "page": "0008",
+        "local": "latency_test_map.html",
+        "gcs":   "latency_test_map.html",
+        "source": "assets",
+    },
+    {
+        "page": "0008",
+        "local": "zone-paths.js",
+        "gcs":   "zone-paths.js",
+        "source": "assets",
+    },
+    # 9002 - Network Graph (archive, treated as active)
+    {
+        "page": "9002",
+        "local": "poly.geojson",
+        "gcs":   "poly.geojson",
+        "source": "assets",
+    },
+    {
+        "page": "9002",
+        "local": "0608_260513_tensor_arcos_w_eph_maestro.csv",
+        "gcs":   "0608_260513_tensor_arcos_w_eph_maestro.csv",
+        # already in data/dumped_files/, source defaults to "dumped_files"
+    },
     # Agregar entradas para otras paginas aqui cuando se auditen
 ]
 
@@ -156,7 +276,8 @@ def main():
 
     ok = 0
     for e in entries:
-        local_path = os.path.join(DUMPED_FILES, e["local"])
+        source_dir = SOURCES[e.get("source", "dumped_files")]
+        local_path = os.path.join(source_dir, e["local"])
         if upload(bucket, local_path, e["gcs"], dry_run=args.dry_run):
             ok += 1
 

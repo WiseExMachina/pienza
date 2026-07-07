@@ -3,6 +3,7 @@ from pathlib import Path
 from google.cloud import bigquery
 from components.styles import GLOBAL_CSS
 from config import FAVICON
+from utils.gcp_client import fetch_bytes_from_gcs
 
 st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
@@ -35,10 +36,10 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            with open("assets/Pienza_Papers.pdf", "rb") as f:
-                st.download_button("📄 Download 91-Page Report (PDF)", data=f.read(),
-                                   file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
-        except FileNotFoundError:
+            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+            st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data,
+                               file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
+        except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
