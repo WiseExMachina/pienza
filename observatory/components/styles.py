@@ -34,6 +34,41 @@ h4 {
     font-size: 12px !important;
 }
 
+/* Sidebar canon (2026-07-07) */
+[data-testid="stSidebar"] {
+    background-color: #ECECEE !important;
+    border-right: 1px solid #eaeaea;
+}
+[data-testid="stSidebar"] a,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label {
+    color: #31333F !important;
+}
+[data-testid="stSidebar"] hr {
+    border-top: 1px solid rgba(0,0,0,0.12) !important;
+}
+[data-testid="stSidebar"] .stVerticalBlock {
+    gap: 4px !important;
+}
+[data-testid="stSidebar"] .stPageLink a {
+    text-decoration: none !important;
+    padding: 6px 8px !important;
+    border-radius: 4px !important;
+    transition: background-color 0.15s ease;
+}
+[data-testid="stSidebar"] .stPageLink a:hover {
+    background-color: #f0f0f1 !important;
+}
+[data-testid="stSidebar"] .stPageLink a[aria-current="page"] {
+    background-color: #d9d9dc !important;
+}
+[data-testid="stSidebar"] .stDownloadButton button {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(49,51,63,0.2) !important;
+    color: #31333F !important;
+}
+
 .block-container { padding-top: 2rem; }
 
 /* Streamlit's theme.backgroundColor doesn't reliably paint the fixed top header bar,
