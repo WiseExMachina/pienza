@@ -129,7 +129,11 @@ button[data-testid="baseButton-secondary"].nav-carousel:hover {
 # HEADER
 # ─────────────────────────────────────────────
 st.markdown("# Foundations")
-st.markdown("Infrastructure, ingestion pipelines, and telemetry simulation underpinning Project Pienza.")
+st.markdown("""
+<div style='font-size:15px !important;color:#475569;line-height:1.7;margin-bottom:24px;'>
+Infrastructure, ingestion pipelines, and telemetry simulation underpinning Project Pienza.
+</div>
+""", unsafe_allow_html=True)
 st.markdown("---")
 
 # ─────────────────────────────────────────────
