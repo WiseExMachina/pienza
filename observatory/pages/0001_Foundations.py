@@ -129,50 +129,99 @@ button[data-testid="baseButton-secondary"].nav-carousel:hover {
 # HEADER
 # ─────────────────────────────────────────────
 st.markdown("# Foundations")
-st.markdown("""
-<div style='font-size:15px !important;color:#475569;line-height:1.7;margin-bottom:24px;'>
-Infrastructure, ingestion pipelines, and telemetry simulation underpinning Project Pienza.
-</div>
-""", unsafe_allow_html=True)
-st.markdown("---")
 
 # ─────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────
-tab1, tab2 = st.tabs(["📖 Introduction", "📅 Timeline"])
+tab1, tab2 = st.tabs(["Introduction", "Timeline"])
 
 with tab1:
-    st.markdown("## Introduction")
     st.markdown("""
-<div class="story-section">
-  <span class="story-pill">Scope & Constraints</span>
-  <p>
-    Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute agent control: the decision itself</strong>.<span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">Built alongside the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one strict constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span> The boundary condition is scale and generalizability — one agent, one city, one behavioral profile. That is a scope constraint, not a methodological flaw: the dataset's value derives precisely from the depth of a single subject's documented cognitive intent across 4,700 decisions.
-  </p>
+<style>
+.step-row    { display: flex; gap: 0; align-items: stretch; margin-bottom: 0; }
+.step-spine  { display: flex; flex-direction: column; align-items: center; width: 44px; flex-shrink: 0; }
+.step-circle { width: 30px; height: 30px; border-radius: 50%;
+               color: #fff; font-size: 12px; font-weight: 700;
+               display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+.step-line   { width: 2px; background: rgba(150,150,150,0.2); flex: 1; min-height: 16px; }
+.step-body   { flex: 1; padding: 0 0 28px 12px; }
+.step-label  { font-size: 17px; font-weight: 700; letter-spacing: 1px;
+               text-transform: uppercase; margin-bottom: 8px; padding-top: 6px; color: #21918c; }
+.step-body p { font-size: 13px !important; color: #475569; line-height: 1.7; margin: 0; }
+.info-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 1px solid #21918c;
+    background: #ffffff;
+    color: #21918c;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 9px;
+    cursor: default;
+    transition: background 0.2s ease;
+    vertical-align: middle;
+    margin-left: 5px;
+}
+.info-mark:hover { background: #f0fafa; }
+</style>
+
+<div class='step-row' style='margin-top:24px;'>
+  <div class='step-spine'>
+    <div class='step-circle' style='background:#21918c'>1</div>
+    <div class='step-line'></div>
+  </div>
+  <div class='step-body'>
+    <div class='step-label'>Scope &amp; Constraints</div>
+    <p>
+      Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute control: the agent's decisions</strong>.<span class="fn-wrap"><span class="info-mark">i</span><span class="fn-tooltip">Built alongside the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one strict constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span>
+    </p>
+  </div>
 </div>
 
-<div class="story-section">
-  <span class="story-pill">Initial Hypothesis</span>
-  <p>
-    A pilot study (N ≈ 150, Jul–Aug 2025) observed a Payout Spread of 75–85 % of Base Fare. The hypothesis: time savings incur an implicit fare penalty. A benchmark comparison falsified this — Simple Linear Regression dominated all ML models and no meaningful non-linear signal was found. Scaling the regression approach would demand thousands of completed trips at prohibitive operational cost.<span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">During Phase 3 (Exploratory Analysis), the Payout Spread inquiry was revisited and formally resolved via Causal Inference — modeling the platform's inelastic Integrity Buffer and baseline heteroscedasticity. → <a href="/Causal_Inference" target="_self" style="color:#21918c;text-decoration:none;">Causal Inference</a></span></span>
-  </p>
+<div class='step-row'>
+  <div class='step-spine'>
+    <div class='step-circle' style='background:#21918c'>2</div>
+    <div class='step-line'></div>
+  </div>
+  <div class='step-body'>
+    <div class='step-label'>Initial Hypothesis</div>
+    <p>
+      A pilot study (N ≈ 150, Jul–Aug 2025) observed a Payout Spread of 75–85 % of Base Fare. The hypothesis: time savings incur an implicit fare penalty. A benchmark comparison falsified this — Simple Linear Regression dominated all ML models and no meaningful non-linear signal was found. Scaling the regression approach would demand thousands of completed trips at prohibitive operational cost.<span class="fn-wrap"><span class="info-mark">i</span><span class="fn-tooltip">During Phase 3 (Exploratory Analysis), the Payout Spread inquiry was revisited and formally resolved via Causal Inference — modeling the platform's inelastic Integrity Buffer and baseline heteroscedasticity. → <a href="/Causal_Inference" target="_self" style="color:#21918c;text-decoration:none;">Causal Inference</a></span></span>
+    </p>
+  </div>
 </div>
 
-<div class="story-section">
-  <span class="story-pill">Pivot to Classification</span>
-  <p>
-    With regression abandoned, the research objective redefined from <em>price prediction</em> to <em>behavior cloning</em>. Incorporating the Negative Class (rejected offers) resolved data scarcity and exposed the full decision boundary — enabling XGBoost to model the agent's non-linear acceptance policy.
-  </p>
+<div class='step-row'>
+  <div class='step-spine'>
+    <div class='step-circle' style='background:#21918c'>3</div>
+    <div class='step-line'></div>
+  </div>
+  <div class='step-body'>
+    <div class='step-label'>Pivot to Classification</div>
+    <p>
+      With regression abandoned, the research objective redefined from <em>price prediction</em> to <em>behavior cloning</em>. Incorporating the Negative Class (rejected offers) resolved data scarcity and exposed the full decision boundary — enabling XGBoost to model the agent's non-linear acceptance policy.
+    </p>
+  </div>
 </div>
 
-<div class="story-section">
-  <span class="story-pill">Target Feature: Multiclass Classification</span>
-  <p>
-    The problem is defined as a <strong>multiclass classification</strong> task. Each rejected offer is assigned a single, mutually exclusive label representing the primary reason for rejection across a three-tiered triage: geospatial feasibility, economic viability, and strategic alignment. Acceptance is implicit — a <code>NULL</code> label signals the absence of any objection. A binary accept/reject formulation was kept as a fallback in case the multiclass approach failed.
-  </p>
+<div class='step-row'>
+  <div class='step-spine'>
+    <div class='step-circle' style='background:#21918c'>4</div>
+  </div>
+  <div class='step-body' style='padding-bottom:0;'>
+    <div class='step-label'>Target Feature: Multiclass Classification</div>
+    <p>
+      The problem is defined as a <strong>multiclass classification</strong> task. Each rejected offer is assigned a single, mutually exclusive label representing the primary reason for rejection across a three-tiered triage: geospatial feasibility, economic viability, and strategic alignment. Acceptance is implicit — a <code>NULL</code> label signals the absence of any objection. A binary accept/reject formulation was kept as a fallback in case the multiclass approach failed.
+    </p>
+  </div>
 </div>
 
-<div class="target-grid">
+<div class="target-grid" style="margin-top:40px;">
   <div class="target-card">
     <div class="target-tier">Tier 1 — Geospatial</div>
     <div class="target-label">dropoff_non_operational</div>
@@ -210,15 +259,13 @@ with tab1:
   </div>
 </div>
 
-<div style="background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:6px;padding:12px 16px;margin-top:16px;font-size:0.85rem;color:#333;line-height:1.65;">
-  <strong>High-Fidelity Cognitive Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable (<code>reason_primary</code>). Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
+<div style="background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:6px;padding:12px 16px;margin-top:40px;font-size:0.85rem;color:#333;line-height:1.65;">
+  <strong>High-Fidelity Cognitive Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">reason_primary</span>. Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
 </div>
     """, unsafe_allow_html=True)
 
 with tab2:
     import plotly.graph_objects as go
-
-    st.markdown("## Project Timeline")
 
     PHASES = [
         {
@@ -326,7 +373,7 @@ with tab2:
             y=[0.35, 0.35, 0.65, 0.65, 0.35],
             fill="toself",
             fillcolor=COLORS[i],
-            line=dict(color="white", width=2),
+            line=dict(color=COLORS[i], width=0),
             mode="lines",
             hovertemplate=(
                 f"<b>{row['phase']}: {row['label']}</b><br>"
@@ -366,13 +413,13 @@ with tab2:
             showarrow=False,
             font=dict(size=9, color="#555"),
             xanchor="center", yanchor="middle",
-            bgcolor="white", borderpad=3,
+            bgcolor="#F5F6F7", borderpad=3,
             hovertext=g["hover"],
         )
 
 
     fig.update_layout(
-        plot_bgcolor="white", paper_bgcolor="white",
+        plot_bgcolor="#F5F6F7", paper_bgcolor="#F5F6F7",
         height=260,
         margin=dict(l=10, r=10, t=10, b=30),
         xaxis=dict(
@@ -414,7 +461,7 @@ with tab2:
     padding: 1px 6px; font-size: 0.72rem; font-weight: 600;
     margin-left: 8px;
 }
-.phase-card-desc { font-size: 0.85rem; color: #555; line-height: 1.65; margin-bottom: 10px; }
+.phase-card-desc { font-size: 0.85rem; color: #475569; line-height: 1.65; margin-bottom: 10px; }
 .phase-bullets { display: flex; flex-wrap: wrap; gap: 6px; }
 .phase-bullet {
     background: #f5f5f5; border-radius: 20px;

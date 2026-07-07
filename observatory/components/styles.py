@@ -292,5 +292,8 @@ h4 {
 
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
+
+/* Hide the anchor-link (chain icon) Streamlit auto-adds to every heading on hover */
+[data-testid="stHeaderActionElements"] { display: none !important; }
 </style>
 """
