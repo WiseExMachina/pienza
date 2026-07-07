@@ -52,7 +52,6 @@ folium
 # 5. NLP & SEMANTICS
 # ==========================================
 transformers
-pysentimiento
 emoji
 nltk
 textblob
