@@ -147,20 +147,27 @@ st.markdown(
 # Inject the Bento Aesthetic CSS targeting our specific containers with high specificity
 st.markdown("""
 <style>
+/* All nav-card rules target [class*="st-key-nav-card-"] - the stable class Streamlit
+   attaches to a container via st.container(key=...). Deliberately NOT using :has() -
+   div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) was confirmed unreliable
+   in this Streamlit version (height/background/hover rules silently didn't apply; see
+   project_tech_debt.md). Plain descendant selectors (no :has) worked fine throughout,
+   so this keyed-class approach avoids the broken mechanism entirely. */
+
 /* 1. ESTILO BASE DE LA TARJETA (Mimic de ingestion-panel) */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) {
+div[class*="st-key-nav-card-"] {
     background-color: #ffffff !important;
     border: 1px solid #eaeaea !important;
-    border-radius: 12px !important;
-    padding: 10px !important;
-    transition: all 0.3s ease-in-out !important;
+    border-radius: 16px !important;
+    padding: 20px !important;
+    transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, border-color 0.25s ease-out !important;
     box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
     height: 300px !important;
     overflow: hidden !important;
 }
 
 /* 1b. Stack card contents vertically and pin the button to the bottom */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) > div[data-testid="stVerticalBlock"] {
+div[class*="st-key-nav-card-"] > div[data-testid="stVerticalBlock"] {
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
@@ -168,10 +175,7 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) > div[data-testid
 }
 
 /* 2. EFECTO HOVER EN LA TARJETA (Elevación + Escala + Delineado en Teal) */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) {
-    transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, border-color 0.25s ease-out !important;
-}
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card):hover {
+div[class*="st-key-nav-card-"]:hover {
     transform: translateY(-6px) scale(1.015) !important;
     box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
     border-color: #21918c !important; /* Delineado Teal */
@@ -179,41 +183,39 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card):hover {
 
 /* 3. ESTILO DEL BOTÓN DE NAVEGACIÓN (st.page_link) - target both the legacy class
    and the data-testid, since Streamlit versions differ in which one is present */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a,
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) [data-testid="stPageLink"] a {
+div[class*="st-key-nav-card-"] .stPageLink a,
+div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
-    background-color: #f0f2f5 !important; /* Fondo gris claro */
-    color: #121212 !important;
-    padding: 10px 14px !important;
-    border-radius: 6px !important;
+    background-color: transparent !important;
+    color: #64748b !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
     text-decoration: none !important;
-    transition: background-color 0.2s ease-in-out !important;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out !important;
     width: 100% !important;
-    border: 1px solid #e5e5e5 !important;
+    border: none !important;
 }
 
 /* 4. HOVER DEL BOTÓN (Gris un poco más oscuro) */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a:hover,
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) [data-testid="stPageLink"] a:hover {
-    background-color: #e5e8ec !important;
+div[class*="st-key-nav-card-"] .stPageLink a:hover,
+div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a:hover {
+    background-color: #f0f2f5 !important;
+    color: #21918c !important;
 }
 
 /* 5. TEXTO CENTRADO DEL BOTÓN */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) .stPageLink a p,
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-card) [data-testid="stPageLink"] a p {
-    color: #121212 !important;
+div[class*="st-key-nav-card-"] .stPageLink a p,
+div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a p {
+    color: inherit !important;
     margin: 0 !important;
-    font-weight: 600 !important;
-    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    font-size: 0.8rem !important;
     text-align: center !important;
     width: 100% !important;
 }
-
-/* Ocultar el marcador de destino */
-.nav-card { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -270,13 +272,9 @@ cols = st.columns(3)
 
 for i, (path, icon, title, desc) in enumerate(modules):
     with cols[i % 3]:
-        with st.container(border=True):
-            # Inject the hidden marker so the CSS knows to style this specific container
-            st.markdown("<span class='nav-card'></span>", unsafe_allow_html=True)
+        with st.container(border=True, key=f"nav-card-{i}"):
             # Fixed-height content block (icon+title+desc) we fully control, so total
-            # card height stays constant regardless of Streamlit's outer wrapper CSS
-            # (the :has(.nav-card) height rule above doesn't reliably apply on this
-            # Streamlit version - see project_tech_debt.md nav-card button entry).
+            # card height stays constant regardless of description length.
             st.markdown(
                 f"<div style='height:135px;display:flex;flex-direction:column;overflow:hidden;'>"
                 f"<div style='font-size:1.05rem;font-weight:700;line-height:1.3;margin-bottom:8px;'>{_nav_icon(icon)}{title}</div>"

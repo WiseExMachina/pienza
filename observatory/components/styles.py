@@ -19,7 +19,7 @@ h2 {
     margin-top: -10px;
 }
 h3 {
-    color: #21918c;
+    color: #21918c !important;
     font-size: 26px !important;
     font-weight: 400 !important;
     margin-top: -10px;
@@ -38,7 +38,7 @@ h4 {
 
 /* Streamlit's theme.backgroundColor doesn't reliably paint the fixed top header bar,
    leaving a mismatched white strip — force it to match the canonical app background. */
-[data-testid="stHeader"] { background: #F9FAFB !important; background-color: #F9FAFB !important; }
+[data-testid="stHeader"] { background: #F5F6F7 !important; background-color: #F5F6F7 !important; }
 
 .kpi-box {
     background-color: #f8f9fa;
