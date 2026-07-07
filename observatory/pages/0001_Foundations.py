@@ -8,8 +8,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
+from config import FAVICON
 
-st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon="🏗️")
+st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

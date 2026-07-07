@@ -6,12 +6,13 @@ import io
 from google.cloud import storage
 from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
+from config import FAVICON
 
 
 # ==============================================================================
 # 1. CONFIGURACIÓN, ESTÉTICA Y QUANTUM SYNC (BLOQUE MAESTRO UNIFICADO)
 # ==============================================================================
-st.set_page_config(layout="wide", page_title="Human vs AI: Behavioral Cloning")
+st.set_page_config(layout="wide", page_title="Human vs AI: Behavioral Cloning", page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

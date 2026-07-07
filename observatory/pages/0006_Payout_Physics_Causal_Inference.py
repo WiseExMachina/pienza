@@ -6,11 +6,12 @@ from google.cloud import bigquery
 from pathlib import Path
 import plotly.graph_objects as go
 from components.styles import GLOBAL_CSS
+from config import FAVICON
 
 # ==============================================================================
 # PAGE CONFIG
 # ==============================================================================
-st.set_page_config(page_title="Payout Physics | Pienza", layout="wide")
+st.set_page_config(page_title="Payout Physics | Pienza", page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown("""<style>
 .ols-kpi {

@@ -3,8 +3,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 import networkx as nx
 from components.styles import GLOBAL_CSS
+from config import FAVICON
 
-st.set_page_config(layout="wide", page_title="Generative Moonshots: pienza_big | Pienza")
+st.set_page_config(layout="wide", page_title="Generative Moonshots: pienza_big | Pienza", page_icon=FAVICON)
 
 def build_sidebar():
     with st.sidebar:

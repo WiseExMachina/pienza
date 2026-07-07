@@ -1,3 +1,4 @@
+FAVICON = "assets/favicon.png"
 ACCENT = "#21918c"
 ACCENT_DARK = "#1a7576"
 PAGE_TITLE = "Project Pienza | Digital Twin"

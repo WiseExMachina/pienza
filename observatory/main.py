@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
+from config import FAVICON
 
 
 # --- 0. SIDEBAR INTEGRADA ---
@@ -50,7 +51,7 @@ def build_sidebar():
 st.set_page_config(
     layout="wide", 
     page_title="Project Pienza | Digital Twin",
-    page_icon="🛰️"
+    page_icon=FAVICON
 )
 
 # --- 2. SIDEBAR CALL ---

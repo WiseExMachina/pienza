@@ -6,8 +6,9 @@ import numpy as np
 import pandas as pd
 import re
 from utils.bq_client import fetch_data_from_bq
+from config import FAVICON
 
-st.set_page_config(layout="wide", page_title="Feature Store | Pienza", page_icon="🗄️")
+st.set_page_config(layout="wide", page_title="Feature Store | Pienza", page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

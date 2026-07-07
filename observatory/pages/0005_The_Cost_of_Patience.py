@@ -11,11 +11,13 @@ from pathlib import Path
 from scipy.interpolate import interp1d
 from components.styles import GLOBAL_CSS
 import streamlit.components.v1 as components
+from config import FAVICON
 
 # ==============================================================================
 # PAGE CONFIG
 # ==============================================================================
 st.set_page_config(page_title="The Cost of Patience | Pienza",
+                   page_icon=FAVICON,
                    layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 

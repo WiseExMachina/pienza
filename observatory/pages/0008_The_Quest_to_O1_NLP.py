@@ -15,6 +15,7 @@ import pandas as pd
 from utils.gcp_client import load_babel_assets
 from utils.bq_client import fetch_data_from_bq
 from components.styles import GLOBAL_CSS
+from config import FAVICON
 import threading as _threading
 
 def _preload_babel():
@@ -29,7 +30,7 @@ _threading.Thread(target=_preload_babel, daemon=True).start()
 # ==========================================
 # PAGE CONFIGURATION
 # ==========================================
-st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon="⚡", layout="wide")
+st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon=FAVICON, layout="wide")
 
 # ─────────────────────────────────────────────
 # SIDEBAR

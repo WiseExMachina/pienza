@@ -2,8 +2,9 @@ import streamlit as st
 from pathlib import Path
 from google.cloud import bigquery
 from components.styles import GLOBAL_CSS
+from config import FAVICON
 
-st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
