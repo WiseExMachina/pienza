@@ -61,10 +61,10 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 
 # --- 3. HERO HEADER ---
-st.markdown("<h1 style='font-weight:300 !important;'>Project Pienza: An AI Digital Twin to Navigate the Ride-Hailing Dynamics of Mexico City</h1>", unsafe_allow_html=True)
+st.markdown("# Project Pienza")
 st.markdown("""
     <h4 style='color: #21918c; font-weight: 300 !important; margin-top: -10px;'>
-        From Field Acquisition to Generative Simulation
+        An AI Digital Twin, From Field Acquisition to Generative Simulation
     </h4>
     """, unsafe_allow_html=True)
 
