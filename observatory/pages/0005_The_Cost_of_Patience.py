@@ -95,21 +95,32 @@ def map_category(cat_name):
 # ==============================================================================
 st.markdown("# The Cost of Patience")
 st.markdown(
-    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;'>"
+    "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
     "Optimal Stopping Theory addresses a single problem: given a sequential stream of transient options, when is the exact moment to commit? "
     "In ride-hailing, every accepted offer locks the agent into a trajectory, while every rejection burns finite operational time. "
     "The clock is a continuous financial penalty."
     "</p>"
-    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;margin-top:10px;'>"
-    "The classical <em>Secretary Problem</em> provides a theoretical baseline: reject the first "
-    "1/e ≈ 37% of candidates, then accept the next observation exceeding all prior maximums. "
-    "This model, however, assumes a known population size, costless waiting, and a stationary distribution. "
-    "In field operations, idle time directly erodes EPH, and market quality shifts dynamically between sessions."
-    "</p>"
-    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;margin-top:10px;'>"
-    "Therefore, the operative metric is the <strong>Continuation Value (CV)</strong>. An offer is rejected only when "
-    "the expected return of continuing the search within a rational time window exceeds the immediate baseline:"
+    "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
+    "An offer should be rejected only when the expected return of continuing the search within a rational time window "
+    "exceeds the immediate baseline — formalized here as the <strong>Continuation Value (CV)</strong>:"
     "</p>",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    "<style>"
+    ".fn-wrap.fn-right .fn-tooltip::after { left: auto; right: 20px; transform: none; }"
+    ".fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; }"
+    ".fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }"
+    ".info-mark {"
+    "    display: inline-flex; align-items: center; justify-content: center;"
+    "    width: 13px; height: 13px; border-radius: 50%; border: 1px solid #21918c;"
+    "    background: #ffffff; color: #21918c; font-family: Georgia, 'Times New Roman', serif;"
+    "    font-style: italic; font-weight: 700; font-size: 9px; cursor: default;"
+    "    transition: background 0.2s ease; vertical-align: middle; margin-left: 5px;"
+    "}"
+    ".info-mark:hover { background: #f0fafa; }"
+    "</style>",
     unsafe_allow_html=True,
 )
 
@@ -118,29 +129,29 @@ with _col_latex:
     st.latex(r"CV(\tau) = p(\tau)\cdot EPH_{\text{target}} + (1-p(\tau))\cdot EPH_{\text{fallback}} - EPH_{\text{immediate}}")
 with _col_fn:
     st.markdown(
-        "<div style='padding-top:22px;'>"
-        "<span class='fn-wrap'>"
-        "<span class='fn-mark'>†</span>"
-        "<span class='fn-tooltip' style='width:320px;font-size:0.75rem;line-height:1.6;'>"
+        "<div style='padding-top:22px;margin-left:-40px;'>"
+        "<span class='fn-wrap fn-right fn-below'>"
+        "<span class='info-mark'>i</span>"
+        "<span class='fn-tooltip' style='width:320px;font-size:0.75rem;line-height:1.6;left:auto;right:0;transform:none;'>"
         "<b>Plain-English breakdown:</b><br><br>"
         "<b>p(τ)</b> — probability of finding a premium offer if you wait window τ.<br><br>"
         "<b>EPH_target</b> — your yield <em>if</em> the premium offer is found and completed.<br><br>"
         "<b>EPH_fallback</b> — your yield <em>if</em> nothing is found and you fall back to baseline — "
         "but penalized by the idle time already burned. Same fare, lower EPH because the denominator grew.<br><br>"
         "<b>EPH_immediate</b> — your yield if you accept the current baseline offer right now, zero wait cost.<br><br>"
-        "CV &gt; 0 → wait. CV &lt; 0 → accept now."
+        "CV &gt; 0 → wait. CV &lt; 0 → accept now.<br><br>"
+        "p(τ) is conditional on the active market regime, and the equilibrium point where CV(τ) = 0 defines the "
+        "mathematical boundary of rational patience."
         "</span></span></div>",
         unsafe_allow_html=True,
     )
 
 st.markdown(
-    "<p style='color:#888;font-size:0.78rem;line-height:1.6;max-width:820px;margin-top:4px;'>"
-    "where p(τ) is the empirical probability of encountering a premium offer within search window τ, "
-    "conditional on the active market regime. The equilibrium point where CV(τ) = 0 defines the mathematical boundary of rational patience."
-    "</p>"
     "<div style='margin-top:24px;'></div>"
-    "<p style='color:#555;font-size:0.88rem;line-height:1.75;max-width:820px;'>"
-    "Deriving that boundary requires four sequential phases — each building on the last."
+    "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
+    "p(τ) is conditional on the active market regime, and the equilibrium point where CV(τ) = 0 defines the "
+    "mathematical boundary of rational patience. Deriving that boundary requires four sequential phases — "
+    "each building on the last."
     "</p>"
     "<div style='display:flex;gap:12px;margin-top:20px;max-width:820px;flex-wrap:wrap;'>"
     "<div class='phase-card' style='flex:1;min-width:160px;border-left:3px solid #21918c;padding:8px 12px;cursor:pointer;border-radius:0 4px 4px 0;transition:background 0.15s;'>"
@@ -463,7 +474,7 @@ def render_observatory():
         CAT_COLORS = {"X": "#99d5d1", "Mid-tier": "#21918c", "Black": "#0a4a47"}
 
         st.markdown("""
-<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 The Market Quality Index measures how rich or lean the offer pool was within a given session —
 but without normalization, a single strong premium offer would dominate the session score and drown out a cluster of suboptimal X offers.
 Each offer is scored against its tier's historical median EPH, then aggregated into a single session-level MQI.
@@ -474,7 +485,7 @@ Each offer is scored against its tier's historical median EPH, then aggregated i
         _p02 = float(np.percentile(_df_core["eph_operational"].values, 2))
 
         _AXIS_COMMON = dict(
-            paper_bgcolor="white", plot_bgcolor="white",
+            paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7",
             font_family="Inter", showlegend=False,
             margin=dict(l=10, r=10, t=40, b=10),
             violingap=0.35, height=380,
@@ -595,7 +606,7 @@ Each offer is scored against its tier's historical median EPH, then aggregated i
                 font=dict(size=9, color="#475569", family="Inter"),
             )
             fig_sess.update_layout(
-                height=360, paper_bgcolor="white", plot_bgcolor="white",
+                height=360, paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7",
                 margin=dict(l=10, r=10, t=10, b=10), font_family="Inter",
                 showlegend=False,
                 yaxis=dict(title="IQ", range=[0.4, 2.6], zeroline=False,
@@ -616,7 +627,7 @@ The market is deeply heterogeneous — both across sessions and within them. Sel
     # ──────────────────────────────────────────────────────────────────────────
     with tab2:
         st.markdown(
-            "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>"
+            "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
             "Each session was classified into one of four quadrants defined by two axes: "
             "Market Quality (MQI) on the vertical, and Market Velocity — the median wait time between offers — on the horizontal. "
             "Circle size represents the total gross potential value of the session."
@@ -659,7 +670,7 @@ The market is deeply heterogeneous — both across sessions and within them. Sel
         fig_money.add_hline(y=GLOBAL_QUALITY,  line_width=1.5, line_dash="dash", line_color="#d1d5db")
         fig_money.update_layout(
             autosize=True, height=620,
-            plot_bgcolor="white", paper_bgcolor="white",
+            plot_bgcolor="#F5F6F7", paper_bgcolor="#F5F6F7",
             font_family="Inter",
             title=dict(text="", font=dict(size=14, color="#334155")),
             xaxis_title=dict(text=f"Market Friction — Median Wait: {GLOBAL_VELOCITY:.0f}s",
@@ -739,21 +750,9 @@ The market is deeply heterogeneous — both across sessions and within them. Sel
         ))
         st.markdown(f"""
 <div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
- padding:12px 16px;margin-top:16px;font-size:0.82rem;color:#334155;line-height:1.7;'>
+ padding:12px 16px;margin-top:40px;font-size:0.82rem;color:#334155;line-height:1.7;'>
 Only <strong>{_paradise_pct}%</strong> of sessions fell into the Paradise quadrant — high quality <em>and</em> high velocity.
 With the market quadrants established, rational search time boundaries can now be derived for each regime in the next phase.
-</div>
-""", unsafe_allow_html=True)
-
-        st.write("")
-
-        st.markdown("""
-<div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
-     padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
-  <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
-        color:#cc6600;'>⚠ PENDING FIX — Backpropagate session MQI change</span><br><br>
-  Session MQI was updated from <strong>mean → median</strong> in this chart. This change must be
-  backpropagated to: the LaTeX paper (PNG figures) and the source Jupyter notebooks (.ipynb).
 </div>
 """, unsafe_allow_html=True)
 
@@ -762,11 +761,11 @@ With the market quadrants established, rational search time boundaries can now b
     # ──────────────────────────────────────────────────────────────────────────
     with tab3:
         st.markdown(
-            "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>"
+            "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
             "The playbook operationalizes the Continuation Value formula. For a given target yield and market regime, "
             "it computes the empirical probability of encountering a premium offer within each search window "
             "and resolves whether waiting is mathematically justified over accepting the immediate baseline."
-            "<span class='fn-wrap'><span class='fn-mark'>†</span><span class='fn-tooltip' style='width:300px;font-size:0.75rem;line-height:1.6;'>"
+            "<span class='fn-wrap'><span class='info-mark'>i</span><span class='fn-tooltip' style='width:300px;font-size:0.75rem;line-height:1.6;'>"
             "<b>Scope &amp; constraint:</b> This playbook answers one specific question — <em>is waiting for +$30/hr over your current offer worth it?</em> "
             "The $30 gap is held constant across all slider positions so that any change in the optimal search window reflects "
             "target difficulty and market regime only, not a change in the size of the bet. "
@@ -780,7 +779,6 @@ With the market quadrants established, rational search time boundaries can now b
             "Target Premium Yield ($/hr)",
             options=[170, 180, 200, 220, 250, 280],
             value=200,
-            help="The premium rate you are holding out for. Baseline is locked at $30 below this.",
         )
         BASELINE_EPH = TARGET_EPH - 30
 
@@ -834,7 +832,7 @@ With the market quadrants established, rational search time boundaries can now b
             ))
             fig_heat.update_layout(
                 autosize=True, height=500,
-                plot_bgcolor="#ffffff", paper_bgcolor="#ffffff",
+                plot_bgcolor="#F5F6F7", paper_bgcolor="#F5F6F7",
                 title=dict(
                     text=f"CV(τ) — Continuation Value by Regime & Search Window  "
                          f"(Target: ${TARGET_EPH}/hr | Baseline: ${BASELINE_EPH}/hr)",
@@ -903,7 +901,7 @@ With the market quadrants established, rational search time boundaries can now b
     # ──────────────────────────────────────────────────────────────────────────
     with tab4:
         st.markdown(
-            "<p style='color:#555;font-size:0.88rem;line-height:1.7;max-width:860px;'>"
+            "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
             "The Efficient Frontier maps the absolute threshold where patience stops being rational. "
             "For any target ambition, the model calculates the <strong>Maximum Rational Search Time</strong> — "
             "the exact minute the Continuation Value drops below zero."
@@ -1020,7 +1018,7 @@ With the market quadrants established, rational search time boundaries can now b
             fig_frontier.add_hline(y=0, line_width=1.5, line_color='#334155', opacity=0.4)
             fig_frontier.update_layout(
                 height=480,
-                plot_bgcolor='white', paper_bgcolor='white',
+                plot_bgcolor='#F5F6F7', paper_bgcolor='#F5F6F7',
                 font_family='Inter',
                 xaxis=dict(
                     title=dict(text='Target Ambition ($/hr)', font=dict(size=12, color='#334155')),
@@ -1036,7 +1034,7 @@ With the market quadrants established, rational search time boundaries can now b
                 ),
                 legend=dict(
                     title=dict(text='Market Regime', font=dict(size=11)),
-                    font=dict(size=11), bgcolor='rgba(255,255,255,0.85)',
+                    font=dict(size=11), bgcolor='#F5F6F7',
                     bordercolor='#e2e8f0', borderwidth=1,
                     yanchor='top', y=0.99, xanchor='right', x=0.99,
                 ),
