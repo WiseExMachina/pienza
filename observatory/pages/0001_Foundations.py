@@ -66,6 +66,10 @@ st.markdown("""
 h2 { font-size: 22px !important; font-weight: 600 !important; letter-spacing: -0.5px; }
 h3 { font-size: 16px !important; font-weight: 600 !important; }
 p, li { color: #555; font-size: 0.9rem; line-height: 1.7; }
+/* The generic p rule above overrides the teal color the active st.tabs()
+   label normally inherits from its parent button (labels are <p> tags),
+   leaving the underline teal but the text gray - restore it here. */
+[data-baseweb="tab"][aria-selected="true"] p { color: #21918c !important; }
 
 /* GTS Simulator — device frame */
 .sim-wrapper { display: flex; justify-content: center; padding: 12px 0 20px; }

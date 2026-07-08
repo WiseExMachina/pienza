@@ -187,7 +187,7 @@ df_master = load_tournament_ledger()
 # ==============================================================================
 st.markdown("# Human vs AI: Behavioral Cloning")
 st.markdown("""
-<div style='font-size:15px !important;color:#475569;line-height:1.7;margin-bottom:24px;'>
+<div style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 This phase documents the transition from descriptive discovery to a predictive inference engine.
 The objective: synthesize a model capable of replicating the agent's decision policy with high fidelity —
 and then beat it.

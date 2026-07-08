@@ -707,8 +707,7 @@ with pb_tab:
         st.markdown(
             "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-top:32px;margin-bottom:24px;'>"
             "Step through a real field session offer by offer. Each card shows exactly what the platform "
-            "presented and what the state machine computed at that moment in the session. "
-            "Decide for yourself — then reveal what the agent actually did.</p>",
+            "presented and what the state machine computed at that moment in the session.</p>",
             unsafe_allow_html=True
         )
 

@@ -74,7 +74,7 @@ st.write("") # Spacer
 # --- 4. THE KILLER NARRATIVE & ACHIEVEMENTS ---
 st.markdown("<h3 style='margin-top: 0;'>The Mission</h3>", unsafe_allow_html=True)
 st.markdown("""
-<div style='font-size:15px !important;color:#475569;line-height:1.7;margin-bottom:24px;'>
+<div style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 <b>Project Pienza</b> transforms street-level gig-economy fieldwork into a generative digital twin.
 <br><br>
 Engineered to overcome algorithmic survivorship bias, it captures the total market liquidity of a human agent -including rejected offers- to build a proprietary dataset that powers a hierarchical imitation engine, an NLP spatial transformer, and a conditional Generative Adversarial Network (cGAN).
@@ -139,7 +139,7 @@ st.markdown(
 # --- 6. NAVIGATE THE OBSERVATORY ---
 st.markdown("### The Observatory Architecture")
 st.markdown(
-    "<div style='font-size:13px !important;font-weight:400;color:#475569;line-height:1.7;margin-bottom:4px;'>"
+    "<div style='font-size:13px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:4px;'>"
     "Navigate through the core modules of the Pienza digital twin.</div>",
     unsafe_allow_html=True,
 )
