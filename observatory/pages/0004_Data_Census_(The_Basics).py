@@ -119,13 +119,13 @@ except Exception as _e:
 # ─────────────────────────────────────────────
 st.markdown("# Data Census (The Basics)")
 st.markdown("""
-<p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 With the Feature Store fully defined, the project reconciled every offer against the platform's official
 ledgers — earnings settlements and trip event logs — and certified the result as a relational Golden Master
 through an idempotent ETL pipeline. That pipeline produced <code>pienza.db</code>, migrated to BigQuery
 as <code>pienza_mini</code>.
 </p>
-<p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;margin-top:10px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-top:10px;margin-bottom:24px;'>
 The financial chain is strictly linear — no circular references, truth flows only forward:
 </p>
 <div class='chain-flow' style='margin:10px 0 6px 0;'>
@@ -149,7 +149,7 @@ with st.expander("Relational Schema — full ERD (Vertabelo / RedGate)", expande
         st.caption(f"ERD image not found at: {erd_path}")
 
 st.markdown("""
-<p style='color:#555;font-size:0.9rem;line-height:1.7;max-width:860px;margin-top:14px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-top:14px;margin-bottom:24px;'>
 The pills below surface the first layer of exploratory analysis — categorical counts, incentive structures,
 traffic patterns, and financial profiles across the ~4,700 collected offers. This is the baseline census:
 what the dataset looks like before any modelling assumptions are applied.
@@ -297,7 +297,7 @@ else:
                     legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font_size=11),
                     height=300,
                     margin=dict(l=10, r=10, t=40, b=10),
-                    paper_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", font_family="Inter",
                 )
                 df_p = df_product.sort_values("n")
                 fig2 = go.Figure(go.Bar(
@@ -311,7 +311,7 @@ else:
                     xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_p["n"].max() * 1.25]),
                     yaxis=dict(tickfont_size=11), height=300,
                     margin=dict(l=10, r=20, t=40, b=10),
-                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                 )
                 df_r = df_reason[df_reason["label"].notna()].sort_values("n")
                 fig3 = go.Figure(go.Bar(
@@ -325,7 +325,7 @@ else:
                     xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_r["n"].max() * 1.25]),
                     yaxis=dict(tickfont_size=11), height=320,
                     margin=dict(l=10, r=20, t=40, b=10),
-                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                 )
                 df_o = df_outcome.sort_values("n")
                 fig4 = go.Figure(go.Bar(
@@ -339,7 +339,7 @@ else:
                     xaxis=dict(showgrid=False, showticklabels=False, range=[0, df_o["n"].max() * 1.25]),
                     yaxis=dict(tickfont_size=11), height=300,
                     margin=dict(l=10, r=20, t=40, b=10),
-                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                 )
                 c1, c2 = st.columns(2)
                 with c1: st.plotly_chart(fig1, use_container_width=True)
@@ -502,7 +502,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                 fig1.update_layout(
                     barmode="group", height=300,
                     margin=dict(l=10, r=10, t=10, b=10),
-                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font_size=11),
                     yaxis=dict(showgrid=False, showticklabels=False, range=[0, 120]),
                     xaxis=dict(tickfont_size=12),
@@ -524,7 +524,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                 fig2.update_layout(
                     height=320, showlegend=False,
                     margin=dict(l=10, r=10, t=10, b=10),
-                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                     yaxis=dict(title="MXN", gridcolor="#f0f0f0"),
                     xaxis=dict(tickfont_size=12),
                 )
@@ -552,7 +552,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                 fig3.update_layout(
                     height=280,
                     margin=dict(l=10, r=10, t=10, b=10),
-                    paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                    paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                     xaxis=dict(tickfont_size=12),
                     yaxis=dict(tickfont_size=12, autorange="reversed"),
                 )
@@ -613,7 +613,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                         title=dict(text="Traffic Index Distribution", font_size=14, x=0.5, xanchor="center"),
                         height=320, showlegend=False,
                         margin=dict(l=10, r=10, t=50, b=10),
-                        paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                         xaxis=dict(title="Traffic Index  (1.0 = 2 min/km baseline)", gridcolor="#f0f0f0"),
                         yaxis=dict(title="Offers", gridcolor="#f0f0f0"),
                     )
@@ -639,7 +639,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                         title=dict(text="Operational Conditions", font_size=14, x=0.5, xanchor="center"),
                         height=320, showlegend=False,
                         margin=dict(l=10, r=10, t=50, b=10),
-                        paper_bgcolor="white", plot_bgcolor="white", font_family="Inter",
+                        paper_bgcolor="#F5F6F7", plot_bgcolor="#F5F6F7", font_family="Inter",
                         yaxis=dict(showgrid=False, showticklabels=False, range=[0, max(sem_counts) * 1.3]),
                         xaxis=dict(tickfont_size=11),
                     )
@@ -996,8 +996,8 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
                 fig.update_layout(
                     height=520,
                     margin=dict(l=20, r=40, t=50, b=80),
-                    paper_bgcolor="white",
-                    plot_bgcolor="white",
+                    paper_bgcolor="#F5F6F7",
+                    plot_bgcolor="#F5F6F7",
                     hovermode="closest",
                     xaxis=dict(
                         categoryorder="array",
