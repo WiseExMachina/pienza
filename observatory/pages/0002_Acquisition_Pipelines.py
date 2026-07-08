@@ -65,6 +65,10 @@ st.markdown("""
 h2 { font-size: 22px !important; font-weight: 600 !important; letter-spacing: -0.5px; }
 h3 { font-size: 16px !important; font-weight: 600 !important; }
 p, li { color: #555; font-size: 0.9rem; line-height: 1.7; }
+/* The generic p rule above overrides the teal color the active st.tabs()
+   label normally inherits from its parent button (labels are <p> tags),
+   leaving the underline teal but the text gray - restore it here. */
+[data-baseweb="tab"][aria-selected="true"] p { color: #21918c !important; }
 
 .sim-wrapper { display: flex; justify-content: center; padding: 12px 0 20px; }
 .sim-device {
@@ -110,16 +114,26 @@ div.stButton > button, div[data-testid="stPopover"] > button {
     background-color: #f8f9fa; border: 1px solid #ddd;
     border-radius: 12px; padding: 15px; margin-top: 15px;
 }
-button[data-testid="baseButton-secondary"].nav-carousel {
-    border: 1.5px solid rgba(33,145,140,0.7) !important;
-    border-radius: 8px !important;
-    background: transparent !important;
+/* Prev/Next carousel arrows: st.button(key="nav_prev_*"/"nav_next_*") gets a
+   stable st-key-nav_prev_*/st-key-nav_next_* class on its wrapper div - the
+   old `.nav-carousel` class above was never actually attached to the button
+   DOM node by Streamlit, so that rule silently never applied. */
+div[class*="st-key-nav_prev_"] button, div[class*="st-key-nav_next_"] button {
+    border: 1.5px solid #21918c !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
     color: #21918c !important;
     font-size: 18px !important;
-    padding: 6px 20px !important;
+    font-weight: 700 !important;
+    padding: 10px !important;
 }
-button[data-testid="baseButton-secondary"].nav-carousel:hover {
-    background: rgba(33,145,140,0.12) !important;
+div[class*="st-key-nav_prev_"] button:hover, div[class*="st-key-nav_next_"] button:hover {
+    background: rgba(33,145,140,0.08) !important;
+}
+div[class*="st-key-nav_prev_"] button:disabled, div[class*="st-key-nav_next_"] button:disabled {
+    border-color: #d0d5dd !important;
+    color: #98a2b3 !important;
+    background: #ffffff !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -133,22 +147,41 @@ st.markdown("""
 <style>
 .fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; }
 .fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }
+.info-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 1px solid #21918c;
+    background: #ffffff;
+    color: #21918c;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 9px;
+    cursor: default;
+    transition: background 0.2s ease;
+    vertical-align: middle;
+    margin-left: 5px;
+}
+.info-mark:hover { background: #f0fafa; }
 </style>
-<p style='color:#555;font-size:0.9rem;line-height:1.7'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 To overcome the data sparsity inherent in third-party platform exports, the agent had to
 <em style='margin-left:4px;margin-right:4px;'>go get it</em> — and architected a proprietary,
 <strong>dual-engine acquisition ecosystem.</strong> This was executed over a strict 6-week
 observation window (August 22 – October 1, 2025), digitizing the agent's operational reality
-in real-time.<span class="fn-wrap fn-below"><span class="fn-mark">†</span><span class="fn-tooltip">The resulting dataset does not model the total ride-hailing universe of Mexico City — it is a strictly constrained mirror of the Agent's Operational Reality. The Agent never altered his heuristics to capture more data, so it reflects only his specific times and zones of operation.</span></span>
+in real-time.<span class="fn-wrap fn-below"><span class="info-mark">i</span><span class="fn-tooltip">The resulting dataset does not model the total ride-hailing universe of Mexico City — it is a strictly constrained mirror of the Agent's Operational Reality. The Agent never altered his heuristics to capture more data, so it reflects only his specific times and zones of operation.</span></span>
 </p>
 """, unsafe_allow_html=True)
 
 
-subtab2, subtab3 = st.tabs(["🎮 Engine 1: GTS Telemetry Emulator", "📷 Engine 2: Gemini OCR"])
+subtab2, subtab3 = st.tabs(["Engine 1: GTS Telemetry Emulator", "Engine 2: Gemini OCR"])
 
 with subtab2:
-    st.markdown("## Engine 1: GTS Telemetry Emulator")
-    st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>This module simulates the <strong>Engine 1</strong> mobile experience. It demonstrates the \"One-Touch\" state transitions and the logic used to calculate operational KPIs in the field. Press <strong>Start Session</strong> and walk through each event — the log and KPIs update in real time.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>This module simulates the <strong>Engine 1</strong> mobile experience. It demonstrates the \"One-Touch\" state transitions and the logic used to calculate operational KPIs in the field. Press <strong>Start Session</strong> and walk through each event — the log and KPIs update in real time.</p>", unsafe_allow_html=True)
 
     # ── SESSION STATE ────────────────────────────────────────────────────────
     if 'sim_active' not in st.session_state:
@@ -369,8 +402,8 @@ with subtab2:
         """, height=0)
 
     st.divider()
-    st.markdown("## Operational Resilience & Edge Case Notes")
-    st.markdown("""
+    with st.expander("Operational Resilience & Edge Cases"):
+        st.markdown("""
 <div class="story-section">
   <span class="story-pill">Stateful Persistence (v4.0)</span>
   <p>The GTS Webapp implements a <strong>Stateful LocalStorage Manager</strong> and an <strong>Offline-First Queue System</strong>. Every state transition is written to local storage before the network sync attempt — guaranteeing zero data loss during connectivity drops, tunnel blackouts, or app backgrounding mid-ride.</p>
@@ -405,13 +438,10 @@ with subtab2:
   <span class="story-pill">Temporal Fidelity</span>
   <p>The system captures natural "Idle Gaps" between T4 (Completion) and the subsequent T0 (New Search). If a chained offer was accepted, the next state after T4 would be T1 rather than T0 — the exact acceptance timestamp is lost in the main log but captured by the OCR Engine.</p>
 </div>
-    """, unsafe_allow_html=True)
-
-    st.caption("Simulator Version: GTS-4.0")
+        """, unsafe_allow_html=True)
 
 with subtab3:
-    st.markdown("## Engine 2: Gemini OCR Pipeline")
-    st.markdown("<p style='color:#555;font-size:0.9rem;line-height:1.7'>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>", unsafe_allow_html=True)
 
     # ── Offer data ─────────────────────────────────────────────
     OFFERS = [
@@ -659,7 +689,7 @@ font-size: 13px; font-weight: 700; color: #21918c;
 letter-spacing: 0.4px; margin-bottom: 4px; padding-top: 4px;
 }
 .step-desc {
-font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
+font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
 }
 .step-final .step-line { background: transparent; }
 </style>
@@ -675,23 +705,23 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
   </div>
   <div class="step-body">
 <div class="step-title">Raw Gemini Pro Vision Output</div>
-<div class="step-desc">Screenshots were batch-processed via the <strong style="color:#cbd5e1;">Google Gemini Pro Vision API</strong>. Despite rigorous prompt engineering, each batch produced slightly different formatting — making the normalization layer in Step 2 non-trivial.</div>
+<div class="step-desc">Screenshots were batch-processed via the <strong>Google Gemini Pro Vision API</strong>. Despite rigorous prompt engineering, each batch produced slightly different formatting — making the normalization layer in Step 2 non-trivial.</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
     import re as _re
 
     def _obf_fare(v):
-        """Replace upfront fare digits with ██ blocks."""
+        """Replace upfront fare digits with #### blocks."""
         if v is None:
             return v
-        return _re.sub(r'\d', '█', str(v))
+        return _re.sub(r'\d', '#', str(v))
 
     def _obf_address(v):
         """Mask street number (non-5-digit numbers) in address; preserve zip codes."""
         if v is None:
             return v
-        return _re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', '████', str(v), count=1)
+        return _re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', '####', str(v), count=1)
 
     def _obf_hash(v):
         """Truncate hash to 12 chars + ellipsis."""
@@ -708,7 +738,7 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
         dot = s.find(".")
         if dot == -1:
             return s
-        return s[:dot + 3] + "████"
+        return s[:dot + 3] + "####"
 
     _gap, _content = st.columns([1, 11])
     with _content:
@@ -739,7 +769,7 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
   </div>
   <div class="step-body">
 <div class="step-title">Canonical Offer Record</div>
-<div class="step-desc">The cleaned record as it lives in <code style="color:#94a3b8;">pienza.db</code> — raw strings cast to typed fields, currency symbols stripped, incentive flags parsed. Denormalized here for explainability; in the actual database it is normalized across lookup tables. Coordinates resolved via the <strong style="color:#cbd5e1;">Google Maps Geocoding API</strong>.</div>
+<div class="step-desc">The cleaned record as it lives in <code>pienza.db</code> — raw strings cast to typed fields, currency symbols stripped, incentive flags parsed. Denormalized here for explainability; in the actual database it is normalized across lookup tables. Coordinates resolved via the <strong>Google Maps Geocoding API</strong>.</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -795,22 +825,15 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
             display_df = pd.DataFrame([dtypes_row, values_row], index=["dtype", "value"])
             st.dataframe(display_df, use_container_width=True)
 
-            st.markdown("""
-<div style="border-left:4px solid #21918c;background:rgba(33,145,140,0.07);
-        border-radius:0 10px 10px 0;padding:14px 18px;margin-top:20px;
-        display:flex;gap:14px;align-items:flex-start;">
-  <span style="font-size:22px;line-height:1;">💡</span>
-  <div>
-<div style="font-size:11px;font-weight:700;color:#21918c;letter-spacing:1px;
-            text-transform:uppercase;margin-bottom:4px;">Did You Know?</div>
-<div style="font-size:13px;color:#334155;line-height:1.7;">
-  The OCR pipeline initially extracted only an <strong>HH:MM string</strong>, making offer deduplication impossible.
-  Second-level granularity was achieved via a Python script that extracted standard <strong>EXIF metadata</strong>
-  from the screenshots, enabling unique <strong>SHA-256 fingerprinting</strong> and downstream velocity-based features.
-</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+            with st.expander("💡 Did You Know?"):
+                st.markdown(
+                    "<div style='font-size:13px;color:#334155;line-height:1.7;'>"
+                    "The OCR pipeline initially extracted only an <strong>HH:MM string</strong>, making offer deduplication impossible. "
+                    "Second-level granularity was achieved via a Python script that extracted standard <strong>EXIF metadata</strong> "
+                    "from the screenshots, enabling unique <strong>SHA-256 fingerprinting</strong> and downstream velocity-based features."
+                    "</div>",
+                    unsafe_allow_html=True,
+                )
         else:
             st.warning(f"No canonical offer record found for `{curr_filename}`")
         _nav_buttons("s2")
@@ -861,11 +884,11 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
     st.markdown("""
 <div class="step-row step-final">
   <div class="step-spine">
-<div class="step-circle" style="background:#0e7490;">↓</div>
+<div class="step-circle" style="background:#21918c;">↓</div>
 <div class="step-line" style="background:transparent;"></div>
   </div>
   <div class="step-body">
-<div class="step-title" style="color:#0e7490;">Dropoff Field — End-to-End Transformation</div>
+<div class="step-title" style="color:#21918c;">Dropoff Field — End-to-End Transformation</div>
 <div class="step-desc">How a single dropoff field evolves from raw OCR string to geo-semantic zone.</div>
   </div>
 </div>
@@ -918,23 +941,4 @@ font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;
 </table>
 """, unsafe_allow_html=True)
         _nav_buttons("s4")
-
-    # ── Alternative UI mockups ────────────────────────────────────
-    st.markdown("---")
-    st.markdown("""
-<div style="background:rgba(33,145,140,0.07);border-left:4px solid #21918c;border-radius:0 10px 10px 0;
-        padding:16px 20px;margin-top:24px;">
-  <div style="font-size:12px;font-weight:700;color:#21918c;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">
-Alternative UI/UX Explorations
-  </div>
-  <div style="font-size:13px;color:#334155;line-height:1.8;">
-<strong style="color:#21918c;">A — Split-screen sticky:</strong> Phone carousel fixed left, Steps 1→2→3 scroll right. Magazine feel.<br>
-<strong style="color:#21918c;">B — Dashboard grid:</strong> Everything at once: phone (top-left), JSON (top-right), offers (bottom-left), zones (bottom-right). Data-dense.<br>
-<strong style="color:#21918c;">C — Horizontal pipeline:</strong> Steps left-to-right with → connectors. Filmstrip top, columns sync. Pipeline-diagram feel.<br>
-<strong style="color:#21918c;">D — Accordion / reveal:</strong> Collapsed steps, expand per step. Phone always visible top. Minimal focus-mode.<br>
-<br>
-<em style="color:#64748b;">👉 Starting with C: Horizontal Pipeline</em>
-  </div>
-</div>
-""", unsafe_allow_html=True)
 
