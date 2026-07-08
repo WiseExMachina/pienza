@@ -624,9 +624,6 @@ The market is deeply heterogeneous — both across sessions and within them. Sel
             unsafe_allow_html=True,
         )
 
-        with st.expander("View SQL"):
-            st.code(query_moneymap, language="sql")
-
         fig_money = go.Figure()
         _sizeref = 2.0 * session_stats['total_potential'].max() / (70.**2)
         for quad in ['Rich / Fast', 'Rich / Slow', 'Poor / Fast', 'Poor / Slow']:
@@ -778,9 +775,6 @@ With the market quadrants established, rational search time boundaries can now b
             "</p>",
             unsafe_allow_html=True,
         )
-
-        with st.expander("View SQL"):
-            st.code(query_ven, language="sql")
 
         TARGET_EPH = st.select_slider(
             "Target Premium Yield ($/hr)",

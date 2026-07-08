@@ -257,9 +257,6 @@ Longitudinal analysis shows the platform enforces a structural haircut. Across 2
     WHERE v.realized_fare IS NOT NULL
     """
 
-    with st.expander("View SQL"):
-        st.code(query_phase1, language="sql")
-
     # --- 1. DATA INGESTION ---
     @st.cache_data
     def get_stability_data():
@@ -422,9 +419,6 @@ The visual evidence reveals that the model is precise for low-value trips, but e
     WHERE v.realized_fare IS NOT NULL AND o.upfront_fare IS NOT NULL
     """
 
-    with st.expander("View SQL"):
-        st.code(query_phase2, language="sql")
-
     # --- 1. DATA INGESTION ---
     @st.cache_data
     def get_risk_data():
@@ -545,8 +539,6 @@ Pure financial prediction is insufficient. By cross-referencing estimated and re
     AND o.est_trip_time_sec > 0
     """
 
-    with st.expander("View SQL"):
-        st.code(query_reality_check, language="sql")
 
     # --- 1. DATA INGESTION (BigQuery) ---
     @st.cache_data
@@ -655,8 +647,6 @@ To visualize the buffer in action, the relationship between temporal variance an
     AND v.realized_fare IS NOT NULL
     """
 
-    with st.expander("View SQL"):
-        st.code(query_fraud_prevention, language="sql")
 
     # --- 1. DATA INGESTION ---
     @st.cache_data

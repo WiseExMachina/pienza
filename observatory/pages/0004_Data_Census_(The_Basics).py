@@ -236,9 +236,6 @@ selected = st.pills("", list(QUERIES.keys()), default=list(QUERIES.keys())[0],
 active_pill = selected or list(QUERIES.keys())[0]
 active_sql  = QUERIES[active_pill]
 
-with st.expander("View SQL", expanded=False):
-    st.code(active_sql, language="sql")
-
 if not _bq_ok:
     st.error("BigQuery not connected.")
 else:
