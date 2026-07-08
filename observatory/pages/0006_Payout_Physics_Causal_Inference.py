@@ -40,7 +40,7 @@ st.markdown("""<style>
 </style>""", unsafe_allow_html=True)
 
 def teal_callout(text: str, mb: str = "24px") -> str:
-    return f"""<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;padding:14px 18px;font-size:0.88rem;color:#334155;line-height:1.7;max-width:860px;margin-bottom:{mb};'>{text}</div>"""
+    return f"""<div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;padding:14px 18px;font-size:0.88rem;color:#334155;line-height:1.7;margin-bottom:{mb};'>{text}</div>"""
 
 # ─────────────────────────────────────────────
 # SIDEBAR
@@ -83,7 +83,7 @@ build_sidebar()
 # CONSTANTS
 # ==============================================================================
 OPUS_TEAL = '#21918c'
-OPUS_GREY = '#FAFAFA'
+OPUS_GREY = '#F5F6F7'
 OPUS_TEXT = '#121212'
 
 # ==============================================================================
@@ -113,11 +113,11 @@ def map_category(cat_name):
 
 
 st.markdown("""
-<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 Rational search boundaries are only meaningful if the underlying payout structure is stable.
 This section validates that foundation — formally testing the Payout Spread hypothesis across
 the full mission cohort, retroactively confirming the assumptions the model was built on.
-</div>
+</p>
 """, unsafe_allow_html=True)
 
 top_tab1, top_tab2 = st.tabs(["Analysis", "Interactive Inference Tool"])
@@ -237,9 +237,9 @@ setTimeout(function() {
 # ==============================================================================
 with tab1:
     st.markdown("""
-<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:20px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 Longitudinal analysis shows the platform enforces a structural haircut. Across 249 completed missions, the payout never drifts far from <strong style='color:#0f172a;'>0.84</strong> — individual yields scatter, but the 5-mission moving average stays anchored. The system isn't noisy; it's calibrated.
-</div>
+</p>
 """, unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL ---
@@ -335,7 +335,7 @@ Longitudinal analysis shows the platform enforces a structural haircut. Across 2
         yaxis=dict(range=[0.6, 1.3], gridcolor='lightgrey', zeroline=False),
         xaxis=dict(gridcolor='lightgrey'),
         margin=dict(l=60, r=20, t=40, b=50),
-        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.01, bgcolor="white", bordercolor="#cccccc", borderwidth=1)
+        legend=dict(yanchor="top", y=0.98, xanchor="left", x=0.01, bgcolor="#F5F6F7", bordercolor="#cccccc", borderwidth=1)
     )
 
     st.plotly_chart(fig1, use_container_width=True)
@@ -371,9 +371,9 @@ with tab3:
 
     # ── POLISHED TOP ────────────────────────────────────────────────────────────
     st.markdown("""
-<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 A baseline Ordinary Least Squares (OLS) model was architected to quantify the structural relationship between the quoted fare and operational reality. The estimated regression equation is defined as:
-</div>
+</p>
 """, unsafe_allow_html=True)
 
     st.latex(r"\widehat{\text{realized\_fare}} = 6.31 + 0.79 \cdot \text{upfront\_fare}")
@@ -401,9 +401,9 @@ A baseline Ordinary Least Squares (OLS) model was architected to quantify the st
 
     st.markdown("""<div style='font-size:1.4rem;color:#21918c;font-weight:700;margin:20px 0 4px 0;text-align:center;'>↓</div>""", unsafe_allow_html=True)
 
-    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+    st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 The visual evidence reveals that the model is precise for low-value trips, but error variance fans out significantly as the quoted fare rises, thus confirming heteroscedasticity in the OLS residuals.
-</div>""", unsafe_allow_html=True)
+</p>""", unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL ---
     query_phase2 = """
@@ -504,7 +504,7 @@ The visual evidence reveals that the model is precise for low-value trips, but e
         legend=dict(
             yanchor="top", y=0.98, 
             xanchor="left", x=0.01,
-            bgcolor="white", bordercolor="#cccccc", borderwidth=1,
+            bgcolor="#F5F6F7", bordercolor="#cccccc", borderwidth=1,
             font=dict(size=11)
         )
     )
@@ -522,9 +522,9 @@ The visual evidence reveals that the model is precise for low-value trips, but e
 import plotly.express as px
 
 with tab4:
-    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+    st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 Pure financial prediction is insufficient. By cross-referencing estimated and realized fares against actual trip durations, this matrix exposes a Hierarchy of Predictability, revealing exactly how the algorithm weighs time against money.
-</div>""", unsafe_allow_html=True)
+</p>""", unsafe_allow_html=True)
 
     # --- THE "0 BS" SQL REVEAL ---
     query_reality_check = """
@@ -626,9 +626,9 @@ Pure financial prediction is insufficient. By cross-referencing estimated and re
 with tab5:
 
     # --- CAUSAL INFERENCE CONTEXT (INTRO) ---
-    st.markdown("""<div style=’font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;’>
+    st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 To visualize the buffer in action, the relationship between temporal variance and financial outcome was modeled using a LOWESS regression.
-</div>""", unsafe_allow_html=True)
+</p>""", unsafe_allow_html=True)
 
     st.markdown("<div style='margin-bottom:16px;'></div>", unsafe_allow_html=True)
 
@@ -759,15 +759,15 @@ import statsmodels.formula.api as smf
 import numpy as np
 with tab6:
 
-    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:16px;'>
+    st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 To provide a precise mathematical anchor for the observed response curve, a quadratic polynomial regression was fitted to the dataset. The estimated equation is defined as:
-</div>""", unsafe_allow_html=True)
+</p>""", unsafe_allow_html=True)
 
     st.latex(r"\widehat{Yield} = 0.9915 - 0.3645(\Delta T) + 0.1945(\Delta T^2)")
 
-    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin:16px 0;'>
+    st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 Where ΔT represents the Temporal Variance (Actual/Estimated Time). The model is statistically robust (F-statistic: 46.80, p = 8.22 × 10⁻¹⁸), confirming the non-linear architecture is a structural property of the system.
-</div>""", unsafe_allow_html=True)
+</p>""", unsafe_allow_html=True)
 
     # --- THE "0 BS" MATH REVEAL ---
     math_logic = """
@@ -854,7 +854,7 @@ Where ΔT represents the Temporal Variance (Actual/Estimated Time). The model is
         legend=dict(
             yanchor="top", y=0.98,
             xanchor="left", x=0.01,
-            bgcolor="white", bordercolor="#cccccc", borderwidth=1,
+            bgcolor="#F5F6F7", bordercolor="#cccccc", borderwidth=1,
             font=dict(size=11)
         )
     )
@@ -872,9 +872,9 @@ Where ΔT represents the Temporal Variance (Actual/Estimated Time). The model is
 # TAB 2: EXECUTIVE SANDBOX
 # ==============================================================================
 with top_tab2:
-    st.markdown("""<div style='font-size:0.95rem;color:#475569;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+    st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 See the fitted polynomial model in action. Adjust the upfront fare and time spread to observe how the estimated payout yield deviates from the structural baseline.
-</div>""", unsafe_allow_html=True)
+</p>""", unsafe_allow_html=True)
 
     st.markdown("<div style='margin-top:32px;'></div>", unsafe_allow_html=True)
     st.markdown(r"""
