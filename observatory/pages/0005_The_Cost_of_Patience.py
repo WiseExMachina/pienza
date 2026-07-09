@@ -26,12 +26,6 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # SIDEBAR
 # ─────────────────────────────────────────────
 @st.cache_data
-def _load_report_pdf_b64():
-    pdf_bytes = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
-    return base64.b64encode(pdf_bytes).decode()
-
-
-@st.cache_data
 def _load_favicon_b64():
     favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
     return base64.b64encode(favicon_bytes).decode()
@@ -62,14 +56,10 @@ def build_sidebar():
 
         with st.container(key="sb-footer"):
             st.markdown("---")
-            try:
-                pdf_b64 = _load_report_pdf_b64()
-                pdf_link = (
-                    f"<a href='data:application/pdf;base64,{pdf_b64}' "
-                    "download='Project_Pienza_Full_Report.pdf' class='sb-pdf-link'>Download PDF</a>"
-                )
-            except Exception:
-                pdf_link = "Download PDF"
+            pdf_link = (
+                "<a href='app/static/Pienza_Papers.pdf' target='_blank' "
+                "class='sb-pdf-link'>Download PDF</a>"
+            )
 
             st.markdown(
                 "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"

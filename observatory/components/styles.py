@@ -63,14 +63,6 @@ h4 {
     gap: 0px !important;
 }
 
-/* Hotfix: push the footer block (meta line / PDF button / GitHub link)
-   further down with fixed spacing instead of true bottom-anchoring
-   (flex-based anchoring didn't take effect through Streamlit's nested
-   wrapper divs). Not a real anchor - just visual breathing room after
-   the last nav module. */
-[data-testid="stSidebar"] .st-key-sb-footer {
-    margin-top: 500px;
-}
 
 /* Brand header */
 .sb-brand {
@@ -111,7 +103,7 @@ h4 {
     color: #7a7d87 !important;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    margin: 14px 0 15px 4px !important;
+    margin: 14px 0 20px 4px !important;
 }
 
 /* Nav links */
