@@ -554,26 +554,39 @@ def _p1_body():
 
         st.markdown(_step_css, unsafe_allow_html=True)
         st.markdown("""<style>
-    .st-key-arch_random_wrap { display:flex !important; justify-content:center !important; }
+    .st-key-arch_random_wrap { display:flex !important; justify-content:center !important; flex:0 0 auto !important; }
     .st-key-arch_random_wrap button {
         background:rgba(33,145,140,0.07) !important;color:#21918c !important;
         border:1.3px solid #21918c !important;
         border-radius:999px !important;padding:0.45rem 1.2rem !important;
         font-weight:700 !important;font-size:0.78rem !important;letter-spacing:0.4px !important;
+        white-space:nowrap !important;flex-shrink:0 !important;
+        width:max-content !important;min-width:max-content !important;
         transition:background 0.15s ease, transform 0.15s ease !important;
     }
+    .st-key-arch_random_wrap button p { white-space:nowrap !important; }
+    .st-key-arch_random_wrap [data-testid="stElementContainer"] { width:max-content !important; }
     .st-key-arch_random_wrap button:hover { background:rgba(33,145,140,0.14) !important; transform:translateY(-1px); }
     .st-key-arch_random_wrap button p { color:#21918c !important; }
+    .st-key-arch_nav_row,
+    .st-key-arch_nav_row > div,
     .st-key-arch_nav_row > div[data-testid="stVerticalBlock"],
     .st-key-arch_nav_row [data-testid="stVerticalBlock"] {
         display:flex !important; flex-direction:row !important;
-        justify-content:center !important; gap:12px !important;
+        flex-wrap:nowrap !important;
+        justify-content:flex-end !important; gap:12px !important;
         align-items:center !important;
     }
+    .st-key-arch_back_wrap, .st-key-arch_fwd_wrap { flex:0 0 auto !important; }
     .st-key-arch_back_wrap button, .st-key-arch_fwd_wrap button {
         background:#fff !important;color:#21918c !important;
         border:1.3px solid #21918c !important;border-radius:50% !important;
-        width:29px !important;height:29px !important;min-width:29px !important;
+        box-sizing:border-box !important;aspect-ratio:1/1 !important;
+        width:38px !important;height:38px !important;
+        min-width:38px !important;max-width:38px !important;
+        min-height:38px !important;max-height:38px !important;
+        flex-shrink:0 !important;
+        flex-shrink:0 !important;line-height:1 !important;
         padding:0 !important;font-weight:700 !important;font-size:0.8rem !important;
         display:flex !important;align-items:center !important;justify-content:center !important;
         margin:0 auto !important;transition:background 0.15s ease, transform 0.15s ease !important;
@@ -586,18 +599,16 @@ def _p1_body():
     .st-key-arch_back_wrap button:disabled p, .st-key-arch_fwd_wrap button:disabled p { color:#bbb !important; }
     </style>""", unsafe_allow_html=True)
 
+        _can_back = len(st.session_state['arch_history']) > 0
+        _can_fwd  = len(st.session_state['arch_future']) > 0
         _, _nav_outer = st.columns([1, 1])
         with _nav_outer:
-            _can_back = len(st.session_state['arch_history']) > 0
-            _can_fwd  = len(st.session_state['arch_future']) > 0
-            _cb, _cc, _cf = st.columns([0.3, 2, 0.3])
-            with _cb:
+            with st.container(key='arch_nav_row'):
                 with st.container(key='arch_back_wrap'):
                     if st.button('←', key='arch_back', disabled=not _can_back):
                         st.session_state['arch_future'].append(st.session_state['arch_ex'])
                         st.session_state['arch_ex'] = st.session_state['arch_history'].pop()
                         st.rerun(scope="fragment")
-            with _cc:
                 with st.container(key='arch_random_wrap'):
                     if st.button('Generate Random Sample', key='arch_random'):
                         addr, real_zone = _fetch_random_address()
@@ -606,7 +617,6 @@ def _p1_body():
                             st.session_state['arch_future'] = []
                             st.session_state['arch_ex'] = _build_ex_from_address(addr, real_zone)
                             st.rerun(scope="fragment")
-            with _cf:
                 with st.container(key='arch_fwd_wrap'):
                     if st.button('→', key='arch_fwd', disabled=not _can_fwd):
                         st.session_state['arch_history'].append(st.session_state['arch_ex'])
