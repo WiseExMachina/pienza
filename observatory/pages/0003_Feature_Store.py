@@ -669,10 +669,21 @@ with pb_tab:
                 ORDER BY session_start
             """)
 
+        # Batched once for all curated sessions (_VISIBLE_SIDS below), instead
+        # of a separate live BQ query per session selected — a per-sid WHERE
+        # clause changes the SQL string (and therefore the @st.cache_data
+        # key) on every dropdown change, firing a fresh query for every
+        # session not yet visited this run. Measured 2026-07-09: batching
+        # all 8 up front costs the same as fetching just 1 (BQ latency here
+        # is dominated by fixed per-query overhead, not row count), so this
+        # is a pure win with no downside for the "pick one session, stay
+        # there a while" usage pattern.
         @st.cache_data(ttl=3600)
-        def _pb_offers(sid):
+        def _pb_offers_all(sids_tuple):
+            sid_list = ", ".join(f"'{s}'" for s in sids_tuple)
             return fetch_data_from_bq(f"""
                 SELECT
+                    ml.session_fk,
                     ml.offer_timestamp, ml.upfront_fare,
                     ml.est_trip_time_sec, ml.est_trip_dist_km,
                     ml.time_to_pickup_sec, ml.dist_to_pickup_km,
@@ -700,9 +711,13 @@ with pb_tab:
                        ON rp.reason_primary_id = ml.reason_primary_fk
                 LEFT JOIN `645009831643.pienza_mini.driver_state_at_request` ds
                        ON ds.driver_state_at_request_id = ml.driver_state_at_request_fk
-                WHERE ml.session_fk = '{sid}'
-                ORDER BY ml.offer_timestamp
+                WHERE ml.session_fk IN ({sid_list})
+                ORDER BY ml.session_fk, ml.offer_timestamp
             """)
+
+        def _pb_offers(sid):
+            df_all = _pb_offers_all(tuple(sorted(_VISIBLE_SIDS)))
+            return df_all[df_all["session_fk"] == sid].drop(columns=["session_fk"]).reset_index(drop=True)
 
         # ── Session state init ──
         for _k, _v in [("pb_sid", None), ("pb_df", None), ("pb_idx", 0)]:
