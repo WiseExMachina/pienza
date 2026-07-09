@@ -31,10 +31,10 @@ h4 {
 }
 
 [data-testid="stSidebar"] [data-testid="stPageLink-NavLink"] p {
-    font-size: 12px !important;
+    font-size: 11.8px !important;
 }
 
-/* Sidebar canon (2026-07-07) */
+/* Sidebar canon (2026-07-09 teal redesign) */
 [data-testid="stSidebar"] {
     background-color: #ECECEE !important;
     border-right: 1px solid #eaeaea;
@@ -48,26 +48,129 @@ h4 {
 [data-testid="stSidebar"] hr {
     border-top: 1px solid rgba(0,0,0,0.12) !important;
 }
-[data-testid="stSidebar"] .stVerticalBlock {
-    gap: 4px !important;
+
+/* Streamlit's own page-link element-containers ship with a built-in
+   -6px/-6px margin (a tightening hack Streamlit applies internally),
+   which fights any flex `gap` smaller than 12px on the parent
+   stVerticalBlock (net negative = overlapping teal active/hover boxes).
+   We neutralize that built-in margin on page-link containers specifically
+   so `gap` alone controls spacing and can go tighter than 12px. */
+[data-testid="stSidebar"] .stElementContainer:has(> .stPageLink) {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
+[data-testid="stSidebar"] .stVerticalBlock {
+    gap: 0px !important;
+}
+
+/* Brand header */
+.sb-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 2px 50px 2px;
+}
+.sb-brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(33,145,140,0.12);
+    flex-shrink: 0;
+}
+.sb-brand-text-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #121212 !important;
+    letter-spacing: -0.2px;
+    line-height: 1.15;
+}
+.sb-brand-text-sub {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #21918c !important;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+/* Section labels (e.g. "MODULES", "ARCHIVE") */
+.sb-section-label {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    color: #7a7d87 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 14px 0 15px 4px !important;
+}
+
+/* Nav links */
 [data-testid="stSidebar"] .stPageLink a {
     text-decoration: none !important;
-    padding: 6px 8px !important;
-    border-radius: 4px !important;
-    transition: background-color 0.15s ease;
+    padding: 3px 8px 3px 4px !important;
+    border-radius: 8px !important;
+    border-left: 3px solid transparent !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 [data-testid="stSidebar"] .stPageLink a:hover {
-    background-color: #f0f0f1 !important;
+    background-color: rgba(33,145,140,0.10) !important;
 }
 [data-testid="stSidebar"] .stPageLink a[aria-current="page"] {
-    background-color: #d9d9dc !important;
+    background-color: rgba(33,145,140,0.14) !important;
+    border-left: 3px solid #21918c !important;
 }
+[data-testid="stSidebar"] .stPageLink a[aria-current="page"] p {
+    font-weight: 700 !important;
+    color: #146560 !important;
+}
+[data-testid="stSidebar"] .stPageLink svg {
+    color: #21918c !important;
+}
+
+/* Archive expander */
+[data-testid="stSidebar"] [data-testid="stExpander"] {
+    border: none !important;
+    background: transparent !important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary {
+    padding: 4px !important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary p {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    color: #7a7d87 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+[data-testid="stSidebar"] [data-testid="stExpanderDetails"] {
+    padding: 2px 0 0 0 !important;
+}
+
+/* Sidebar footer buttons (PDF / Flush Cache) - teal-outlined, matches nav-card style */
+[data-testid="stSidebar"] .stButton button,
 [data-testid="stSidebar"] .stDownloadButton button {
     background-color: #ffffff !important;
-    border: 1px solid rgba(49,51,63,0.2) !important;
-    color: #31333F !important;
+    border: 1px solid #21918c !important;
+    color: #21918c !important;
+    font-weight: 600 !important;
+    font-size: 0.78rem !important;
+    border-radius: 8px !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
+[data-testid="stSidebar"] .stButton button:hover,
+[data-testid="stSidebar"] .stDownloadButton button:hover {
+    background-color: #21918c !important;
+    color: #ffffff !important;
+    border-color: #21918c !important;
+}
+
+.sb-meta-line {
+    font-size: 0.75rem !important;
+    color: #555 !important;
+    line-height: 1.6;
+}
+.sb-meta-line b { color: #31333F !important; }
 
 .block-container { padding-top: 2rem; }
 
