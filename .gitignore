@@ -5,7 +5,8 @@
 *.env
 service-account.json
 **/service-account.json
-.streamlit/
+**/.streamlit/*
+!**/.streamlit/config.toml
 /secrets/
 
 # ==========================================
