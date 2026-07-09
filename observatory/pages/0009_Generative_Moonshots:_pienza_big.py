@@ -71,9 +71,9 @@ st.markdown("""
 st.markdown("""
 <div style="max-width:1100px; margin:0 auto; padding:16px 0 60px; font-family:'Inter',sans-serif; color:#121212;">
 
-<h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 20px; color:#121212; white-space:nowrap;">GENERATIVE MOONSHOTS</h1>
+<h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 20px; color:#121212; white-space:nowrap;">Generative Moonshots</h1>
 
-<div style="font-size:0.95rem; color:#64748b; line-height:1.7; max-width:820px; margin-bottom:36px;">This final phase constitutes an experimental transition to scale the project from cloning the human agent to simulating the entire environment. Achieved via a cGAN engine and network graph analysis, this synthesis establishes the scaffolding necessary for autonomous execution using Markov Decision Processes and Reinforcement Learning.</div>
+<p style="font-size:14px; font-weight:400; color:#475569; line-height:1.7; margin-bottom:24px;">This final phase constitutes an experimental transition to scale the project from cloning the human agent to simulating the entire environment. Achieved via a cGAN engine and network graph analysis, this synthesis establishes the scaffolding necessary for autonomous execution using Markov Decision Processes and Reinforcement Learning.</p>
 
 <!-- SECTION LABEL -->
 <div style="margin-bottom:10px;">
@@ -203,9 +203,9 @@ st.markdown("""
 </div>
 
 <!-- ============ CLOSING LINE ============ -->
-<div style="font-size:0.9rem; color:#64748b; line-height:1.7; max-width:760px; text-align:center; margin:0 auto;">
+<p style="font-size:14px; font-weight:400; color:#475569; line-height:1.7; text-align:center; margin-bottom:24px;">
 Point the trained Generator at any hour &middot; zone &middot; product combination and it hallucinates fare, timing and distance that pass the Discriminator's scrutiny &mdash; that's the engine behind the <b style="color:#121212;">1,010,001-row</b> synthetic manifold.
-</div>
+</p>
 
 <!-- ============ CLOUD MIGRATION ============ -->
 <div style="margin-top:64px;">
@@ -457,7 +457,7 @@ with _block2:
         "<div style='position:relative; height:30px;'>"
         "<div style='position:absolute; left:50%; top:30px; transform:translateX(90px); z-index:50;'>"
         "<span class='fn-wrap'>"
-        "<span class='fn-mark'>&#9432;</span>"
+        "<span class='info-mark'>i</span>"
         "<span class='fn-tooltip' style='width:300px;font-size:0.72rem;line-height:1.5;text-align:left;'>"
         "<b>Z&times;Z</b> &mdash; Spatial Axis: 72&times;72 origin-destination matrix of directed internal mission vectors.<br>"
         "<b>H&times;D</b> &mdash; Temporal Axis: 18 hourly blocks over a 7-day cycle.<br>"
@@ -508,7 +508,7 @@ with _block3:
         "<div style='position:relative; height:30px;'>"
         "<div style='position:absolute; left:50%; top:30px; transform:translateX(150px); z-index:50;'>"
         "<span class='fn-wrap'>"
-        "<span class='fn-mark'>&#9432;</span>"
+        "<span class='info-mark'>i</span>"
         "<span class='fn-tooltip' style='width:300px;font-size:0.72rem;line-height:1.5;text-align:left;'>"
         "<b>P(s,j)</b> &mdash; Transition Matrix: empirical probability a mission from zone s ends in zone j.<br>"
         "<b>R(s,j)</b> &mdash; Reward Matrix: weighted-average EPH for that s&rarr;j trip.<br>"

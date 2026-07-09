@@ -80,12 +80,13 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown("# miniBabel: Custom NLP Transformer")
 st.markdown(f"<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>A Real-Time Spatial Classifier — CDMX Address → Geographic Zone</h4>", unsafe_allow_html=True)
 st.markdown("""
-<div style='font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin-bottom:24px;'>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:16px;'>
 While the geocoding pipeline used during the Unsupervised Phase works for offline research, it is too fragile for real-time production.
 Relying on live external APIs while on the road is computationally expensive, introduces latency, and creates a critical point of failure.
-<br><br>
+</p>
+<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 What if geocoding could be bypassed entirely? Using a baseline of 4,000+ historically verified addresses, the routing problem was reframed as a direct Natural Language Processing task.
-</div>
+</p>
 """, unsafe_allow_html=True)
 
 # ==========================================
@@ -242,9 +243,9 @@ _p1_tab, _p2_tab, _p3_tab = st.tabs(["Custom miniBabel", "Model Audit", "Latency
 with _p1_tab:
     st.markdown("""
 <!-- P1: INTRO -->
-<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">miniBabel</b> is a custom, lightweight Transformer that learns the linguistic DNA of raw addresses to map them directly into operational zones. By eliminating third-party APIs, it is optimized for fast, reliable local inference with zero network round-trip.
-</div>
+<p style="font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin:24px 0 20px;">
+<b style="color:#121212;font-weight:600;font-size:14px;">miniBabel</b> is a custom, lightweight Transformer that learns the linguistic DNA of raw addresses to map them directly into operational zones. By eliminating third-party APIs, it is optimized for fast, reliable local inference with zero network round-trip.
+</p>
 
 <!-- P1: STAT GRID -->
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:28px 0 8px;">
@@ -493,7 +494,7 @@ with _p1_tab:
         f'<div style="margin-top:40px;">'
         f'<div style="font-size:0.95rem;font-weight:700;color:#94a3b8;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;"><span style="text-transform:none;">miniBabel</span> vs. BETO</div>'
         f'<div style="height:1px;background:linear-gradient(to right,rgba(33,145,140,0.3),transparent);margin-bottom:20px;"></div>'
-        f'<div style="font-size:13.5px;color:#555;line-height:1.65;margin-bottom:20px;">Both models share the same dual-pooling classification head and achieve near-identical accuracy. The difference is everything else: BETO arrives pre-trained on the entire Spanish internet; miniBabel was built from scratch on 3,389 CDMX ride-offer records.</div>'
+        f'<p style="font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;">Both models share the same dual-pooling classification head and achieve near-identical accuracy. The difference is everything else: BETO arrives pre-trained on the entire Spanish internet; miniBabel was built from scratch on 3,389 CDMX ride-offer records.</p>'
         f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">'
 
         f'<div style="background:#fff;border:2px solid {_A};border-radius:12px;padding:22px 24px;box-shadow:0 4px 6px rgba(0,0,0,0.02);">'
@@ -600,9 +601,9 @@ with _p1_tab:
 
 with _p2_tab:
     st.markdown("""
-<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 20px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">Model Audit</b> surfaces real predictions from the 678-record holdout set used throughout this page, split into hits and misses — so the model's failure modes are visible. Hover a row to highlight its zone(s) on the map, and use Shuffle to sample a different set of records.
-</div>
+<p style="font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin:24px 0 20px;">
+<b style="color:#121212;font-weight:600;font-size:14px;">Model Audit</b> surfaces real predictions from the 678-record holdout set used throughout this page, split into hits and misses — so the model's failure modes are visible. Hover a row to highlight its zone(s) on the map, and use Shuffle to sample a different set of records.
+</p>
 """, unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
@@ -677,9 +678,9 @@ with _p2_tab:
 
 with _p3_tab:
     st.markdown("""
-<div style="font-size:0.95rem;color:#64748b;line-height:1.7;max-width:860px;margin:24px 0 4px;">
-<b style="color:#121212;font-weight:600;font-size:0.95rem;">Latency Test</b> races the Google Maps Geocoding API against miniBabel's local inference on a single, freshly sampled holdout address — same model, same ground truth, live.<span class="fn-wrap" style="margin-left:6px;"><span class="fn-mark">&#9432;</span><span class="fn-tooltip" style="width:320px;">Here, 'local' means miniBabel runs directly within this app's process, bypassing the network delays of external APIs. It demonstrates how this lightweight model is ready for edge deployment, where speed depends entirely on compute rather than network round-trips.</span></span>
-</div>
+<p style="font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin:24px 0 4px;">
+<b style="color:#121212;font-weight:600;font-size:14px;">Latency Test</b> races the Google Maps Geocoding API against miniBabel's local inference on a single, freshly sampled holdout address — same model, same ground truth, live.<span class="fn-wrap" style="margin-left:6px;"><span class="info-mark">i</span><span class="fn-tooltip" style="width:320px;">Here, 'local' means miniBabel runs directly within this app's process, bypassing the network delays of external APIs. It demonstrates how this lightweight model is ready for edge deployment, where speed depends entirely on compute rather than network round-trips.</span></span>
+</p>
 """, unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)

@@ -411,7 +411,7 @@ with subtab2:
 
 <div class="story-section">
   <span class="story-pill">Asynchronous Geospatial Enrichment</span>
-  <p>A client-side pipeline orchestrates the <code>navigator.geolocation</code> API with reverse-geocoding services. Every T0–T4 event is enriched with high-precision coordinates and a human-readable address string <em>prior</em> to persistence — decoupling location capture from UI interaction to avoid blocking the driver's workflow.</p>
+  <p>A client-side pipeline orchestrates the <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">navigator.geolocation</code> API with reverse-geocoding services. Every T0–T4 event is enriched with high-precision coordinates and a human-readable address string <em>prior</em> to persistence — decoupling location capture from UI interaction to avoid blocking the driver's workflow.</p>
 </div>
 
 <div class="story-section">
@@ -769,7 +769,7 @@ font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
   </div>
   <div class="step-body">
 <div class="step-title">Canonical Offer Record</div>
-<div class="step-desc">The cleaned record as it lives in <code>pienza.db</code> — raw strings cast to typed fields, currency symbols stripped, incentive flags parsed. Denormalized here for explainability; in the actual database it is normalized across lookup tables. Coordinates resolved via the <strong>Google Maps Geocoding API</strong>.</div>
+<div class="step-desc">The cleaned record as it lives in <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">pienza.db</code> — raw strings cast to typed fields, currency symbols stripped, incentive flags parsed. Denormalized here for explainability; in the actual database it is normalized across lookup tables. Coordinates resolved via the <strong>Google Maps Geocoding API</strong>.</div>
   </div>
 </div>
 """, unsafe_allow_html=True)

@@ -214,6 +214,14 @@ h4 {
     cursor: default;
     border-bottom: 1px dotted #21918c;
 }
+.info-mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 13px; height: 13px; border-radius: 50%; border: 1px solid #21918c;
+    background: #ffffff; color: #21918c; font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic; font-weight: 700; font-size: 9px; cursor: default;
+    transition: background 0.2s ease; vertical-align: middle; margin-left: 5px;
+}
+.info-mark:hover { background: #f0fafa; }
 .fn-wrap .fn-tooltip {
     visibility: hidden;
     opacity: 0;

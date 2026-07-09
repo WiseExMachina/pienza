@@ -221,7 +221,7 @@ with tab1:
   <div class='step-body' style='padding-bottom:0;'>
     <div class='step-label'>Target Feature: Multiclass Classification</div>
     <p>
-      The problem is defined as a <strong>multiclass classification</strong> task. Each rejected offer is assigned a single, mutually exclusive label representing the primary reason for rejection across a three-tiered triage: geospatial feasibility, economic viability, and strategic alignment. Acceptance is implicit — a <code>NULL</code> label signals the absence of any objection. A binary accept/reject formulation was kept as a fallback in case the multiclass approach failed.
+      The problem is defined as a <strong>multiclass classification</strong> task. Each rejected offer is assigned a single, mutually exclusive label representing the primary reason for rejection across a three-tiered triage: geospatial feasibility, economic viability, and strategic alignment. Acceptance is implicit — a <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">NULL</code> label signals the absence of any objection. A binary accept/reject formulation was kept as a fallback in case the multiclass approach failed.
     </p>
   </div>
 </div>
@@ -264,7 +264,7 @@ with tab1:
   </div>
 </div>
 
-<div style="background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:6px;padding:12px 16px;margin-top:40px;font-size:0.85rem;color:#333;line-height:1.65;">
+<div style="background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:40px;font-size:0.85rem;color:#333;line-height:1.65;">
   <strong>High-Fidelity Cognitive Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">reason_primary</span>. Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
 </div>
     """, unsafe_allow_html=True)
@@ -277,7 +277,7 @@ with tab2:
             "phase": "Phase 1", "label": "Acquisition & Ground Truth",
             "arch_short": "OCR<br>+<br>Sheets",
             "date_range": "Aug 22 – Oct 1, 2025",
-            "detail": "Implementation of the dual-engine acquisition pipeline. Definition of the ride attributes schema and target variable taxonomy. Manual same-day backtagging of 4,700 offers to populate reason_primary.",
+            "detail": "Implementation of the dual-engine acquisition pipeline. Definition of the ride attributes schema and target variable taxonomy. Manual same-day backtagging of 4,700 offers to populate <code style=\"color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;\">reason_primary</code>.",
             "bullets": ["GTS Webapp", "OCR automation", "Target variable definition", "Ride attributes schema"],
             "start": "2025-08-22", "end": "2025-10-01",
         },
@@ -285,7 +285,7 @@ with tab2:
             "phase": "Phase 2", "label": "Data Engineering & Architecture",
             "arch_short": "SQLite<br>+<br>Colab",
             "date_range": "Oct 2 – Nov 20, 2025",
-            "detail": "Transition to a relational database (pienza.db) and Star Schema design. Implementation of normalization protocols and idempotent ETL pipelines. Creation of the stateful engineered_features table.",
+            "detail": "Transition to a relational database (<code style=\"color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;\">pienza.db</code>) and Star Schema design. Implementation of normalization protocols and idempotent ETL pipelines. Creation of the stateful <code style=\"color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;\">engineered_features</code> table.",
             "bullets": ["Star Schema design", "Idempotent ETL pipeline", "Normalization protocols", "engineered_features table"],
             "start": "2025-10-02", "end": "2025-11-20",
         },

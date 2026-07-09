@@ -122,8 +122,8 @@ st.markdown("""
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 With the Feature Store fully defined, the project reconciled every offer against the platform's official
 ledgers — earnings settlements and trip event logs — and certified the result as a relational Golden Master
-through an idempotent ETL pipeline. That pipeline produced <code>pienza.db</code>, migrated to BigQuery
-as <code>pienza_mini</code>.
+through an idempotent ETL pipeline. That pipeline produced <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">pienza.db</code>, migrated to BigQuery
+as <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">pienza_mini</code>.
 </p>
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-top:10px;margin-bottom:24px;'>
 The financial chain is strictly linear — no circular references, truth flows only forward:
@@ -276,7 +276,7 @@ else:
  padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
   <strong>Class imbalance</strong> — The 93/7 split mirrors operational reality and was handled via
   <strong>Stratified K-Fold</strong> and the <strong>Cognitive Cascade</strong> architecture.
-  <code>system_logic_failure</code> (5 records) was dropped downstream — pure noise, not a behavioral signal.
+  <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">system_logic_failure</span> (5 records) was dropped downstream — pure noise, not a behavioral signal.
 </div>"""
 
                 # ── A: Donut + 2 horizontal bars ──
