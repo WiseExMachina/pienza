@@ -123,14 +123,24 @@ st.markdown("""
 # --- 5. THE HERO VISUAL (3D MANIFOLD) ---
 st.markdown("### The Playground: Machine Discovered Hubs")
 
-try:
-    html_data = fetch_bytes_from_gcs("pienza-streamlit", "kepler_3D.html").decode("utf-8")
+# @st.fragment isolates this iframe from full-page reruns (e.g. clicking
+# Flush Cache or the PDF button elsewhere on the page) — without it,
+# components.html() re-injects the whole Kepler.gl HTML on every rerun,
+# forcing the browser to reinitialize WebGL/deck.gl from scratch even
+# though the map itself never changes. The GCS fetch was already cached
+# (0.4MB, not the bottleneck) — this is what fixes the perceived slowness.
+@st.fragment
+def _render_kepler_hero():
+    try:
+        html_data = fetch_bytes_from_gcs("pienza-streamlit", "kepler_3D.html").decode("utf-8")
 
-    force_white_css = "<style>body { background-color: white !important; }</style>"
-    components.html(force_white_css + html_data, height=600)
+        force_white_css = "<style>body { background-color: white !important; }</style>"
+        components.html(force_white_css + html_data, height=600)
 
-except Exception as e:
-    st.error(f"Failed to load Kepler map from GCS: {e}")
+    except Exception as e:
+        st.error(f"Failed to load Kepler map from GCS: {e}")
+
+_render_kepler_hero()
 
 st.markdown(
     "<div style='margin-top:-15px;margin-bottom:32px;font-size:0.65rem;color:#64748b;font-style:italic;'>"

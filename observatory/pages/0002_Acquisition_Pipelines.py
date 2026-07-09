@@ -7,7 +7,6 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
-from utils.bq_client import fetch_data_from_bq
 from config import FAVICON
 from utils.gcp_client import fetch_bytes_from_gcs
 
@@ -143,6 +142,31 @@ div[class*="st-key-nav_prev_"] button:disabled, div[class*="st-key-nav_next_"] b
 # ─────────────────────────────────────────────
 st.markdown("# Acquisition Pipelines")
 
+# Shared cache for OCR screenshot base64 encoding. Two real costs were found
+# here during a 2026-07-09 perf pass (see project_live_calls_audit memory):
+# 1) fetch_bytes_from_gcs is cached, but base64.b64encode() itself was redone
+#    every rerun for the same ~10 image draws (3x phone-stack + up to 10x
+#    filmstrip) — pure CPU work with no reason to repeat.
+# 2) The bigger one: these are full-resolution offer screenshots (750x1624,
+#    ~400-620KB PNG each) served at ~200px display width. Every arrow click
+#    re-rendered the whole filmstrip + phone-stack markup, re-transmitting
+#    ~5.4MB of base64 text over the websocket for images displayed at a
+#    fraction of their native size. Resizing to actual display width + JPEG
+#    recompression cuts each image to ~25-50KB (~10-15x smaller) with no
+#    visible quality loss at the sizes these are shown.
+@st.cache_data(show_spinner=False)
+def _img_b64(img_path: str, max_width: int = 320) -> str:
+    from PIL import Image
+    import io
+    raw = fetch_bytes_from_gcs("pienza-streamlit", img_path)
+    img = Image.open(io.BytesIO(raw)).convert("RGB")
+    if img.width > max_width:
+        h = int(img.height * max_width / img.width)
+        img = img.resize((max_width, h), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=82, optimize=True)
+    return base64.b64encode(buf.getvalue()).decode()
+
 st.markdown("""
 <style>
 .fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; }
@@ -180,7 +204,15 @@ in real-time.<span class="fn-wrap fn-below"><span class="info-mark">i</span><spa
 
 subtab2, subtab3 = st.tabs(["Engine 1: GTS Telemetry Emulator", "Engine 2: Gemini OCR"])
 
-with subtab2:
+# Each engine is isolated in its own @st.fragment: without this, clicking a
+# nav/state-transition button anywhere on this page (either engine) triggers
+# st.rerun(), which by default re-executes this entire ~965-line script —
+# including the other engine's simulator/components.html blocks and all its
+# BQ/image loads (cache-hit, but still real per-rerun overhead). Scoping each
+# engine to its own fragment means a click in Engine 2 no longer re-renders
+# Engine 1's GTS device-frame simulator, and vice versa.
+@st.fragment
+def _render_engine1():
     st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>This module simulates the <strong>Engine 1</strong> mobile experience. It demonstrates the \"One-Touch\" state transitions and the logic used to calculate operational KPIs in the field. Press <strong>Start Session</strong> and walk through each event — the log and KPIs update in real time.</p>", unsafe_allow_html=True)
 
     # ── SESSION STATE ────────────────────────────────────────────────────────
@@ -286,12 +318,12 @@ with subtab2:
                 st.session_state.sim_active = True
                 st.session_state.start_time_dt = time.time()
                 st.session_state.sim_log = []
-                st.rerun()
+                st.rerun(scope="fragment")
         else:
             if st.button("■  End Session", use_container_width=True):
                 st.session_state.sim_active = False
                 st.session_state.show_summary = True
-                st.rerun()
+                st.rerun(scope="fragment")
 
         # Timer — live when active, static placeholder when not
         if active:
@@ -337,7 +369,7 @@ with subtab2:
                 if st.form_submit_button("Confirm T1", use_container_width=True):
                     log_sim_event("T1: Ride Accepted, Driving to Pickup", ride_id, upfront=float(u_fare_raw or 0))
                     st.session_state.show_t1 = False
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
         if st.button("T2: Waiting for passenger", disabled=not active, use_container_width=True):
             log_sim_event("T2: Waiting for passenger", ride_id)
@@ -353,7 +385,7 @@ with subtab2:
                 if st.form_submit_button("Confirm T4", use_container_width=True):
                     log_sim_event("T4: Ride completed", ride_id, realized=float(r_fare_raw or 0))
                     st.session_state.show_t4 = False
-                    st.rerun()
+                    st.rerun(scope="fragment")
 
         # Home indicator — bottom of phone frame
         st.markdown('<div class="sim-home"></div>', unsafe_allow_html=True)
@@ -372,7 +404,7 @@ with subtab2:
             st.divider()
             if st.button("Clear Log", use_container_width=True):
                 st.session_state.sim_log = []
-                st.rerun()
+                st.rerun(scope="fragment")
 
     if not active and st.session_state.sim_log and st.session_state.show_summary:
         st.session_state.show_summary = False
@@ -440,7 +472,568 @@ with subtab2:
 </div>
         """, unsafe_allow_html=True)
 
-with subtab3:
+with subtab2:
+    _render_engine1()
+
+# Hardcoded 2026-07-09 — see project_live_calls_audit / project_tech_debt memory.
+# Frozen ground truth for the 10 Engine 2 carousel offers (never changes; this
+# IS the dataset, not a query result that could drift). Sensitive fields
+# (upfront_fare, pickup/dropoff_address, image_content_hash, lat/lon) are
+# pre-masked with the same _obf_* functions used elsewhere on this page —
+# the obfuscation functions are idempotent, so any downstream re-application
+# is a safe no-op. Regenerate by re-running the 3 batched BQ queries this
+# replaced if the underlying offers/raw_offers_ocr/silver_palette rows ever change.
+
+_DF_OCR_RECORDS = [{'ocr_id': 'OCR01714',
+  'image_filename': 'IMG_9277.PNG',
+  'time_taken': '2:47 PM',
+  'ride_type': 'Black Exclusivo',
+  'upfront_fare': '$###.##',
+  'pickup_details': '7 min (1.7 km)',
+  'pickup_address': 'Calle Montes Urales, Lomas de Chapultepec',
+  'trip_details': '27 min (8.9 km)',
+  'dropoff_address': 'Privada Tamarindos ####, Granjas Palo Alto, 05120 Cuajimalpa de Morelos - Bosques de las lomas',
+  'rider_rating': '4.70 (622 ratings)',
+  'special_note': '+$8.00 incluido'},
+ {'ocr_id': 'OCR03289',
+  'image_filename': 'IMG_2793.PNG',
+  'time_taken': '6:33',
+  'ride_type': 'Comfort',
+  'upfront_fare': '##.#',
+  'pickup_details': '5 min (2.9 km)',
+  'pickup_address': 'Av Tamaulipas, Santa Fe',
+  'trip_details': '4 min (2.3 km)',
+  'dropoff_address': 'Prol Paseo de Reforma ####, Álvaro Obregón, 01219 Álvaro Obregón - Santa Fe',
+  'rider_rating': '4.82 (789)',
+  'special_note': 'Exclusivo, +$18.00 incluido, Turbo+ de $9.44 incluido'},
+ {'ocr_id': 'OCR03573',
+  'image_filename': 'IMG_3428.PNG',
+  'time_taken': '7:21',
+  'ride_type': 'Turbo+',
+  'upfront_fare': '###.##',
+  'pickup_details': '10 min (4.1 km)',
+  'pickup_address': 'Primer Retorno de Cumbres de Acultzingo, Bosques',
+  'trip_details': '16 min (6.0 km)',
+  'dropoff_address': 'Bondojito ####, Col Las Américas, 01120 Álvaro Obregón - Observatorio',
+  'rider_rating': '4.80 (330)',
+  'special_note': 'Identidad verificada, Turbo+ de $15.36 incluido'},
+ {'ocr_id': 'OCR03692',
+  'image_filename': 'IMG_3679.PNG',
+  'time_taken': '15:37',
+  'ride_type': 'UberX',
+  'upfront_fare': '###.##',
+  'pickup_details': '13 min (13.4 km)',
+  'pickup_address': 'Calle Vía Magna, Interlomas',
+  'trip_details': '13 min (3.5 km)',
+  'dropoff_address': 'Av Universidad Anáhuac ####, Col Lomas Anáhuac Huixquilucan, 52786 Huixquilucan, México - '
+                     'Bosques',
+  'rider_rating': '4.89 (751)',
+  'special_note': '+$14.00 incluido,Identidad verificada'},
+ {'ocr_id': 'OCR03982',
+  'image_filename': 'IMG_4346.PNG',
+  'time_taken': '19:13',
+  'ride_type': 'UberX',
+  'upfront_fare': '###.##',
+  'pickup_details': '24 min (2.9 km)',
+  'pickup_address': 'Avenida General Pedro Antonio de los Santos, Condesa / Roma',
+  'trip_details': '50 min (9.3 km)',
+  'dropoff_address': 'Prol. P.º de la Reforma ####, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01310 Ciudad de México, '
+                     'CDMX, México - Santa Fe',
+  'rider_rating': '4.69 (629)',
+  'special_note': '+$12.00 incluido, Turbo+ de $55.37 incluido, VIP'},
+ {'ocr_id': 'OCR01600',
+  'image_filename': 'IMG_9029.PNG',
+  'time_taken': '5:53',
+  'ride_type': 'UberX (Exclusivo)',
+  'upfront_fare': '$###.##',
+  'pickup_details': '10 min (4.7 km)',
+  'pickup_address': 'Calle Naranjo, Claveria - Azcapotzalco',
+  'trip_details': '41 min (18.7 km)',
+  'dropoff_address': 'Vialidad de la Barranca ####, Col. Ex Hacienda Jesús del Monte, Bosque de las Palmas, 52787 '
+                     'Naucalpan de Juárez, Méx., México - Interlomas',
+  'rider_rating': '4.79 (6888 ratings)',
+  'special_note': 'VIP, +$30.00 incluido'},
+ {'ocr_id': 'OCR00159',
+  'image_filename': 'IMG_5813.PNG',
+  'time_taken': '4:48',
+  'ride_type': 'UberX Exclusivo',
+  'upfront_fare': '$###.##',
+  'pickup_details': '3 min (0.9 km)',
+  'pickup_address': 'Calle Bosque de Amates, Bosques de las lomas',
+  'trip_details': '44 min (8.5 km)',
+  'dropoff_address': 'Av Insurgentes Tacubaya ####, Col Tacubaya Miguel Hidalgo, 11870 Ciudad de México, CMX - '
+                     'Condesa / Roma',
+  'rider_rating': '4.56 (764 ratings)',
+  'special_note': 'A Turbo+ of $42.95 is included. The user is a VIP.'},
+ {'ocr_id': 'OCR02768',
+  'image_filename': 'IMG_1691.PNG',
+  'time_taken': '15:32',
+  'ride_type': 'Business Comfort',
+  'upfront_fare': '###.##',
+  'pickup_details': '8 min (1.7 km)',
+  'pickup_address': 'Lomas de Chapultepec',
+  'trip_details': '43 min (13.4 km)',
+  'dropoff_address': 'Carlos Lazo ####, Col Santa Fe Tlayapaca Álvaro Obregón, 01389 Ciudad de México, Ciudad de '
+                     'México - Santa Fe',
+  'rider_rating': '4.78 (2118)',
+  'special_note': 'Exclusivo, VIP'},
+ {'ocr_id': 'OCR00535',
+  'image_filename': 'IMG_6624.PNG',
+  'time_taken': '8:57',
+  'ride_type': 'UberX',
+  'upfront_fare': '$###.##',
+  'pickup_details': '13 min (4.7 km)',
+  'pickup_address': 'Avenida Primero de Mayo, Nápoles',
+  'trip_details': '41 min (7.1 km)',
+  'dropoff_address': 'Av Paseo de las Palmas #### Torre Optima 1 PB, Miguel Hidalgo, Col Lomas de Chapultepec Miguel '
+                     'Hidalgo, 11000 Ciudad de México, Ciudad de México - Lomas de Chapultepec',
+  'rider_rating': '4.83 (2834 ratings)',
+  'special_note': 'Identity verified.'},
+ {'ocr_id': 'OCR02057',
+  'image_filename': 'IMG_0038.PNG',
+  'time_taken': '6:04 AM',
+  'ride_type': 'UberX',
+  'upfront_fare': '$###.##',
+  'pickup_details': '10 min (3.7 km)',
+  'pickup_address': 'Yucatán #### Loc E3 Piso 1er, Cuauhtémoc, Condesa / Roma',
+  'trip_details': '19 min (12.7 km)',
+  'dropoff_address': 'Av. Capitán Carlos León S/N, Peñón de los Baños, Venustiano Carranza, 15620 Ciudad de México, '
+                     'CDMX, México - Aeropuerto Internacional Benito Juárez',
+  'rider_rating': '5.00 (0 ratings)',
+  'special_note': 'N/A'}]
+
+_DF_OFFERS_RECORDS = [{'image_filename': 'IMG_6624.PNG',
+  'offer_id': 'OF00535',
+  'session_fk': 'SID0008',
+  'image_content_hash': 'bf164a332e03...',
+  'offer_timestamp': '2025-08-26 08:57:29',
+  'upfront_fare': '###.#',
+  'product_category': 'uberx',
+  'time_to_pickup_sec': 780.0,
+  'dist_to_pickup_km': 4.7,
+  'est_trip_time_sec': 2460.0,
+  'est_trip_dist_km': 7.1,
+  'pickup_address': 'avenida primero de mayo, napoles, ciudad de mexico, cdmx, mexico',
+  'dropoff_address': 'Av Paseo de las Palmas #### Torre Optima 1 PB, Miguel Hidalgo, Col Lomas de Chapultepec Miguel '
+                     'Hidalgo, 11000 Ciudad de México, Ciudad de México - Lomas de Chapultepec',
+  'pickup_lat': '19.39####',
+  'pickup_lon': '-99.18####',
+  'dropoff_lat': '19.43####',
+  'dropoff_lon': '-99.21####',
+  'is_surge': 0,
+  'surge_amount': None,
+  'is_turbo_plus': 0,
+  'turbo_plus_amount': None,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 0,
+  'is_vip': 0,
+  'is_identity_verified': 1,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.83,
+  'rider_trip_count': 2834.0},
+ {'image_filename': 'IMG_9277.PNG',
+  'offer_id': 'OF01714',
+  'session_fk': 'SID0025',
+  'image_content_hash': 'bcb8ac7cdf89...',
+  'offer_timestamp': '2025-09-04 14:47:02',
+  'upfront_fare': '###.##',
+  'product_category': 'black',
+  'time_to_pickup_sec': 420.0,
+  'dist_to_pickup_km': 1.7,
+  'est_trip_time_sec': 1620.0,
+  'est_trip_dist_km': 8.9,
+  'pickup_address': 'calle montes urales, lomas de chapultepec',
+  'dropoff_address': 'Privada Tamarindos ####, Granjas Palo Alto, 05120 Cuajimalpa de Morelos - Bosques de las lomas',
+  'pickup_lat': '19.42####',
+  'pickup_lon': '-99.20####',
+  'dropoff_lat': '19.38####',
+  'dropoff_lon': '-99.25####',
+  'is_surge': 1,
+  'surge_amount': 8.0,
+  'is_turbo_plus': 0,
+  'turbo_plus_amount': None,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 1,
+  'is_vip': 0,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.7,
+  'rider_trip_count': 622.0},
+ {'image_filename': 'IMG_0038.PNG',
+  'offer_id': 'OF02057',
+  'session_fk': 'SID0029',
+  'image_content_hash': 'a0bb89ec351d...',
+  'offer_timestamp': '2025-09-11 06:04:15',
+  'upfront_fare': '###.##',
+  'product_category': 'uberx',
+  'time_to_pickup_sec': 600.0,
+  'dist_to_pickup_km': 3.7,
+  'est_trip_time_sec': 1140.0,
+  'est_trip_dist_km': 12.7,
+  'pickup_address': 'yucatan #### loc e3 piso 1er, cuauhtemoc, condesa / roma',
+  'dropoff_address': 'Av. Capitán Carlos León S/N, Peñón de los Baños, Venustiano Carranza, 15620 Ciudad de México, '
+                     'CDMX, México - Aeropuerto Internacional Benito Juárez',
+  'pickup_lat': '19.41####',
+  'pickup_lon': '-99.16####',
+  'dropoff_lat': '19.43####',
+  'dropoff_lon': '-99.08####',
+  'is_surge': 0,
+  'surge_amount': None,
+  'is_turbo_plus': 0,
+  'turbo_plus_amount': None,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 0,
+  'is_vip': 0,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 5.0,
+  'rider_trip_count': 0.0},
+ {'image_filename': 'IMG_2793.PNG',
+  'offer_id': 'OF03289',
+  'session_fk': 'SID0045',
+  'image_content_hash': '8b6b99bc2f6a...',
+  'offer_timestamp': '2025-09-22 06:33:23',
+  'upfront_fare': '##.#',
+  'product_category': 'comfort',
+  'time_to_pickup_sec': 300.0,
+  'dist_to_pickup_km': 2.9,
+  'est_trip_time_sec': 240.0,
+  'est_trip_dist_km': 2.3,
+  'pickup_address': 'avenida tamaulipas, santa fe, ciudad de mexico, cdmx, mexico',
+  'dropoff_address': 'Prol Paseo de Reforma ####, Álvaro Obregón, 01219 Álvaro Obregón - Santa Fe',
+  'pickup_lat': '19.35####',
+  'pickup_lon': '-99.26####',
+  'dropoff_lat': '19.37####',
+  'dropoff_lon': '-99.26####',
+  'is_surge': 1,
+  'surge_amount': 18.0,
+  'is_turbo_plus': 1,
+  'turbo_plus_amount': 9.44,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 1,
+  'is_vip': 0,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.82,
+  'rider_trip_count': 789.0},
+ {'image_filename': 'IMG_3428.PNG',
+  'offer_id': 'OF03573',
+  'session_fk': 'SID0047',
+  'image_content_hash': '3e4e95f41ec9...',
+  'offer_timestamp': '2025-09-23 07:21:04',
+  'upfront_fare': '###.##',
+  'product_category': 'black',
+  'time_to_pickup_sec': 600.0,
+  'dist_to_pickup_km': 4.1,
+  'est_trip_time_sec': 960.0,
+  'est_trip_dist_km': 6.0,
+  'pickup_address': 'primer retorno de cumbres de acultzingo, bosques, ciudad de mexico, cdmx, mexico',
+  'dropoff_address': 'Bondojito ####, Col Las Américas, 01120 Álvaro Obregón - Observatorio',
+  'pickup_lat': '19.40####',
+  'pickup_lon': '-99.22####',
+  'dropoff_lat': '19.39####',
+  'dropoff_lon': '-99.20####',
+  'is_surge': 0,
+  'surge_amount': None,
+  'is_turbo_plus': 1,
+  'turbo_plus_amount': 15.36,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 0,
+  'is_vip': 0,
+  'is_identity_verified': 1,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.8,
+  'rider_trip_count': 330.0},
+ {'image_filename': 'IMG_3679.PNG',
+  'offer_id': 'OF03692',
+  'session_fk': 'SID0048',
+  'image_content_hash': 'ab4a8bf4a5ca...',
+  'offer_timestamp': '2025-09-23 15:37:37',
+  'upfront_fare': '###.##',
+  'product_category': 'uberx',
+  'time_to_pickup_sec': 780.0,
+  'dist_to_pickup_km': 13.4,
+  'est_trip_time_sec': 780.0,
+  'est_trip_dist_km': 3.5,
+  'pickup_address': 'calle via magna, interlomas',
+  'dropoff_address': 'Av Universidad Anáhuac ####, Col Lomas Anáhuac Huixquilucan, 52786 Huixquilucan, México - '
+                     'Bosques',
+  'pickup_lat': '19.40####',
+  'pickup_lon': '-99.27####',
+  'dropoff_lat': '19.40####',
+  'dropoff_lon': '-99.26####',
+  'is_surge': 1,
+  'surge_amount': 14.0,
+  'is_turbo_plus': 0,
+  'turbo_plus_amount': None,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 0,
+  'is_vip': 0,
+  'is_identity_verified': 1,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.89,
+  'rider_trip_count': 751.0},
+ {'image_filename': 'IMG_5813.PNG',
+  'offer_id': 'OF00159',
+  'session_fk': 'SID0003',
+  'image_content_hash': '793dea9502b4...',
+  'offer_timestamp': '2025-08-22 16:48:35',
+  'upfront_fare': '###.#',
+  'product_category': 'uberx',
+  'time_to_pickup_sec': 180.0,
+  'dist_to_pickup_km': 0.9,
+  'est_trip_time_sec': 2640.0,
+  'est_trip_dist_km': 8.5,
+  'pickup_address': 'bosque de amates, bosques de las lomas',
+  'dropoff_address': 'Av Insurgentes Tacubaya ####, Col Tacubaya Miguel Hidalgo, 11870 Ciudad de México, CMX - '
+                     'Condesa / Roma',
+  'pickup_lat': '19.39####',
+  'pickup_lon': '-99.24####',
+  'dropoff_lat': '19.40####',
+  'dropoff_lon': '-99.18####',
+  'is_surge': 1,
+  'surge_amount': 4.0,
+  'is_turbo_plus': 1,
+  'turbo_plus_amount': 42.95,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 1,
+  'is_vip': 1,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.56,
+  'rider_trip_count': 764.0},
+ {'image_filename': 'IMG_9029.PNG',
+  'offer_id': 'OF01600',
+  'session_fk': 'SID0024',
+  'image_content_hash': 'd2cfe46785bb...',
+  'offer_timestamp': '2025-09-04 05:53:13',
+  'upfront_fare': '###.##',
+  'product_category': 'uberx',
+  'time_to_pickup_sec': 600.0,
+  'dist_to_pickup_km': 4.7,
+  'est_trip_time_sec': 2460.0,
+  'est_trip_dist_km': 18.7,
+  'pickup_address': 'calle naranjo, claveria - azcapotzalco',
+  'dropoff_address': 'Vialidad de la Barranca ####, Col. Ex Hacienda Jesús del Monte, Bosque de las Palmas, 52787 '
+                     'Naucalpan de Juárez, Méx., México - Interlomas',
+  'pickup_lat': '19.45####',
+  'pickup_lon': '-99.15####',
+  'dropoff_lat': '19.39####',
+  'dropoff_lon': '-99.28####',
+  'is_surge': 1,
+  'surge_amount': 30.0,
+  'is_turbo_plus': 0,
+  'turbo_plus_amount': None,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 1,
+  'is_vip': 1,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.79,
+  'rider_trip_count': 6888.0},
+ {'image_filename': 'IMG_1691.PNG',
+  'offer_id': 'OF02768',
+  'session_fk': 'SID0038',
+  'image_content_hash': '94511da5ecc5...',
+  'offer_timestamp': '2025-09-18 15:32:57',
+  'upfront_fare': '###.##',
+  'product_category': 'business_comfort',
+  'time_to_pickup_sec': 480.0,
+  'dist_to_pickup_km': 1.7,
+  'est_trip_time_sec': 2580.0,
+  'est_trip_dist_km': 13.4,
+  'pickup_address': 'lomas de chapultepec',
+  'dropoff_address': 'Carlos Lazo ####, Col Santa Fe Tlayapaca Álvaro Obregón, 01389 Ciudad de México, Ciudad de '
+                     'México - Santa Fe',
+  'pickup_lat': '19.42####',
+  'pickup_lon': '-99.21####',
+  'dropoff_lat': '19.35####',
+  'dropoff_lon': '-99.25####',
+  'is_surge': 0,
+  'surge_amount': None,
+  'is_turbo_plus': 0,
+  'turbo_plus_amount': None,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 1,
+  'is_vip': 1,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.78,
+  'rider_trip_count': 2118.0},
+ {'image_filename': 'IMG_4346.PNG',
+  'offer_id': 'OF03982',
+  'session_fk': 'SID0052',
+  'image_content_hash': 'f3bf9140fd64...',
+  'offer_timestamp': '2025-09-25 19:13:35',
+  'upfront_fare': '###.##',
+  'product_category': 'uberx',
+  'time_to_pickup_sec': 1440.0,
+  'dist_to_pickup_km': 2.9,
+  'est_trip_time_sec': 3000.0,
+  'est_trip_dist_km': 9.3,
+  'pickup_address': 'avenida general pedro antonio de los santos, condesa / roma',
+  'dropoff_address': 'Prol. P.º de la Reforma ####, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01310 Ciudad de México, '
+                     'CDMX, México - Santa Fe',
+  'pickup_lat': '19.41####',
+  'pickup_lon': '-99.18####',
+  'dropoff_lat': '19.37####',
+  'dropoff_lon': '-99.25####',
+  'is_surge': 1,
+  'surge_amount': 12.0,
+  'is_turbo_plus': 1,
+  'turbo_plus_amount': 55.37,
+  'is_reservation': 0,
+  'reservation_amount': None,
+  'is_priority': 0,
+  'priority_amount': None,
+  'is_exclusive': 0,
+  'is_vip': 1,
+  'is_identity_verified': 0,
+  'is_long_trip': 0,
+  'is_multiple_destinations': 0,
+  'is_teens': 0,
+  'rider_star_rating': 4.69,
+  'rider_trip_count': 629.0}]
+
+_DF_SILVER_RECORDS = [{'image_filename': 'IMG_0038.PNG',
+  'dropoff_polygon_name': 'unassigned',
+  'dropoff_h3_hex_id': '894995b9417ffff',
+  'dropoff_hdbscan_name': 'terminal_1_aicm'},
+ {'image_filename': 'IMG_6624.PNG',
+  'dropoff_polygon_name': 'palmas_jp_morgan',
+  'dropoff_h3_hex_id': '894995bac0fffff',
+  'dropoff_hdbscan_name': 'el_semaforo_de_palmas'},
+ {'image_filename': 'IMG_3679.PNG',
+  'dropoff_polygon_name': 'universidad_anahuac',
+  'dropoff_h3_hex_id': '894995b1187ffff',
+  'dropoff_hdbscan_name': 'lomas_anahuac'},
+ {'image_filename': 'IMG_9277.PNG',
+  'dropoff_polygon_name': 'tamarindos',
+  'dropoff_h3_hex_id': '894995b1557ffff',
+  'dropoff_hdbscan_name': 'tamarindos'},
+ {'image_filename': 'IMG_1691.PNG',
+  'dropoff_polygon_name': 'santa_fe_tec',
+  'dropoff_h3_hex_id': '894995b33cfffff',
+  'dropoff_hdbscan_name': 'santa_fe_itesm'},
+ {'image_filename': 'IMG_3428.PNG',
+  'dropoff_polygon_name': 'bondojito_asf',
+  'dropoff_h3_hex_id': '894995b12cbffff',
+  'dropoff_hdbscan_name': 'observatorio'},
+ {'image_filename': 'IMG_9029.PNG',
+  'dropoff_polygon_name': 'vialidad_de_la_barranca',
+  'dropoff_h3_hex_id': '894995b0217ffff',
+  'dropoff_hdbscan_name': 'vialidad_de_la_barranca'},
+ {'image_filename': 'IMG_4346.PNG',
+  'dropoff_polygon_name': 'sante_fe_patio',
+  'dropoff_h3_hex_id': '894995b15cbffff',
+  'dropoff_hdbscan_name': 'santa_fe_patio'},
+ {'image_filename': 'IMG_2793.PNG',
+  'dropoff_polygon_name': 'santa_fe_ibero',
+  'dropoff_h3_hex_id': '894995b3367ffff',
+  'dropoff_hdbscan_name': 'santa_fe_core'},
+ {'image_filename': 'IMG_5813.PNG',
+  'dropoff_polygon_name': 'roma_condesa_2',
+  'dropoff_h3_hex_id': '894995ba1d3ffff',
+  'dropoff_hdbscan_name': 'tacubaya'}]
+
+_DF_DTYPES_RECORDS = [{'column_name': 'offer_id', 'data_type': 'STRING'},
+ {'column_name': 'session_fk', 'data_type': 'STRING'},
+ {'column_name': 'ocr_fk', 'data_type': 'STRING'},
+ {'column_name': 'image_content_hash', 'data_type': 'STRING'},
+ {'column_name': 'offer_timestamp', 'data_type': 'STRING'},
+ {'column_name': 'upfront_fare', 'data_type': 'FLOAT64'},
+ {'column_name': 'time_to_pickup_sec', 'data_type': 'FLOAT64'},
+ {'column_name': 'dist_to_pickup_km', 'data_type': 'FLOAT64'},
+ {'column_name': 'est_trip_time_sec', 'data_type': 'FLOAT64'},
+ {'column_name': 'est_trip_dist_km', 'data_type': 'FLOAT64'},
+ {'column_name': 'pickup_address', 'data_type': 'STRING'},
+ {'column_name': 'dropoff_address', 'data_type': 'STRING'},
+ {'column_name': 'pickup_lat', 'data_type': 'FLOAT64'},
+ {'column_name': 'pickup_lon', 'data_type': 'FLOAT64'},
+ {'column_name': 'dropoff_lat', 'data_type': 'FLOAT64'},
+ {'column_name': 'dropoff_lon', 'data_type': 'FLOAT64'},
+ {'column_name': 'is_surge', 'data_type': 'INT64'},
+ {'column_name': 'surge_amount', 'data_type': 'FLOAT64'},
+ {'column_name': 'is_turbo_plus', 'data_type': 'INT64'},
+ {'column_name': 'turbo_plus_amount', 'data_type': 'FLOAT64'},
+ {'column_name': 'is_reservation', 'data_type': 'INT64'},
+ {'column_name': 'reservation_amount', 'data_type': 'FLOAT64'},
+ {'column_name': 'is_priority', 'data_type': 'INT64'},
+ {'column_name': 'priority_amount', 'data_type': 'FLOAT64'},
+ {'column_name': 'is_exclusive', 'data_type': 'INT64'},
+ {'column_name': 'is_vip', 'data_type': 'INT64'},
+ {'column_name': 'is_identity_verified', 'data_type': 'INT64'},
+ {'column_name': 'is_long_trip', 'data_type': 'INT64'},
+ {'column_name': 'is_multiple_destinations', 'data_type': 'INT64'},
+ {'column_name': 'is_teens', 'data_type': 'INT64'},
+ {'column_name': 'rider_star_rating', 'data_type': 'FLOAT64'},
+ {'column_name': 'rider_trip_count', 'data_type': 'FLOAT64'},
+ {'column_name': 'time_in_session_sec', 'data_type': 'FLOAT64'},
+ {'column_name': 'session_progress_ratio', 'data_type': 'FLOAT64'},
+ {'column_name': 'inferred_agent_lat', 'data_type': 'FLOAT64'},
+ {'column_name': 'inferred_agent_lon', 'data_type': 'FLOAT64'},
+ {'column_name': 'inferred_agent_bearing', 'data_type': 'FLOAT64'},
+ {'column_name': 'inferred_agent_speed_mps', 'data_type': 'FLOAT64'},
+ {'column_name': 'is_imputed', 'data_type': 'INT64'},
+ {'column_name': 'special_note_raw', 'data_type': 'STRING'},
+ {'column_name': 'comment_1', 'data_type': 'STRING'},
+ {'column_name': 'comment_2', 'data_type': 'STRING'},
+ {'column_name': 'product_category_fk', 'data_type': 'INT64'},
+ {'column_name': 'offer_action_fk', 'data_type': 'INT64'},
+ {'column_name': 'reason_primary_fk', 'data_type': 'FLOAT64'},
+ {'column_name': 'post_offer_status_fk', 'data_type': 'INT64'},
+ {'column_name': 'driver_state_at_request_fk', 'data_type': 'INT64'},
+ {'column_name': 'outcome_fk', 'data_type': 'FLOAT64'},
+ {'column_name': 'interpolation_quality_fk', 'data_type': 'FLOAT64'},
+ {'column_name': 'record_status_fk', 'data_type': 'INT64'}]
+
+@st.fragment
+def _render_engine2():
     st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>", unsafe_allow_html=True)
 
     # ── Offer data ─────────────────────────────────────────────
@@ -589,15 +1182,15 @@ with subtab3:
         with _c1:
             if st.button("←", key=f"nav_prev_{key_suffix}", disabled=(idx == 0), use_container_width=True):
                 st.session_state.ocr_slide = idx - 1
-                st.rerun()
+                st.rerun(scope="fragment")
         with _c2:
             if st.button("→", key=f"nav_next_{key_suffix}", disabled=(idx == n - 1), use_container_width=True):
                 st.session_state.ocr_slide = idx + 1
-                st.rerun()
+                st.rerun(scope="fragment")
 
     # ── Stacked phone frames + filmstrip ──────────────────────
     def _mk_phone(img_path, rotate, tx, ty, opacity, z):
-        b = base64.b64encode(fetch_bytes_from_gcs("pienza-streamlit", img_path)).decode()
+        b = _img_b64(img_path, max_width=280)
         return f"""
 <div style="position:absolute;width:235px;border-radius:40px;
  background:#0a0a0a;border:8px solid #1a1a1a;padding:10px 0 14px;
@@ -606,7 +1199,7 @@ with subtab3:
  opacity:{opacity};z-index:{z};top:0;left:50%;margin-left:-117px;">
   <div style="width:72px;height:6px;background:#1a1a1a;
           border-radius:0 0 6px 6px;margin:0 auto 10px;"></div>
-  <img src="data:image/png;base64,{b}" style="width:100%;display:block;border-radius:4px;" />
+  <img src="data:image/jpeg;base64,{b}" style="width:100%;display:block;border-radius:4px;" />
   <div style="width:72px;height:4px;background:#333;border-radius:2px;margin:12px auto 0;"></div>
 </div>"""
 
@@ -629,17 +1222,17 @@ with subtab3:
     thumb_cols = st.columns(n)
     for i, o in enumerate(OFFERS):
         with thumb_cols[i]:
-            tb = base64.b64encode(fetch_bytes_from_gcs("pienza-streamlit", o["img"])).decode()
+            tb = _img_b64(o["img"], max_width=140)
             border = "2px solid #21918c" if i == idx else "2px solid rgba(255,255,255,0.1)"
             opacity = "1" if i == idx else "0.4"
             st.markdown(f"""
 <div style="border-radius:8px;border:{border};overflow:hidden;
         opacity:{opacity};margin-bottom:2px;">
-  <img src="data:image/png;base64,{tb}" style="width:100%;display:block;" />
+  <img src="data:image/jpeg;base64,{tb}" style="width:100%;display:block;" />
 </div>""", unsafe_allow_html=True)
             if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
                 st.session_state.ocr_slide = i
-                st.rerun()
+                st.rerun(scope="fragment")
 
     # ── BQ: fetch raw_offers_ocr for carousel images ───────────
     img_filenames = [pathlib.Path(o["img"]).name for o in OFFERS]
@@ -647,11 +1240,7 @@ with subtab3:
     bq_filenames  = [f.split("_", 1)[1] for f in img_filenames]
     bq_list       = ", ".join(f"'{v}'" for v in bq_filenames)
 
-    df_ocr = fetch_data_from_bq(f"""
-        SELECT *
-        FROM `645009831643.pienza_mini.raw_offers_ocr`
-        WHERE image_filename IN ({bq_list})
-    """)
+    df_ocr = pd.DataFrame(_DF_OCR_RECORDS)
 
     # Map each carousel position back to its BQ row
     curr_filename = bq_filenames[idx]
@@ -774,36 +1363,17 @@ font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
 </div>
 """, unsafe_allow_html=True)
 
-    df_offers = fetch_data_from_bq(f"""
-        SELECT
-            o.offer_id, o.session_fk, o.image_content_hash, o.offer_timestamp,
-            o.upfront_fare,
-            p.category_name AS product_category,
-            o.time_to_pickup_sec, o.dist_to_pickup_km,
-            o.est_trip_time_sec, o.est_trip_dist_km,
-            o.pickup_address, o.dropoff_address,
-            o.pickup_lat, o.pickup_lon, o.dropoff_lat, o.dropoff_lon,
-            o.is_surge, o.surge_amount,
-            o.is_turbo_plus, o.turbo_plus_amount,
-            o.is_reservation, o.reservation_amount,
-            o.is_priority, o.priority_amount,
-            o.is_exclusive, o.is_vip, o.is_identity_verified,
-            o.is_long_trip, o.is_multiple_destinations, o.is_teens,
-            o.rider_star_rating, o.rider_trip_count
-        FROM `645009831643.pienza_mini.offers` o
-        LEFT JOIN `645009831643.pienza_mini.product_category` p
-            ON o.product_category_fk = p.product_category_id
-        LEFT JOIN `645009831643.pienza_mini.raw_offers_ocr` r
-            ON o.ocr_fk = r.ocr_id
-        WHERE r.image_filename = '{curr_filename}'
-        LIMIT 1
-    """)
+    # Batched once for all 8 carousel offers (same pattern as df_ocr above),
+    # instead of embedding curr_filename in the WHERE clause — that made the
+    # SQL string (and therefore the @st.cache_data key) change on every
+    # prev/next click, firing a live BQ query on every new slide visited.
+    df_offers_all = pd.DataFrame(_DF_OFFERS_RECORDS)
+    df_offers = (
+        df_offers_all[df_offers_all["image_filename"] == curr_filename].drop(columns=["image_filename"])
+        if not df_offers_all.empty else df_offers_all
+    )
 
-    df_dtypes = fetch_data_from_bq("""
-        SELECT column_name, data_type
-        FROM `645009831643.pienza_mini.INFORMATION_SCHEMA.COLUMNS`
-        WHERE table_name = 'offers'
-    """)
+    df_dtypes = pd.DataFrame(_DF_DTYPES_RECORDS)
 
     _gap, _content = st.columns([1, 11])
     with _content:
@@ -852,19 +1422,12 @@ font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
 </div>
 """, unsafe_allow_html=True)
 
-    df_silver = fetch_data_from_bq(f"""
-        SELECT
-            sp.dropoff_polygon_name,
-            sp.dropoff_h3_hex_id,
-            sp.dropoff_hdbscan_name
-        FROM `645009831643.pienza_mini.silver_palette` sp
-        JOIN `645009831643.pienza_mini.offers` o
-            ON sp.offer_id = o.offer_id
-        JOIN `645009831643.pienza_mini.raw_offers_ocr` r
-            ON o.ocr_fk = r.ocr_id
-        WHERE r.image_filename = '{curr_filename}'
-        LIMIT 1
-    """)
+    # Batched once for all 8 carousel offers — same reasoning as df_offers above.
+    df_silver_all = pd.DataFrame(_DF_SILVER_RECORDS)
+    df_silver = (
+        df_silver_all[df_silver_all["image_filename"] == curr_filename].drop(columns=["image_filename"])
+        if not df_silver_all.empty else df_silver_all
+    )
 
     _gap, _content = st.columns([1, 11])
     with _content:
@@ -941,4 +1504,7 @@ font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
 </table>
 """, unsafe_allow_html=True)
         _nav_buttons("s4")
+
+with subtab3:
+    _render_engine2()
 

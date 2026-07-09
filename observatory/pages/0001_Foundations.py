@@ -1,13 +1,6 @@
-import base64
-import datetime
-import json
-import pathlib
-import time
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
-from utils.bq_client import fetch_data_from_bq
 from config import FAVICON
 from utils.gcp_client import fetch_bytes_from_gcs
 
