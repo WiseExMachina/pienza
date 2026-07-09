@@ -147,9 +147,10 @@ for i in range(max_ofertas):
 hover_css += "</style>"
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
-st.markdown(base_css, unsafe_allow_html=True)
-st.markdown(hover_css, unsafe_allow_html=True)
-st.markdown(quantum_scroll_js, unsafe_allow_html=True)
+# base_css + hover_css + quantum_scroll_js consolidated into one call so the
+# extra style/script blocks don't stack additional inter-widget gaps before
+# the H1 (matches the 0001/0002 vertical-rhythm canon: 2 calls before title)
+st.markdown(base_css + hover_css + quantum_scroll_js, unsafe_allow_html=True)
 
 
 

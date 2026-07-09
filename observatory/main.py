@@ -60,6 +60,11 @@ build_sidebar()
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
+# Page-specific overrides (kept empty on purpose — matches the vertical
+# rhythm of 0001/0002's own style block so the title sits at the same
+# height across pages; this extra st.markdown() call is what supplies
+# Streamlit's default inter-widget gap before the H1)
+st.markdown("<style></style>", unsafe_allow_html=True)
 
 # --- 3. HERO HEADER ---
 st.markdown("# Project Pienza")

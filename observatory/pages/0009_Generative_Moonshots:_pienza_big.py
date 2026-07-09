@@ -69,7 +69,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<div style="max-width:1100px; margin:0 auto; padding:16px 0 60px; font-family:'Inter',sans-serif; color:#121212;">
+<div style="padding:0 0 60px; font-family:'Inter',sans-serif; color:#121212;">
 
 <h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 20px; color:#121212; white-space:nowrap;">Generative Moonshots</h1>
 
@@ -544,7 +544,7 @@ with _block3:
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<div style="max-width:1100px; margin:24px auto 0; font-family:'Inter',sans-serif;">
+<div style="font-family:'Inter',sans-serif;">
 <div style="border-left:4px solid #21918c; background:rgba(33,145,140,0.07); border-radius:0 8px 8px 0; padding:18px 20px;">
 <div style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#21918c; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Looking ahead &rarr; Pienza 2.0: The Knowledge in the Age of AI</div>
 <div style="font-size:0.8rem; color:#666; line-height:1.6;">This scaffolding becomes the training ground for full-scale Reinforcement Learning &mdash; moving from a static map of the city's economics to real-time, dynamic optimization.</div>

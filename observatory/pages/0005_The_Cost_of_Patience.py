@@ -60,6 +60,12 @@ def build_sidebar():
 
 build_sidebar()
 
+# Page-specific overrides (kept empty on purpose — matches the vertical
+# rhythm of 0001/0002's own style block so the title sits at the same
+# height across pages; this extra st.markdown() call is what supplies
+# Streamlit's default inter-widget gap before the H1)
+st.markdown("<style></style>", unsafe_allow_html=True)
+
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
