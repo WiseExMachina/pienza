@@ -12,7 +12,7 @@ from pathlib import Path
 # ==============================================================================
 # 1. CONFIGURACIÓN, ESTÉTICA Y QUANTUM SYNC (BLOQUE MAESTRO UNIFICADO)
 # ==============================================================================
-st.set_page_config(layout="wide", page_title="Human vs AI: Behavioral Cloning", page_icon=FAVICON)
+st.set_page_config(layout="wide", page_title="Human vs AI: Behavioral Cloning | Pienza", page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

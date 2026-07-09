@@ -31,7 +31,7 @@ _threading.Thread(target=_preload_babel, daemon=True).start()
 # ==========================================
 # PAGE CONFIGURATION
 # ==========================================
-st.set_page_config(page_title="Phase 6: O(1) Engine Room", page_icon=FAVICON, layout="wide")
+st.set_page_config(page_title="The Quest to (O)1: NLP Transformer | Pienza", page_icon=FAVICON, layout="wide")
 
 # ─────────────────────────────────────────────
 # SIDEBAR
@@ -94,13 +94,13 @@ st.markdown("<style></style>", unsafe_allow_html=True)
 
 st.markdown("# miniBabel: Custom NLP Transformer")
 st.markdown(f"<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>A Real-Time Spatial Classifier — CDMX Address → Geographic Zone</h4>", unsafe_allow_html=True)
-st.markdown("""
+st.markdown(r"""
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:16px;'>
-While the geocoding pipeline used during the Unsupervised Phase works for offline research, it is too fragile for real-time production.
+While the geocoding pipeline works for offline research, it is too fragile for real-time production.
 Relying on live external APIs while on the road is computationally expensive, introduces latency, and creates a critical point of failure.
 </p>
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
-What if geocoding could be bypassed entirely? Using a baseline of 4,000+ historically verified addresses, the routing problem was reframed as a direct Natural Language Processing task.
+<em>What if geocoding could be bypassed entirely?</em> Using a baseline of ≈4,000 historically verified addresses, the routing problem was reframed as a direct NLP task — replacing the Google Maps API call and its downstream O(N × M) Point-in-Polygon lookup with a single, constant-time O(1) neural inference.<span class="fn-wrap" style="margin-left:2px;"><span class="info-mark">i</span><span class="fn-tooltip">While the internal complexity of the attention mechanism is quadratic to the sequence length L, the bounded nature of urban address strings transforms the inference into a fixed-cost operation relative to the number of strategic zones.</span></span>
 </p>
 """, unsafe_allow_html=True)
 
