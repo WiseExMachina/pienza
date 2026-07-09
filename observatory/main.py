@@ -3,6 +3,19 @@ import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
 from config import FAVICON
 from pathlib import Path
+import base64
+
+
+@st.cache_data
+def _load_report_pdf_b64():
+    pdf_bytes = (Path(__file__).resolve().parent / "assets" / "Pienza_Papers.pdf").read_bytes()
+    return base64.b64encode(pdf_bytes).decode()
+
+
+@st.cache_data
+def _load_favicon_b64():
+    favicon_bytes = (Path(__file__).resolve().parent / "assets" / "favicon.png").read_bytes()
+    return base64.b64encode(favicon_bytes).decode()
 
 
 # --- 0. SIDEBAR INTEGRADA ---
@@ -11,11 +24,7 @@ def build_sidebar():
         st.markdown(
             "<div class='sb-brand'>"
             "<div class='sb-brand-mark'>"
-            "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' "
-            "fill='none' stroke='#21918c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'>"
-            "<polygon points='12 2 2 7 12 12 22 7 12 2'></polygon>"
-            "<polyline points='2 17 12 22 22 17'></polyline>"
-            "<polyline points='2 12 12 17 22 12'></polyline></svg></div>"
+            f"<img src='data:image/png;base64,{_load_favicon_b64()}' width='28' height='28' /></div>"
             "<div><div class='sb-brand-text-title'>Project Pienza</div>"
             "<div class='sb-brand-text-sub'>Digital Twin · CDMX</div></div>"
             "</div>",
@@ -33,23 +42,27 @@ def build_sidebar():
         st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer", icon=":material/bolt:")
         st.page_link("pages/0009_Generative_Moonshots:_pienza_big.py", label="Generative Moonshots: pienza_big", icon=":material/send:")
 
-        st.markdown("---")
-        st.markdown(
-            "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
-            "<b>Domain:</b> Autonomous AV Simulation<br>"
-            "<b>Stack:</b> Python, TensorFlow, BigQuery, Pydeck</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown("---")
+        with st.container(key="sb-footer"):
+            st.markdown("---")
+            try:
+                pdf_b64 = _load_report_pdf_b64()
+                pdf_link = (
+                    f"<a href='data:application/pdf;base64,{pdf_b64}' "
+                    "download='Project_Pienza_Full_Report.pdf' class='sb-pdf-link'>Download PDF</a>"
+                )
+            except Exception:
+                pdf_link = "Download PDF"
 
-        try:
-            if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = (Path(__file__).resolve().parent / "assets" / "Pienza_Papers.pdf").read_bytes()
-                st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
-        except Exception:
-            pass
-
-        st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
+            st.markdown(
+                "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
+                "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
+                "<b>GitHub:</b> <a href='https://github.com/WiseExMachina/pienza' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
+                "<b>Domain:</b> Data Science · Applied ML — Mobility & Logistics<br>"
+                "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
+                f"<b>AI Knowledge Base:</b> {pdf_link}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("---")
 
 
 

@@ -63,6 +63,15 @@ h4 {
     gap: 0px !important;
 }
 
+/* Hotfix: push the footer block (meta line / PDF button / GitHub link)
+   further down with fixed spacing instead of true bottom-anchoring
+   (flex-based anchoring didn't take effect through Streamlit's nested
+   wrapper divs). Not a real anchor - just visual breathing room after
+   the last nav module. */
+[data-testid="stSidebar"] .st-key-sb-footer {
+    margin-top: 500px;
+}
+
 /* Brand header */
 .sb-brand {
     display: flex;
@@ -163,6 +172,17 @@ h4 {
     background-color: #21918c !important;
     color: #ffffff !important;
     border-color: #21918c !important;
+}
+
+/* Discreet inline PDF link, styled as plain text to match the
+   Author/Domain/Stack meta-line rather than looking like a button. */
+.sb-pdf-link {
+    color: #21918c !important;
+    text-decoration: underline;
+    text-decoration-color: rgba(33,145,140,0.35);
+}
+.sb-pdf-link:hover {
+    text-decoration-color: #21918c;
 }
 
 .sb-meta-line {

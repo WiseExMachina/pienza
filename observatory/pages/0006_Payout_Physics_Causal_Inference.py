@@ -1,3 +1,4 @@
+import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -44,45 +45,64 @@ def teal_callout(text: str, mb: str = "24px") -> str:
 # ─────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────
+@st.cache_data
+def _load_report_pdf_b64():
+    pdf_bytes = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
+    return base64.b64encode(pdf_bytes).decode()
+
+
+@st.cache_data
+def _load_favicon_b64():
+    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
+    return base64.b64encode(favicon_bytes).decode()
+
+
 def build_sidebar():
     with st.sidebar:
-        st.markdown("Project Pienza")
-        st.markdown("---")
-        st.page_link("main.py", label="Home")
-        st.page_link("pages/0001_Foundations.py", label="Foundations")
-        st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines")
-        st.page_link("pages/0003_Feature_Store.py", label="Feature Store")
-        st.page_link("pages/0004_Data_Census_(The_Basics).py", label="Data Census: The Basics")
-        st.page_link("pages/0005_The_Cost_of_Patience.py", label="The Cost of Patience: Optimal Stopping")
-        st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference")
-        st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning")
-        st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer")
-        st.page_link("pages/0009_Generative_Moonshots:_pienza_big.py", label="Generative Moonshots: pienza_big")
-        st.markdown("---")
-        st.markdown("**Archive**")
-        st.page_link("pages/9001_cGAN_Engine.py", label="cGAN Keras Engine")
-        st.page_link("pages/9002_Network_Graph.py", label="Network Graph Analysis: Tensor vs Topological")
-        st.page_link("pages/9003_Markov_Fleet_Sim_Dashboard.py", label="Markov Fleet Simulator")
-        st.markdown("---")
-        st.markdown("**Author:** Bernardo Lozano Wise")
-        st.markdown("**Domain:** Autonomous AV Simulation")
-        st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
-        st.markdown("---")
-        try:
-            if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
-                st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
-        except Exception:
-            pass
-        st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
-        st.markdown("---")
-        if st.button("🧹 Flush Cache", key="flush_cache_btn", use_container_width=True, help="Clears st.cache_data/st.cache_resource and forces all cached data/assets to reload, without restarting the process."):
-            st.cache_data.clear()
-            st.cache_resource.clear()
-            st.rerun()
+        st.markdown(
+            "<div class='sb-brand'>"
+            "<div class='sb-brand-mark'>"
+            f"<img src='data:image/png;base64,{_load_favicon_b64()}' width='28' height='28' /></div>"
+            "<div><div class='sb-brand-text-title'>Project Pienza</div>"
+            "<div class='sb-brand-text-sub'>Digital Twin · CDMX</div></div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        st.page_link("main.py", label="Home", icon=":material/home:")
+        st.markdown("<div class='sb-section-label'>Modules</div>", unsafe_allow_html=True)
+        st.page_link("pages/0001_Foundations.py", label="Foundations", icon=":material/layers:")
+        st.page_link("pages/0002_Acquisition_Pipelines.py", label="Acquisition Pipelines", icon=":material/sync:")
+        st.page_link("pages/0003_Feature_Store.py", label="Feature Store", icon=":material/database:")
+        st.page_link("pages/0004_Data_Census_(The_Basics).py", label="Data Census: The Basics", icon=":material/search:")
+        st.page_link("pages/0005_The_Cost_of_Patience.py", label="The Cost of Patience: Optimal Stopping", icon=":material/report:")
+        st.page_link("pages/0006_Payout_Physics_Causal_Inference.py", label="Payout Physics: Causal Inference", icon=":material/account_tree:")
+        st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning", icon=":material/shield:")
+        st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer", icon=":material/bolt:")
+        st.page_link("pages/0009_Generative_Moonshots:_pienza_big.py", label="Generative Moonshots: pienza_big", icon=":material/send:")
+
+        with st.container(key="sb-footer"):
+            st.markdown("---")
+            try:
+                pdf_b64 = _load_report_pdf_b64()
+                pdf_link = (
+                    f"<a href='data:application/pdf;base64,{pdf_b64}' "
+                    "download='Project_Pienza_Full_Report.pdf' class='sb-pdf-link'>Download PDF</a>"
+                )
+            except Exception:
+                pdf_link = "Download PDF"
+
+            st.markdown(
+                "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
+                "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
+                "<b>GitHub:</b> <a href='https://github.com/WiseExMachina/pienza' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
+                "<b>Domain:</b> Data Science · Applied ML — Mobility & Logistics<br>"
+                "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
+                f"<b>AI Knowledge Base:</b> {pdf_link}</div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("---")
 
 build_sidebar()
-
 # ==============================================================================
 # CONSTANTS
 # ==============================================================================
