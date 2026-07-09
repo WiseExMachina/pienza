@@ -133,7 +133,21 @@ def _render_kepler_hero():
     try:
         html_data = (Path(__file__).resolve().parent / "assets" / "kepler_3D.html").read_text(encoding="utf-8")
 
-        force_white_css = "<style>body { background-color: white !important; }</style>"
+        # Kepler.gl's exported HTML briefly renders its own factory-default
+        # viewport (San Francisco) before its JS bundle finishes parsing and
+        # dispatching the saved CDMX mapState from config — a Kepler boot-
+        # sequence quirk, not a bug in the exported data (confirmed 2026-07-09,
+        # see project_tech_debt memory). Hide the iframe body until the snap
+        # to CDMX has had time to happen, then fade it in, so the SF flash
+        # never becomes visible.
+        force_white_css = """
+<style>
+body { background-color: white !important; opacity: 0; transition: opacity 0.3s ease; }
+</style>
+<script>
+setTimeout(function () { document.body.style.opacity = 1; }, 700);
+</script>
+"""
         components.html(force_white_css + html_data, height=600)
 
     except Exception as e:

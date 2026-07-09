@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
-from google.cloud import bigquery
+from utils.bq_client import _bigquery_client
 from pathlib import Path
 import plotly.graph_objects as go
 from components.styles import GLOBAL_CSS
@@ -101,8 +101,7 @@ st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-
 # ==============================================================================
 @st.cache_resource
 def get_bq_client():
-    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
-    return bigquery.Client.from_service_account_json(json_path)
+    return _bigquery_client()
 
 def map_category(cat_name):
     cat_lower = str(cat_name).lower()

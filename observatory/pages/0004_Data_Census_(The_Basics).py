@@ -1,7 +1,7 @@
 import streamlit as st
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor as _ThreadPoolExecutor
-from google.cloud import bigquery
+from utils.bq_client import _bigquery_client
 from components.styles import GLOBAL_CSS
 from config import FAVICON
 
@@ -101,8 +101,7 @@ DATASET = "pienza_mini"
 
 @st.cache_resource
 def get_bq_client():
-    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
-    return bigquery.Client.from_service_account_json(json_path)
+    return _bigquery_client()
 
 @st.cache_data
 def run_query(sql: str):

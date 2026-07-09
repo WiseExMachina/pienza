@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import seaborn as sns
 import matplotlib.pyplot as plt
-from google.cloud import bigquery
+from utils.bq_client import _bigquery_client
 from pathlib import Path
 from scipy.interpolate import interp1d
 from components.styles import GLOBAL_CSS
@@ -89,8 +89,7 @@ COLORS = {
 # ==============================================================================
 @st.cache_resource
 def get_bq_client():
-    json_path = Path(__file__).resolve().parent.parent / ".streamlit" / "service-account.json"
-    return bigquery.Client.from_service_account_json(json_path)
+    return _bigquery_client()
 
 def map_category(cat_name):
     cat_lower = str(cat_name).lower()
