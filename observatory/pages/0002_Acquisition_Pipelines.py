@@ -141,6 +141,7 @@ div[class*="st-key-nav_prev_"] button:disabled, div[class*="st-key-nav_next_"] b
 # HEADER
 # ─────────────────────────────────────────────
 st.markdown("# Acquisition Pipelines")
+st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Two Engines, One Ground Truth — GTS Telemetry + Gemini OCR</h4>", unsafe_allow_html=True)
 
 # Shared cache for OCR screenshot base64 encoding. Two real costs were found
 # here during a 2026-07-09 perf pass (see project_live_calls_audit memory):

@@ -161,6 +161,7 @@ st.markdown(base_css + hover_css + quantum_scroll_js, unsafe_allow_html=True)
 # 3. PAGE LAYOUT
 # ==============================================================================
 st.markdown("# Human vs AI: Behavioral Cloning")
+st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Cloning the Agent — From Monolith to Cognitive Cascade</h4>", unsafe_allow_html=True)
 st.markdown("""
 <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;">
 This phase implements supervised imitation learning to map the human agent's decision boundaries.

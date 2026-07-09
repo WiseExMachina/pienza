@@ -122,7 +122,8 @@ except Exception as _e:
 # ─────────────────────────────────────────────
 # HEADER + BRIDGE
 # ─────────────────────────────────────────────
-st.markdown("# Data Census (The Basics)")
+st.markdown("# Data Census")
+st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Every Offer, Reconciled — From Sheets to Schema</h4>", unsafe_allow_html=True)
 st.markdown("""
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 With the Feature Store fully defined, the project reconciled every offer against the platform's official

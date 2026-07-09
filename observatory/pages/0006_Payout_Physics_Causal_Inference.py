@@ -95,6 +95,7 @@ OPUS_TEXT = '#121212'
 # HEADER
 # ==============================================================================
 st.markdown("# Payout Physics")
+st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Testing the Payout Spread — From Correlation to Causal Structure</h4>", unsafe_allow_html=True)
 
 # ==============================================================================
 # HELPERS

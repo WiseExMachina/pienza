@@ -104,6 +104,7 @@ def map_category(cat_name):
 # HEADER  (renders immediately — no data dependency)
 # ==============================================================================
 st.markdown("# The Cost of Patience")
+st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>When to Wait, When to Accept — The Mathematics of Optimal Stopping</h4>", unsafe_allow_html=True)
 st.markdown(
     "<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>"
     "Optimal Stopping Theory addresses a single problem: given a sequential stream of transient options, when is the exact moment to commit? "

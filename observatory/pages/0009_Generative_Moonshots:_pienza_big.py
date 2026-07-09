@@ -78,6 +78,8 @@ st.markdown("""
 
 <h1 style="font-size:44px; font-weight:900; letter-spacing:-1.5px; line-height:1.03; margin:8px 0 20px; color:#121212; white-space:nowrap;">Generative Moonshots</h1>
 
+<h4 style="font-weight:300; color:#21918c; font-size:19px; margin:-30px 0 20px;">5,123 real rides in &rarr; 1,010,001 synthetic rides out</h4>
+
 <p style="font-size:14px; font-weight:400; color:#475569; line-height:1.7; margin-bottom:24px;">This final phase constitutes an experimental transition to scale the project from cloning the human agent to simulating the entire environment. Achieved via a cGAN engine and network graph analysis, this synthesis establishes the scaffolding necessary for autonomous execution using Markov Decision Processes and Reinforcement Learning.</p>
 
 <!-- SECTION LABEL -->
@@ -85,7 +87,6 @@ st.markdown("""
 <div style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:3px; color:#94a3b8; text-transform:uppercase; white-space:nowrap;">// cGAN &middot; Keras Engine</div>
 <div style="height:2px; margin-top:8px; background:linear-gradient(to right, #21918c, rgba(33,145,140,0));"></div>
 </div>
-<div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:#21918c; letter-spacing:0.3px; margin-bottom:18px;">5,123 real rides in &rarr; 1,010,001 synthetic rides out</div>
 
 <!-- ============ CIRCUIT ============ -->
 <div style="border:1px solid #eaeaea; border-radius:4px; padding:28px 24px; background:#fff; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
