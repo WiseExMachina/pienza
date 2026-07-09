@@ -711,10 +711,9 @@ def _p3_body():
         def _p3lat_obf_addr(v):
             return re.sub(r'\b(?!\d{5}\b)\d+[\w-]*\b', lambda m: re.sub(r'\d', '#', m.group(0)), str(v), count=1)
 
-        def _run_latency_trial(_raw_address, _true_name):
+        def _finish_latency_trial(_raw_address, _true_name, _gmap_res, _gmap_lat, _gmap_coords):
             _clean_text = standardize_mexico_city_address(_raw_address)
 
-            _gmap_res, _gmap_lat, _gmap_coords = get_google_maps_latency(_raw_address)
             _gmap_coords = [_gmap_coords['lat'], _gmap_coords['lng']] if _gmap_coords else None
 
             _mb = st.session_state.get('minibabel')
@@ -741,11 +740,23 @@ def _p3_body():
             }
 
         def _run_latency_batch(n=15):
+            import concurrent.futures as _cf
             _pool = _load_latency_pool()
-            _rows = _pool.sample(min(n, len(_pool)))
+            _rows = _pool.sample(min(n, len(_pool))).reset_index(drop=True)
+            _addresses = _rows['raw_address'].astype(str).tolist()
+            _truths = _rows['real_zone_name'].astype(str).tolist()
+
+            # Google Maps calls are network-bound and independent — fire them
+            # concurrently instead of one-by-one, then run the (fast, CPU-only)
+            # miniBabel inference sequentially. Per-address gmaps/babel latency
+            # numbers are each measured inside their own call, so concurrency
+            # here doesn't distort the numbers shown in the UI.
+            with _cf.ThreadPoolExecutor(max_workers=len(_addresses) or 1) as _ex:
+                _gmap_results = list(_ex.map(get_google_maps_latency, _addresses))
+
             st.session_state['p3_latency_batch'] = [
-                _run_latency_trial(str(_r['raw_address']), str(_r['real_zone_name']))
-                for _, _r in _rows.iterrows()
+                _finish_latency_trial(_raw, _truth, _gres, _glat, _gcoords)
+                for _raw, _truth, (_gres, _glat, _gcoords) in zip(_addresses, _truths, _gmap_results)
             ]
 
         with st.container(key="p3_batch_hidden"):
