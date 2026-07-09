@@ -63,6 +63,10 @@ h4 {
     gap: 0px !important;
 }
 
+[data-testid="stSidebar"] .st-key-sb-footer {
+    margin-top: 50px;
+}
+
 
 /* Brand header */
 .sb-brand {
@@ -75,21 +79,23 @@ h4 {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
+    width: 48px;
+    height: 48px;
+    border-radius: 11px;
     background: rgba(33,145,140,0.12);
     flex-shrink: 0;
 }
 .sb-brand-text-title {
-    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1.25rem;
     font-weight: 800;
     color: #121212 !important;
     letter-spacing: -0.2px;
     line-height: 1.15;
 }
 .sb-brand-text-sub {
-    font-size: 0.68rem;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #21918c !important;
     text-transform: uppercase;

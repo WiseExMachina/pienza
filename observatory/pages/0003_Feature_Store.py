@@ -26,7 +26,7 @@ def build_sidebar():
         st.markdown(
             "<div class='sb-brand'>"
             "<div class='sb-brand-mark'>"
-            f"<img src='data:image/png;base64,{_load_favicon_b64()}' width='28' height='28' /></div>"
+            f"<img src='data:image/png;base64,{_load_favicon_b64()}' width='40' height='40' /></div>"
             "<div><div class='sb-brand-text-title'>Project Pienza</div>"
             "<div class='sb-brand-text-sub'>Digital Twin · CDMX</div></div>"
             "</div>",
