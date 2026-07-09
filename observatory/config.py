@@ -1,14 +1,21 @@
 from pathlib import Path
+from PIL import Image
 
 # Absolute paths anchored to this file's location, not the process's working
 # directory — Streamlit Cloud launches the app from the repo root, not from
 # observatory/ like local dev does (see "How to run" in assets/CLAUDE.md),
 # so a bare relative path like "assets/favicon.png" resolved to the wrong
-# assets/ folder (the repo-root one) on Cloud and silently fell back to
-# Streamlit's default favicon.
+# assets/ folder (the repo-root one) on Cloud.
 _ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
-FAVICON = str(_ASSETS_DIR / "favicon.png")
+# page_icon as a PIL.Image instead of a path string — Streamlit has to
+# classify a string page_icon as emoji vs URL vs local path before loading
+# it, and that classification has had known unreliable behavior on
+# Streamlit Community Cloud specifically. Passing an already-loaded
+# PIL.Image sidesteps that classification entirely (fixing the absolute
+# path alone did not resolve the favicon still showing Streamlit's default
+# on the deployed app).
+FAVICON = Image.open(_ASSETS_DIR / "favicon.png")
 ACCENT = "#21918c"
 ACCENT_DARK = "#1a7576"
 PAGE_TITLE = "Project Pienza | Digital Twin"
