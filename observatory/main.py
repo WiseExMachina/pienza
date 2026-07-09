@@ -135,17 +135,43 @@ def _render_kepler_hero():
 
         # Kepler.gl's exported HTML briefly renders its own factory-default
         # viewport (San Francisco) before its JS bundle finishes parsing and
-        # dispatching the saved CDMX mapState from config — a Kepler boot-
-        # sequence quirk, not a bug in the exported data (confirmed 2026-07-09,
-        # see project_tech_debt memory). Hide the iframe body until the snap
-        # to CDMX has had time to happen, then fade it in, so the SF flash
-        # never becomes visible.
+        # dispatching the saved CDMX mapState — a Kepler boot-sequence quirk,
+        # not a bug in the exported data (confirmed 2026-07-09, see
+        # project_tech_debt memory). A fixed setTimeout was tried here before
+        # and caused a worse regression on Streamlit Cloud (permanently blank
+        # map, only fixed by a manual reload) — Cloud's cold-start load time
+        # is unpredictable, so a fixed delay can fire either too early (flash
+        # still visible) or, if something else delays rendering, the hidden
+        # state can get stuck with no way to recover.
+        # Fix: reveal as soon as the WebGL canvas Kepler/Mapbox creates
+        # actually appears in the DOM (a real signal the map has painted,
+        # not a guess), polled every 100ms. A hard 4s safety timeout always
+        # forces the reveal regardless, so the map can never stay invisible
+        # forever even if the canvas selector ever stops matching (e.g. a
+        # future Kepler/Mapbox version renaming its canvas class).
         force_white_css = """
 <style>
 body { background-color: white !important; opacity: 0; transition: opacity 0.3s ease; }
 </style>
 <script>
-setTimeout(function () { document.body.style.opacity = 1; }, 700);
+(function () {
+  var revealed = false;
+  function reveal() {
+    if (revealed) return;
+    revealed = true;
+    document.body.style.opacity = 1;
+  }
+  var checkInterval = setInterval(function () {
+    if (document.querySelector('canvas')) {
+      clearInterval(checkInterval);
+      reveal();
+    }
+  }, 100);
+  setTimeout(function () {
+    clearInterval(checkInterval);
+    reveal();
+  }, 4000);
+})();
 </script>
 """
         components.html(force_white_css + html_data, height=600)
