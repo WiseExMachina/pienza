@@ -1,8 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
-import time
-import io
 from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
 from utils.gcp_client import _storage_client, fetch_bytes_from_gcs
@@ -42,12 +40,17 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
-            st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
+            if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
+                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
+        if st.button("🧹 Flush Cache", key="flush_cache_btn", use_container_width=True, help="Clears st.cache_data/st.cache_resource and forces all cached data/assets to reload, without restarting the process."):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.rerun()
 
 build_sidebar()
 
@@ -153,35 +156,6 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown(base_css + hover_css + quantum_scroll_js, unsafe_allow_html=True)
 
 
-
-# ==============================================================================
-# 2. LÓGICA DE DATOS Y ESTADO
-# ==============================================================================
-if 'arena_idx' not in st.session_state: st.session_state.arena_idx = 0
-if 'arena_running' not in st.session_state: st.session_state.arena_running = False
-if 'bank' not in st.session_state: st.session_state.bank = {"human": 0.0, "full": 0.0, "light": 0.0}
-if 'trips' not in st.session_state: st.session_state.trips = {"human": 0, "full": 0, "light": 0}
-
-if 'towers_l1' not in st.session_state:
-    st.session_state.towers_l1 = {k: [] for k in ["THE_NUANCED_REST", "Long Pickup Time", "Low Profitability", "Dropoff: Non-Operational", "Dropoff: Proxy Zone"]}
-if 'towers_l2' not in st.session_state:
-    st.session_state.towers_l2 = {ag: {k: [] for k in ["ACCEPTED", "Expected Value Gamble", "Strategic Mismatch"]} for ag in ["human", "full", "light"]}
-
-@st.cache_data 
-def load_tournament_ledger(): 
-    client = _storage_client()
-    bucket = client.bucket("pienza-streamlit") 
-    blob = bucket.blob("260420_resultados_torneo_iter2v3.parquet") 
-    buffer = io.BytesIO() 
-    blob.download_to_file(buffer) 
-    buffer.seek(0) 
-    df = pd.read_parquet(buffer)
-    if 'offer_timestamp' in df.columns:
-        df['offer_timestamp'] = pd.to_datetime(df['offer_timestamp'])
-        df = df.sort_values('offer_timestamp')
-    return df
-
-df_master = load_tournament_ledger()
 
 # ==============================================================================
 # 3. PAGE LAYOUT

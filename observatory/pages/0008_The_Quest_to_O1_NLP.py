@@ -60,8 +60,9 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
-            st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
+            if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
+                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
@@ -244,6 +245,17 @@ step.addEventListener('click', function() {
 </script>
 """, height=0)
 
+# Shared loader for 260702_minibabel_holdout_audit.parquet — Streamlit renders
+# every tab panel's content on each rerun (they're just hidden via CSS, not
+# lazily skipped), so P1/P2/P3 were each fetching + parsing this same parquet
+# under their own differently-named @st.cache_data function, tripling the
+# work. One shared cache entry now serves all three tabs.
+@st.cache_data(show_spinner=False)
+def _load_holdout_audit():
+    from io import BytesIO as _HoldoutBytesIO
+    _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
+    return pd.read_parquet(_HoldoutBytesIO(_bytes))
+
 _p1_tab, _p2_tab, _p3_tab = st.tabs(["Custom miniBabel", "Model Audit", "Latency Test"])
 
 with _p1_tab:
@@ -291,11 +303,8 @@ with _p1_tab:
     import random as _random
     from utils.gcp_client import fetch_parquet_from_gcp
 
-    @st.cache_data(show_spinner=False)
     def _load_holdout_pool():
-        from io import BytesIO as _BytesIO
-        _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
-        df = pd.read_parquet(_BytesIO(_bytes))
+        df = _load_holdout_audit()
         if df.empty:
             return pd.DataFrame()
         return df[['raw_address', 'real_zone_name']].dropna().reset_index(drop=True)
@@ -612,13 +621,7 @@ with _p2_tab:
 </p>
 """, unsafe_allow_html=True)
 
-    @st.cache_data(show_spinner=False)
-    def _load_audit_full():
-        from io import BytesIO as _P3BytesIO
-        _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
-        return pd.read_parquet(_P3BytesIO(_bytes))
-
-    _audit_df = _load_audit_full()
+    _audit_df = _load_holdout_audit()
 
     if _audit_df.empty:
         st.warning("Holdout audit data unavailable.")
@@ -689,11 +692,8 @@ with _p3_tab:
 </p>
 """, unsafe_allow_html=True)
 
-    @st.cache_data(show_spinner=False)
     def _load_latency_pool():
-        from io import BytesIO as _P3LatBytesIO
-        _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
-        _df = pd.read_parquet(_P3LatBytesIO(_bytes))
+        _df = _load_holdout_audit()
         return _df[['raw_address', 'real_zone_name']].dropna().reset_index(drop=True)
 
     def _p3lat_obf_addr(v):

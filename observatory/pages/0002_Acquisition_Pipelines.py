@@ -41,17 +41,17 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
-            st.download_button(
-                "📄 Download 91-Page Report (PDF)",
-                data=pdf_data,
-                file_name="Project_Pienza_Full_Report.pdf",
-                mime="application/pdf"
-            )
+            if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
+                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass
         st.markdown("[🔗 View GitHub Repository](https://github.com/your-repo)")
         st.markdown("---")
+        if st.button("🧹 Flush Cache", key="flush_cache_btn", use_container_width=True, help="Clears st.cache_data/st.cache_resource and forces all cached data/assets to reload, without restarting the process."):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.rerun()
 
 build_sidebar()
 
