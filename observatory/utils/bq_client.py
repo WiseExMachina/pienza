@@ -20,7 +20,7 @@ def _bigquery_client() -> bigquery.Client:
     return bigquery.Client()
 
 
-@st.cache_data(show_spinner="Querying the Pienza Data Warehouse...")
+@st.cache_data(show_spinner="Querying the Pienza Data Lakehouse...")
 def fetch_data_from_bq(query: str) -> pd.DataFrame:
     """
     Executes a SQL query against Google BigQuery and returns a Pandas DataFrame.

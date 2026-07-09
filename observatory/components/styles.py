@@ -338,5 +338,37 @@ footer { visibility: hidden; }
 
 /* Hide the anchor-link (chain icon) Streamlit auto-adds to every heading on hover */
 [data-testid="stHeaderActionElements"] { display: none !important; }
+
+/* Replace Streamlit's default running-script icon (a running man / bike,
+   depending on version) with a spinning teal taxi, matching the single-color
+   feather-style icon set used on main.py's nav-cards (#21918c stroke, not
+   OS emoji). Unofficial hack: targets Streamlit's internal data-testid,
+   which is not public API and can break on a future Streamlit upgrade if
+   they rename this element. */
+[data-testid="stStatusWidgetRunningIcon"],
+[data-testid="stStatusWidgetRunningManIcon"] {
+    opacity: 0 !important;
+}
+[data-testid="stStatusWidget"] {
+    position: relative;
+}
+[data-testid="stStatusWidget"]::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2321918c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11'/><rect x='3' y='11' width='18' height='7' rx='2'/><circle cx='7.5' cy='18' r='1.5'/><circle cx='16.5' cy='18' r='1.5'/></svg>");
+    background-repeat: no-repeat;
+    background-size: contain;
+    animation: pienza-taxi-spin 1s linear infinite;
+    pointer-events: none;
+}
+@keyframes pienza-taxi-spin {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to   { transform: translateY(-50%) rotate(360deg); }
+}
 </style>
 """

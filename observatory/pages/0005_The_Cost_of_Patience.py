@@ -932,7 +932,7 @@ With the market quadrants established, rational search time boundaries can now b
         windows_map   = dict(zip(windows_min, windows_sec))
         frontier_data = []
 
-        with st.spinner("Simulating the Efficient Frontier…"):
+        with st.spinner("Loading data…"):
             for target_eph in target_range:
                 baseline_eph = target_eph - 30
                 props_base   = df_playbook[df_playbook['eph_real'].between(baseline_eph - 15, baseline_eph + 15)][

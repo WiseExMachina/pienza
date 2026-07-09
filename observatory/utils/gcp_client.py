@@ -40,7 +40,7 @@ def _storage_client() -> storage.Client:
 # GCP CONNECTIVITY UTILS
 # ==========================================
 
-@st.cache_data(show_spinner="Decrypting GCP Telemetry...")
+@st.cache_data(show_spinner="Loading telemetry...")
 def fetch_parquet_from_gcp(bucket_name: str, file_name: str) -> pd.DataFrame:
     """
     Fetches a Parquet file securely from a GCP bucket.
@@ -125,7 +125,7 @@ class ZoneClassifierTransformer(nn.Module):
 # RESOURCE LOADERS (The Single Source of Truth)
 # ==========================================
 
-@st.cache_resource(show_spinner="Initializing O(1) miniBabel Engine...")
+@st.cache_resource(show_spinner="Initializing miniBabel...")
 def load_babel_assets():
     """
     Downloads and instantiates the lightweight miniBabel model.
@@ -161,7 +161,7 @@ def load_babel_assets():
 
 
 
-@st.cache_resource(show_spinner="Accessing Sovereign Dimensions (Fast-Load)...")
+@st.cache_resource(show_spinner="Loading data...")
 def load_manifold_dimensions():
     """
     Lightweight Asset Loader: Bypasses Keras/Neural engines to serve 

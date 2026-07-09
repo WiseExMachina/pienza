@@ -243,7 +243,7 @@ WHERE ml.eph_direct IS NOT NULL
 # for real (this stays a genuinely live sandbox); we're just choosing when
 # the round trip happens, not skipping it.
 if _bq_ok:
-    with st.spinner("Warming up SQL sandbox…"):
+    with st.spinner("Loading Data Census…"):
         with _ThreadPoolExecutor(max_workers=len(QUERIES)) as _ex:
             list(_ex.map(run_query, QUERIES.values()))
 
