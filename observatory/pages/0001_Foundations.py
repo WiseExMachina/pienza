@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 from components.styles import GLOBAL_CSS
 from config import FAVICON
-from utils.gcp_client import fetch_bytes_from_gcs
+from pathlib import Path
 
 st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon=FAVICON)
 
@@ -35,7 +35,7 @@ def build_sidebar():
         st.markdown("---")
         try:
             if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
                 st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass

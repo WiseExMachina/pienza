@@ -5,6 +5,7 @@ from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
 from utils.gcp_client import _storage_client, fetch_bytes_from_gcs
 from config import FAVICON
+from pathlib import Path
 
 
 # ==============================================================================
@@ -41,7 +42,7 @@ def build_sidebar():
         st.markdown("---")
         try:
             if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
                 st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass

@@ -61,7 +61,7 @@ def build_sidebar():
         st.markdown("---")
         try:
             if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
                 st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass
@@ -680,8 +680,9 @@ def _p2_body():
 
             @st.cache_data(show_spinner=False)
             def _load_zone_map_template():
-                _html = fetch_bytes_from_gcs("pienza-streamlit", "model_audit_map.html").decode("utf-8")
-                _js = fetch_bytes_from_gcs("pienza-streamlit", "zone-paths.js").decode("utf-8")
+                _assets_dir = Path(__file__).resolve().parent.parent / "assets"
+                _html = (_assets_dir / "model_audit_map.html").read_text(encoding="utf-8")
+                _js = (_assets_dir / "zone-paths.js").read_text(encoding="utf-8")
                 return _html.replace(
                     '<script src="./zone-paths.js"></script>',
                     f'<script>{_js}</script>',
@@ -787,8 +788,9 @@ def _p3_body():
             # seamless transition).
             @st.cache_data(show_spinner=False)
             def _load_latency_map_template():
-                _html = fetch_bytes_from_gcs("pienza-streamlit", "latency_test_map.html").decode("utf-8")
-                _js = fetch_bytes_from_gcs("pienza-streamlit", "zone-paths.js").decode("utf-8")
+                _assets_dir = Path(__file__).resolve().parent.parent / "assets"
+                _html = (_assets_dir / "latency_test_map.html").read_text(encoding="utf-8")
+                _js = (_assets_dir / "zone-paths.js").read_text(encoding="utf-8")
                 return _html.replace(
                     '<script src="./zone-paths.js"></script>',
                     f'<script>{_js}</script>',

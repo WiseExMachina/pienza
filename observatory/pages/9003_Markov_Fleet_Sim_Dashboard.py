@@ -5,7 +5,6 @@ import geopandas as gpd
 import pydeck as pdk
 from shapely.affinity import translate
 from pathlib import Path
-from utils.gcp_client import fetch_bytes_from_gcs
 
 
 # ==========================================
@@ -41,7 +40,7 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+            pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
             st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
         except Exception:
             pass

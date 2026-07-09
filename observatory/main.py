@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
 from config import FAVICON
-from utils.gcp_client import fetch_bytes_from_gcs
+from pathlib import Path
 
 
 # --- 0. SIDEBAR INTEGRADA ---
@@ -33,7 +33,7 @@ def build_sidebar():
         
         try:
             if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                pdf_data = (Path(__file__).resolve().parent / "assets" / "Pienza_Papers.pdf").read_bytes()
                 st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass
@@ -50,7 +50,7 @@ def build_sidebar():
 # --- 1. CANONICAL CONFIGURATION ---
 st.set_page_config(
     layout="wide", 
-    page_title="Project Pienza | Digital Twin",
+    page_title="Project Pienza | Digital Twin · CDMX",
     page_icon=FAVICON
 )
 
@@ -127,18 +127,17 @@ st.markdown("### The Playground: Machine Discovered Hubs")
 # Flush Cache or the PDF button elsewhere on the page) — without it,
 # components.html() re-injects the whole Kepler.gl HTML on every rerun,
 # forcing the browser to reinitialize WebGL/deck.gl from scratch even
-# though the map itself never changes. The GCS fetch was already cached
-# (0.4MB, not the bottleneck) — this is what fixes the perceived slowness.
+# though the map itself never changes.
 @st.fragment
 def _render_kepler_hero():
     try:
-        html_data = fetch_bytes_from_gcs("pienza-streamlit", "kepler_3D.html").decode("utf-8")
+        html_data = (Path(__file__).resolve().parent / "assets" / "kepler_3D.html").read_text(encoding="utf-8")
 
         force_white_css = "<style>body { background-color: white !important; }</style>"
         components.html(force_white_css + html_data, height=600)
 
     except Exception as e:
-        st.error(f"Failed to load Kepler map from GCS: {e}")
+        st.error(f"Failed to load Kepler map: {e}")
 
 _render_kepler_hero()
 

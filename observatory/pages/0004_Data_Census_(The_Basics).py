@@ -4,7 +4,6 @@ from concurrent.futures import ThreadPoolExecutor as _ThreadPoolExecutor
 from google.cloud import bigquery
 from components.styles import GLOBAL_CSS
 from config import FAVICON
-from utils.gcp_client import fetch_bytes_from_gcs
 
 st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
@@ -38,7 +37,7 @@ def build_sidebar():
         st.markdown("---")
         try:
             if st.button("📄 Download 91-Page Report (PDF)", key="pdf_prep_btn", use_container_width=True):
-                pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+                pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
                 st.download_button("⬇️ Save PDF", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf", key="pdf_dl_btn")
         except Exception:
             pass

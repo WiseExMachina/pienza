@@ -57,7 +57,7 @@ def build_sidebar():
         st.markdown("**Stack:** Python, TensorFlow, BigQuery, Pydeck")
         st.markdown("---")
         try:
-            pdf_data = fetch_bytes_from_gcs("pienza-streamlit", "Pienza_Papers.pdf")
+            pdf_data = (Path(__file__).resolve().parent.parent / "assets" / "Pienza_Papers.pdf").read_bytes()
             st.download_button("📄 Download 91-Page Report (PDF)", data=pdf_data, file_name="Project_Pienza_Full_Report.pdf", mime="application/pdf")
         except Exception:
             pass
@@ -117,8 +117,8 @@ PATH_HIGHLIGHT  = '#FACC15'
 # --- DATA LOAD ---
 @st.cache_data
 def get_topology_data():
-    from io import BytesIO
-    gdf = gpd.read_file(BytesIO(fetch_bytes_from_gcs("pienza-streamlit", "poly.geojson")))
+    base_path = Path(__file__).resolve().parent.parent / "assets" / "poly.geojson"
+    gdf = gpd.read_file(str(base_path))
     tecas = gdf[gdf['name'] == 'tecamachalco']
     if len(tecas) > 1:
         idx_norte, idx_sur = tecas.geometry.centroid.x.idxmax(), tecas.geometry.centroid.x.idxmin()
@@ -184,7 +184,7 @@ import pydeck as pdk
 def load_pydeck_assets():
     from io import BytesIO
     df_arcos = pd.read_csv(BytesIO(fetch_bytes_from_gcs("pienza-streamlit", "0608_260513_tensor_arcos_w_eph_maestro.csv")))
-    gdf_poly = gpd.read_file(BytesIO(fetch_bytes_from_gcs("pienza-streamlit", "poly.geojson")))
+    gdf_poly = gpd.read_file(str(Path(__file__).resolve().parent.parent / "assets" / "poly.geojson"))
     return df_arcos, gdf_poly
 
 df_arcos_pd, gdf_poly_pd = load_pydeck_assets()

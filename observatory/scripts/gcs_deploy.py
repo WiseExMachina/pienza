@@ -131,21 +131,14 @@ MANIFEST = [
         "local": "260423__idx_to_zone_to_semantics.json",
         "gcs":   "260423__idx_to_zone_to_semantics.json",
     },
-    # Compartido (todas las paginas via el boton de descarga del paper)
-    {
-        "page": "shared",
-        "local": "Pienza_Papers.pdf",
-        "gcs":   "Pienza_Papers.pdf",
-        "source": "assets",
-    },
-    # main.py - Home / Kepler 3D
-    {
-        "page": "main",
-        "local": "kepler_3D.html",
-        "gcs":   "kepler_3D.html",
-        "source": "assets",
-    },
-    # 0002 - Acquisition Pipelines (OCR offer card screenshots)
+    # NOTE: Pienza_Papers.pdf, kepler_3D.html, model_audit_map.html,
+    # latency_test_map.html, zone-paths.js and poly.geojson used to be
+    # manifest entries here, but were reclassified as public/non-sensitive
+    # static assets and are now git-tracked directly in observatory/assets/
+    # (see .gitignore exceptions and assets/CLAUDE.md) instead of living in
+    # GCS. Only genuinely private data (real OCR screenshots, parquets,
+    # model weights) belongs in this manifest going forward.
+    # 0002 - Acquisition Pipelines (OCR offer card screenshots, private data)
     {
         "page": "0002",
         "local": "offer_cards/01_IMG_1691.PNG",
@@ -206,32 +199,7 @@ MANIFEST = [
         "gcs":   "10_IMG_9277.PNG",
         "source": "assets",
     },
-    # 0008 - The Quest to O1 NLP (map HTML + zone path JS)
-    {
-        "page": "0008",
-        "local": "model_audit_map.html",
-        "gcs":   "model_audit_map.html",
-        "source": "assets",
-    },
-    {
-        "page": "0008",
-        "local": "latency_test_map.html",
-        "gcs":   "latency_test_map.html",
-        "source": "assets",
-    },
-    {
-        "page": "0008",
-        "local": "zone-paths.js",
-        "gcs":   "zone-paths.js",
-        "source": "assets",
-    },
-    # 9002 - Network Graph (archive, treated as active)
-    {
-        "page": "9002",
-        "local": "poly.geojson",
-        "gcs":   "poly.geojson",
-        "source": "assets",
-    },
+    # 9002 - Network Graph (archive, treated as active; private trip data)
     {
         "page": "9002",
         "local": "0608_260513_tensor_arcos_w_eph_maestro.csv",

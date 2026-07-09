@@ -25,7 +25,19 @@ service-account.json
 *.npy
 /data/
 /assets/
-/observatory/assets/
+
+# observatory/assets/: block everything by default (private data, OCR
+# screenshots, dead/unused files), open exceptions only for static
+# public assets with zero sensitive data (see assets/CLAUDE.md)
+/observatory/assets/*
+!/observatory/assets/favicon.png
+!/observatory/assets/Pienza_Papers.pdf
+!/observatory/assets/Pienza_ERD.png
+!/observatory/assets/kepler_3D.html
+!/observatory/assets/model_audit_map.html
+!/observatory/assets/latency_test_map.html
+!/observatory/assets/zone-paths.js
+!/observatory/assets/poly.geojson
 
 # ==========================================
 # 3. JUPYTER & SCRATCHPADS
