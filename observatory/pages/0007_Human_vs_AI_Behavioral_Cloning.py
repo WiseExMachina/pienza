@@ -163,9 +163,9 @@ st.markdown(base_css + hover_css + quantum_scroll_js, unsafe_allow_html=True)
 st.markdown("# Human vs AI: Behavioral Cloning")
 st.markdown("""
 <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;">
-This phase documents the transition from descriptive discovery to a predictive inference engine.
-The objective: synthesize a model capable of replicating the agent's decision policy with high fidelity —
-and then beat it.
+This phase implements supervised imitation learning to map the human agent's decision boundaries.
+The goal: synthesize a predictive engine capable of high-fidelity policy replication —
+and then push it past its limits.
 </div>
 """, unsafe_allow_html=True)
 
@@ -810,12 +810,15 @@ with sci2:
         st.markdown(_heatmap_html, unsafe_allow_html=True)
 
 with sci3:
-    import json as _json
+    @st.cache_data(show_spinner=False)
+    def _load_c3_metrics():
+        import json as _json
+        _bucket = _storage_client().bucket("pienza-streamlit")
+        _mono = _json.loads(_bucket.blob("0508_monolith_metrics.json").download_as_text())
+        _casc = _json.loads(_bucket.blob("0509_cascade_metrics.json").download_as_text())
+        return _mono, _casc
 
-    _client = _storage_client()
-    _bucket = _client.bucket("pienza-streamlit")
-    _mono = _json.loads(_bucket.blob("0508_monolith_metrics.json").download_as_text())
-    _casc = _json.loads(_bucket.blob("0509_cascade_metrics.json").download_as_text())
+    _mono, _casc = _load_c3_metrics()
     _l1    = _casc["layer1"]
     _l2    = _casc["layer2"]
 
@@ -883,49 +886,15 @@ This section shows how a monolithic class architecture fails because determinist
   </div>
 </div>""", unsafe_allow_html=True)
 
-    if "c3_selected" not in st.session_state:
-        st.session_state["c3_selected"] = "Monolith"
-
-    _c3_active = st.session_state["c3_selected"]
-
-    _mono_active = _c3_active == "Monolith"
-    st.markdown(f"""
+    st.markdown("""
 <style>
-.c3-seg {{
-  display:inline-flex; border-radius:999px; background:#f1f5f9;
-  padding:4px; gap:0; margin-bottom:28px; border:1px solid #e2e8f0;
-}}
-.c3-seg-btn {{
-  padding:5px 16px; border-radius:999px; font-size:0.72rem; font-weight:600;
-  cursor:pointer; transition:all 0.18s ease; user-select:none;
-  white-space:nowrap; color:#64748b; background:transparent;
-}}
-.c3-seg-btn:hover {{ color:#21918c; }}
-.c3-seg-active {{
-  background:#21918c; color:#ffffff !important;
-  box-shadow:0 2px 8px rgba(33,145,140,0.30);
-}}
+.st-key-c3_tabs [data-baseweb="tab-list"] { display:flex !important; }
+.st-key-c3_tabs [data-baseweb="tab-border"] { display:block !important; }
 </style>
-<div class="c3-seg">
-  <div class="c3-seg-btn {'c3-seg-active' if _mono_active else ''}" id="c3card-mono">Monolith</div>
-  <div class="c3-seg-btn {'c3-seg-active' if not _mono_active else ''}" id="c3card-casc">Cognitive Cascade</div>
-</div>
 """, unsafe_allow_html=True)
+    _c3_tab_mono, _c3_tab_casc = st.tabs(["Monolith", "Cognitive Cascade"], key="c3_tabs")
 
-    st.markdown('<div class="c3-hidden-btns">', unsafe_allow_html=True)
-    if st.button("mono", key="btn_c3_mono"):
-        st.session_state["c3_selected"] = "Monolith"
-        st.rerun()
-    if st.button("casc", key="btn_c3_casc"):
-        st.session_state["c3_selected"] = "Cognitive Cascade"
-        st.rerun()
-    st.markdown('</div><style>.c3-hidden-btns{display:none!important;}</style>', unsafe_allow_html=True)
-
-
-
-    _c3_view = st.session_state["c3_selected"]
-
-    if _c3_view == "Monolith":
+    with _c3_tab_mono:
         _mono_cm     = _mono["confusion_matrix"]
         _mono_labels = _mono["labels"]
         _n = len(_mono_labels)
@@ -1085,7 +1054,7 @@ This section shows how a monolithic class architecture fails because determinist
 """, unsafe_allow_html=True)
 
 
-    elif _c3_view == "Cognitive Cascade":
+    with _c3_tab_casc:
         st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 In this hierarchical architecture, Layer 1 collapses the overlapping minority classes into a single <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">nuanced_rest</code> bucket. Recalled observations from this bucket then pass to Layer 2 to decode the agent&#8217;s final decision policy.
 </p>""", unsafe_allow_html=True)
@@ -1341,31 +1310,6 @@ In this hierarchical architecture, Layer 1 collapses the overlapping minority cl
 
 
 
-
-    components.html("""<script>
-setTimeout(function() {
-  var doc = window.parent.document;
-  var cardMono = doc.getElementById('c3card-mono');
-  var cardCasc = doc.getElementById('c3card-casc');
-  var btns = doc.querySelectorAll('button');
-  var btnMono = null, btnCasc = null;
-  btns.forEach(function(b) {
-var t = b.innerText.trim();
-if (t === 'mono') btnMono = b;
-if (t === 'casc') btnCasc = b;
-  });
-  if (btnMono) {
-var wrap = btnMono.closest('[data-testid="stElementContainer"]') || btnMono.parentElement;
-if (wrap) wrap.style.display = 'none';
-if (cardMono) cardMono.addEventListener('click', function() { btnMono.click(); });
-  }
-  if (btnCasc) {
-var wrap2 = btnCasc.closest('[data-testid="stElementContainer"]') || btnCasc.parentElement;
-if (wrap2) wrap2.style.display = 'none';
-if (cardCasc) cardCasc.addEventListener('click', function() { btnCasc.click(); });
-  }
-}, 400);
-</script>""", height=1)
 
 with sci4:
     # ── Threshold Simulator ───────────────────────────────────────────────
@@ -1865,7 +1809,9 @@ with sci5:
   <div style='height:1px;background:linear-gradient(to right,rgba(33,145,140,0.35),transparent);'></div>
 </div>
 """, unsafe_allow_html=True)
-    st.plotly_chart(_shap_chart(_df_shap_l1, "What drives nuanced_rest classification", x_domain=[-0.55, 0.35], x_title="← deterministic rejections", x_title_right="nuanced_rest · passes to L2 →"), use_container_width=True)
+    _l1_col = st.columns([1, 5, 1])[1]
+    with _l1_col:
+        st.plotly_chart(_shap_chart(_df_shap_l1, "What drives nuanced_rest classification", x_domain=[-0.55, 0.35], x_title="← deterministic rejections", x_title_right="nuanced_rest · passes to L2 →"), use_container_width=True)
 
     # ── L1 insight — editorial callout ────────────────────────────────────
     st.markdown("""
@@ -1914,25 +1860,27 @@ with sci5:
     if "shap_l2_class" not in st.session_state:
         st.session_state["shap_l2_class"] = _L2_CLASSES[0]
 
-    _active_l2 = st.session_state["shap_l2_class"]
+    @st.fragment
+    def _l2_carousel():
+        _active_l2 = st.session_state["shap_l2_class"]
 
-    # Selector chips
-    _chip_html = "<div style='display:flex;gap:8px;margin-bottom:16px;'>"
-    for _cls in _L2_CLASSES:
-        _is_active = (_cls == _active_l2)
-        _chip_html += f"""<div style='padding:5px 14px;border-radius:999px;border:1px solid {'#21918c' if _is_active else '#e2e8f0'};background:{'rgba(33,145,140,0.10)' if _is_active else '#fff'};font-size:0.72rem;font-weight:{'700' if _is_active else '500'};color:{'#21918c' if _is_active else '#94a3b8'};'>{_L2_LABELS.get(_cls, _cls)}</div>"""
-    _chip_html += "</div>"
-    st.markdown(_chip_html, unsafe_allow_html=True)
+        # Selector chips
+        _chip_html = "<div style='display:flex;gap:8px;margin-bottom:16px;'>"
+        for _cls in _L2_CLASSES:
+            _is_active = (_cls == _active_l2)
+            _chip_html += f"""<div style='padding:5px 14px;border-radius:999px;border:1px solid {'#21918c' if _is_active else '#e2e8f0'};background:{'rgba(33,145,140,0.10)' if _is_active else '#fff'};font-size:0.72rem;font-weight:{'700' if _is_active else '500'};color:{'#21918c' if _is_active else '#94a3b8'};'>{_L2_LABELS.get(_cls, _cls)}</div>"""
+        _chip_html += "</div>"
+        st.markdown(_chip_html, unsafe_allow_html=True)
 
-    # Hidden buttons for interactivity
-    _cols_l2 = st.columns(len(_L2_CLASSES))
-    for _ci, _cls in enumerate(_L2_CLASSES):
-        if _cols_l2[_ci].button(_L2_LABELS.get(_cls, _cls), key=f"shap_l2_btn_{_ci}", use_container_width=True):
-            st.session_state["shap_l2_class"] = _cls
-            st.rerun()
-    _btn_labels = [_L2_LABELS.get(_cls, _cls) for _cls in _L2_CLASSES]
-    import streamlit.components.v1 as _cv1
-    _cv1.html(f"""<script>
+        # Hidden buttons for interactivity
+        _cols_l2 = st.columns(len(_L2_CLASSES))
+        for _ci, _cls in enumerate(_L2_CLASSES):
+            if _cols_l2[_ci].button(_L2_LABELS.get(_cls, _cls), key=f"shap_l2_btn_{_ci}", use_container_width=True):
+                st.session_state["shap_l2_class"] = _cls
+                st.rerun(scope="fragment")
+        _btn_labels = [_L2_LABELS.get(_cls, _cls) for _cls in _L2_CLASSES]
+        import streamlit.components.v1 as _cv1
+        _cv1.html(f"""<script>
 (function wire() {{
 const labels = {_btn_labels};
 const doc = window.parent.document;
@@ -1969,34 +1917,38 @@ chips.forEach(chip => {{
 }})();
 </script>""", height=0)
 
-    # Chart for active class
-    _df_active = _df_shap_l2[_df_shap_l2["class_name"] == _active_l2].copy()
-    st.plotly_chart(_shap_chart(_df_active, _L2_TITLES.get(_active_l2, _active_l2),
-        x_domain=_L2_DOMAINS.get(_active_l2, [-0.30, 0.30]),
-        x_title=_L2_XTITLE_LEFT.get(_active_l2),
-        x_title_right=_L2_XTITLE_RIGHT.get(_active_l2),
-    ), use_container_width=True)
+        # Chart for active class
+        _df_active = _df_shap_l2[_df_shap_l2["class_name"] == _active_l2].copy()
+        _l2_col = st.columns([1, 5, 1])[1]
+        with _l2_col:
+            st.plotly_chart(_shap_chart(_df_active, _L2_TITLES.get(_active_l2, _active_l2),
+                x_domain=_L2_DOMAINS.get(_active_l2, [-0.30, 0.30]),
+                x_title=_L2_XTITLE_LEFT.get(_active_l2),
+                x_title_right=_L2_XTITLE_RIGHT.get(_active_l2),
+            ), use_container_width=True)
 
-    if _active_l2 == "ACCEPTED":
-        st.markdown("""
+        if _active_l2 == "ACCEPTED":
+            st.markdown("""
 <div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:8px;'>
 <span style='font-size:0.82rem;color:#334155;line-height:1.65;'>Acceptance is driven by clean economics above all — <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">eph_operational_index</span> and <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">upfront_fare</span> dominate: the agent accepts when the money is unambiguously good. As expected, <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">accumulated_deadhead</span> also drives acceptance — deep into an unpaid stretch, the agent grows less selective to stop the bleeding.</span>
 </div>
 """, unsafe_allow_html=True)
 
-    if _active_l2 == "Expected Value Gamble":
-        st.markdown("""
+        if _active_l2 == "Expected Value Gamble":
+            st.markdown("""
 <div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:8px;'>
 <span style='font-size:0.82rem;color:#334155;line-height:1.65;'>The strongest brake on the gamble is <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">accumulated_deadhead</span> — the more unpaid time already sunk into the cycle, the less willing the agent is to bet. Notably, <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">upfront_fare</span> also pulls toward caution: the gamble isn't a naive "chase the high fare" reflex, but a context-aware bet weighed against time already spent.</span>
 </div>
 """, unsafe_allow_html=True)
 
-    if _active_l2 == "Strategic Mismatch":
-        st.markdown("""
+        if _active_l2 == "Strategic Mismatch":
+            st.markdown("""
 <div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:4px;margin-bottom:8px;'>
 <span style='font-size:0.82rem;color:#334155;line-height:1.65;'>As a session advances (<span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">session_progress_ratio</span>) and daily financial targets are secured (<span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">cycle_cumulative_earnings</span>), the agent abandons pure revenue maximization for an exit strategy. Trips that pull the driver away from their baseline zone (a negative <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">home_vector_alignment</span>) aggressively trigger a mismatch rejection, as the driver refuses to be dragged further away at the end of their day.</span>
 </div>
 """, unsafe_allow_html=True)
+
+    _l2_carousel()
 
 with sci6:
 
