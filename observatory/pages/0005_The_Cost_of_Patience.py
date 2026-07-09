@@ -188,48 +188,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-components.html("""
-<script>
-  setTimeout(function() {
-    var cards = window.parent.document.querySelectorAll('.phase-card');
-    var tabs  = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
-
-    function setActive(idx) {
-      cards.forEach(function(c) { c.classList.remove('pc-active'); });
-      if (cards[idx]) cards[idx].classList.add('pc-active');
-    }
-
-    var style = window.parent.document.createElement('style');
-    style.textContent = '.phase-card.pc-active { background: rgba(33,145,140,0.12) !important; border-left-width: 4px !important; }';
-    window.parent.document.head.appendChild(style);
-
-    var initIdx = 0;
-    for (var j = 0; j < tabs.length; j++) {
-      if (tabs[j].getAttribute('aria-selected') === 'true') { initIdx = j; break; }
-    }
-    setActive(initIdx);
-
-    cards.forEach(function(card, i) {
-      card.addEventListener('click', function() {
-        if (tabs[i]) {
-          var sy = window.parent.scrollY;
-          tabs[i].click();
-          setActive(i);
-          setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
-          setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
-        }
-      });
-      card.addEventListener('mouseenter', function() {
-        if (!card.classList.contains('pc-active')) card.style.background = 'rgba(33,145,140,0.07)';
-      });
-      card.addEventListener('mouseleave', function() {
-        if (!card.classList.contains('pc-active')) card.style.background = '';
-      });
-    });
-  }, 300);
-</script>
-""", height=0, scrolling=False)
-
 # ==============================================================================
 # SQL QUERIES  (module-level so cache functions can reference them)
 # ==============================================================================
@@ -442,6 +400,56 @@ def render_observatory():
         "The CV(τ) Playbook",
         "The Efficient Frontier",
     ])
+
+    # Re-injected on every fragment rerun (not just once at page load) — this
+    # component was previously outside render_observatory() and only ran
+    # once, so its captured `tabs` element references went stale as soon as
+    # any widget interaction inside the tabs triggered a fragment-scoped
+    # rerun (which recreates the tab-bar DOM nodes). See project_tech_debt
+    # memory ("0005 Phase 1-4 cards go unclickable...") for the full root
+    # cause. Living inside the fragment means it re-captures fresh
+    # references every time, so it can never go stale.
+    components.html("""
+<script>
+  setTimeout(function() {
+    var cards = window.parent.document.querySelectorAll('.phase-card');
+    var tabs  = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+
+    function setActive(idx) {
+      cards.forEach(function(c) { c.classList.remove('pc-active'); });
+      if (cards[idx]) cards[idx].classList.add('pc-active');
+    }
+
+    var style = window.parent.document.createElement('style');
+    style.textContent = '.phase-card.pc-active { background: rgba(33,145,140,0.12) !important; border-left-width: 4px !important; }';
+    window.parent.document.head.appendChild(style);
+
+    var initIdx = 0;
+    for (var j = 0; j < tabs.length; j++) {
+      if (tabs[j].getAttribute('aria-selected') === 'true') { initIdx = j; break; }
+    }
+    setActive(initIdx);
+
+    cards.forEach(function(card, i) {
+      card.addEventListener('click', function() {
+        if (tabs[i]) {
+          var sy = window.parent.scrollY;
+          tabs[i].click();
+          setActive(i);
+          setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
+          setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
+        }
+      });
+      card.addEventListener('mouseenter', function() {
+        if (!card.classList.contains('pc-active')) card.style.background = 'rgba(33,145,140,0.07)';
+      });
+      card.addEventListener('mouseleave', function() {
+        if (!card.classList.contains('pc-active')) card.style.background = '';
+      });
+    });
+  }, 300);
+</script>
+""", height=0, scrolling=False)
 
     # ──────────────────────────────────────────────────────────────────────────
     # TAB 1 — Market Quality Index
