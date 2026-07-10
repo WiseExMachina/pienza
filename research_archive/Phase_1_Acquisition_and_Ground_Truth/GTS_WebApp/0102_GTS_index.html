@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Uber Tracker (v4.0 Robust)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; margin-top: 20px; background-color: #f4f4f4; }
+        .container { max-width: 400px; margin: auto; padding: 15px; }
+        h1 { color: #333; }
+        button { display: block; width: 100%; padding: 20px; margin-bottom: 15px; font-size: 1.2em; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; color: white; transition: transform 0.1s, background-color 0.3s; }
+        button:active { transform: scale(0.98); }
+        button:disabled { cursor: not-allowed; opacity: 0.7; }
+        input { width: 95%; padding: 12px; margin-bottom: 20px; font-size: 1.1em; border: 1px solid #ccc; border-radius: 8px; }
+        #message { margin-top: 20px; font-weight: bold; min-height: 20px; color: #333; }
+        .btn-start, .btn-completed { background-color: #28A745; }
+        .btn-stop { background-color: #dc3545; }
+        .btn-ended { background-color: #6c757d; }
+        .btn-looking { background-color: #007BFF; }
+        .btn-pickup { background-color: #FFC107; color: black; }
+        .btn-waiting { background-color: #FD7E14; }
+        .btn-started { background-color: #17A2B8; }
+        #controlsContainer, #summaryContainer { display: none; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; background-color: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #e9ecef; color: #495057; }
+        #summaryContainer { margin-top: 25px; padding: 15px; background-color: #fff; border: 1px solid #ddd; border-radius: 8px; text-align: left; }
+        #summaryContainer h3 { margin-top: 0; }
+        #summaryContainer p { margin: 8px 0; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Uber Ride Tracker</h1>
+        <button id="sessionToggleButton" class="btn-start">Data Collection Mode: ON</button>
+        <div id="controlsContainer">
+            <label for="rideId">Daily Ride ID:</label>
+            <input type="text" id="rideId" placeholder="e.g., Aug-31-2025">
+            <button class="btn-looking" onclick="logData('T0: Looking for rides')">Looking for Rides</button>
+            <button class="btn-pickup" onclick="logData('T1: Ride Accepted, Driving to Pickup')">Ride Accepted, Driving to Pickup</button>
+            <button class="btn-waiting" onclick="logData('T2: Waiting for passenger')">Waiting for Passenger</button>
+            <button class="btn-started" onclick="logData('T3: Ride Started')">Ride Started</button>
+            <button class="btn-completed" onclick="logData('T4: Ride completed')">Ride Completed</button>
+        </div>
+        <p id="message"></p>
+        <table id="activityLog">
+            <thead><tr><th>Hora</th><th>Ride ID</th><th>Evento Registrado</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <div id="summaryContainer"></div>
+    </div>
+
+    <script>
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbwbUp9foBYuBtu4cTcnu07D256PQYInf19A93jxgeYcjgOgxwWYi4iV6obq_PV-nb7WEw/exec";
+
+        // --- INICIO: Variables de Estado y Cola ---
+        let sessionState;
+        let sessionData;
+        let sessionStartTime;
+        let eventQueue = [];
+        let isSyncing = false;
+        // --- FIN: Variables de Estado y Cola ---
+
+        // --- INICIO: Funciones de Gestión de Estado (Robustas) ---
+        function saveSessionState() {
+            if (typeof(Storage) !== "undefined") {
+                const state = {
+                    version: "4.0", // Versionamiento del estado
+                    state: sessionState,
+                    startTime: sessionStartTime ? sessionStartTime.toISOString() : null,
+                    data: sessionData,
+                    rideId: document.getElementById('rideId').value,
+                    queue: eventQueue
+                };
+                localStorage.setItem('activeUberSession', JSON.stringify(state));
+            }
+        }
+
+        function loadSessionState() {
+            const setDefaultState = () => {
+                sessionState = 'initial';
+                sessionData = [];
+                sessionStartTime = null;
+                eventQueue = [];
+            };
+
+            if (typeof(Storage) !== "undefined") {
+                const savedStateJSON = localStorage.getItem('activeUberSession');
+                if (!savedStateJSON) {
+                    setDefaultState();
+                    return;
+                }
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    if (savedState && savedState.version === "4.0" && (savedState.state === 'active' || savedState.state === 'initial')) {
+                        sessionState = savedState.state;
+                        sessionStartTime = savedState.startTime ? new Date(savedState.startTime) : null;
+                        sessionData = savedState.data || [];
+                        eventQueue = savedState.queue || [];
+                        document.getElementById('rideId').value = savedState.rideId || '';
+
+                        if (sessionState === 'active') {
+                            const btn = document.getElementById('sessionToggleButton'), ctrls = document.getElementById('controlsContainer');
+                            ctrls.style.display = 'block';
+                            btn.textContent = 'End Data Collection Session';
+                            btn.className = 'btn-stop';
+                            document.querySelector("#activityLog tbody").innerHTML = '';
+                            sessionData.forEach(log => updateActivityLog(log));
+                        }
+                    } else {
+                        console.warn("Invalid or old session state found. Clearing.");
+                        localStorage.removeItem('activeUberSession');
+                        setDefaultState();
+                    }
+                } catch (e) {
+                    console.error("Failed to parse session state. Clearing.", e);
+                    localStorage.removeItem('activeUberSession');
+                    setDefaultState();
+                }
+            } else {
+                alert("LocalStorage is not supported.");
+                setDefaultState();
+            }
+        }
+
+        function clearSessionState() {
+            if (typeof(Storage) !== "undefined") {
+                localStorage.removeItem('activeUberSession');
+            }
+            loadSessionState();
+        }
+        // --- FIN: Funciones de Gestión de Estado ---
+
+        // --- INICIO: Funciones de Sincronización (Offline-First) ---
+        async function syncQueue() {
+            if (isSyncing || eventQueue.length === 0 || !navigator.onLine) return;
+            isSyncing = true;
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = `Syncing ${eventQueue.length} items...`;
+            const eventToSync = eventQueue[0];
+            try {
+                await fetch(webAppUrl, { method: 'POST', mode: 'no-cors', cache: 'no-cache', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventToSync) });
+                eventQueue.shift();
+                saveSessionState();
+                msgDiv.textContent = `Sync successful. ${eventQueue.length} items remaining.`;
+                setTimeout(() => { if (msgDiv.textContent.includes('remaining')) msgDiv.textContent = "" }, 2000);
+            } catch (error) {
+                msgDiv.textContent = `Sync failed. Will retry.`;
+                console.error('Sync error:', error);
+            } finally {
+                isSyncing = false;
+                if (eventQueue.length > 0) setTimeout(syncQueue, 1000);
+            }
+        }
+        // --- FIN: Funciones de Sincronización ---
+
+        // --- INICIO: Lógica Original de la Aplicación (Adaptada) ---
+        function formatDuration(ms) { if (ms < 0) ms = 0; const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return [h, m, s % 60].map(v => v.toString().padStart(2, '0')).join(':'); }
+        function calculateAndDisplaySummary(startTime, endTime) { const summaryDiv = document.getElementById('summaryContainer'); const totalMs = endTime - startTime; const totalUpfront = sessionData.reduce((sum, log) => sum + (parseFloat(log.upfrontFare) || 0), 0); const totalRealized = sessionData.reduce((sum, log) => sum + (parseFloat(log.realizedFare) || 0), 0); let spread = totalUpfront > 0 ? (totalRealized / totalUpfront) : 0; const durations = { looking: 0, driving: 0, waiting: 0, onRide: 0 }; for (let i = 0; i < sessionData.length; i++) { const currentLog = sessionData[i]; const nextTs = (i + 1 < sessionData.length) ? new Date(sessionData[i+1].timestamp) : new Date(endTime); const duration = nextTs - new Date(currentLog.timestamp); if (currentLog.status.includes('Looking for rides')) durations.looking += duration; else if (currentLog.status.includes('Ride Accepted')) durations.driving += duration; else if (currentLog.status.includes('Waiting for passenger')) durations.waiting += duration; else if (currentLog.status.includes('Ride Started')) durations.onRide += duration; } const summaryHTML = `<h3>Session Summary</h3><p>Total Time: ${formatDuration(totalMs)}</p><hr><p>Upfront: $${totalUpfront.toFixed(2)}</p><p>Realized: $${totalRealized.toFixed(2)}</p><p>Spread: ${(spread * 100).toFixed(2)}%</p><hr><p>Looking: ${formatDuration(durations.looking)}</p><p>Driving: ${formatDuration(durations.driving)}</p><p>Waiting: ${formatDuration(durations.waiting)}</p><p>On Ride: ${formatDuration(durations.onRide)}</p>`; summaryDiv.innerHTML = summaryHTML; summaryDiv.style.display = 'block'; }
+
+        function toggleSession() {
+            const btn = document.getElementById('sessionToggleButton'), ctrls = document.getElementById('controlsContainer');
+            if (sessionState === 'initial') {
+                sessionStartTime = new Date();
+                ctrls.style.display = 'block';
+                btn.textContent = 'End Data Collection Session';
+                btn.className = 'btn-stop';
+                sessionState = 'active';
+                saveSessionState();
+            } else if (sessionState === 'active') {
+                // Asegurarse de que la cola se sincronice antes de mostrar el resumen
+                syncQueue().then(() => {
+                    const endTime = new Date();
+                    ctrls.style.display = 'none';
+                    btn.textContent = 'Data Collection Ended';
+                    btn.className = 'btn-ended';
+                    btn.disabled = true;
+                    sessionState = 'ended';
+                    calculateAndDisplaySummary(sessionStartTime, endTime);
+                    clearSessionState();
+                });
+            }
+        }
+
+        function updateActivityLog(data) { const tbody = document.querySelector("#activityLog tbody"); const row = tbody.insertRow(0); row.insertCell(0).textContent = new Date(data.timestamp).toLocaleTimeString(); row.insertCell(1).textContent = data.rideId; row.insertCell(2).textContent = data.status; }
+        function getCurrentPosition() { return new Promise((resolve, reject) => { if (!navigator.geolocation) return reject(new Error("Geolocation not supported.")); navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }); }); }
+        async function getAddressFromCoordinates(lat, lon) { try { const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`); if (!r.ok) throw new Error(`API failed`); const d = await r.json(); return d.display_name || "Address not found"; } catch (e) { console.error("Geocoding error:", e); return `Geocoding failed`; } }
+
+        async function logData(status) {
+            const clickTimestamp = new Date().toISOString();
+            const rideId = document.getElementById('rideId').value;
+            if (!rideId) { alert("Please enter a Daily Ride ID."); return; }
+            let upfrontFare = "", realizedFare = "";
+
+            if (status.includes('Ride Accepted')) { const fare = prompt("Enter Upfront Fare:", ""); if (fare === null) return; upfrontFare = fare; }
+            if (status.includes('Ride completed')) { const fare = prompt("Enter Realized Fare:", ""); if (fare === null) return; realizedFare = fare; }
+
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = "Getting location...";
+            try {
+                const pos = await getCurrentPosition();
+                const { latitude, longitude } = pos.coords;
+                const address = await getAddressFromCoordinates(latitude, longitude);
+
+                const data = {
+                    timestamp: clickTimestamp, rideId, status, latitude, longitude,
+                    address: address, upfrontFare, realizedFare
+                };
+
+                // Lógica de cola: añadir a la cola, actualizar UI, guardar estado, sincronizar
+                eventQueue.push(data);
+                sessionData.push(data);
+                updateActivityLog(data);
+                saveSessionState();
+                msgDiv.textContent = `Event queued. ${eventQueue.length} items pending.`;
+                setTimeout(() => { if (msgDiv.textContent.includes('pending')) msgDiv.textContent = "" }, 2000);
+                syncQueue();
+
+            } catch (error) {
+                msgDiv.textContent = `Error: ${error.message}`;
+                console.error('logData error:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSessionState();
+            document.getElementById('sessionToggleButton').addEventListener('click', toggleSession);
+            document.getElementById('rideId').addEventListener('input', saveSessionState);
+            setInterval(syncQueue, 15000); // Sincronización periódica
+            window.addEventListener('online', syncQueue); // Sincronización al volver a tener conexión
+            syncQueue(); // Intento de sincronización al cargar la página
+        });
+        // --- FIN: Lógica Original de la Aplicación ---
+    </script>
+</body>
+</html>
