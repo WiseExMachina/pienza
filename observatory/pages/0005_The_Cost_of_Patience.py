@@ -1,4 +1,3 @@
-import base64
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,12 +6,23 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import seaborn as sns
 import matplotlib.pyplot as plt
-from utils.bq_client import _bigquery_client
 from pathlib import Path
 from scipy.interpolate import interp1d
 from components.styles import GLOBAL_CSS
 import streamlit.components.v1 as components
 from config import FAVICON
+from pages._0005_data import (
+    COLORS,
+    get_bq_client,
+    get_mqi_data,
+    get_moneymap_data,
+    get_ven_data,
+    load_favicon_b64 as _load_favicon_b64,
+    map_category,
+    query_mqi,
+    query_moneymap,
+    query_ven,
+)
 
 # ==============================================================================
 # PAGE CONFIG
@@ -25,12 +35,6 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────
-@st.cache_data
-def _load_favicon_b64():
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
-
 def build_sidebar():
     with st.sidebar:
         st.markdown(
@@ -79,34 +83,6 @@ build_sidebar()
 # Streamlit's default inter-widget gap before the H1)
 st.markdown("<style></style>", unsafe_allow_html=True)
 
-# ==============================================================================
-# CONSTANTS
-# ==============================================================================
-OPUS_PURPLE = '#440154'
-OPUS_TEAL   = '#21918c'
-OPUS_GREY   = '#FAFAFA'
-OPUS_TEXT   = '#121212'
-
-COLORS = {
-    'Rich / Fast': '#21918c',   # primary teal
-    'Rich / Slow': '#99d5d1',   # pale teal
-    'Poor / Fast': '#cbd5e1',   # light slate
-    'Poor / Slow': '#64748b',   # dark slate
-}
-
-# ==============================================================================
-# BIGQUERY
-# ==============================================================================
-@st.cache_resource
-def get_bq_client():
-    return _bigquery_client()
-
-def map_category(cat_name):
-    cat_lower = str(cat_name).lower()
-    if 'uberx' in cat_lower: return "X"
-    elif 'business_comfort' in cat_lower or 'comfort' in cat_lower: return "Mid-tier"
-    elif 'black' in cat_lower: return "Premium"
-    else: return "X"
 
 # ==============================================================================
 # HEADER  (renders immediately — no data dependency)
@@ -196,95 +172,6 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
-
-# ==============================================================================
-# SQL QUERIES  (module-level so cache functions can reference them)
-# ==============================================================================
-query_mqi = """
-SELECT
-  ml.offer_id,
-  ml.session_fk,
-  pc.category_name AS category,
-  ml.eph_operational
-FROM `645009831643.pienza_mini.v_ML_Supervised` ml
-LEFT JOIN `645009831643.pienza_mini.product_category` pc
-  ON pc.product_category_id = ml.product_category_fk
-WHERE ml.eph_direct IS NOT NULL
-  AND ml.eph_direct < 1000
-"""
-
-query_moneymap = """
-WITH base_offers AS (
-    SELECT
-        o.offer_id,
-        o.session_fk,
-        o.offer_timestamp,
-        p.category_name AS category,
-        o.upfront_fare,
-        o.est_trip_time_sec,
-        oa.offer_action_description AS offer_action,
-        LAG(oa.offer_action_description) OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp) AS prev_offer_action,
-        TIMESTAMP_DIFF(
-            CAST(o.offer_timestamp AS TIMESTAMP),
-            LAG(CAST(o.offer_timestamp AS TIMESTAMP)) OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp),
-            SECOND
-        ) as raw_delta
-    FROM `645009831643.pienza_mini.offers` o
-    JOIN `645009831643.pienza_mini.product_category` p
-      ON o.product_category_fk = p.product_category_id
-    LEFT JOIN `645009831643.pienza_mini.offer_action` oa
-      ON o.offer_action_fk = oa.offer_action_id
-    WHERE o.est_trip_time_sec > 0
-      AND o.upfront_fare IS NOT NULL
-      AND o.session_fk IS NOT NULL
-)
-SELECT * FROM base_offers
-"""
-
-query_ven = """
-SELECT
-    o.offer_id,
-    o.session_fk,
-    CAST(o.offer_timestamp AS TIMESTAMP) AS offer_timestamp,
-    o.upfront_fare,
-    o.est_trip_time_sec,
-    o.time_to_pickup_sec,
-    pc.category_name,
-    ef.eph_operational AS eph_real,
-    oa.offer_action_description AS offer_action,
-    LAG(oa.offer_action_description)
-        OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp) AS prev_offer_action,
-    TIMESTAMP_DIFF(
-        CAST(o.offer_timestamp AS TIMESTAMP),
-        LAG(CAST(o.offer_timestamp AS TIMESTAMP))
-            OVER(PARTITION BY o.session_fk ORDER BY o.offer_timestamp),
-        SECOND
-    ) AS raw_delta
-FROM `645009831643.pienza_mini.offers` o
-JOIN `645009831643.pienza_mini.engineered_features` ef
-  ON ef.offer_id_fk = o.offer_id
-JOIN `645009831643.pienza_mini.product_category` pc
-  ON o.product_category_fk = pc.product_category_id
-LEFT JOIN `645009831643.pienza_mini.offer_action` oa
-  ON o.offer_action_fk = oa.offer_action_id
-WHERE ef.eph_operational IS NOT NULL
-  AND o.est_trip_time_sec > 0
-  AND o.upfront_fare IS NOT NULL
-  AND o.session_fk IS NOT NULL
-"""
-
-@st.cache_data
-def get_mqi_data(_query):
-    return get_bq_client().query(_query).to_dataframe()
-
-@st.cache_data
-def get_moneymap_data(_query):
-    return get_bq_client().query(_query).to_dataframe()
-
-@st.cache_data
-def get_ven_data(_query):
-    return get_bq_client().query(_query).to_dataframe()
-
 
 # ==============================================================================
 # FRAGMENT — data loading + all tabs run independently of the header above

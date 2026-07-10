@@ -1,4 +1,3 @@
-import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -6,7 +5,17 @@ from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
 from utils.gcp_client import _storage_client, fetch_bytes_from_gcs
 from config import FAVICON
-from pathlib import Path
+from pages._0007_data import (
+    load_c3_metrics,
+    load_favicon_b64 as _load_favicon_b64,
+    load_lc_l1,
+    load_lc_l2,
+    load_lc_spartan,
+    load_realized_fares,
+    load_shap_l1,
+    load_shap_l2,
+    load_sim_parquet_v3,
+)
 
 
 # ==============================================================================
@@ -17,12 +26,6 @@ st.set_page_config(layout="wide", page_title="Human vs AI: Behavioral Cloning | 
 # ─────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────
-@st.cache_data
-def _load_favicon_b64():
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
-
 def build_sidebar():
     with st.sidebar:
         st.markdown(
@@ -822,15 +825,7 @@ with sci2:
         st.markdown(_heatmap_html, unsafe_allow_html=True)
 
 with sci3:
-    @st.cache_data(show_spinner=False)
-    def _load_c3_metrics():
-        import json as _json
-        _bucket = _storage_client().bucket("pienza-streamlit")
-        _mono = _json.loads(_bucket.blob("0508_monolith_metrics.json").download_as_text())
-        _casc = _json.loads(_bucket.blob("0509_cascade_metrics.json").download_as_text())
-        return _mono, _casc
-
-    _mono, _casc = _load_c3_metrics()
+    _mono, _casc = load_c3_metrics()
     _l1    = _casc["layer1"]
     _l2    = _casc["layer2"]
 
@@ -1329,13 +1324,7 @@ with sci4:
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>To simulate real-world production, this interactive module enables tuning Layer&#160;1&#8217;s <code style="color:#158237;font-family:'Source Code Pro',monospace;font-size:0.75rem;background:transparent;">nuanced_rest</code> recall threshold, visualizing exactly what survives the initial filter to feed Layer&#160;2.</p>
 """, unsafe_allow_html=True)
 
-    @st.cache_data(show_spinner=False)
-    def _load_sim_parquet_v3():
-        from io import BytesIO
-        _b = _storage_client().bucket("pienza-streamlit")
-        return pd.read_parquet(BytesIO(_b.blob("0509_sim_proba.parquet").download_as_bytes()))
-
-    _df_sim = _load_sim_parquet_v3()
+    _df_sim = load_sim_parquet_v3()
 
     if "sim_thresh_pct" not in st.session_state:
         st.session_state["sim_thresh_pct"] = 50
@@ -1555,18 +1544,7 @@ with sci4:
     _accepted_offer_ids = _df_sim.loc[_true_accepted_mask, "offer_id"].tolist()
     _ids_sql = ", ".join([f"'{x}'" for x in _accepted_offer_ids])
 
-    @st.cache_data(show_spinner=False)
-    def _load_realized_fares(ids_key: str) -> dict:
-        _q = f"""
-        SELECT offer_id, realized_fare
-        FROM `645009831643.pienza_mini.v_mission_dossier`
-        WHERE offer_id IN ({ids_key})
-          AND realized_fare IS NOT NULL
-        """
-        _df = fetch_data_from_bq(_q)
-        return dict(zip(_df["offer_id"], _df["realized_fare"]))
-
-    _fare_map = _load_realized_fares(_ids_sql)
+    _fare_map = load_realized_fares(_ids_sql)
     _a1_earnings = sum(_fare_map.get(oid, 0) for oid in _accepted_offer_ids)
 
     def _accepted_breakdown(pred_l1_series):
@@ -1676,18 +1654,8 @@ with sci4:
 
 with sci5:
     # ── Load SHAP data ────────────────────────────────────────────────────
-    @st.cache_data(show_spinner=False)
-    def _load_shap_l1():
-        from io import BytesIO
-        return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("0509_shap_l1_nuanced.parquet").download_as_bytes()))
-
-    @st.cache_data(show_spinner=False)
-    def _load_shap_l2():
-        from io import BytesIO
-        return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("0509_shap_l2.parquet").download_as_bytes()))
-
-    _df_shap_l1 = _load_shap_l1()
-    _df_shap_l2 = _load_shap_l2()
+    _df_shap_l1 = load_shap_l1()
+    _df_shap_l2 = load_shap_l2()
 
     # ── Clean labels — snake_case, strip implementation suffixes ─────────
     _LABEL_CLEAN = {
@@ -1964,24 +1932,9 @@ chips.forEach(chip => {{
 
 with sci6:
 
-    @st.cache_data(show_spinner=False)
-    def _load_lc_l1():
-        from io import BytesIO
-        return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L1.parquet").download_as_bytes()))
-
-    @st.cache_data(show_spinner=False)
-    def _load_lc_l2():
-        from io import BytesIO
-        return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("260505_0509_learning_curve_L2.parquet").download_as_bytes()))
-
-    @st.cache_data(show_spinner=False)
-    def _load_lc_spartan():
-        from io import BytesIO
-        return pd.read_parquet(BytesIO(_storage_client().bucket("pienza-streamlit").blob("260505_0509_spartan_learning_curve.parquet").download_as_bytes()))
-
-    _df_lc_l1      = _load_lc_l1()
-    _df_lc_l2      = _load_lc_l2()
-    _df_lc_spartan = _load_lc_spartan()
+    _df_lc_l1      = load_lc_l1()
+    _df_lc_l2      = load_lc_l2()
+    _df_lc_spartan = load_lc_spartan()
 
     def _prep_lc(df):
         tc = [c for c in df.columns if c.startswith("train_s_")]

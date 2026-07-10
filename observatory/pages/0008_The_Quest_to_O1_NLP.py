@@ -1,4 +1,3 @@
-import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import time
@@ -9,15 +8,20 @@ import torch
 import json
 import io
 from google.cloud import storage
-from pathlib import Path
 import pandas as pd
 
 # IMPORTAMOS SOLO LO NECESARIO (Babel)
-from utils.gcp_client import load_babel_assets, fetch_bytes_from_gcs
+from utils.gcp_client import load_babel_assets
 from utils.bq_client import fetch_data_from_bq
 from components.styles import GLOBAL_CSS
 from config import FAVICON
 import threading as _threading
+from pages._0008_data import (
+    load_favicon_b64 as _load_favicon_b64,
+    load_holdout_audit as _load_holdout_audit,
+    load_latency_map_template as _load_latency_map_template,
+    load_zone_map_template as _load_zone_map_template,
+)
 
 def _preload_babel():
     try:
@@ -36,12 +40,6 @@ st.set_page_config(page_title="The Quest to (O)1: NLP Transformer | Pienza", pag
 # ─────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────
-@st.cache_data
-def _load_favicon_b64():
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
-
 def build_sidebar():
     with st.sidebar:
         st.markdown(
@@ -252,17 +250,6 @@ step.addEventListener('click', function() {
 }, 300);
 </script>
 """, height=0)
-
-# Shared loader for 260702_minibabel_holdout_audit.parquet — Streamlit renders
-# every tab panel's content on each rerun (they're just hidden via CSS, not
-# lazily skipped), so P1/P2/P3 were each fetching + parsing this same parquet
-# under their own differently-named @st.cache_data function, tripling the
-# work. One shared cache entry now serves all three tabs.
-@st.cache_data(show_spinner=False)
-def _load_holdout_audit():
-    from io import BytesIO as _HoldoutBytesIO
-    _bytes = fetch_bytes_from_gcs("pienza-streamlit", "260702_minibabel_holdout_audit.parquet")
-    return pd.read_parquet(_HoldoutBytesIO(_bytes))
 
 _p1_tab, _p2_tab, _p3_tab = st.tabs(["Custom miniBabel", "Model Audit", "Latency Test"])
 
@@ -686,16 +673,6 @@ def _p2_body():
             # with hover-highlight on top.
             st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
 
-            @st.cache_data(show_spinner=False)
-            def _load_zone_map_template():
-                _assets_dir = Path(__file__).resolve().parent.parent / "assets"
-                _html = (_assets_dir / "model_audit_map.html").read_text(encoding="utf-8")
-                _js = (_assets_dir / "zone-paths.js").read_text(encoding="utf-8")
-                return _html.replace(
-                    '<script src="./zone-paths.js"></script>',
-                    f'<script>{_js}</script>',
-                )
-
             _zone_map_template = _load_zone_map_template()
             _audit_rows = _audit_df[['raw_address', 'real_zone_name', 'predicted_zone', 'confidence', 'correct']].to_dict(orient='records')
             _zone_map_html = _zone_map_template.replace(
@@ -794,16 +771,6 @@ def _p3_body():
             # client-side with zero Streamlit rerun -- otherwise every click recreates
             # the components.html iframe from scratch (map re-init, tile reload, no
             # seamless transition).
-            @st.cache_data(show_spinner=False)
-            def _load_latency_map_template():
-                _assets_dir = Path(__file__).resolve().parent.parent / "assets"
-                _html = (_assets_dir / "latency_test_map.html").read_text(encoding="utf-8")
-                _js = (_assets_dir / "zone-paths.js").read_text(encoding="utf-8")
-                return _html.replace(
-                    '<script src="./zone-paths.js"></script>',
-                    f'<script>{_js}</script>',
-                )
-
             _latency_map_template = _load_latency_map_template()
             _latency_map_html = _latency_map_template.replace(
                 '<script>\n// ── DATA ──',

@@ -1,19 +1,12 @@
 import json
-import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import networkx as nx
 from components.styles import GLOBAL_CSS
 from config import FAVICON
-from pathlib import Path
+from pages._0009_data import load_favicon_b64 as _load_favicon_b64
 
 st.set_page_config(layout="wide", page_title="Generative Moonshots: pienza_big | Pienza", page_icon=FAVICON)
-
-@st.cache_data
-def _load_favicon_b64():
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
 
 def build_sidebar():
     with st.sidebar:
