@@ -55,7 +55,7 @@ def build_sidebar():
                 "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
                 "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
                 "<b>GitHub:</b> <a href='https://github.com/WiseExMachina/pienza' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
-                "<b>Domain:</b> Data Science · Applied ML — Mobility & Logistics<br>"
+                "<b>Domain:</b> Data Science — Mobility & Logistics<br>"
                 "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
                 f"<b>AI Knowledge Base:</b> {pdf_link}</div>",
                 unsafe_allow_html=True,

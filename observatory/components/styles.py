@@ -481,15 +481,15 @@ footer { visibility: hidden; }
     width: 18px;
     height: 18px;
     transform: translateY(-50%);
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2321918c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11'/><rect x='3' y='11' width='18' height='7' rx='2'/><circle cx='7.5' cy='18' r='1.5'/><circle cx='16.5' cy='18' r='1.5'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2321918c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 0a2 2 0 1 0 4 0a2 2 0 0 0 -4 0m10 0a2 2 0 1 0 4 0a2 2 0 0 0 -4 0'/></svg>");
     background-repeat: no-repeat;
     background-size: contain;
-    animation: pienza-taxi-spin 1s linear infinite;
+    animation: pienza-taxi-drive 0.9s ease-in-out infinite;
     pointer-events: none;
 }
-@keyframes pienza-taxi-spin {
-    from { transform: translateY(-50%) rotate(0deg); }
-    to   { transform: translateY(-50%) rotate(360deg); }
+@keyframes pienza-taxi-drive {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    50%      { transform: translateY(-50%) translateX(6px); }
 }
 </style>
 """

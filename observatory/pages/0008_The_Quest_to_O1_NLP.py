@@ -76,7 +76,7 @@ def build_sidebar():
                 "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
                 "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
                 "<b>GitHub:</b> <a href='https://github.com/WiseExMachina/pienza' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
-                "<b>Domain:</b> Data Science · Applied ML — Mobility & Logistics<br>"
+                "<b>Domain:</b> Data Science — Mobility & Logistics<br>"
                 "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
                 f"<b>AI Knowledge Base:</b> {pdf_link}</div>",
                 unsafe_allow_html=True,
@@ -92,7 +92,7 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # Streamlit's default inter-widget gap before the H1)
 st.markdown("<style></style>", unsafe_allow_html=True)
 
-st.markdown("# miniBabel: Custom NLP Transformer")
+st.markdown("# The Quest to O(1)")
 st.markdown(f"<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>A Real-Time Spatial Classifier — CDMX Address → Geographic Zone</h4>", unsafe_allow_html=True)
 st.markdown(r"""
 <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:16px;'>

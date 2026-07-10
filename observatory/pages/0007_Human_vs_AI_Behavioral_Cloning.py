@@ -57,7 +57,7 @@ def build_sidebar():
                 "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
                 "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
                 "<b>GitHub:</b> <a href='https://github.com/WiseExMachina/pienza' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
-                "<b>Domain:</b> Data Science · Applied ML — Mobility & Logistics<br>"
+                "<b>Domain:</b> Data Science — Mobility & Logistics<br>"
                 "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
                 f"<b>AI Knowledge Base:</b> {pdf_link}</div>",
                 unsafe_allow_html=True,
@@ -171,7 +171,7 @@ st.markdown(base_css + hover_css + quantum_scroll_js, unsafe_allow_html=True)
 # ==============================================================================
 # 3. PAGE LAYOUT
 # ==============================================================================
-st.markdown("# Human vs AI: Behavioral Cloning")
+st.markdown("# Human vs AI")
 st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Cloning the Agent — From Monolith to Cognitive Cascade</h4>", unsafe_allow_html=True)
 st.markdown("""
 <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;">
