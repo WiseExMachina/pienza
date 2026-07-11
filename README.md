@@ -1,192 +1,160 @@
- 
+<div align="center">
 
- Project Pienza es un proyecto personal de Data Science anclado a la realidad de las calles de la Ciudad de México. El proyecto inició en Julio 2025 en paralelo al certificado de 1 año de Data Scientist del Tecnológico de Monterrey. En ese entonces había cumplido ya 2 años como conductor de plataformas de Ride-Hailing. 
+# 🚕 Project Pienza
 
- Siendo exatec (LAF '19), lo que empezó como un trabajo temporal post-pandemia como transición de Monterrey a CDMX, se terminó conviertiendo en un trabajo de tiempo completo. El certificado lo inicié con el propósito de emplearme formalmente al terminarlo en 2026... el problema: sin experiencia corporativa reciente, aún con el certificado, me encontraría en desventaja.
+### A digital twin of one driver's 4,700 ride-hailing decisions in Mexico City
 
- Así que, desde sus inicios, planié este proyecto desde cero. En vez de practicar con datasets públicos, preferí ensuciarme las manos un poco y armar mi propio dataset anclado a mi realidad como conductor. 
- 
- Casi todos los estudios de Ride-Hailing que encontraba eran sobre datos agregados y en ciudades como San Francisco y Nueva York. Y la bella y caótica CDMX? Al no encontrar ningún estudio público, me dije, qué mejor razón que yo proponer el mío. 
- 
- Con 1 año como fecha limite y con RL como la absoluta frontera, decidí irme profundo y aprovechar mis conocimientos de pregrado de economía y finanzas para aplicarlos a la realidad de la micro-economía gig de la Ciudad de México. 
+**HDBSCAN geo-clustering → cascade XGBoost classifier → transformer NLP → cGAN-synthesized 1M-row market**
 
- El objetivo: que un algortimo de ML aprenda lo que yo, y replique mi política de decisiones como conductor. Al ser bastante repetitivo y cuasi-determinista, me pregunté, podría enseñarle a una IA, mi estrategia de aceptación/rechazo de viajes?  Que aprenda que no todos lo rechazos son iguales? Que es mejor rechazar un viaje de Santa Fe a Polanco un viernes en la tarde, pero si ya voy a terminar la sesión entonces los viajes que van hacia casa tienen mayor probabilidad de aceptación? 
+[![Live Dashboard](https://img.shields.io/badge/🔭_Observatory-Live_Demo-21918c?style=for-the-badge)](#)
+[![Papers](https://img.shields.io/badge/📄_Pienza_Papers-Read_PDF-21918c?style=for-the-badge)](./The_Pienza_Papers/Pienza_Papers_Scientific.pdf)
+[![Story](https://img.shields.io/badge/📖_The_Story-How_it_was_built-21918c?style=for-the-badge)](./STORY.md)
 
-Después de diferentes iteraciones a prueba y error, terminé construyendo dos motores de ingesta: 
- 1.  Una webapp que va capturando en campo y en tiempo real todos los timestamps + posicion geografica de los eventos  típicos de una misón, desde T0 buscando viajes, aceptación, recogida, espera... hasta finalizacón. 
- 2. Mientras que el primer motor captura lo que ocurre, no cuenta la historia completa. La otra parte implicaría capturar todo lo que aparece sobre mi pantalla, de tal manera que quedara registrado todas aquellas ofertas rechazadas,junto con sus tiempos, destinos, etc. 
+</div>
 
- Así, durante 6 semanas, armé un dataset de 256 viajes aceptados y completados (motor 1) y 4700 ofertas capturadas y procesadas via Gemini API (motor 2).
+---
 
- Para que esto funcionara este dataset debía ser un espejo fiel de mi realidad, primero conductor, luego científico. El dataset se tenía que acoplar a mis tiempos, y no al revés, a fin de capturar más datos. Como acostumbro a tomar dos shifts de 3-4 horas cada uno, uno por la mañana y otro por la tarde, lo que hice fue etiquetar cada viaje rechazado - y aquellos pocos aceptados - capturados via OCR, estrictamente después de cada sesión.
+## What this is
 
-Diseñé 6 etiquetas de rechazo mutuamente excluyentes (aunque debo aceptar que al principio sí tenía mas de una clase por observación, pero vi como esto se podría convertir en una complicación innecesaria más adelante) diseñadas para mimicar el procoeso cognitivo de por que decido si aceptar o no un viaje. Con una tasa de aceptación de apenas el 7%, las etiquetas canónicas son las siguientes:
+A single expert agent — me, driving Uber in CDMX for two years — labeled every ride offer I saw in real time: what I accepted, what I rejected, and *why*, across a six-week field capture. That dataset became the input for a full ML pipeline that clones the decision policy, then extrapolates it into a synthetic market 200x larger than the source.
 
- Viabilidad geógrafica: 
-  1. dropoff_non_operational
-  2. dropoff_proxy
-Viabilidad económica:
- 3. long_pickup_time
- 4. low_profitability
- Clases nuanced:
- 5. strategic_mismatch
- 6. expected_value_gamble
- 7. NULL -> aceptación
+- **It is:** a policy-cloning research project — can a model learn *my* accept/reject heuristics well enough to explain them, not just predict them.
+- **It is not:** an attempt to reverse-engineer or audit Uber's own pricing/dispatch algorithm. The platform is the environment; the driver is the agent under study.
+- **Scope:** N=1 by design (single driver, single city, six weeks). Findings describe one expert policy, not driver behavior in general — see [Known Limitations](#known-limitations).
 
-Al diseñarlo así, pretrendí ortogonalizar mis decisiones al asignar  solamente 1 etiqueta por observación, al final del día, aunque un viaje oudeira teneer mas de 1 etiqueta, ese orden representaba el punto de quiebre al momento de la decisión.
-
- Así, este periodo de adquisición duró 6 semanas, del 22 de agosto al 1 de octubre de 2025. Desde su concepción el proyecto sería exclusivamente de carácter investigativo, así que la no viabilidad de que existiesen estas etiquetas humanas en producción sería una feature, no un bug. 
-
-
- Octubre y Noviembre constituyeron la fase de limpieza de datos, reconciliacion vs los records oficiales de la plataforma, y la creación de pienza.db, al final del día, no podría llamarme Data Scientist si no sabría SQL, así que fue la excusa perfecta para  aprender el resto del año a haceer queries con los mismos datos que yo diseñé y viví en la calle.
-
- AQUI METER STATEFUL FEATURES.
-
-Antes de entrar de lleno a ML, y aplicando el principio de parsimonia, decidí indagar y responder todas aquellas preguntas de negocio utilizando estadística clásica y economía conductual. Así, diseñé un playbook que analiza los tiempos de espera racionales, cuando uno está siendo selectivo, antes de que esa oferta futura "mejor" se diluya por el tiempo que uno pasó buscándola.
-
-Así, también, uno de los hallazgos más interesantes para mi fue entender - con datos duros - cómo es la estructura de pagos de la plataforma. Yo sabía que si un viaje se extiene, esté no se compensa a la par minuto a minuto, pero después de cierto tiempo, entonces ya hay una compensación. Así, logré convertir esta heurística tácita, en un modelo polinomial donde descubrí con analisis de residuales que la estructura es bastánte hetersedástica, el error estimado es mayor en tarifas altas que las bajas. Aunque sta estructura apunta hacia un mecanismo para que no se aumente deliveradamente los tiempos de un viaje, esta conclusión es meramente subjetiva. Pero al menos, aunque yo siempre procuraba terminar viajes antes o al tiempo estimado, a fin de tomar más viajes, el saber que existe una estructura fija y predecible, me ayudó a tomar mejores decisiones al momento de la decisión.
-
-No fue hasta Diciembre que me metí de lleno a ML, empezando por aprendizaje no supervisado para entender la estructura latente del mercado y mapear los hubs geográficos. Yo había hecho un geocoding de las 4,700 ofertas y confié ciegamente en que los resultaos serían los correctos. Sin embargo, al hacer un análisis de sombra, vi que los resultados del HDBSCAN, aunque parecían ser correctos por como se agrupaban las zonas, descubrí que muchos de mis datos eran espuria.
-
-El pipeline para HDBSCAN era así:
-
-text string -> geocoding lat lon -> cluster HDBSCAN 
-
-El problema, aproximadamente la mitad de mis coordenadas no correspondían a la dirección de texto. Yo había confiado ciegamente en el geocoding sin hacer reverse geocoding para validar que se hubiera hecho correctamente.
-
-El cluster del AICM tenía direcciones de Cuajimalpa, el cluster del Pedregal direcciones de Santa Fe, etc.
-
-Cuantificación de daños: Entre errores de limpiea donde propague una misma coordenada a direcciones diferentes y resultados erróneos del geocoding, esto representaba alededore un 30-40% de las observaciones. Dado que el objetivo era clonarme y mas del 50% de mis rechazos eran meramente geográficos esto era inadmisibe. Dicimebre pasó de convertirse de un mes de ML a un mes de limpiar coordenadas. Aqui entendi que detrás del glamour de los nombres pomposos de los algoritmos de aprendizaje automático, hay mucho, mucho trabajo de limpieza. 
-
-Para remediar esto, volví a correr el pipeline de geocoding (esta vez bounded a CDMX y con reverse geocoding) dibuje 72 microzonas del sector poniente de la ciudad a fin de validar que que las coordenadas cayeran dentro del poligono del texto crudo. Una vez limpio HDBSCAN corrió sin problema dando como resultado 44 hubs geógráficos, esta vez sí con un dataset limpio (paridad 95%).
-
-Enseguida, y antes de iniciar la fase supervisada, descubrí H3. Por fin pude darles nombre a los hexágonos que yo veo en pantalla todos los días, que rigen las zonas y horarios de incentivos. Pero más que ello, entendí como Uber ya había resuelto exactamente los mismitos problemas a los que yo me estaba enfrentando de primera mano como científico de datos, yo con un dataset minúsculo, ellos a escala global. Aunque podia usar la grilla H3 con alguna resolución optimizada para prevenir el sobreajuste en base a la alta cardinalidad de microzonas y densidad variable de mis datos, prefería usar los poligonos que dibujé a fin de preservar la explicabilidad.
-
-
-Con un vector de entrada limpio, la fase de aprendizaje supervisado duró apenas 1-2 semanas, al iniciar el año en enero 2026. Sabía también que no quería entrar directo a XGBoost, así que inicié desde Naive Bayes, solo para establecer un baseline. Con regresión logística, me di cuenta de que mi problema sí era bastante lineal, pues ya daba una macro F1 aceptable. No hubiera habido problema haberme quedado allí salvó que XGBoost sí presentó una mejora respecto a LogReg, probando así que, aunque pequeña, una parte de mis decisiones siguen una estructura no-lineal, que solo se puede explicar con árboles y modelos más robustos.
-
-
-Con un dataset de coordenadas limpio, y tras ver cómo hacer geocoding implicaba muchísimo trabajo de limpieza, no importaba cuán exitoso habría sido mi XGBoost, en inferencia en vivo, jamas funcionaría. Así que se me ocurrió... ¿y si aprovecho este dataset texto -> zonas dd 4K observaciones que yo mismo limpié, y entreno un modelo clasificador de NLP que prediga la zona en base a la dirección sucia que arroja la plataforma? Y así nació miniBabel, un transformer con un resultado del 84% de accuracy, diseñado para inferencia local. 
-
-Para febrero ya tenía dos activos de ML -> un pkl que representaba un clon digital de mi logica de decisiones como conductor, y un transformer para evitar pasar por limpieza de coordenadas de nuevo. Pero sabiendo que esto jamás escalaría hacia otros conductores o a inferencia en vivo, decidí que el proyecto siguiera hacia simulaciones generativas. 
-
-Así entrené un cGAN via Keras con la física principal de la oferta, pues los incentivos (surge, turbo, etc) sufrieron de mode collapse al tener poca representatividad y cree un manifold sintético de 1M filas (el mínimo para poder llamarle apenas big) hosteado en GCS y consultado en BigQuery. Aproveché entonces para migrar pienza.db a la nube tmb.
-
-Así, en adelante el proyecto contaría con dos datasets:
-pienza_mini -> datos reales hosteados en BigQuery
-pienza_big -> 1M datos sinteticos como entrada para simulaciones posteriores.
-
-
-///// Aunque en sus inicios el proyecto inició con un IDE apenas versionado, al ver que todo el flujo sería en libretas Jupyter (Colab), el control en Git se detuvo, pues no había encontrado la manera de hacerlo via Colab, aunque existía la manera, nunca lo formalicé. Pero como sabía que todo proyecto serio debía ser versionado en Git, a partir de enero empezé a haceerlo mediante una libreta dedicada exclusivamebte para versionar, aunque fuera de manera arcaíca no IDE nativa. (es por eso que los primeros gits consistentes fueron a partir de enero). /////
-
-
-Febrero y Marzo se lo dediqué a documentar la evolución del proyecto en Latex, mismo que servía como Knowledge Base para cualquier LLM/IA, así como utilizar el manifod sintetico y convertirlo en un grafo para hacer análisis de redes. 
-Entonces, construí un grafo no dirigido de conectivdidad de zonas (usando los 72 poligonos como nodos) y un grafo dirigido mediante un tensor (mostrar tensor). 
-
- (((( a partir de aqui ya me cansé dew escribir pero lo dejo como WIP))))
-Con esto, podría llevar el proyecto hacia el siguiente nivel: optimización dinámica mediante Markov Decision Processes. Aunque mi pkl (XGBoost) había dado resultados favorables, sufría de una limitación que todo modelo de ML clasico sufre (y no había entendido al principio)... es snapshot indiference... es un algiritmo que aprendió sí, pero es estático, no está vivo, y es indiferente al contexto reciente. Aunque las stateful features pretenden resolver eso, cada oferta que analiza es aislada. Y es aquí donde ya entra el aaprendizajke por refuerzo que se sale del alacance del proyecto. 
-
-Aún así, el proyecto culmina con el andamiaje necesario para llevar cavo RL full scale en una etapa futura con Pienza 2.0: The Knowledge in the Age of AI.
-
-(((((falta agregar app Streamlit y migraciñon a VS Code desde abril )))))
-
-FIN de la Historia.
-
-
-Activos de Proyect Pienza:
-
-- poly.geojson: 72 microzonas del sector poniente de la ciudad dibujadas a mano (google my maps)
-- pienza_mini: una database limpia REAL de las 4,700 ofertas + 256 viajes completado que digitaliza la experiencia operativa de alta fidelidad del conductor.
-- HDBSCAN_results: segmentación "natural" resultado de meituclosa limpieza de 4.7K coordenadas.
-- pkl XGBoost: el clon digital que captural la logica de deciones del agente.
-- miniBabel: un clasificador transformer text2zone diseñado para inferencia local
-- .keras generator: un generador sintético condicional de ofertas de viaje hiperrealistas que respeta la distribución continua del de pienza_mini.
-- pienza_big: mainfold sintetico generado por el .keras de 1M de observaciones.
-- grafo_topologico: 72 nodos conectivad binaria de zonas.
-- mobility_tensor: un tensor R ZxZxTXC creade con el manifold sintético. (andamio para MDP)
-- grafo_dirigido: tnsor colapsado en matrix para hacer analisid de redes con C dirigido. 
-
-
-
-
-COMO NAVEGAR EL REPOSITORIO:
-
-yada yada
-
-
-
-🚰 Data Lineage & State Boundaries
-
-This repository executes a sequential pipeline. To prevent state contamination, data sources are strictly bound to Phases, regardless of the chronological order in which the notebooks were created.
-
-
-
-Phase 1 (Ground Truth): Reads from raw Google Sheets and AppScript state machines.
-
-
-
-Phases 2 through 5 (Data Eng & Modeling): * Starts at 0111_ETL_Big_Bang_pienzadb.ipynb.
-
-
-
-From this point on, pienza.db is the absolute Single Source of Truth (SSoT). All feature engineering, EDA, and supervised/unsupervised ML models read exclusively from this local database.
-
-
-
-Intermediate State: Any Parquet files, CSVs, or temporary outputs generated between notebooks are written strictly to dumped/files/. This directory is ephemeral; its contents can be safely deleted and regenerated at any time.
-
-
-
-Phase 6 (Generative Moonshots): * Notebooks 0603 and 0604 act as the bridge, migrating pienza.db and synthetic cGAN manifolds to Google BigQuery.
-
-
-
-Everything downstream of 0604 reads strictly from BigQuery.
-
-
-
-
-
-
-
-
-
-
-
-🔭 The Observatory (Streamlit App)
-
-The Observatory is the user-facing Digital Twin. It acts as the final consumer of the pipeline and operates under strict data routing and architectural rules.
-
-
-
-Data Sourcing & Security:
-
-
-
-The Primary Engine: The Observatory is entirely downstream of notebook 0604. It reads strictly from Google BigQuery.
-
-
-
-Sensitive Data (PII): All PII and highly sensitive data resides in a secure GCS Lakehouse and is queried exclusively through BigQuery. Sensitive data is never stored locally in the repo.
-
-
-
-Static Assets: Safe, shareable files (e.g., layout references, images, public JSONs) are tracked directly in the repository under observatory/assets/ and read locally by the Streamlit pages.
-
-
-
-Code Architecture (Layer 1 Modularization):
-
-To prevent UI reruns from tangling with data fetching, the Streamlit codebase uses a strict View/Model separation pattern:
-
-
-
-pages/000X_Name.py (The View): Contains only UI code (st.title, st.plotly_chart, st.tabs). If it renders pixels, it lives here.
-
-
-
-pages/_000X_data.py (The Model/Data): Every page has a hidden sibling module. This is where all BigQuery fetchers (wrapped in @st.cache_data), hardcoded literals, and heavy pandas transformations live.
-
-
-
-Rule of thumb: The main file handles the layout; the hidden _data.py sibling does the heavy lifting
+## Results at a glance
+
+| | |
+|---|---|
+| **Real offers captured (OCR)** | 4,700 |
+| **Completed trips (field-logged)** | 256 |
+| **Acceptance rate** | 7% |
+| **Geo hubs discovered (post-cleanup)** | 44, across 72 hand-drawn microzones |
+| **Cascade XGBoost vs. logistic regression** | outperforms — confirms a nonlinear component in the decision policy |
+| **miniBabel (address → zone transformer)** | 84% accuracy, local inference, replaces a paid geocoding API call |
+| **Synthetic market (cGAN)** | 1,000,000 rows, hosted in GCS, queried via BigQuery |
+
+## Pipeline
+
+```
+Acquisition (GTS WebApp + Gemini OCR)
+        ↓
+ETL → pienza.db (SQLite SSoT)
+        ↓
+Geo Remediation → HDBSCAN clustering (44 hubs / 72 microzones)
+        ↓
+Cascade Classifier (Naive Bayes → LogReg → XGBoost)
+        ↓
+miniBabel (NLP transformer, address → zone, local inference)
+        ↓
+cGAN → 1M-row synthetic manifold → BigQuery
+        ↓
+Network Graph / Mobility Tensor (MDP scaffolding)
+        ↓
+🔭 The Observatory (Streamlit — interactive white paper)
+```
+
+The origin story behind each of these stages — including the geocoding failure that cost a month of cleanup, and why miniBabel exists at all — is in **[STORY.md](./STORY.md)**.
+
+## Tech stack
+
+`Python` · `XGBoost` · `HDBSCAN` · `PyTorch` (miniBabel) · `TensorFlow/Keras` (cGAN) · `SQLite` → `BigQuery` · `Streamlit` · `Kepler.gl` · `H3` · `GCS`
+
+## Data lineage & state boundaries
+
+This repo executes a sequential pipeline. Data sources are strictly bound to phases, regardless of the order notebooks were created in:
+
+| Phase | Source of truth |
+|---|---|
+| **1 — Acquisition & Ground Truth** | Raw Google Sheets + AppsScript state machines |
+| **2–5 — Data Eng, EDA, Unsupervised & Supervised ML** | `pienza.db` (SQLite) — absolute SSoT from `0211_ETL_Big_Bang_pienzadb.ipynb` onward |
+| **6 — Generative Moonshots** | `0603`/`0604` migrate `pienza.db` and the cGAN manifold to BigQuery — the bridge phase |
+| **Downstream of 0604** | BigQuery only |
+
+Intermediate Parquet/CSV outputs between notebooks live in `data/dumped_files/` — ephemeral, safe to delete and regenerate at any time.
+
+## 🔭 The Observatory (Streamlit app)
+
+The user-facing digital twin — an interactive white paper so any stakeholder, technical or not, can explore the project without opening a notebook.
+
+**Data sourcing:**
+- Entirely downstream of `0604` — reads strictly from BigQuery.
+- All PII lives in a secured GCS lakehouse, queried only through BigQuery — never stored locally in the repo.
+- Static, shareable assets (diagrams, public JSON) are tracked under `observatory/assets/` and read locally.
+
+**Code architecture — View/Model separation:**
+
+```
+pages/000X_Name.py     View  — UI only (st.title, st.plotly_chart, st.tabs)
+pages/_000X_data.py    Model — BigQuery fetchers (@st.cache_data), literals, pandas transforms
+```
+
+The page file handles layout. The hidden `_data.py` sibling does the heavy lifting.
+
+### Run it locally
+
+```bash
+cd observatory
+streamlit run main.py
+```
+
+## Repository structure
+
+<details>
+<summary><b>Click to expand full tree</b></summary>
+
+```
+pienza/
+├── README.md                        # you are here
+├── STORY.md                         # the narrative — how and why this got built
+├── The_Pienza_Papers/
+│   ├── Pienza_Papers_Scientific.pdf # full technical writeup
+│   └── Pienza_Papers_Executive/     # business-facing summary
+│
+├── research_core/                   # curated spine notebooks (numbered for traceability)
+│   ├── 0211_ETL_Big_Bang_pienzadb.ipynb
+│   ├── 0305_EDA_Causal_Inference.ipynb
+│   ├── 0307_EDA_Optimal_Stopping_Playbook.ipynb
+│   ├── 0403_KMeans_Raw.ipynb
+│   ├── 0407_Clustering_Paper_Streamlit.ipynb
+│   ├── 0509_WINNER_XGB_cascade_postablation.ipynb
+│   ├── 0601_NLP_Transformer_miniBabel.ipynb
+│   ├── 0602_cGAN_Training.ipynb
+│   └── 0603–0608_*.ipynb            # BigQuery bridge + Markov/graph scaffolding
+│
+├── research_archive/                # full phase-by-phase history
+│   ├── Phase_1_Acquisition_and_Ground_Truth/
+│   ├── Phase_2_Data_Engineering/    # ETL, temporal ledger, geospatial reconciliation
+│   ├── Phase_3_Exploratory_Analysis/
+│   ├── Phase_4_Unsupervised_ML/     # PCA, KMeans, HDBSCAN, polygon zones
+│   ├── Phase_5_Supervised_ML/       # Naive Bayes → LogReg → XGBoost tournament
+│   └── Phase_6_Generative_Moonshots/# miniBabel, cGAN, BigQuery migration
+│
+├── data/
+│   ├── pienza.db                    # SQLite SSoT (real data)
+│   └── dumped_files/                # ephemeral intermediate artifacts
+│
+├── observatory/                     # 🔭 the Streamlit app
+│   ├── main.py                      # home page + canonical sidebar
+│   ├── pages/                       # 000X_Name.py (view) + _000X_data.py (model)
+│   ├── components/                  # styles.py — GLOBAL_CSS
+│   ├── utils/                       # bq_client.py, gcp_client.py
+│   └── assets/                      # static, shareable assets
+│
+└── assets/                          # private repo context/docs (gitignored)
+```
+
+</details>
+
+## Known limitations
+
+- **N=1 generalizability** — this clones one driver's policy under one city's incentive structure over six weeks. It is not a claim about driver behavior in general.
+- **Human labels don't survive to production** — the six rejection-reason tags were assigned retrospectively by the driver after each shift. That's a deliberate research-only design choice, not a deployment path.
+- **Heuristic-flag leakage risk** — some engineered features are close proxies for the label itself; treated with care in the cascade model, documented in the Papers PDF.
+
+## Links
+
+- 🔭 **[Live Observatory dashboard](#)** — placeholder, add live Streamlit URL
+- 📄 **[Pienza Papers (Scientific)](./The_Pienza_Papers/Pienza_Papers_Scientific.pdf)**
+- 📖 **[STORY.md](./STORY.md)** — the full narrative, with links to the notebooks at the moments they mattered
+</div>
