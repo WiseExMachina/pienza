@@ -194,3 +194,56 @@ pages/_000X_data.py (The Model/Data): Every page has a hidden sibling module. Th
 
 
 Rule of thumb: The main file handles the layout; the hidden _data.py sibling does the heavy lifting
+
+
+
+
+
+
+
+## Repository structure
+
+<details>
+<summary><b>Click to expand full tree</b></summary>
+
+```
+pienza/
+├── README.md                        # you are here
+├── STORY.md                         # the narrative — how and why this got built
+├── The_Pienza_Papers/
+│   ├── Pienza_Papers_Scientific.pdf # full technical writeup
+│   └── Pienza_Papers_Executive/     # business-facing summary
+│
+├── research_core/                   # curated spine notebooks (numbered for traceability)
+│   ├── 0211_ETL_Big_Bang_pienzadb.ipynb
+│   ├── 0305_EDA_Causal_Inference.ipynb
+│   ├── 0307_EDA_Optimal_Stopping_Playbook.ipynb
+│   ├── 0403_KMeans_Raw.ipynb
+│   ├── 0407_Clustering_Paper_Streamlit.ipynb
+│   ├── 0509_WINNER_XGB_cascade_postablation.ipynb
+│   ├── 0601_NLP_Transformer_miniBabel.ipynb
+│   ├── 0602_cGAN_Training.ipynb
+│   └── 0603–0608_*.ipynb            # BigQuery bridge + Markov/graph scaffolding
+│
+├── research_archive/                # full phase-by-phase history
+│   ├── Phase_1_Acquisition_and_Ground_Truth/
+│   ├── Phase_2_Data_Engineering/    # ETL, temporal ledger, geospatial reconciliation
+│   ├── Phase_3_Exploratory_Analysis/
+│   ├── Phase_4_Unsupervised_ML/     # PCA, KMeans, HDBSCAN, polygon zones
+│   ├── Phase_5_Supervised_ML/       # Naive Bayes → LogReg → XGBoost tournament
+│   └── Phase_6_Generative_Moonshots/# miniBabel, cGAN, BigQuery migration
+│
+├── data/
+│   ├── pienza.db                    # SQLite SSoT (real data)
+│   └── dumped_files/                # ephemeral intermediate artifacts
+│
+├── observatory/                     # 🔭 the Streamlit app
+│   ├── main.py                      # home page + canonical sidebar
+│   ├── pages/                       # 000X_Name.py (view) + _000X_data.py (model)
+│   ├── components/                  # styles.py — GLOBAL_CSS
+│   ├── utils/                       # bq_client.py, gcp_client.py
+│   └── assets/                      # static, shareable assets
+│
+├── assets/                           # tracked README/portfolio images
+└── assets_ignored/                   # private repo context/docs (gitignored)
+```
