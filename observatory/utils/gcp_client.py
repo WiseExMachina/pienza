@@ -8,8 +8,6 @@ import json
 import torch
 import torch.nn as nn
 import math
-import tensorflow as tf
-import joblib
 
 # --- 1. HYGIENE & CONFIG ---
 # Eliminamos transformers porque ya no cargamos a la bestia de 110M de parámetros
