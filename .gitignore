@@ -24,7 +24,7 @@ service-account.json
 *.pkl
 *.npy
 /data/
-/assets/
+/assets_ignored/
 
 # observatory/assets/: block everything by default (private data, OCR
 # screenshots, dead/unused files), open exceptions only for static

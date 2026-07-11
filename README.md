@@ -1,8 +1,13 @@
 <div align="center">
+<table><tr valign="middle">
+<td valign="middle"><img src="./assets/logo_badge.png" width="56" height="56" alt="Project Pienza mark" /></td>
+<td valign="middle" align="left">
+<h2>Project Pienza</h2>
+<sub><b>DIGITAL TWIN · CDMX</b></sub>
+</td>
+</tr></table>
 
-# 🚕 Project Pienza
-
-### A digital twin of one driver's 4,700 ride-hailing decisions in Mexico City
+A digital twin of one driver's 4,700 ride-hailing decisions in Mexico City
 
 **HDBSCAN geo-clustering → cascade XGBoost classifier → transformer NLP → cGAN-synthesized 1M-row market**
 
@@ -33,6 +38,11 @@ A single expert agent — me, driving Uber in CDMX for two years — labeled eve
 | **Cascade XGBoost vs. logistic regression** | outperforms — confirms a nonlinear component in the decision policy |
 | **miniBabel (address → zone transformer)** | 84% accuracy, local inference, replaces a paid geocoding API call |
 | **Synthetic market (cGAN)** | 1,000,000 rows, hosted in GCS, queried via BigQuery |
+
+
+
+![Machine-discovered hubs — kepler.gl 3D](./assets/kepler_static.png)
+<sub><i>44 HDBSCAN results (height = offer density) validated against 72 hand-drawn polygons. Color = cluster ID — full hub names and metrics are available via hover in the live Observatory dashboard.</i></sub>
 
 ## Pipeline
 
@@ -141,7 +151,8 @@ pienza/
 │   ├── utils/                       # bq_client.py, gcp_client.py
 │   └── assets/                      # static, shareable assets
 │
-└── assets/                          # private repo context/docs (gitignored)
+├── assets/                           # tracked README/portfolio images
+└── assets_ignored/                   # private repo context/docs (gitignored)
 ```
 
 </details>
