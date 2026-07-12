@@ -119,7 +119,7 @@ yada yada
 
 
 
-🚰 Data Lineage & State Boundaries
+Data Lineage & State Boundaries
 
 This repository executes a sequential pipeline. To prevent state contamination, data sources are strictly bound to Phases, regardless of the chronological order in which the notebooks were created.
 
@@ -141,11 +141,7 @@ Intermediate State: Any Parquet files, CSVs, or temporary outputs generated betw
 
 
 
-Phase 6 (Generative Moonshots): * Notebooks 0603 and 0604 act as the bridge, migrating pienza.db and synthetic cGAN manifolds to Google BigQuery.
-
-
-
-Everything downstream of 0604 reads strictly from BigQuery.
+Phase 6 (Generative Moonshots): * Notebooks 0603 and 0604 act as the bridge, migrating pienza.db and synthetic cGAN manifolds to Google BigQuery.Everything downstream of 0604 reads strictly from BigQuery.
 
 
 
@@ -179,9 +175,9 @@ Static Assets: Safe, shareable files (e.g., layout references, images, public JS
 
 
 
-Code Architecture (Layer 1 Modularization):
 
-To prevent UI reruns from tangling with data fetching, the Streamlit codebase uses a strict View/Model separation pattern:
+
+To prevent UI reruns from tangling with data fetching, the Streamlit codebase uses a strict View/Model separation pattern, where the main file handles the layout; the hidden _data.py sibling does the heavy lifting:
 
 
 
@@ -191,9 +187,6 @@ pages/000X_Name.py (The View): Contains only UI code (st.title, st.plotly_chart,
 
 pages/_000X_data.py (The Model/Data): Every page has a hidden sibling module. This is where all BigQuery fetchers (wrapped in @st.cache_data), hardcoded literals, and heavy pandas transformations live.
 
-
-
-Rule of thumb: The main file handles the layout; the hidden _data.py sibling does the heavy lifting
 
 
 
