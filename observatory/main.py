@@ -4,6 +4,9 @@ from components.styles import GLOBAL_CSS
 from config import FAVICON
 from pathlib import Path
 from _main_data import NAV_MODULES, load_favicon_b64, nav_icon
+from utils.mem_debug import log_mem
+
+log_mem("main.py top")
 
 
 # --- 0. SIDEBAR INTEGRADA ---

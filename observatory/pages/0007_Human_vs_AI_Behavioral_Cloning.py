@@ -16,6 +16,9 @@ from pages._0007_data import (
     load_shap_l2,
     load_sim_parquet_v3,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0007 top")
 
 
 # ==============================================================================

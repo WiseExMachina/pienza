@@ -22,10 +22,14 @@ from pages._0008_data import (
     load_latency_map_template as _load_latency_map_template,
     load_zone_map_template as _load_zone_map_template,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0008 top")
 
 def _preload_babel():
     try:
         load_babel_assets()
+        log_mem("0008 after load_babel_assets")
     except Exception:
         pass
 
