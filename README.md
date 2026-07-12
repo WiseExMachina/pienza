@@ -32,6 +32,8 @@ Project Pienza is a research project grounded in the operational reality of Mexi
 ![Machine-discovered hubs — kepler.gl 3D](./assets/kepler_static.png)
 <sub><i>44 HDBSCAN results (height = offer density) validated against 72 hand-drawn polygons. Color = cluster ID — full hub names and metrics are available via hover in the live Observatory dashboard.</i></sub>
 
+<br>
+
 ## Interacting with the Project
 
 There are three ways into this project, depending on how deep you want to go:
@@ -44,6 +46,8 @@ There are three ways into this project, depending on how deep you want to go:
 
 3. **The repository itself** — full source, notebooks, and pipeline. Structure explained below.
 
+<br>
+
 ## Data Lineage & State Boundaries
 
 This repository executes a sequential pipeline. To prevent state contamination, data sources are strictly bound to phases, regardless of the chronological order in which the notebooks were created.
@@ -55,6 +59,8 @@ This repository executes a sequential pipeline. To prevent state contamination, 
 <sub><i>Intermediate State: Any Parquet files, CSVs, or temporary outputs generated between notebooks are written strictly to `data/dumped_files/`. This directory is ephemeral; its contents can be safely deleted and regenerated at any time.</i></sub>
 
 **Phase 6 (Generative Moonshots):** Notebooks `0603` and `0604` act as the bridge, migrating `pienza.db` and synthetic cGAN manifolds to Google BigQuery. Everything downstream of `0604` reads strictly from BigQuery.
+
+<br>
 
 ## Repository structure
 
@@ -70,6 +76,7 @@ pienza/
 ├── observatory/             # the Streamlit app
 └── assets/                  # tracked README/portfolio images
 ```
+
 
 ### Core Notebooks
 
@@ -95,6 +102,7 @@ notebooks_core/
 └── <a href="./notebooks_core/0608_Bridge_to_Markov_Network_Graph.ipynb">0608_Bridge_to_Markov_Network_Graph.ipynb</a>     # network graph + MDP scaffolding
 </pre>
 
+
 ### Full Notebooks
 
 The complete, unedited research logs of the 6-phase pipeline. Preserved intentionally in their raw state, these notebooks document the authentic engineering journey—acting as an unpolished record of the experiments, pivots, and successful model iterations that power the final Observatory.
@@ -110,6 +118,7 @@ notebooks_full/
 ├── Phase_5_Supervised_ML/                   # Naive Bayes → LogReg → XGBoost tournament (10 files)
 └── Phase_6_Generative_Moonshots/            # miniBabel, cGAN, BigQuery migration (8 files)
 ```
+
 
 ### Observatory (Streamlit App)
 
@@ -138,6 +147,18 @@ observatory/
 ├── utils/                   # bq_client.py, gcp_client.py — BigQuery/GCS fetchers
 └── assets/                  # static, shareable assets (favicon, PDFs, HTML maps)
 ```
+
+<br>
+
+## License & Access
+
+The code in this repository is released under the MIT License.
+
+The underlying dataset, trained model weights, and other research artifacts are not included and are not covered by this license — they remain private. This repository is intended to be explored read-only, as a record of the project's engineering and research process; it is not designed to be forked and run end-to-end.
+
+To interact with the project's live results, see [The Observatory](#) or the [Pienza Papers](./The_Pienza_Papers/Pienza_Papers_Scientific.pdf).
+
+<br>
 
 ---
 
