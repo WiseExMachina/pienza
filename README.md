@@ -50,6 +50,10 @@ There are three ways into this project, depending on how deep you want to go:
 
 ## Data Lineage & State Boundaries
 
+<div align="center">
+<img src="./assets/timeline.png" alt="Timeline: Phase 1 through Phase 7, Sep 2025 to May 2026" width="800" />
+</div>
+
 This repository executes a sequential pipeline. To prevent state contamination, data sources are strictly bound to phases, regardless of the chronological order in which the notebooks were created.
 
 **Phase 1 (Ground Truth):** Reads from raw Google Sheets and AppsScript state machines.
@@ -106,8 +110,6 @@ notebooks_core/
 ### Full Notebooks
 
 The complete, unedited research logs of the 6-phase pipeline. Preserved intentionally in their raw state, these notebooks document the authentic engineering journey—acting as an unpolished record of the experiments, pivots, and successful model iterations that power the final Observatory.
-
-<img src="./assets/timeline.png" alt="Timeline: Phase 1 through Phase 7, Sep 2025 to May 2026" width="800" />
 
 ```
 notebooks_full/
