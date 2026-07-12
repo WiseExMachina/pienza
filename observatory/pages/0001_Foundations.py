@@ -3,6 +3,9 @@ import streamlit as st
 from components.styles import GLOBAL_CSS
 from config import FAVICON
 from pages._0001_data import COLORS, META_GROUPS, PHASES, load_favicon_b64
+from utils.mem_debug import log_mem
+
+log_mem("0001 top")
 
 st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon=FAVICON)
 

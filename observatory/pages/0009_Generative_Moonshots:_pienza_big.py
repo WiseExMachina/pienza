@@ -5,6 +5,9 @@ import networkx as nx
 from components.styles import GLOBAL_CSS
 from config import FAVICON
 from pages._0009_data import load_favicon_b64 as _load_favicon_b64
+from utils.mem_debug import log_mem
+
+log_mem("0009 top")
 
 st.set_page_config(layout="wide", page_title="Generative Moonshots: pienza_big | Pienza", page_icon=FAVICON)
 

@@ -21,6 +21,9 @@ from pages._0002_data import (
     obf_hash as _obf_hash,
     obf_latlon as _obf_latlon,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0002 top")
 
 st.set_page_config(layout="wide", page_title="Acquisition Pipelines | Pienza", page_icon=FAVICON)
 

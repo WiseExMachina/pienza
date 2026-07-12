@@ -12,6 +12,9 @@ from pages._0004_data import (
     load_favicon_b64 as _load_favicon_b64,
     run_query,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0004 top")
 
 st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)

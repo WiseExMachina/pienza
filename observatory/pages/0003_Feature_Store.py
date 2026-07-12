@@ -21,6 +21,9 @@ from pages._0003_data import (
     pb_sessions as _pb_sessions,
     silver_schema,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0003 top")
 
 st.set_page_config(layout="wide", page_title="Feature Store | Pienza", page_icon=FAVICON)
 

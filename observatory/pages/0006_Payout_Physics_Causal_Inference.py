@@ -18,6 +18,9 @@ from pages._0006_data import (
     map_category,
     teal_callout,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0006 top")
 
 # ==============================================================================
 # PAGE CONFIG

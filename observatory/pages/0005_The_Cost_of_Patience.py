@@ -23,6 +23,9 @@ from pages._0005_data import (
     query_moneymap,
     query_ven,
 )
+from utils.mem_debug import log_mem
+
+log_mem("0005 top")
 
 # ==============================================================================
 # PAGE CONFIG
