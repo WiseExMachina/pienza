@@ -1,30 +1,13 @@
 import pandas as pd
 from google.cloud import storage
-from google.oauth2 import service_account
 from io import BytesIO
-import os
 import streamlit as st
 
-# --- 1. HYGIENE & CONFIG ---
-# Credenciales: en Codespaces se usa el JSON local; en Streamlit Community Cloud
-# (donde .streamlit/service-account.json no existe, ver assets/CLAUDE.md) se usa
-# st.secrets["gcp_service_account"] en su lugar.
-if "gcp_service_account" not in st.secrets:
-    os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", ".streamlit/service-account.json")
-
-
-def _get_gcp_credentials():
-    """Returns explicit credentials from st.secrets when deployed, else None
-    (None makes the google-cloud clients fall back to GOOGLE_APPLICATION_CREDENTIALS)."""
-    if "gcp_service_account" in st.secrets:
-        return service_account.Credentials.from_service_account_info(
-            dict(st.secrets["gcp_service_account"])
-        )
-    return None
+from utils.gcp_auth import get_gcp_credentials
 
 
 def _storage_client() -> storage.Client:
-    creds = _get_gcp_credentials()
+    creds = get_gcp_credentials()
     if creds is not None:
         return storage.Client(credentials=creds, project=creds.project_id)
     return storage.Client()

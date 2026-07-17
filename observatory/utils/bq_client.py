@@ -1,21 +1,13 @@
 import streamlit as st
 import pandas as pd
 from google.cloud import bigquery
-from google.oauth2 import service_account
-import os
 
-# Credenciales: en Codespaces se usa el JSON local; en Streamlit Community Cloud
-# (donde .streamlit/service-account.json no existe, ver assets/CLAUDE.md) se usa
-# st.secrets["gcp_service_account"] en su lugar.
-if "gcp_service_account" not in st.secrets:
-    os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", ".streamlit/service-account.json")
+from utils.gcp_auth import get_gcp_credentials
 
 
 def _bigquery_client() -> bigquery.Client:
-    if "gcp_service_account" in st.secrets:
-        creds = service_account.Credentials.from_service_account_info(
-            dict(st.secrets["gcp_service_account"])
-        )
+    creds = get_gcp_credentials()
+    if creds is not None:
         return bigquery.Client(credentials=creds, project=creds.project_id)
     return bigquery.Client()
 
