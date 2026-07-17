@@ -10,14 +10,13 @@ import io
 from google.cloud import storage
 import pandas as pd
 
-# IMPORTAMOS SOLO LO NECESARIO (Babel)
-from utils.gcp_client import load_babel_assets
 from utils.bq_client import fetch_data_from_bq
 from components.styles import GLOBAL_CSS
 from config import FAVICON, build_page_title
 import threading as _threading
 from components.sidebar import build_sidebar
 from pages._0008_data import (
+    load_babel_assets,
     load_holdout_audit as _load_holdout_audit,
     load_latency_map_template as _load_latency_map_template,
     load_zone_map_template as _load_zone_map_template,
