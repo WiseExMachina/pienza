@@ -1,7 +1,5 @@
 """Data literals and pure helpers used by 0006_Payout_Physics_Causal_Inference.py (Layer 1 extraction)."""
 
-import base64
-from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -11,13 +9,6 @@ from utils.bq_client import _bigquery_client
 OPUS_TEAL = '#21918c'
 OPUS_GREY = '#F5F6F7'
 OPUS_TEXT = '#121212'
-
-
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
 
 
 def teal_callout(text: str, mb: str = "24px") -> str:

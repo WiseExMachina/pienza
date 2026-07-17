@@ -9,13 +9,6 @@ import streamlit as st
 from utils.gcp_client import fetch_bytes_from_gcs
 
 
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
-
 # Shared loader for 260702_minibabel_holdout_audit.parquet — Streamlit renders
 # every tab panel's content on each rerun (they're just hidden via CSS, not
 # lazily skipped), so P1/P2/P3 were each fetching + parsing this same parquet

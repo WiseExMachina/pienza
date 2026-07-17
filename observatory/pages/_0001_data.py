@@ -1,17 +1,5 @@
 """Data literals and pure helpers used by 0001_Foundations.py (Layer 1 extraction)."""
 
-import base64
-from pathlib import Path
-
-import streamlit as st
-
-
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
 
 # Timeline tab: one entry per project phase (label, dates, architecture, narrative).
 PHASES: list[dict] = [

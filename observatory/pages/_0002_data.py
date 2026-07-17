@@ -11,13 +11,6 @@ from PIL import Image
 from utils.gcp_client import fetch_bytes_from_gcs
 
 
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
-
-
 @st.cache_data(show_spinner=False)
 def img_b64(img_path: str, max_width: int = 320) -> str:
     """Fetches an OCR screenshot from GCS, downsizes it, and returns a base64 JPEG string."""

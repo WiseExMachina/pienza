@@ -1,8 +1,6 @@
 """Data literals and pure helpers used by 0004_Data_Census_(The_Basics).py (Layer 1 extraction)."""
 
-import base64
 import re
-from pathlib import Path
 
 import streamlit as st
 
@@ -10,13 +8,6 @@ from utils.bq_client import _bigquery_client
 
 PROJECT = "645009831643"
 DATASET = "pienza_mini"
-
-
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
 
 
 @st.cache_resource

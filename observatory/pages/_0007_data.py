@@ -1,22 +1,13 @@
 """Data literals and pure helpers used by 0007_Human_vs_AI_Behavioral_Cloning.py (Layer 1 extraction)."""
 
-import base64
 import json
 from io import BytesIO
-from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 from utils.bq_client import fetch_data_from_bq
 from utils.gcp_client import _storage_client
-
-
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
 
 
 @st.cache_data(show_spinner=False)

@@ -1,19 +1,10 @@
 """Data literals and pure helpers used by 0003_Feature_Store.py (Layer 1 extraction)."""
 
-import base64
 import re
-from pathlib import Path
 
 import streamlit as st
 
 from utils.bq_client import fetch_data_from_bq
-
-
-@st.cache_data
-def load_favicon_b64() -> str:
-    """Reads the local favicon PNG and returns its base64-encoded string."""
-    favicon_bytes = (Path(__file__).resolve().parent.parent / "assets" / "favicon.png").read_bytes()
-    return base64.b64encode(favicon_bytes).decode()
 
 
 # Bronze medallion layer: raw canonical OCR-output schema, F01-F37, by domain.
