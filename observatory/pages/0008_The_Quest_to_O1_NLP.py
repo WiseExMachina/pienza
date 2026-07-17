@@ -14,7 +14,7 @@ import pandas as pd
 from utils.gcp_client import load_babel_assets
 from utils.bq_client import fetch_data_from_bq
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, build_page_title
 import threading as _threading
 from components.sidebar import build_sidebar
 from pages._0008_data import (
@@ -39,7 +39,7 @@ _threading.Thread(target=_preload_babel, daemon=True).start()
 # ==========================================
 # PAGE CONFIGURATION
 # ==========================================
-st.set_page_config(page_title="The Quest to (O)1: NLP Transformer | Pienza", page_icon=FAVICON, layout="wide")
+st.set_page_config(page_title=build_page_title("The Quest to (O)1: NLP Transformer"), page_icon=FAVICON, layout="wide")
 
 # ─────────────────────────────────────────────
 # SIDEBAR

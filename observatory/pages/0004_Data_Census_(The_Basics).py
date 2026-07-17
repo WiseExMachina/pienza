@@ -2,7 +2,7 @@ import streamlit as st
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor as _ThreadPoolExecutor
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, build_page_title
 from components.sidebar import build_sidebar
 from pages._0004_data import (
     DATASET,
@@ -16,7 +16,7 @@ from utils.mem_debug import log_mem
 
 log_mem("0004 top")
 
-st.set_page_config(page_title="Data Census (The Basics) | Pienza", page_icon=FAVICON, layout="wide")
+st.set_page_config(page_title=build_page_title("Data Census: The Basics"), page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────

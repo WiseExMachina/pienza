@@ -4,7 +4,7 @@ import pandas as pd
 from components.styles import GLOBAL_CSS
 from utils.bq_client import fetch_data_from_bq
 from utils.gcp_client import _storage_client, fetch_bytes_from_gcs
-from config import FAVICON
+from config import FAVICON, build_page_title
 from components.sidebar import build_sidebar
 from pages._0007_data import (
     load_c3_metrics,
@@ -24,7 +24,7 @@ log_mem("0007 top")
 # ==============================================================================
 # 1. CONFIGURACIÓN, ESTÉTICA Y QUANTUM SYNC (BLOQUE MAESTRO UNIFICADO)
 # ==============================================================================
-st.set_page_config(layout="wide", page_title="Human vs AI: Behavioral Cloning | Pienza", page_icon=FAVICON)
+st.set_page_config(layout="wide", page_title=build_page_title("Human vs AI: Behavioral Cloning"), page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

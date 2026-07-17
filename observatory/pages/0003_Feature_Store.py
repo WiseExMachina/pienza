@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 import time
 import numpy as np
 import pandas as pd
-from config import FAVICON
+from config import FAVICON, build_page_title
 from components.sidebar import build_sidebar
 from pages._0003_data import (
     VISIBLE_SIDS as _VISIBLE_SIDS,
@@ -25,7 +25,7 @@ from utils.mem_debug import log_mem
 
 log_mem("0003 top")
 
-st.set_page_config(layout="wide", page_title="Feature Store | Pienza", page_icon=FAVICON)
+st.set_page_config(layout="wide", page_title=build_page_title("Feature Store"), page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

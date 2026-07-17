@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, build_page_title
 from components.sidebar import build_sidebar
 from pages._0002_data import (
     ENGINE2_OFFERS,
@@ -25,7 +25,7 @@ from utils.mem_debug import log_mem
 
 log_mem("0002 top")
 
-st.set_page_config(layout="wide", page_title="Acquisition Pipelines | Pienza", page_icon=FAVICON)
+st.set_page_config(layout="wide", page_title=build_page_title("Acquisition Pipelines"), page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

@@ -5,6 +5,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from config import AUTHOR, GITHUB_URL, PDF_URL
+
 
 @st.cache_data
 def load_favicon_b64() -> str:
@@ -39,14 +41,14 @@ def build_sidebar():
         with st.container(key="sb-footer"):
             st.markdown("---")
             pdf_link = (
-                "<a href='app/static/Pienza_Papers.pdf' target='_blank' "
+                f"<a href='{PDF_URL}' target='_blank' "
                 "class='sb-pdf-link'>Download PDF</a>"
             )
 
             st.markdown(
-                "<div class='sb-meta-line'><b>Author:</b> Bernardo Lozano Wise<br>"
+                f"<div class='sb-meta-line'><b>Author:</b> {AUTHOR}<br>"
                 "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
-                "<b>GitHub:</b> <a href='https://github.com/WiseExMachina/pienza' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
+                f"<b>GitHub:</b> <a href='{GITHUB_URL}' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
                 "<b>Domain:</b> Data Science — Mobility & Logistics<br>"
                 "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
                 f"<b>AI Knowledge Base:</b> {pdf_link}</div>",

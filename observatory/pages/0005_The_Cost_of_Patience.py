@@ -10,7 +10,7 @@ from pathlib import Path
 from scipy.interpolate import interp1d
 from components.styles import GLOBAL_CSS
 import streamlit.components.v1 as components
-from config import FAVICON
+from config import FAVICON, build_page_title
 from components.sidebar import build_sidebar
 from pages._0005_data import (
     COLORS,
@@ -30,7 +30,7 @@ log_mem("0005 top")
 # ==============================================================================
 # PAGE CONFIG
 # ==============================================================================
-st.set_page_config(page_title="The Cost of Patience | Pienza",
+st.set_page_config(page_title=build_page_title("The Cost of Patience: Optimal Stopping"),
                    page_icon=FAVICON,
                    layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)

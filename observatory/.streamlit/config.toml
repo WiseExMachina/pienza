@@ -1,5 +1,5 @@
 [theme]
-primaryColor = "#21918c" # Your Opus Teal
+primaryColor = "#21918c"
 backgroundColor = "#F5F6F7"
 secondaryBackgroundColor = "#E8E8E8"
 textColor = "#121212"
@@ -11,4 +11,4 @@ showSidebarNavigation = false
 
 [server]
 runOnSave = true
-enableStaticServing = true
+enableStaticServing = false

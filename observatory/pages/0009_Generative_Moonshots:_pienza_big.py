@@ -4,12 +4,12 @@ import streamlit.components.v1 as components
 import networkx as nx
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, build_page_title
 from utils.mem_debug import log_mem
 
 log_mem("0009 top")
 
-st.set_page_config(layout="wide", page_title="Generative Moonshots: pienza_big | Pienza", page_icon=FAVICON)
+st.set_page_config(layout="wide", page_title=build_page_title("Generative Moonshots: pienza_big"), page_icon=FAVICON)
 
 build_sidebar()
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)

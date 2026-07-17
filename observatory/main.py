@@ -2,13 +2,14 @@ import streamlit as st
 import streamlit.components.v1 as components
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, PDF_URL, build_page_title
 from pathlib import Path
 from _main_data import NAV_MODULES, nav_icon
 from utils.mem_debug import log_mem
 
 log_mem("main.py top")
 
+st.set_page_config(layout="wide", page_title=build_page_title("Home"), page_icon=FAVICON)
 
 # --- 0. SIDEBAR INTEGRADA ---
 build_sidebar()
@@ -244,14 +245,14 @@ for i, (path, icon, title, desc) in enumerate(NAV_MODULES):
 st.markdown("---")
 
 # --- 7. CALL TO ACTION (The LLM Ingestion Gateway) ---
-st.markdown("""
+st.markdown(f"""
 <div class="ingestion-panel">
     <div class="ingestion-title">LLM Knowledge Base</div>
     <div class="ingestion-heading">Interact with the AI</div>
     <div class="ingestion-body">
         100 pages of deep learning and market physics is a lot of reading. Download the PDF, feed it to your favorite LLM, and get the executive summary on demand.
     </div>
-    <a href="main.pdf" class="ingestion-action" download>
+    <a href="{PDF_URL}" class="ingestion-action" download>
         📥 Download PDF
     </a>
 </div>

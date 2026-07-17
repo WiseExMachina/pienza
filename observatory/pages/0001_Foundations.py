@@ -2,13 +2,13 @@ import pandas as pd
 import streamlit as st
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, build_page_title
 from pages._0001_data import COLORS, META_GROUPS, PHASES
 from utils.mem_debug import log_mem
 
 log_mem("0001 top")
 
-st.set_page_config(layout="wide", page_title="Foundations | Pienza", page_icon=FAVICON)
+st.set_page_config(layout="wide", page_title=build_page_title("Foundations"), page_icon=FAVICON)
 
 # ─────────────────────────────────────────────
 # SIDEBAR

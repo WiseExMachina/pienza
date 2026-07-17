@@ -1,3 +1,5 @@
+from config import ACCENT
+
 GLOBAL_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
@@ -492,4 +494,4 @@ footer { visibility: hidden; }
     50%      { transform: translateY(-50%) translateX(6px); }
 }
 </style>
-"""
+""".replace("#21918c", ACCENT)

@@ -17,8 +17,18 @@ _ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 # on the deployed app).
 FAVICON = Image.open(_ASSETS_DIR / "favicon.png")
 ACCENT = "#21918c"
-ACCENT_DARK = "#1a7576"
-PAGE_TITLE = "Project Pienza | Digital Twin"
 PDF_PATH = str(_ASSETS_DIR / "Pienza_Papers.pdf")
-GITHUB_URL = "https://github.com/your-repo"
+# Hosted on GitHub Pages (published from main branch root), not GCS/local —
+# The_Pienza_Papers/Pienza_Papers_Scientific.pdf is the real committed
+# source file; the URL below mirrors that exact repo path.
+PDF_URL = "https://wiseexmachina.github.io/pienza/The_Pienza_Papers/Pienza_Papers_Scientific.pdf"
+GITHUB_URL = "https://github.com/WiseExMachina/pienza"
 AUTHOR = "Bernardo Lozano Wise"
+
+# Browser-tab title convention: "Pienza · Observatory · <page name>". Every
+# page passes its own short name; main.py's is "Home".
+TITLE_PREFIX = "Pienza · Observatory"
+
+
+def build_page_title(name: str) -> str:
+    return f"{TITLE_PREFIX} · {name}"

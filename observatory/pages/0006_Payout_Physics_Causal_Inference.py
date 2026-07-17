@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from components.styles import GLOBAL_CSS
-from config import FAVICON
+from config import FAVICON, build_page_title
 from components.sidebar import build_sidebar
 from pages._0006_data import (
     OPUS_GREY,
@@ -25,7 +25,7 @@ log_mem("0006 top")
 # ==============================================================================
 # PAGE CONFIG
 # ==============================================================================
-st.set_page_config(page_title="Payout Physics | Pienza", page_icon=FAVICON, layout="wide")
+st.set_page_config(page_title=build_page_title("Payout Physics: Causal Inference"), page_icon=FAVICON, layout="wide")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 st.markdown("""<style>
 .ols-kpi {
