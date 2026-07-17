@@ -22,7 +22,7 @@ log_mem("0007 top")
 
 
 # ==============================================================================
-# 1. CONFIGURACIÓN, ESTÉTICA Y QUANTUM SYNC (BLOQUE MAESTRO UNIFICADO)
+# 1. CONFIG, STYLING, AND QUANTUM SYNC (UNIFIED MASTER BLOCK)
 # ==============================================================================
 st.set_page_config(layout="wide", page_title=build_page_title("Human vs AI: Behavioral Cloning"), page_icon=FAVICON)
 
@@ -30,7 +30,7 @@ st.set_page_config(layout="wide", page_title=build_page_title("Human vs AI: Beha
 # SIDEBAR
 # ─────────────────────────────────────────────
 build_sidebar()
-# --- A. EL SNIPER SCRIPT (VERSIÓN FORCE CENTER) ---
+# --- A. THE SNIPER SCRIPT (FORCE CENTER VERSION) ---
 quantum_scroll_js = """
 <script>
 const syncQuantumScroll = () => {
@@ -46,8 +46,8 @@ const syncQuantumScroll = () => {
                 if (sib !== this) {
                     const bucket = sib.closest('.bucket');
                     if (bucket) {
-                        // CÁLCULO DE POSICIÓN RELATIVA
-                        // Restamos el offset del bucket para que la gema quede en el centro visual
+                        // RELATIVE POSITION CALCULATION
+                        // Subtract the bucket's offset so the gem lands at the visual center
                         const targetPos = sib.offsetTop - bucket.offsetTop - (bucket.clientHeight / 2) + (sib.clientHeight / 2);
                         
                         bucket.scrollTo({
@@ -61,13 +61,13 @@ const syncQuantumScroll = () => {
     });
 };
 
-// Reiniciar el listener cada vez que Streamlit actualice el DOM
+// Re-attach the listener every time Streamlit updates the DOM
 const observer = new MutationObserver(syncQuantumScroll);
 observer.observe(document.body, { childList: true, subtree: true });
 </script>
 """
 
-# --- B. ESTILOS BASE (OPUS THEME) ---
+# --- B. BASE STYLES ---
 base_css = """
 <style>
     /* Gray minimal slider for threshold simulator */
@@ -97,7 +97,7 @@ base_css = """
     .bucket { 
         background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 0 0 5px 5px; padding: 5px; 
         height: 350px !important; overflow-y: auto !important; 
-        display: flex; flex-direction: column; /* Dirección natural para el auto-scroll */
+        display: flex; flex-direction: column; /* Natural direction for the auto-scroll */
     }
     
     .agent-header { text-align: center; font-weight: 800; font-size: 14px; padding: 8px; background: #21918c; color: white; border-radius: 8px; margin-bottom: 5px; }
@@ -110,7 +110,7 @@ base_css = """
 </style>
 """
 
-# --- C. HILO CUÁNTICO (HOVER DINÁMICO) ---
+# --- C. QUANTUM THREAD (DYNAMIC HOVER) ---
 max_ofertas = 150
 hover_css = "<style>\n"
 for i in range(max_ofertas):

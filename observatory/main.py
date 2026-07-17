@@ -159,7 +159,7 @@ st.markdown("""
    project_tech_debt.md). Plain descendant selectors (no :has) worked fine throughout,
    so this keyed-class approach avoids the broken mechanism entirely. */
 
-/* 1. ESTILO BASE DE LA TARJETA (Mimic de ingestion-panel) */
+/* 1. Base card style (mimics ingestion-panel) */
 div[class*="st-key-nav-card-"] {
     background-color: #ffffff !important;
     border: 1px solid #eaeaea !important;
@@ -179,14 +179,14 @@ div[class*="st-key-nav-card-"] > div[data-testid="stVerticalBlock"] {
     justify-content: space-between !important;
 }
 
-/* 2. EFECTO HOVER EN LA TARJETA (Elevación + Escala + Delineado en Teal) */
+/* 2. Card hover effect (lift + scale + teal outline) */
 div[class*="st-key-nav-card-"]:hover {
     transform: translateY(-6px) scale(1.015) !important;
     box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
-    border-color: #21918c !important; /* Delineado Teal */
+    border-color: #21918c !important; /* Teal outline */
 }
 
-/* 3. ESTILO DEL BOTÓN DE NAVEGACIÓN (st.page_link) - target both the legacy class
+/* 3. Navigation button style (st.page_link) - target both the legacy class
    and the data-testid, since Streamlit versions differ in which one is present */
 div[class*="st-key-nav-card-"] .stPageLink a,
 div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a {
@@ -204,14 +204,14 @@ div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a {
     border: none !important;
 }
 
-/* 4. HOVER DEL BOTÓN (teal tenue, un poco más oscuro que el gris fijo) */
+/* 4. Button hover (faint teal, slightly darker than the fixed grey) */
 div[class*="st-key-nav-card-"] .stPageLink a:hover,
 div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a:hover {
     background-color: rgba(33,145,140,0.14) !important;
     color: #21918c !important;
 }
 
-/* 5. TEXTO CENTRADO DEL BOTÓN */
+/* 5. Centered button text */
 div[class*="st-key-nav-card-"] .stPageLink a p,
 div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a p {
     color: inherit !important;

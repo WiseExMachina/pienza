@@ -78,7 +78,7 @@ def load_babel_assets():
     with open(zone_path, 'r', encoding='utf-8') as f:
         idx_to_zone = json.load(f)
 
-    # Inicialización del modelo (Ajustado a los hiperparámetros de entrenamiento)
+    # Model initialization (matches the training-time hyperparameters)
     model = ZoneClassifierTransformer(
         vocab_size=len(token_to_idx),
         num_classes=len(idx_to_zone),

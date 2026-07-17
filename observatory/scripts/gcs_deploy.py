@@ -32,12 +32,12 @@ SOURCES = {
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = KEY_PATH
 
-# --- MANIFIESTO ---
-# Cada entrada puede llevar "source": "dumped_files" (default, notebook output)
-# o "source": "assets" (observatory/assets/, archivo de frontend que nunca vivio
-# en dumped_files).
-# Agregar aqui cada archivo que una pagina necesite leer desde GCS.
-# Formato: { "page": "NNNN", "local": "nombre_en_dumped_files", "gcs": "nombre_en_bucket" }
+# --- MANIFEST ---
+# Each entry may carry "source": "dumped_files" (default, notebook output)
+# or "source": "assets" (observatory/assets/, a frontend asset that never lived
+# in dumped_files).
+# Add an entry here for every file a page needs to read from GCS.
+# Format: { "page": "NNNN", "local": "name_in_dumped_files", "gcs": "name_in_bucket" }
 MANIFEST = [
     # 0007 - Human vs AI Behavioral Cloning
     {
@@ -206,7 +206,7 @@ MANIFEST = [
         "gcs":   "0608_260513_tensor_arcos_w_eph_maestro.csv",
         # already in data/dumped_files/, source defaults to "dumped_files"
     },
-    # Agregar entradas para otras paginas aqui cuando se auditen
+    # Add entries for other pages here once they're audited
 ]
 
 
