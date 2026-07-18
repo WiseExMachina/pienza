@@ -27,7 +27,7 @@
 
 ## Overview
 
-Project Pienza is a research project grounded in the operational reality of Mexico City's streets. It grew out of two years driving in the ride-hailing gig economy, formalized into a year-long Data Science study. Rather than relying on public, aggregated datasets from cities like San Francisco or New York, the project builds its own ground-truth dataset from scratch: a six-week field capture of 4,700 real ride offers, each labeled in real time. (full story here → [STORY.md](./STORY.md))
+Project Pienza is a research project grounded in the operational reality of Mexico City's streets. It grew out of two years driving in the ride-hailing gig economy, formalized into a year-long Data Science study. Rather than relying on public, aggregated datasets from cities like San Francisco or New York, the project builds its own ground-truth dataset from scratch: a six-week field capture of 4,700+ real ride offers, each labeled with a rejection reason post-hoc at the end of each work shift. (full story here → [STORY.md](./STORY.md))
 
 **It is** — a policy-cloning research project — testing whether a model can learn one expert's heuristics well enough to explain them, not just predict them.
 
@@ -67,7 +67,7 @@ This repository executes a sequential pipeline. To prevent state contamination, 
 
 **Phase 1 (Ground Truth):** Captured live via two custom-built engines — a GTS web app (Engine 1) logging ride events to Google Sheets in real time, and a Gemini-powered OCR pipeline (Engine 2) extracting offer data from 4,700+ screenshots.
 
-**Phases 2 through 5 (Data Eng & Modeling):** `pienza.db` is created at `0212_ETL_Big_Bang_pienzadb.ipynb`. From this point on, this database is the absolute Single Source of Truth (SSoT). All feature engineering, EDA, and supervised/unsupervised ML models read exclusively from here.
+**Phases 2 through 5 (Data Eng & Modeling):** `pienza.db` is created at `0212_ETL_Big_Bang_pienzadb.ipynb`. From this point on, this database is the absolute Single Source of Truth (SSoT). All feature engineering, EDA, and unsupervised/supervised ML models read exclusively from here.
 
 **Intermediate State:** Temporary outputs (Parquet, CSV) are routed strictly to `data/dumped_files/`. To guarantee data integrity after iterative upstream fixes (e.g., georemediation), `pienza.db` was always rebuilt entirely from scratch—ensuring it remains the sole SSoT downstream.
 
@@ -122,7 +122,7 @@ The complete, unedited research logs of the 6-phase pipeline. Preserved intentio
 
 ```
 research_full/
-├── Phase_1_Acquisition_and_Ground_Truth/    # GTS WebApp (3 files)
+├── Phase_1_Acquisition_and_Ground_Truth/    # GTS WebApp (4 files)
 ├── Phase_2_Data_Engineering/                # ETL, temporal ledger, geospatial reconciliation (17 files)
 ├── Phase_3_Exploratory_Analysis/            # univariate/bivariate EDA, causal inference (8 files)
 ├── Phase_4_Unsupervised_ML/                 # PCA, KMeans, HDBSCAN, polygon zones (8 files)
