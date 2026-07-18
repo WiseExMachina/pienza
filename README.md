@@ -56,7 +56,11 @@ This repository is not designed to be forked and run end-to-end — it's a read-
 ## Data Lineage & State Boundaries
 
 <div align="center">
-<img src="./assets/timeline.png" alt="Timeline: Phase 1 through Phase 7, Sep 2025 to May 2026" width="800" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/timeline-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./assets/timeline-light.png">
+  <img alt="Timeline: Phase 1 through Phase 7, Sep 2025 to May 2026" src="./assets/timeline-light.png" width="800" />
+</picture>
 </div>
 
 This repository executes a sequential pipeline. To prevent state contamination, data sources are strictly bound to phases, regardless of the chronological order in which the notebooks were created.
