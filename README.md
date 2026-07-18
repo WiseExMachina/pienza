@@ -103,7 +103,7 @@ research_core/
 ├── <a href="./research_core/0305_EDA_Causal_Inference.ipynb">0305_EDA_Causal_Inference.ipynb</a>               # payout physics, heteroscedasticity analysis
 ├── <a href="./research_core/0307_EDA_Optimal_Stopping_Playbook.ipynb">0307_EDA_Optimal_Stopping_Playbook.ipynb</a>      # rational wait-time / continuation value
 ├── <a href="./research_core/0403_KMeans_Raw.ipynb">0403_KMeans_Raw.ipynb</a>                         # mission archetypes on raw trip physics
-├── <a href="./research_core/0407_Clustering_Paper_Streamlit.ipynb">0407_Clustering_Paper_Streamlit.ipynb</a>         # HDBSCAN, 44 hubs / 72 microzones (final)
+├── <a href="./research_core/0407_Clustering_Paper_Streamlit.ipynb">0407_Clustering_Paper_Streamlit.ipynb</a>         # HDBSCAN, 44 hubs / 72 microzones (final) — <a href="https://nbviewer.org/github/bernardowise/pienza/blob/main/research_core/0407_Clustering_Paper_Streamlit.ipynb">too big for GitHub, view on nbviewer</a>
 ├── <a href="./research_core/0509_WINNER_XGB_cascade_postablation.ipynb">0509_WINNER_XGB_cascade_postablation.ipynb</a>    # champion cascade classifier
 ├── <a href="./research_core/0601_NLP_Transformer_miniBabel.ipynb">0601_NLP_Transformer_miniBabel.ipynb</a>          # address → zone transformer, 84% acc
 ├── <a href="./research_core/0602_cGAN_Training.ipynb">0602_cGAN_Training.ipynb</a>                      # synthetic manifold via keras generator
