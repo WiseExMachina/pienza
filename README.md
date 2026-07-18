@@ -15,7 +15,11 @@
 
 *An ML framework to navigate Mexico City's ride-hailing marketplace*
 
-<img src="./assets/readme_banner.png" alt="HDBSCAN geo-clustering → Cascade XGB classifier → Transformer NLP → cGAN 1M-row market" width="700" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/pipeline-diagram-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./assets/pipeline-diagram-light.png">
+  <img alt="HDBSCAN geo-clustering → Cascade XGB classifier → Transformer NLP → cGAN 1M-row market" src="./assets/pipeline-diagram-light.png" width="700" />
+</picture>
 
 </div>
 
