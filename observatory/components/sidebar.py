@@ -5,7 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from config import AUTHOR, GITHUB_URL, PDF_URL
+from config import AUTHOR, GITHUB_URL
 
 
 @st.cache_data
@@ -40,18 +40,12 @@ def build_sidebar():
 
         with st.container(key="sb-footer"):
             st.markdown("---")
-            pdf_link = (
-                f"<a href='{PDF_URL}' target='_blank' "
-                "class='sb-pdf-link'>Download PDF</a>"
-            )
-
             st.markdown(
                 f"<div class='sb-meta-line'><b>Author:</b> {AUTHOR}<br>"
                 "<b>LinkedIn:</b> <a href='https://www.linkedin.com/in/bernardolw/' target='_blank' class='sb-pdf-link'>/bernardolw</a><br>"
                 f"<b>GitHub:</b> <a href='{GITHUB_URL}' target='_blank' class='sb-pdf-link'>/pienza</a><br>"
                 "<b>Domain:</b> Data Science — Mobility & Logistics<br>"
-                "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX<br>"
-                f"<b>AI Knowledge Base:</b> {pdf_link}</div>",
+                "<b>Stack:</b> Python, XGBoost, TensorFlow, BigQuery, PySpark, NetworkX</div>",
                 unsafe_allow_html=True,
             )
             st.markdown("---")

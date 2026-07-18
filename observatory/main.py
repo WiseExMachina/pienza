@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
-from config import FAVICON, PDF_URL, build_page_title
+from config import FAVICON, build_page_title
 from pathlib import Path
 from _main_data import NAV_MODULES, nav_icon
 from utils.mem_debug import log_mem
@@ -244,19 +244,24 @@ for i, (path, icon, title, desc) in enumerate(NAV_MODULES):
 
 st.markdown("---")
 
-# --- 7. CALL TO ACTION (The LLM Ingestion Gateway) ---
-st.markdown(f"""
-<div class="ingestion-panel">
-    <div class="ingestion-title">LLM Knowledge Base</div>
-    <div class="ingestion-heading">Interact with the AI</div>
-    <div class="ingestion-body">
-        100 pages of deep learning and market physics is a lot of reading. Download the PDF, feed it to your favorite LLM, and get the executive summary on demand.
-    </div>
-    <a href="{PDF_URL}" class="ingestion-action" download>
-        📥 Download PDF
-    </a>
-</div>
-""", unsafe_allow_html=True)
+# --- 7. PROJECT DISCLAIMER ---
+st.markdown(
+    "<div style='text-align:center;color:#94a3b8;font-size:0.75rem;font-style:italic;"
+    "line-height:1.6;max-width:900px;margin:0 auto;'>"
+    "Project Pienza and all associated materials are the product of an independent research "
+    "initiative, aimed at formalizing sequential decision boundaries in stochastic environments. "
+    "The dataset and presented architecture are fully operational and derived from authentic, "
+    "high-fidelity field telemetry captured via AI-assisted optical extraction pipelines during a "
+    "controlled longitudinal observation window. All models reflect real empirical execution. To "
+    "ensure strict compliance with applicable personal data protection regulations, third-party "
+    "terms of service, and the privacy of proprietary information, all source assets were subjected "
+    "to a multi-layered, non-destructive anonymization protocol, obfuscating the platform's "
+    "proprietary metrics while fully preserving the mathematical properties, probability "
+    "distributions, and behavioral physics of the underlying market. The content is not intended "
+    "for, and should not be used for, any commercial, financial, or business operations."
+    "</div>",
+    unsafe_allow_html=True,
+)
 
 # --- 7. FOOTER ---
 st.markdown("---")

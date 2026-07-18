@@ -17,10 +17,6 @@ _ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 # on the deployed app).
 FAVICON = Image.open(_ASSETS_DIR / "favicon.png")
 ACCENT = "#21918c"
-# Hosted on GitHub Pages (published from main branch root), not GCS/local —
-# The_Pienza_Papers/Pienza_Papers_Scientific.pdf is the real committed
-# source file; the URL below mirrors that exact repo path.
-PDF_URL = "https://wiseexmachina.github.io/pienza/The_Pienza_Papers/Pienza_Papers_Scientific.pdf"
 GITHUB_URL = "https://github.com/WiseExMachina/pienza"
 AUTHOR = "Bernardo Lozano Wise"
 
