@@ -83,6 +83,7 @@ st.markdown("### The Playground: Machine Discovered Hubs")
 def _render_kepler_hero():
     try:
         html_data = (Path(__file__).resolve().parent / "assets" / "kepler_3D.html").read_text(encoding="utf-8")
+        html_data = html_data.replace("__MAPBOX_TOKEN__", st.secrets["MAPBOX_TOKEN"])
 
         # Kepler.gl's exported HTML briefly renders its own factory-default
         # viewport (San Francisco) before its JS bundle finishes parsing and
