@@ -53,11 +53,11 @@ This repository is not designed to be forked and run end-to-end — it's a read-
 
 This repository executes a sequential pipeline. To prevent state contamination, data sources are strictly bound to phases, regardless of the chronological order in which the notebooks were created.
 
-**Phase 1 (Ground Truth):** Reads from raw Google Sheets and AppsScript state machines.
+**Phase 1 (Ground Truth):** Captured live via two custom-built engines — a GTS web app (Engine 1) logging ride events to Google Sheets in real time, and a Gemini-powered OCR pipeline (Engine 2) extracting offer data from 4,700+ screenshots.
 
-**Phases 2 through 5 (Data Eng & Modeling):** Starts at `0211_ETL_Big_Bang_pienzadb.ipynb`. From this point on, `pienza.db` is the absolute Single Source of Truth (SSoT). All feature engineering, EDA, and supervised/unsupervised ML models read exclusively from this local database.
+**Phases 2 through 5 (Data Eng & Modeling):** `pienza.db` is created at `0212_ETL_Big_Bang_pienzadb.ipynb`. From this point on, this database is the absolute Single Source of Truth (SSoT). All feature engineering, EDA, and supervised/unsupervised ML models read exclusively from here.
 
-<sub><i>Intermediate State: Any Parquet files, CSVs, or temporary outputs generated between notebooks are written strictly to `data/dumped_files/`. This directory is ephemeral; its contents can be safely deleted and regenerated at any time.</i></sub>
+**Intermediate State:** Temporary outputs (Parquet, CSV) are routed strictly to `data/dumped_files/`. To guarantee data integrity after iterative upstream fixes (e.g., georemediation), `pienza.db` was always rebuilt entirely from scratch—ensuring it remains the sole SSoT downstream.
 
 **Phase 6 (Generative Moonshots):** Notebooks `0603` and `0604` act as the bridge, migrating `pienza.db` and synthetic cGAN manifolds to Google BigQuery. Everything downstream of `0604` reads strictly from BigQuery.
 
@@ -71,47 +71,47 @@ This repository executes a sequential pipeline. To prevent state contamination, 
 pienza/
 ├── README.md                # you are here
 ├── STORY.md                 # the narrative — how and why this got built
-├── The_Pienza_Papers/       # LaTeX white paper (Scientific + Executive)
-├── notebooks_core/          # curated spine notebooks (numbered for traceability)
-├── notebooks_full/          # full phase-by-phase history (40+ notebooks)
+├── research_core/           # curated spine notebooks (numbered for traceability)
+├── research_full/           # full phase-by-phase history (50+ notebooks)
 ├── observatory/             # the Streamlit app
 └── assets/                  # tracked README/portfolio images
 ```
 
 
-### Core Notebooks
+### Research Core
 
-The polished core of the pipeline. These select notebooks have been refined for a high signal-to-noise technical review. They maintain their original ####_ file prefixes to preserve their lineage, indicating exactly which phase of the `notebooks_full` directory they belong to.
+The polished core of the pipeline. These select files have been refined for high signal-to-noise readability, meant to be reviewed by anyone assessing the technical depth of this work. They maintain their original ####_ file prefixes to preserve their lineage, indicating exactly which phase of the `research_full` directory they belong to.
 
 <pre>
-notebooks_core/
-├── <a href="./notebooks_core/0102_GTS_index.html">0102_GTS_index.html</a>                          # Engine 1 — GTS WebApp
-├── <a href="./notebooks_core/0208_Stateful_Features_AppsScript.js">0208_Stateful_Features_AppsScript.js</a>          # stateful feature capture
-├── <a href="./notebooks_core/0211_ETL_Big_Bang_pienzadb.ipynb">0211_ETL_Big_Bang_pienzadb.ipynb</a>              # ETL → absolute SSoT (pienza.db)
-├── <a href="./notebooks_core/0305_EDA_Causal_Inference.ipynb">0305_EDA_Causal_Inference.ipynb</a>               # payout structure, residual analysis
-├── <a href="./notebooks_core/0307_EDA_Optimal_Stopping_Playbook.ipynb">0307_EDA_Optimal_Stopping_Playbook.ipynb</a>      # rational wait-time / selectivity analysis
-├── <a href="./notebooks_core/0403_KMeans_Raw.ipynb">0403_KMeans_Raw.ipynb</a>                         # early unsupervised pass, pre-geo-cleanup
-├── <a href="./notebooks_core/0407_Clustering_Paper_Streamlit.ipynb">0407_Clustering_Paper_Streamlit.ipynb</a>         # HDBSCAN, 44 hubs / 72 microzones (final)
-├── <a href="./notebooks_core/0509_WINNER_XGB_cascade_postablation.ipynb">0509_WINNER_XGB_cascade_postablation.ipynb</a>    # champion cascade classifier
-├── <a href="./notebooks_core/0601_NLP_Transformer_miniBabel.ipynb">0601_NLP_Transformer_miniBabel.ipynb</a>          # address → zone transformer, 84% acc
-├── <a href="./notebooks_core/0602_cGAN_Training.ipynb">0602_cGAN_Training.ipynb</a>                      # conditional GAN, synthetic offer generator
-├── <a href="./notebooks_core/0603_ETL_pienzadb_to_BigQuery.ipynb">0603_ETL_pienzadb_to_BigQuery.ipynb</a>           # bridge: SQLite → BigQuery
-├── <a href="./notebooks_core/0604_ETL_cGAN_to_BigQuery.ipynb">0604_ETL_cGAN_to_BigQuery.ipynb</a>               # bridge: synthetic manifold → BigQuery
-├── <a href="./notebooks_core/0605_cGAN_denormalization.ipynb">0605_cGAN_denormalization.ipynb</a>               # rescale synthetic outputs to real units
-├── <a href="./notebooks_core/0606_cGAN_downscaling.ipynb">0606_cGAN_downscaling.ipynb</a>                   # Apache Spark, obviously
-├── <a href="./notebooks_core/0607_cGAN_TSTR.ipynb">0607_cGAN_TSTR.ipynb</a>                          # Train-Synthetic-Test-Real validation
-└── <a href="./notebooks_core/0608_Bridge_to_Markov_Network_Graph.ipynb">0608_Bridge_to_Markov_Network_Graph.ipynb</a>     # network graph + MDP scaffolding
+research_core/
+├── <a href="./research_core/0101_Engine1_WebApp_index.html">0101_Engine1_WebApp_index.html</a>                # Engine 1 — GTS WebApp
+├── <a href="./research_core/0103_Engine2_Gemini_OCR.py">0103_Engine2_Gemini_OCR.py</a>                    # Engine 2 — Gemini OCR ingestion pipeline
+├── <a href="./research_core/0209_Stateful_Features_AppsScript.js">0209_Stateful_Features_AppsScript.js</a>          # stateful feature capture
+├── <a href="./research_core/0212_ETL_Big_Bang_pienzadb.ipynb">0212_ETL_Big_Bang_pienzadb.ipynb</a>              # ETL → absolute SSoT (pienza.db)
+├── <a href="./research_core/0305_EDA_Causal_Inference.ipynb">0305_EDA_Causal_Inference.ipynb</a>               # payout physics, heteroscedasticity analysis
+├── <a href="./research_core/0307_EDA_Optimal_Stopping_Playbook.ipynb">0307_EDA_Optimal_Stopping_Playbook.ipynb</a>      # rational wait-time / continuation value
+├── <a href="./research_core/0403_KMeans_Raw.ipynb">0403_KMeans_Raw.ipynb</a>                         # mission archetypes on raw trip physics
+├── <a href="./research_core/0407_Clustering_Paper_Streamlit.ipynb">0407_Clustering_Paper_Streamlit.ipynb</a>         # HDBSCAN, 44 hubs / 72 microzones (final)
+├── <a href="./research_core/0509_WINNER_XGB_cascade_postablation.ipynb">0509_WINNER_XGB_cascade_postablation.ipynb</a>    # champion cascade classifier
+├── <a href="./research_core/0601_NLP_Transformer_miniBabel.ipynb">0601_NLP_Transformer_miniBabel.ipynb</a>          # address → zone transformer, 84% acc
+├── <a href="./research_core/0602_cGAN_Training.ipynb">0602_cGAN_Training.ipynb</a>                      # synthetic manifold via keras generator
+├── <a href="./research_core/0603_ETL_pienzadb_to_BigQuery.ipynb">0603_ETL_pienzadb_to_BigQuery.ipynb</a>           # bridge: SQLite → BigQuery
+├── <a href="./research_core/0604_ETL_cGAN_to_BigQuery.ipynb">0604_ETL_cGAN_to_BigQuery.ipynb</a>               # bridge: synthetic manifold → BigQuery
+├── <a href="./research_core/0605_cGAN_denormalization.ipynb">0605_cGAN_denormalization.ipynb</a>               # denormalizes manifold via Apache Spark
+├── <a href="./research_core/0606_cGAN_downscaling.ipynb">0606_cGAN_downscaling.ipynb</a>                   # macro-to-micro zone disaggregation
+├── <a href="./research_core/0607_cGAN_TSTR.ipynb">0607_cGAN_TSTR.ipynb</a>                          # Train-Synthetic-Test-Real validation
+└── <a href="./research_core/0608_Bridge_to_Markov_Network_Graph.ipynb">0608_Bridge_to_Markov_Network_Graph.ipynb</a>     # network graph + MDP scaffolding
 </pre>
 
 
-### Full Notebooks
+### Research Full
 
 The complete, unedited research logs of the 6-phase pipeline. Preserved intentionally in their raw state, these notebooks document the authentic engineering journey—acting as an unpolished record of the experiments, pivots, and successful model iterations that power the final Observatory.
 
 ```
-notebooks_full/
-├── Phase_1_Acquisition_and_Ground_Truth/    # GTS WebApp (2 files)
-├── Phase_2_Data_Engineering/                # ETL, temporal ledger, geospatial reconciliation (16 files)
+research_full/
+├── Phase_1_Acquisition_and_Ground_Truth/    # GTS WebApp (3 files)
+├── Phase_2_Data_Engineering/                # ETL, temporal ledger, geospatial reconciliation (17 files)
 ├── Phase_3_Exploratory_Analysis/            # univariate/bivariate EDA, causal inference (8 files)
 ├── Phase_4_Unsupervised_ML/                 # PCA, KMeans, HDBSCAN, polygon zones (8 files)
 ├── Phase_5_Supervised_ML/                   # Naive Bayes → LogReg → XGBoost tournament (10 files)
@@ -138,13 +138,13 @@ To prevent UI reruns from tangling with data fetching, the Streamlit codebase us
 
 ```
 observatory/
-├── main.py                  # home page + canonical sidebar
-├── config.py                # page config, favicon
+├── main.py                  # home page, calls build_sidebar()
+├── config.py                # favicon, accent color, page-title helper, author/GitHub links
 ├── _main_data.py            # main.py's data/model sibling
 ├── pages/                   # 000X_Name.py (view) + _000X_data.py (model), 9 pages
-├── components/              # styles.py — GLOBAL_CSS
-├── utils/                   # bq_client.py, gcp_client.py — BigQuery/GCS fetchers
-└── assets/                  # static, shareable assets (favicon, PDFs, HTML maps)
+├── components/              # sidebar.py — canonical sidebar; styles.py — GLOBAL_CSS
+├── utils/                   # bq_client.py, gcp_client.py, gcp_auth.py — BigQuery/GCS fetchers + shared credential resolution
+└── assets/                  # static, shareable assets (favicon, HTML maps, geojson)
 ```
 
 <br>
@@ -153,9 +153,9 @@ observatory/
 
 The code in this repository is released under the MIT License.
 
-The underlying dataset, trained model weights, and other research artifacts are not included and are not covered by this license — they remain private. This repository is intended to be explored read-only, as a record of the project's engineering and research process; it is not designed to be forked and run end-to-end.
+The underlying dataset, trained model weights, and other research artifacts are not included and are not covered by this license — they remain private. As stated before, this repository is intended to be explored read-only, as a record of the project's engineering and research process; it is not designed to be forked and run end-to-end.
 
-To interact with the project's live results, see [The Observatory](#) or the [Pienza Papers](./The_Pienza_Papers/Pienza_Papers_Scientific.pdf).
+To interact with the project's live results, see [The Observatory](https://pienza.streamlit.app).
 
 <br>
 
