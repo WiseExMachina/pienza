@@ -17,7 +17,7 @@ _ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 # on the deployed app).
 FAVICON = Image.open(_ASSETS_DIR / "favicon.png")
 ACCENT = "#21918c"
-GITHUB_URL = "https://github.com/WiseExMachina/pienza"
+GITHUB_URL = "https://github.com/bernardowise/pienza"
 AUTHOR = "Bernardo Lozano Wise"
 
 # Browser-tab title convention: "Pienza · Observatory · <page name>". Every

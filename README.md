@@ -1,6 +1,6 @@
 <div align="right">
 
-[![GitHub](https://img.shields.io/badge/-%E2%98%85%20Star-f6f8fa?style=flat-square&logo=github&logoColor=24292f)](https://github.com/WiseExMachina/pienza)
+[![GitHub](https://img.shields.io/badge/-%E2%98%85%20Star-f6f8fa?style=flat-square&logo=github&logoColor=24292f)](https://github.com/bernardowise/pienza)
 [![LinkedIn](https://img.shields.io/badge/-LinkedIn-f6f8fa?style=flat-square&logo=linkedin&logoColor=0A66C2)](https://linkedin.com/in/bernardolw)
 
 </div>
@@ -36,15 +36,12 @@ Project Pienza is a research project grounded in the operational reality of Mexi
 
 ## Interacting with the Project
 
-There are three ways into this project, depending on how deep you want to go:
+This repository is not designed to be forked and run end-to-end — it's a read-only record of the engineering process. The Observatory is where the project actually comes alive:
 
-1. **The Observatory (Streamlit app)** — an interactive white paper, built so both technical and non-technical readers can explore the project's core findings without opening the repo or reading a line of code. This isn't a prototype dashboard — it's a full replica of the project's results.
-   Live app: [pienza.streamlit.app](#) *(placeholder)*
+1. **The Observatory (Streamlit app)** — an interactive white paper, built so both technical and non-technical readers can explore the project's core findings without opening the repo or reading a line of code. This isn't a prototype dashboard — it's a full replica of the project's evolution and results.
+   [pienza.streamlit.app](https://pienza.streamlit.app)
 
-2. **LLM-readable white paper** — a LaTeX-authored technical paper structured for machine context rather than linear human reading. Feed it to an LLM to ask FAQ-style questions about the project's methodology and findings.
-   [View PDF](#) · [Download PDF](#) *(placeholders)*
-
-3. **The repository itself** — full source, notebooks, and pipeline. Structure explained below.
+2. **The repository itself** — full source, notebooks, and pipeline, serving as the backend evidence behind what the Observatory shows. Structure explained below.
 
 <br>
 
