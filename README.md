@@ -7,7 +7,11 @@
 
 <div align="center">
 
-<img src="./assets/logo_rectangular.png" alt="Project Pienza — Digital Twin · CDMX" width="220" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/pienza-logo-lockup-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./assets/pienza-logo-lockup-light.png">
+  <img alt="Project Pienza — Digital Twin · CDMX" src="./assets/pienza-logo-lockup-light.png" width="220" />
+</picture>
 
 *An ML framework to navigate Mexico City's ride-hailing marketplace*
 
