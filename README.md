@@ -14,8 +14,7 @@
 </picture>
 
 *An ML framework to navigate Mexico City's ride-hailing marketplace*
-
-<sub>(desde el semáforo de Palmas)</sub>
+<br><sub>(desde el semáforo de Palmas)</sub>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/pipeline-diagram-dark.png">
