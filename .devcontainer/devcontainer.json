@@ -1,12 +1,21 @@
 {
   "name": "Pienza 3.11 High Performance",
-  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
 
   "containerEnv": {
     "PIP_BREAK_SYSTEM_PACKAGES": "1"
   },
 
-  "postCreateCommand": "sudo rm -f /etc/apt/sources.list.d/yarn.list && sudo apt-get update && sudo apt-get install -y openjdk-17-jdk-headless libgdal-dev libproj-dev g++ python3-dev && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y openjdk-17-jdk-headless libgdal-dev libproj-dev g++ python3-dev && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/* && npm install -g @google/gemini-cli",
 
   "customizations": {
     "codespaces": {

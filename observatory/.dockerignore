@@ -1,0 +1,22 @@
+# Never bake real secrets/credentials into the image - the container gets
+# GCP auth from Cloud Run's attached service account (no key file needed)
+# and MAPBOX_TOKEN from an injected env var at runtime (see entrypoint.sh).
+.streamlit/
+!.streamlit/config.toml
+
+# Not part of the live app (see assets_ignored/CLAUDE.md - archive/ isn't
+# in the deployed multipage nav).
+archive/
+
+# Dev-only, not needed at runtime.
+jupyter_scratchpad/
+scripts/
+__pycache__/
+*.pyc
+.keep_alive_dummy.txt
+cloudflared
+
+# The repo-root requirements.txt is for local dev/notebooks, not this
+# image - only observatory/requirements.txt should ever be COPYed in.
+# (No explicit exclude needed since the build context is this directory
+# already, but listed here for clarity/safety.)

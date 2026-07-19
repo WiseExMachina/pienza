@@ -1,0 +1,41 @@
+# ==========================================
+# Pienza Observatory - Cloud Run runtime requirements
+# Trimmed from the repo-root requirements.txt (which also serves
+# research_core/research_full notebooks) to only what the live
+# Streamlit app (pages/, main.py, components/, utils/) actually
+# imports. See assets_ignored/claude_docs/ for the audit notes.
+# ==========================================
+
+streamlit==1.58.0
+
+# --- Data ---
+pandas
+numpy<2.0.0
+scipy
+statsmodels
+db-dtypes
+
+# --- Viz ---
+matplotlib
+seaborn
+plotly
+altair
+
+# --- ML / inference (0008 NLP transformer) ---
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.6.0+cpu
+
+# --- Graph (0009 Generative Moonshots) ---
+networkx>=3.0
+
+# --- GCP ---
+google-cloud-bigquery
+google-cloud-bigquery-storage
+google-cloud-storage
+google-auth
+
+# --- Misc ---
+Pillow
+psutil
+requests
+regex

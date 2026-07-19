@@ -6,7 +6,7 @@ from google.oauth2 import service_account
 # Credenciales: en Codespaces se usa el JSON local; en Streamlit Community Cloud
 # (donde .streamlit/service-account.json no existe, ver assets/CLAUDE.md) se usa
 # st.secrets["gcp_service_account"] en su lugar.
-if "gcp_service_account" not in st.secrets:
+if "gcp_service_account" not in st.secrets and os.path.exists(".streamlit/service-account.json"):
     os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", ".streamlit/service-account.json")
 
 
