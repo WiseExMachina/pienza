@@ -225,23 +225,30 @@ div[class*="st-key-nav-card-"] [data-testid="stPageLink"] a p {
 </style>
 """, unsafe_allow_html=True)
 
-# Create a 3-column grid layout for visually stunning, concise cards
-cols = st.columns(3)
-
-for i, (path, icon, title, desc) in enumerate(NAV_MODULES):
-    with cols[i % 3]:
-        with st.container(border=True, key=f"nav-card-{i}"):
-            # Fixed-height content block (icon+title+desc) we fully control, so total
-            # card height stays constant regardless of description length.
-            st.markdown(
-                f"<div style='height:135px;display:flex;flex-direction:column;overflow:hidden;'>"
-                f"<div style='font-size:1.05rem;font-weight:700;line-height:1.3;margin-bottom:8px;'>{nav_icon(icon)}{title}</div>"
-                f"<p style='font-size:13px;font-weight:400;color:#475569;line-height:1.7;flex:1;overflow:hidden;"
-                f"display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;margin:0;'>{desc}</p>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
-            st.page_link(path, label="Explore Module", use_container_width=True)
+# Create a 3-column grid layout for visually stunning, concise cards.
+# One st.columns(3) call per row of 3 (not a single shared columns() reused via
+# i % 3) so the DOM order is strictly 0,1,2,3,4,5,6,7,8 - when columns collapse
+# to a single stack on narrow/mobile viewports, Streamlit renders in true DOM
+# order, so this keeps the reading order correct there too (a shared columns()
+# indexed by i % 3 groups items 0,3,6 / 1,4,7 / 2,5,8 in the DOM, which only
+# looks row-major when the columns sit side by side).
+for row_start in range(0, len(NAV_MODULES), 3):
+    row_cols = st.columns(3)
+    for j, (path, icon, title, desc) in enumerate(NAV_MODULES[row_start:row_start + 3]):
+        i = row_start + j
+        with row_cols[j]:
+            with st.container(border=True, key=f"nav-card-{i}"):
+                # Fixed-height content block (icon+title+desc) we fully control, so total
+                # card height stays constant regardless of description length.
+                st.markdown(
+                    f"<div style='height:135px;display:flex;flex-direction:column;overflow:hidden;'>"
+                    f"<div style='font-size:1.05rem;font-weight:700;line-height:1.3;margin-bottom:8px;'>{nav_icon(icon)}{title}</div>"
+                    f"<p style='font-size:13px;font-weight:400;color:#475569;line-height:1.7;flex:1;overflow:hidden;"
+                    f"display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;margin:0;'>{desc}</p>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+                st.page_link(path, label="Explore Module", use_container_width=True)
 
 st.markdown("---")
 
@@ -262,13 +269,4 @@ st.markdown(
     "for, and should not be used for, any commercial, financial, or business operations."
     "</div>",
     unsafe_allow_html=True,
-)
-
-# --- 7. FOOTER ---
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: gray; font-size: 0.8rem;'>"
-    "Lozano Wise, B. (2026). Project Pienza. Independent Research Initiative."
-    "</div>", 
-    unsafe_allow_html=True
 )

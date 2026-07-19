@@ -142,7 +142,7 @@ with tab1:
   <div class='step-body'>
     <div class='step-label'>Scope &amp; Constraints</div>
     <p>
-      Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute control: the agent's decisions</strong>.<span class="fn-wrap"><span class="info-mark">i</span><span class="fn-tooltip">Built alongside the ITESM Data Science Certificate, the project allowed exploration across behavioral economics and generative AI — with one strict constraint: Reinforcement Learning was out of scope. The Markov scaffolding built in Phase 6 was designed precisely to make that next step possible.</span></span>
+      Pienza explicitly rejects reverse-engineering proprietary pricing algorithms — a statistically unfeasible objective given a boutique, single-agent dataset. The analytical lens is reoriented toward <strong>the sole variable under absolute control: the agent's decisions</strong>.
     </p>
   </div>
 </div>
@@ -224,7 +224,7 @@ with tab1:
 </div>
 
 <div style="background:rgba(33,145,140,0.07);border-left:3px solid #21918c;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:40px;font-size:0.85rem;color:#333;line-height:1.65;">
-  <strong>High-Fidelity Cognitive Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">reason_primary</span>. Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
+  <strong>High-Fidelity Backtagging</strong> — The agent manually reviewed and tagged every offer to populate the multiclass target variable <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">reason_primary</span>. Executing this task same-day after each work shift was imperative to capture the specific, contextual nuance of each decision before operational memory decay occurred.
 </div>
     """, unsafe_allow_html=True)
 

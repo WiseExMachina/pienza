@@ -166,7 +166,7 @@ subtab2, subtab3 = st.tabs(["Engine 1: GTS Telemetry Emulator", "Engine 2: Gemin
 # Engine 1's GTS device-frame simulator, and vice versa.
 @st.fragment
 def _render_engine1():
-    st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>This module simulates the <strong>Engine 1</strong> mobile experience. It demonstrates the \"One-Touch\" state transitions and the logic used to calculate operational KPIs in the field. Press <strong>Start Session</strong> and walk through each event — the log and KPIs update in real time.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'><strong>Engine 1</strong> is a bespoke webapp that captures ride events in real time. With the touch of a button, it records telemetry (location + timestamp) to drive a state machine that digitizes the driver's operational experience. Press <strong>Start Session</strong> to emulate dynamic log and metric updates.</p>", unsafe_allow_html=True)
 
     # ── SESSION STATE ────────────────────────────────────────────────────────
     if 'sim_active' not in st.session_state:
@@ -430,7 +430,7 @@ with subtab2:
 
 @st.fragment
 def _render_engine2():
-    st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>Each screenshot is an unedited frame from the iOS Assistive Touch macro — one gesture, one offer, one artifact. 4,700+ offers were captured; navigate the examples below; Step 1 and Step 2 update to reflect the selected offer.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'><strong>Engine 2</strong> processes unedited raw frames captured via an iOS Assistive Touch macro—enforcing a strict one-gesture, one-offer ingestion rule across the 4,700+ dataset. Browse the carousel below to see how subsequent processing stages update dynamically for each selected offer.</p>", unsafe_allow_html=True)
 
     # ── Offer data ─────────────────────────────────────────────
     OFFERS = ENGINE2_OFFERS
@@ -579,7 +579,18 @@ font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
             ordered["pickup_address"]  = _obf_address(ordered.get("pickup_address"))
             ordered["dropoff_address"] = _obf_address(ordered.get("dropoff_address"))
 
-            st.code(json.dumps(ordered, indent=2, default=str, ensure_ascii=False), language="json")
+            st.markdown(
+                """
+<style>
+div[class*="st-key-ocr-json-block"] [data-testid="stCode"] pre {
+    background-color: transparent !important;
+}
+</style>
+""",
+                unsafe_allow_html=True,
+            )
+            with st.container(key="ocr-json-block"):
+                st.code(json.dumps(ordered, indent=2, default=str, ensure_ascii=False), language="json")
         else:
             st.warning(f"No BQ record found for `{curr_filename}`")
         _nav_buttons("s1")
@@ -630,15 +641,27 @@ font-size: 12px; color: #475569; line-height: 1.6; margin-bottom: 10px;
             display_df = pd.DataFrame([dtypes_row, values_row], index=["dtype", "value"])
             st.dataframe(display_df, use_container_width=True)
 
-            with st.expander("💡 Did You Know?"):
-                st.markdown(
-                    "<div style='font-size:13px;color:#334155;line-height:1.7;'>"
-                    "The OCR pipeline initially extracted only an <strong>HH:MM string</strong>, making offer deduplication impossible. "
-                    "Second-level granularity was achieved via a Python script that extracted standard <strong>EXIF metadata</strong> "
-                    "from the screenshots, enabling unique <strong>SHA-256 fingerprinting</strong> and downstream velocity-based features."
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
+            st.markdown(
+                """
+<style>
+div[class*="st-key-did-you-know-exif"] [data-testid="stExpander"] {
+    border-color: #21918c !important;
+    background-color: rgba(33,145,140,0.28) !important;
+}
+</style>
+""",
+                unsafe_allow_html=True,
+            )
+            with st.container(key="did-you-know-exif"):
+                with st.expander("💡 Did You Know?"):
+                    st.markdown(
+                        "<div style='font-size:13px;color:#334155;line-height:1.7;'>"
+                        "The OCR pipeline initially extracted only an <strong>HH:MM string</strong>. However, "
+                        "second-level granularity was achieved via a Python script that extracted standard <strong>EXIF metadata</strong> "
+                        "from the screenshots, enabling unique <strong>SHA-256 fingerprinting</strong> and downstream velocity-based features."
+                        "</div>",
+                        unsafe_allow_html=True,
+                    )
         else:
             st.warning(f"No canonical offer record found for `{curr_filename}`")
         _nav_buttons("s2")

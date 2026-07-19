@@ -623,7 +623,7 @@ with tab6:
 To provide a precise mathematical anchor for the observed response curve, a quadratic polynomial regression was fitted to the dataset. The estimated equation is defined as:
 </p>""", unsafe_allow_html=True)
 
-    st.latex(r"\widehat{Yield} = 0.9915 - 0.3645(\Delta T) + 0.1945(\Delta T^2)")
+    st.latex(r"\widehat{Yield} = 0.9915 - 0.3645(\Delta T) + 0.1945(\Delta T)^2")
 
     st.markdown("""<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
 Where ΔT represents the Temporal Variance (Actual/Estimated Time). The model is statistically robust (F-statistic: 46.80, p = 8.22 × 10⁻¹⁸), confirming the non-linear architecture is a structural property of the system.
@@ -740,7 +740,7 @@ See the fitted polynomial model in action. Adjust the upfront fare and time spre
     st.markdown(r"""
 <div style='text-align:center;'>
 
-$$\small \widehat{Fare}(\Delta T) = \begin{cases} 6.31 + 0.79 \cdot \text{Upfront Fare} & \text{if } \Delta T \leq 1.0 \\ \text{Upfront Fare} \times (0.9915 - 0.3645\,\Delta T + 0.1945\,\Delta T^2) & \text{if } \Delta T > 1.0 \end{cases}$$
+$$\small \widehat{Fare}(\Delta T) = \begin{cases} 6.31 + 0.79 \cdot \text{Upfront Fare} & \text{if } \Delta T \leq 1.0 \\ \text{Upfront Fare} \times (0.9915 - 0.3645\,\Delta T + 0.1945\,(\Delta T)^2) & \text{if } \Delta T > 1.0 \end{cases}$$
 
 </div>
 """, unsafe_allow_html=True)

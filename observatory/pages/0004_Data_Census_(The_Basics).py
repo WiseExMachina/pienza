@@ -173,7 +173,7 @@ else:
                 CALLOUT = """
 <div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
  padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
-  <strong>Class imbalance</strong> — The 93/7 split mirrors operational reality and was handled via
+  <strong>Class imbalance</strong> — The 93/7 split was handled via
   <strong>Stratified K-Fold</strong> and the <strong>Cognitive Cascade</strong> architecture.
   <span style="color:#21918c;font-family:'Courier New',monospace;font-weight:600;">system_logic_failure</span> (5 records) was dropped downstream — pure noise, not a behavioral signal.
 </div>"""
@@ -561,7 +561,7 @@ WHERE upfront_fare IS NOT NULL AND upfront_fare < 600"""
 <div style='border-left:4px solid #21918c;background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;
  padding:12px 16px;margin-top:8px;font-size:0.82rem;color:#334155;line-height:1.65;'>
   These figures reflect the <em>expected</em> traffic conditions shown on the offer card at the moment of decision.
-  Realized traffic — what drivers in Mexico City actually experience — is generally worse.
+  Realized traffic — what people in Mexico City actually experience — is generally worse.
 </div>""", unsafe_allow_html=True)
 
 

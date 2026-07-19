@@ -628,8 +628,6 @@ This pipeline follows an experimental design to evaluate three feature "Leagues"
 </div>
 """, unsafe_allow_html=True)
 
-    st.markdown("<div style='background:#FFFF00;border:3px solid #FFD700;padding:12px 18px;margin-top:32px;font-size:0.85rem;font-weight:700;color:#000;'>PENDING: reordenar Text &amp; Metadata</div>", unsafe_allow_html=True)
-
 with sci2:
     st.markdown("""
 <div style='margin-bottom:32px;'>
@@ -2088,12 +2086,6 @@ with sci6:
     st.markdown("""
 <div style='border-left:3px solid #21918c;background:rgba(33,145,140,0.07);padding:14px 18px;border-radius:0;margin-top:20px;'>
 <span style='font-size:0.82rem;color:#334155;line-height:1.65;'>While the initial model suffered from high variance, the lightweight iteration corrects this at the cost of increased bias, trading complexity for generalization. This ensures the learned decision policy remains robust across diverse operational states.</span>
-</div>
-""", unsafe_allow_html=True)
-
-    st.markdown("""
-<div style='margin-top:32px;border-top:1px solid #e2e8f0;padding-top:14px;font-size:0.72rem;color:#64748b;font-family:monospace;text-align:center;'>
-  Behavioral Cloning &middot; <span style='color:#21918c;'>✓ dimensionality reduction · success</span> &nbsp;&mdash;&mdash;&mdash;&nbsp; proceeding to Sensitivity Analysis <span style='color:#21918c;'>→</span>
 </div>
 """, unsafe_allow_html=True)
 
