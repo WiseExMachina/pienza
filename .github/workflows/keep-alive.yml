@@ -14,4 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping the app
-        run: curl -sS -o /dev/null -w "HTTP %{http_code}\n" https://pienza.streamlit.app
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            --retry 3 --retry-delay 5 --retry-connrefused \
+            --connect-timeout 15 --max-time 60 \
+            https://pienza.streamlit.app
