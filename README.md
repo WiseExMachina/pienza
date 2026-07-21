@@ -82,12 +82,13 @@ This repository executes a sequential pipeline. To prevent state contamination, 
 
 ```
 pienza/
-├── README.md                # you are here
-├── STORY.md                 # the narrative — how and why this got built
+├── assets/                  # tracked README/portfolio images
+├── observatory/             # the Streamlit app
 ├── research_core/           # curated spine notebooks (numbered for traceability)
 ├── research_full/           # full phase-by-phase history (50+ notebooks)
-├── observatory/             # the Streamlit app
-└── assets/                  # tracked README/portfolio images
+├── README.md                # you are here
+├── STORY.md                 # the narrative — how and why this got built
+└── requirements.txt         # local dev / notebook deps (observatory/ has its own trimmed version)
 ```
 
 
@@ -151,13 +152,15 @@ To prevent UI reruns from tangling with data fetching, the Streamlit codebase us
 
 ```
 observatory/
+├── assets/                  # static, shareable assets (favicon, HTML maps, geojson)
+├── components/              # sidebar.py — canonical sidebar; styles.py — GLOBAL_CSS
+├── pages/                   # 000X_Name.py (view) + _000X_data.py (model), 9 pages
+├── utils/                   # bq_client.py, gcp_client.py, gcp_auth.py — BigQuery/GCS fetchers + shared credential resolution
 ├── main.py                  # home page, calls build_sidebar()
 ├── config.py                # favicon, accent color, page-title helper, author/GitHub links
 ├── _main_data.py            # main.py's data/model sibling
-├── pages/                   # 000X_Name.py (view) + _000X_data.py (model), 9 pages
-├── components/              # sidebar.py — canonical sidebar; styles.py — GLOBAL_CSS
-├── utils/                   # bq_client.py, gcp_client.py, gcp_auth.py — BigQuery/GCS fetchers + shared credential resolution
-└── assets/                  # static, shareable assets (favicon, HTML maps, geojson)
+├── Dockerfile                # Cloud Run image build
+└── requirements.txt          # trimmed runtime deps for the Cloud Run image
 ```
 
 <br>
@@ -166,7 +169,7 @@ observatory/
 
 The code in this repository is released under the MIT License.
 
-The underlying dataset, trained model weights, and other research artifacts are not included and are not covered by this license — they remain private. As stated before, this repository is intended to be explored read-only, as a record of the project's engineering and research process; it is not designed to be forked and run end-to-end.
+The underlying dataset, trained model weights, and other research artifacts are not included and are not covered by this license — they remain private. As stated before, this repository is intended to be explored read-only, as a record of the project's engineering and research process; it is not designed to be forked and run end-to-end — that said, I'm glad to walk through any part of the codebase live, so don't hesitate to reach out.
 
 To interact with the project's live results, see [The Observatory](https://projectpienza.com).
 
