@@ -28,7 +28,7 @@
 
 ## Overview
 
-Project Pienza is a research project grounded in the operational reality of Mexico City's streets. It grew out of two years driving in the ride-hailing gig economy, formalized into a year-long Data Science study. Rather than relying on public, aggregated datasets from cities like San Francisco or New York, the project builds its own ground-truth dataset from scratch: a six-week field capture of 4,700+ real ride offers, each labeled with a rejection reason post-hoc at the end of each work shift. (full story here → [STORY.md](./STORY.md))
+Project Pienza is a research project grounded in the operational reality of Mexico City's streets. It grew out of two years driving in the ride-hailing gig economy, formalized into a year-long Data Science study. Rather than relying on public, aggregated datasets from cities like San Francisco or New York, the project builds its own ground-truth dataset from scratch: a six-week field capture of 4,700+ real ride offers, each labeled with a rejection reason post-hoc at the end of each work shift.
 
 **It is** — a policy-cloning research project — testing whether a model can learn one expert's heuristics well enough to explain them, not just predict them.
 
@@ -87,7 +87,6 @@ pienza/
 ├── research_core/           # curated spine notebooks (numbered for traceability)
 ├── research_full/           # full phase-by-phase history (50+ notebooks)
 ├── README.md                # you are here
-├── STORY.md                 # the narrative — how and why this got built
 └── requirements.txt         # local dev / notebook deps (observatory/ has its own trimmed version)
 ```
 

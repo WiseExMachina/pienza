@@ -11,6 +11,7 @@ service-account.json
 /.claude/
 /.CV.MD
 /_archive/
+/STORY.md
 
 # ==========================================
 # 2. DATA & LARGE FILES (DATA SCIENCE HYGIENE)
