@@ -91,5 +91,7 @@ notes.md
 refactor_sprint.md
 
 
-observatory/archive
+observatory/archive/*
+!observatory/archive/pending_GM/
+observatory/assets/overleaf_images/
 /_archive/
