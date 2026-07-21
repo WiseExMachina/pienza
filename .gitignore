@@ -8,6 +8,8 @@ service-account.json
 **/.streamlit/*
 !**/.streamlit/config.toml
 /secrets/
+/.claude/
+/.CV.MD
 
 # ==========================================
 # 2. DATA & LARGE FILES (DATA SCIENCE HYGIENE)
