@@ -36,7 +36,7 @@ Project Pienza is a research project grounded in the operational reality of Mexi
 
 **Scope** — N=1 by design — single driver, single city, six weeks. Findings describe one expert's policy, not driver behavior in general.
 
-<sub><b>Tech Stack:</b> Python · XGBoost · HDBSCAN · PyTorch · TensorFlow/Keras · SQLite → BigQuery · Streamlit · Kepler.gl · H3 · GCS</sub>
+<sub><b>Tech Stack:</b> Python · XGBoost · HDBSCAN · PyTorch · TensorFlow/Keras · SQLite → BigQuery · Streamlit · Kepler.gl · H3 · GCP · Docker</sub>
 
 ![Machine-discovered hubs — kepler.gl 3D](./assets/kepler_static.png)
 <sub><i>44 HDBSCAN results (height = offer density) validated against 72 hand-drawn polygons. Color = cluster ID — full hub names and metrics are available via hover in the live Observatory dashboard.</i></sub>
@@ -47,8 +47,8 @@ Project Pienza is a research project grounded in the operational reality of Mexi
 
 This repository is not designed to be forked and run end-to-end — it's a read-only record of the engineering process. The Observatory is where the project actually comes alive:
 
-1. **The Observatory (Streamlit app)** — an interactive white paper, built so both technical and non-technical readers can explore the project's core findings without opening the repo or reading a line of code. This isn't a prototype dashboard — it's a full replica of the project's evolution and results.
-   [pienza.streamlit.app](https://pienza.streamlit.app)
+1. **The Observatory (Streamlit app)** — an interactive white paper, built so both technical and non-technical readers can explore the project's core findings without opening the repo or reading a line of code. This isn't a prototype dashboard — it's a full replica of the project's evolution and results, containerized via Docker and self-hosted on Google Cloud Run.
+   [projectpienza.com](https://projectpienza.com)
 
 2. **The repository itself** — full source, notebooks, and pipeline, serving as the backend evidence behind what the Observatory shows. Structure explained below.
 
@@ -168,7 +168,7 @@ The code in this repository is released under the MIT License.
 
 The underlying dataset, trained model weights, and other research artifacts are not included and are not covered by this license — they remain private. As stated before, this repository is intended to be explored read-only, as a record of the project's engineering and research process; it is not designed to be forked and run end-to-end.
 
-To interact with the project's live results, see [The Observatory](https://pienza.streamlit.app).
+To interact with the project's live results, see [The Observatory](https://projectpienza.com).
 
 <br>
 
