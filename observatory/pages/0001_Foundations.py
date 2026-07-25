@@ -93,6 +93,7 @@ button[data-testid="baseButton-secondary"].nav-carousel:hover {
 # HEADER
 # ─────────────────────────────────────────────
 st.markdown("# Foundations")
+st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Not all rejections are created equal</h4>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # TABS

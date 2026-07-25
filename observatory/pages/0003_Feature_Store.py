@@ -47,7 +47,7 @@ st.markdown("<style></style>", unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 st.markdown("# Feature Store")
 st.markdown("<h4 style='font-weight:300; color:#21918c; font-size:19px; margin:-10px 0 20px;'>Bronze → Silver → Gold — Raw Signal to Predictive Feature</h4>", unsafe_allow_html=True)
-st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>Raw OCR output flows through three successive enrichment layers — each adding structure, context, and predictive signal — until it becomes the feature vector consumed by the classification models.</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>Raw OCR output flows through three successive enrichment layers — each adding structure, context, and predictive signal — until it becomes the feature vector consumed by the classification models. Navigate through the pills at each layer or switch to the Session Playback tab to see the underlying state machine in action.</p>", unsafe_allow_html=True)
 
 st.markdown("""
 <style>

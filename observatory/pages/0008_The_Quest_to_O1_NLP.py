@@ -293,15 +293,30 @@ def _p1_body():
             except Exception:
                 return '—', '—'
 
+        def _obf_numbers(text: str) -> str:
+            # Masks every digit run except exact 5-digit postal codes. No
+            # count limit — raw OCR strings sometimes repeat the street
+            # number (e.g. the address appearing twice as scrape noise),
+            # so a first-match-only mask would leak the second occurrence.
+            return re.sub(r'\d+', lambda m: m.group(0) if len(m.group(0)) == 5 else re.sub(r'\d', '#', m.group(0)), text)
+
         def _build_ex_from_address(raw: str, real_zone: str = None) -> dict:
             cleaned = standardize_mexico_city_address(raw)
-            tokens_raw = cleaned.split()[:30]
+            zone, confidence = _run_inference(cleaned)
+
+            # tokens/soldered/headQueries are display-only — _run_inference
+            # above already re-tokenizes the real `cleaned` string itself
+            # for the actual model input, so it's safe to build the
+            # user-facing token list from the obfuscated text instead.
+            raw_obf = _obf_numbers(raw)
+            cleaned_obf = _obf_numbers(cleaned)
+            tokens_raw = cleaned_obf.split()[:30]
             tokens = tokens_raw + ['<pad>'] * (30 - len(tokens_raw))
             soldered = tokens[0] if tokens else 'unknown'
-            zone, confidence = _run_inference(cleaned)
+
             return {
-                'ocrRaw':     f'"{raw}"',
-                'ocrCleaned': cleaned,
+                'ocrRaw':     f'"{raw_obf}"',
+                'ocrCleaned': cleaned_obf,
                 'ocrFixes':   'standardized via linguistic pipeline',
                 'soldered':   soldered,
                 'tokens':     tokens,
@@ -309,7 +324,7 @@ def _p1_body():
                 'headWeights': [[0.60,0.15,0.13,0.06,0.06],[0.14,0.58,0.14,0.07,0.07],[0.16,0.16,0.14,0.54,0.00],[0.16,0.16,0.52,0.08,0.08]],
                 'zone': zone, 'confidence': confidence,
                 'real_zone': real_zone or '—',
-                'label': raw[:40] + ('…' if len(raw) > 40 else ''),
+                'label': raw_obf[:40] + ('…' if len(raw_obf) > 40 else ''),
             }
 
         if 'arch_ex' not in st.session_state:
