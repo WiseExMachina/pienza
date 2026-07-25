@@ -3,11 +3,13 @@
 % --- CONSOLIDATED FONT ARCHITECTURE: CRIMSON PRO BODY / INTER HEADERS ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern} % Sharp vector math symbols; must load BEFORE the custom text families below, since lmodern unconditionally overwrites \rmdefault/\sfdefault/\ttdefault and would otherwise clobber them
 
 % 1. Load Primary Families
 \usepackage[light]{CrimsonPro}        % Serif Body Text
 \usepackage[sfdefault]{inter}         % Sans-Serif (assigned to \sffamily)
-\usepackage[defaultmono]{inconsolata} % Monospace for Code
+\usepackage{inconsolata} % Monospace for Code
+\renewcommand{\mddefault}{l} % CrimsonPro's [light] weight only applies via explicit \rmfamily/\mdseries calls (the mweights package); \normalfont's implicit resets bypass that and use \mddefault directly, so force it here or body text silently falls back to Regular weight
 
 % 2. Layout & Footnote Support
 \usepackage[bottom]{footmisc}         % Forces footnotes to stay at the page bottom
@@ -37,7 +39,6 @@
 % --- CHARACTER ENCODING & FONTS ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern} % Ensures Computer Modern renders sharply
 
 % --- PAGE LAYOUT ---
 \usepackage{geometry}
@@ -84,7 +85,7 @@
 % --- MISC TOOLS ---
 \usepackage{csquotes}   % For professional quotation marks
 \usepackage{microtype}  % Improves typography (kerning and spacing)
-\usepackage{underscore} % To help with underscores in text (though \_ is safer)
+%\usepackage{underscore} % DISABLED for local-compile test (2026-07-25): conflicts with hyperref anchors on underscored labels
 \usepackage{tikz}
 % --- PROJECT SPECIFIC COMMANDS ---
 \newcommand{\wip}[1]{\textcolor{red}{\textbf{[PENDING UPDATE]} #1}}

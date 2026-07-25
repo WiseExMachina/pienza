@@ -402,7 +402,7 @@ This  transformation involved reconciling data from (\texttt{trip\_events}) with
     \item The cascade suffered from "Stolen Identity" errors; to resolve this, a remediation layer was deployed, where the Agent manually overrode specific edge cases.
 \end{enumerate}
 
-Following the establishment of the primary link between \texttt{offers} and \texttt{trip\_events}, the remaining entities in the financial chain were integrated via deterministic 1:1 joins. By using high-precision timestamps and fare values as anchors, the system successfully synchronized agent telemetry with the official platform ledgers (\texttt{lifetime_trips} and \texttt{activity_earnings}), ensuring 100\% referential integrity across the entire transaction lifecycle.
+Following the establishment of the primary link between \texttt{offers} and \texttt{trip\_events}, the remaining entities in the financial chain were integrated via deterministic 1:1 joins. By using high-precision timestamps and fare values as anchors, the system successfully synchronized agent telemetry with the official platform ledgers (\texttt{lifetime\_trips} and \texttt{activity\_earnings}), ensuring 100\% referential integrity across the entire transaction lifecycle.
 
 \subsubsection{The SQL View Architecture}
 
