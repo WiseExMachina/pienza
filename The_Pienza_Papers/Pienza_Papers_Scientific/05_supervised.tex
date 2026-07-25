@@ -111,13 +111,12 @@ The engineered \texttt{heuristic\_flag\_context} emerged as the primary non-spat
     An \textbf{Ablation Study} was executed to remove these manual labels and force the model to rely solely on objective telemetry. The results yielded two project-defining findings:
     \begin{enumerate}[noitemsep, topsep=2pt]
         \item \textbf{Model Robustness:} Predictive performance remained stable, proving that the underlying stateful features (\textit{Silver Palette}) already contained the necessary strategic signal.
-        \item \textbf{Explainability Flourish:} Post-ablation \textit{SHAP} analysis revealed a significantly clearer decision DNA. By removing the dominant manual flags, the latent importance of session-progress and accumulated deadhead emerged, providing a more transparent view of the agent's actual behavioral drivers.\footnotemark
+        \item \textbf{Explainability Flourish:} Post-ablation \textit{SHAP} analysis revealed a significantly clearer decision DNA. By removing the dominant manual flags, the latent importance of session-progress and accumulated deadhead emerged, providing a more transparent view of the agent's actual behavioral drivers.
     \end{enumerate}
     
     \vspace{0.2cm}
     \textit{Decision: To ensure high-fidelity simulation and production realism, all manual context flags were formally deprecated. The subsequent Algorithmic Tournament was executed exclusively on this purified, autonomous feature space.}
 \end{tcolorbox}
-\footnotetext{The reader is kindly invited to review the performance \textit{with} heuristic flags in the provided Jupyter Notebooks: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - Phase 5 Validation]}.}
 \vspace{0.4cm}
 
 
@@ -161,7 +160,6 @@ A priori selection of high-complexity models was rejected in favor of an iterati
 \end{table}
 
 
-\subsection{Champion Selection: XGBoost}
 \subsection{The ``State vs. Time'' Dilemma}
 The ``State vs. Time'' dilemma presented a significant architectural trade-off when modeling on a restricted, short-horizon dataset. Enforcing strict chronological purity---such as sequential walk-forward splits across a mere five-week training window---severely restricts the data volume and the number of learning iterations available to the algorithm. The primary limitation encountered was not an uneven distribution of target classes over time, but rather the data starvation inherent to temporal splits on small datasets, which prevents the model from iteratively refining its logic. 
 

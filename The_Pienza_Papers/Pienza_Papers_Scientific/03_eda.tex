@@ -96,7 +96,7 @@ To evaluate market viability, four sequential Earnings Per Hour (EPH) metrics we
     \item \textbf{EPH Direct:} Derived from the \textit{Upfront Fare} and \textit{Estimated Trip Duration}.
     \item \textbf{EPH Operational:} Incorporates the uncompensated \textit{Time to Pickup} (DTP).
     \item \textbf{EPH Realized:} Accounts for the \textit{Realized Fare} post-adjustment.
-    \item \textbf{EPH Complete:}\footnote{For non-completed offers, values were imputed using session-specific rolling averages, adhering to a strict \textit{no-look-ahead} protocol to prevent temporal data leakage. Full formula implementations are available in the \texttt{code.gs} script: \href{https://github.com/your-repo-placeholder}{[GitHub Repository]}.} The final metric including \textit{Total Deadhead} (search time, pickup, and passenger wait times). 
+    \item \textbf{EPH Complete:}\footnote{For non-completed offers, values were imputed using session-specific rolling averages, adhering to a strict \textit{no-look-ahead} protocol to prevent temporal data leakage.} The final metric including \textit{Total Deadhead} (search time, pickup, and passenger wait times). 
 \end{enumerate}
 
 \begin{figure}[H]
@@ -154,7 +154,7 @@ By monitoring the distribution of offer quality over the chronological progressi
     \label{fig:mqi_volatility}
 \end{figure}
 
-As shown in Figure \ref{fig:mqi_volatility}, the agent operates within a non-stationary environment. Certain sessions (indicated in green) represent high-quality market states, while others (in red) signify economic scarcity. \footnote{\textbf{Analytical Case Study:} For a granular, session-by-session audit of the agent's selection behavior relative to the $MQI$---including forensic analysis of high-performance events and sub-optimal sessions---readers are invited to explore the interactive case reports in the canonical Jupyter Notebook: \href{https://github.com/your-repo-placeholder}{[GitHub: Project Pienza - Phase 3 EDA - MQI]}.}
+As shown in Figure \ref{fig:mqi_volatility}, the agent operates within a non-stationary environment. Certain sessions (indicated in green) represent high-quality market states, while others (in red) signify economic scarcity.
 
 
 \subsection{The Opportunity Oracle: Time as a Financial Derivative}

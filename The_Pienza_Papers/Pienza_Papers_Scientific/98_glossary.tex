@@ -84,6 +84,6 @@ The model's decision logic is governed by three primary mechanics:
 
 \begin{itemize}[noitemsep, topsep=3pt]
     \item \textbf{Geospatial Exclusion:} Destinations in the \texttt{Unassigned Area} ($-0.332$) and proxy zones ($-0.196$) drive deterministic rejections, confirming that the Agent prioritizes geographic viability over fare magnitude.
-    \item \textbf{Traffic-Based Inclusion:} High-friction states, measured by \texttt{traffic\_index\_base\_120} ($+0.106$) and \texttt{rolling\_avg\_traffic} ($+0.144$), drive inclusion. This validates the "Traffic Chaser" strategy of targeting congestion to secure EPH premiums.
+    \item \textbf{Traffic-Based Inclusion:} High-friction states, measured by \texttt{traffic\_index\_\allowbreak base\_120} ($+0.106$) and \texttt{rolling\_avg\_traffic} ($+0.144$), drive inclusion. This validates the "Traffic Chaser" strategy of targeting congestion to secure EPH premiums.
     \item \textbf{Predictive Volatility (Risk):} The \texttt{traffic\_volatility\_index\_ml} ($-0.068$) acts as an exclusion driver. Rejections are triggered by prediction uncertainty rather than friction itself.
 \end{itemize}
