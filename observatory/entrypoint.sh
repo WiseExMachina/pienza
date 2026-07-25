@@ -9,6 +9,7 @@ set -e
 mkdir -p .streamlit
 cat > .streamlit/secrets.toml <<EOF
 MAPBOX_TOKEN = "${MAPBOX_TOKEN}"
+GCP_API_KEY = "${GCP_API_KEY}"
 EOF
 
 exec streamlit run main.py \
