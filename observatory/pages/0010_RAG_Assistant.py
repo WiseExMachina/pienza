@@ -1,15 +1,11 @@
 import time
 
-import numpy as np
-import requests
 import streamlit as st
 
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
 from config import FAVICON, build_page_title
-from utils.gcp_client import fetch_parquet_from_gcp
-from utils.gcp_auth import get_gcp_credentials
-from utils.vertex_embed import embed_text
+from pages._0010_data import CORPORA, CLAUDE_MODEL, load_corpus, retrieve, ask_claude
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -39,88 +35,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-PROJECT_ID = "drivers-dilemma"
-CORPUS_BUCKET = "pienza-streamlit"
-TOP_K = 4
-CLAUDE_MODEL = "claude-haiku-4-5"
-
-# Each corpus is its own precomputed parquet (see rag_build_corpus.py /
-# rag_build_corpus_paper.py). More candidates from the 5-source roadmap
-# (see rag_workflow.md §0) get appended here as they're built.
-CORPORA = [
-    {
-        "key": "claude_docs",
-        "label": "Project Docs",
-        "sub": "Markdown corpus",
-        "file": "rag_corpus_claude_docs.parquet",
-    },
-    {
-        "key": "paper",
-        "label": "The Pienza Papers",
-        "sub": "LaTeX source",
-        "file": "rag_corpus_paper.parquet",
-    },
-]
-
-
-@st.cache_data(show_spinner="Loading RAG corpus...")
-def load_corpus(corpus_file: str):
-    df = fetch_parquet_from_gcp(CORPUS_BUCKET, corpus_file)
-    if df.empty:
-        return df, None
-    matrix = np.stack(df["embedding"].to_numpy())
-    return df, matrix
-
-
-def retrieve(question: str, df, matrix, k: int = TOP_K):
-    credentials = get_gcp_credentials()
-    query_vec = np.array(embed_text(question, PROJECT_ID, credentials))
-    sims = matrix @ query_vec / (np.linalg.norm(matrix, axis=1) * np.linalg.norm(query_vec) + 1e-10)
-    top_idx = np.argsort(-sims)[:k]
-    return df.iloc[top_idx].assign(similarity=sims[top_idx])
-
-
-def ask_claude(question: str, chunks) -> str:
-    api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        return "ANTHROPIC_API_KEY missing from secrets — cannot generate an answer."
-
-    context = "\n\n".join(
-        f"[Source: {row.source_file} — {row.heading}]\n{row.text}" for row in chunks.itertuples()
-    )
-    system_prompt = (
-        "You are a documentation assistant for Project Pienza, a Streamlit Observatory. "
-        "Answer the user's question using ONLY the provided context passages. "
-        "If the context doesn't contain the answer, say so plainly instead of guessing. "
-        "Cite the source_file of the passage(s) you used in your answer."
-    )
-    resp = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
-        json={
-            "model": CLAUDE_MODEL,
-            "max_tokens": 1024,
-            "system": system_prompt,
-            "messages": [
-                {"role": "user", "content": f"Context:\n\n{context}\n\nQuestion: {question}"}
-            ],
-        },
-        timeout=30,
-    )
-    if resp.status_code != 200:
-        return f"Claude API error ({resp.status_code}): {resp.text[:300]}"
-    data = resp.json()
-    return "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
-
-
 # ==========================================
 # CORPUS SELECTOR — horizontal stepper (same visual pattern as 0008's
-# ci-stepper), driving hidden st.tabs. More corpora append to CORPORA above,
-# not to this markup.
+# ci-stepper), driving hidden st.tabs. More corpora append to CORPORA in
+# _0010_data.py, not to this markup.
 # ==========================================
 st.markdown("""
 <style>
@@ -230,42 +148,58 @@ def _render_corpus_tab(corpus: dict):
         key=f"question_{corpus['key']}",
     )
 
-    if not question:
-        return
+    if question:
+        with st.spinner("Retrieving relevant passages..."):
+            t0 = time.perf_counter()
+            top_chunks = retrieve(question, corpus_df, corpus_matrix)
+            retrieval_ms = (time.perf_counter() - t0) * 1000
 
-    with st.spinner("Retrieving relevant passages..."):
-        t0 = time.perf_counter()
-        top_chunks = retrieve(question, corpus_df, corpus_matrix)
-        retrieval_ms = (time.perf_counter() - t0) * 1000
+        with st.spinner("Generating answer..."):
+            t0 = time.perf_counter()
+            answer = ask_claude(question, top_chunks)
+            generation_ms = (time.perf_counter() - t0) * 1000
 
-    with st.spinner("Generating answer..."):
-        t0 = time.perf_counter()
-        answer = ask_claude(question, top_chunks)
-        generation_ms = (time.perf_counter() - t0) * 1000
-
-    st.markdown(
-        f"""
-        <div class="bento-card" style="margin-top:12px;">
-          <div class="bento-desc" style="font-size:0.95rem;color:#1a1a1a;line-height:1.7;">{answer}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.caption(f"Retrieval: {retrieval_ms:.0f} ms · Generation: {generation_ms:.0f} ms · Model: {CLAUDE_MODEL}")
-
-    st.markdown("#### Retrieved sources")
-    for row in top_chunks.itertuples():
         st.markdown(
             f"""
-            <div class="bento-card" style="margin-bottom:8px;">
-              <span class="story-pill">{row.source_file}</span>
-              <span style="font-size:0.75rem;color:#94a3b8;margin-left:8px;">similarity {row.similarity:.2f}</span>
-              <div style="font-size:0.8rem;color:#475569;margin-top:8px;line-height:1.6;">{row.text[:400]}{"..." if len(row.text) > 400 else ""}</div>
+            <div class="bento-card" style="margin-top:12px;">
+              <div class="bento-desc" style="font-size:0.95rem;color:#1a1a1a;line-height:1.7;">{answer}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
+
+        st.caption(f"Retrieval: {retrieval_ms:.0f} ms · Generation: {generation_ms:.0f} ms · Model: {CLAUDE_MODEL}")
+
+        st.markdown("#### Retrieved sources")
+        for row in top_chunks.itertuples():
+            st.markdown(
+                f"""
+                <div class="bento-card" style="margin-bottom:8px;">
+                  <span class="story-pill">{row.source_file}</span>
+                  <span style="font-size:0.75rem;color:#94a3b8;margin-left:8px;">similarity {row.similarity:.2f}</span>
+                  <div style="font-size:0.8rem;color:#475569;margin-top:8px;line-height:1.6;">{row.text[:400]}{"..." if len(row.text) > 400 else ""}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    st.markdown(
+        """
+        <div style="background:rgba(33,145,140,0.07);border-radius:12px;
+             padding:16px 20px;margin-top:28px;">
+          <div style="font-size:0.72rem;font-weight:700;color:#21918c;text-transform:uppercase;
+               letter-spacing:0.5px;margin-bottom:6px;">Next steps</div>
+          <div style="font-size:0.85rem;color:#475569;line-height:1.6;">
+            <b>Agentic RAG</b> — instead of a human picking the corpus via the stepper above,
+            an agent loop decides which source (or tool) to query based on the question itself.
+            <br><b>MCP (Model Context Protocol)</b> — expose this project's data fetchers
+            (GCS, BigQuery, Vertex AI) as standardized MCP servers, reusable by any compatible
+            client instead of custom Python glue per app.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 _tabs = st.tabs([c["label"] for c in CORPORA])
