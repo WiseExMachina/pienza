@@ -37,6 +37,7 @@ def build_sidebar():
         st.page_link("pages/0007_Human_vs_AI_Behavioral_Cloning.py", label="Human vs AI: Behavioral Cloning", icon=":material/shield:")
         st.page_link("pages/0008_The_Quest_to_O1_NLP.py", label="The Quest to (O)1: NLP Transformer", icon=":material/bolt:")
         st.page_link("pages/0009_Generative_Moonshots:_pienza_big.py", label="Generative Moonshots: pienza_big", icon=":material/send:")
+        st.page_link("pages/0010_RAG_Assistant.py", label="RAG Assistant", icon=":material/forum:")
 
         with st.container(key="sb-footer"):
             st.markdown("---")

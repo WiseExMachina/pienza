@@ -206,6 +206,12 @@ MANIFEST = [
         "gcs":   "0608_260513_tensor_arcos_w_eph_maestro.csv",
         # already in data/dumped_files/, source defaults to "dumped_files"
     },
+    # 0010 - RAG Assistant (markdown corpus embeddings)
+    {
+        "page": "0010",
+        "local": "rag_corpus_claude_docs.parquet",
+        "gcs":   "rag_corpus_claude_docs.parquet",
+    },
     # Add entries for other pages here once they're audited
 ]
 
