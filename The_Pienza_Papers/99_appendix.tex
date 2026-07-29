@@ -50,7 +50,7 @@ To finalize the feature matrix for supervised learning, a statistical audit was 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_categorical_audit.png} 
+    \includegraphics[width=\textwidth]{figures/fig_categorical_audit.png} 
     \caption{Categorical Feature Importance Audit: Mutual Information (Left) and Chi-Squared (Right) scores. The audit exposes the dominance of geospatial topology and the failure of several human-engineered abstractions.}
     \label{fig:categorical_audit}
 \end{figure}
@@ -136,7 +136,7 @@ To ensure robustness against the unseen Week 6 holdout set, a deliberate \textbf
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{fig_tuning_radiography.png} 
+    \includegraphics[width=0.9\textwidth]{figures/fig_tuning_radiography.png} 
     \caption{Tuning Radiography: Impact of \texttt{max\_depth} on F1-Macro performance. While the statistical peak occurs at 5, the model was finalized at 4 to ensure defensive generalization.}
     \label{fig:tuning_radiography}
 \end{figure}
@@ -175,7 +175,7 @@ An audit of the normalized confusion matrix (Figure \ref{fig:monolithic_matrix})
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_confusion_matrix_2.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_confusion_matrix_2.png} 
     \caption{Normalized Confusion Matrix for the Monolithic \texttt{XGBoost} Champion. High-accuracy clusters (top-left) identify deterministic operational constraints, while the lower-right quadrant reveals the strategic signal decay in nuanced decision classes.}
     \label{fig:monolithic_matrix}
 \end{figure}
@@ -230,7 +230,7 @@ The performance of the filter is measured by its \textbf{Recall} (Filter Efficie
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{fig_layer1_matrix.png} 
+    \includegraphics[width=0.8\textwidth]{figures/fig_layer1_matrix.png} 
     \caption{Layer 1 Confusion Matrix. The diagonal represents the filter's efficiency in removing noise, while the "Nuanced Rest" column represents the survival rate of strategic signal.}
     \label{fig:layer1_matrix}
 \end{figure}
@@ -241,7 +241,7 @@ To validate the triage logic of the Balanced Bouncer, a SHAP contribution analys
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{fig_nuanced_dna.png} 
+    \includegraphics[width=0.75\textwidth]{figures/fig_nuanced_dna.png} 
     \caption{DNA Atlas: Signal Drivers for \texttt{THE\_NUANCED\_REST}. The chart illustrates the contribution of features to the triage decision. Logistical friction serves as the primary exclusion vector, while financial magnitude and strategic intent serve as the primary inclusion vectors.}
     \label{fig:nuanced_dna}
 \end{figure}
@@ -265,7 +265,7 @@ The second stage of the cascade represents the "Nuance Engine" of the system. Op
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{fig_layer2_matrix.png} 
+    \includegraphics[width=0.75\textwidth]{figures/fig_layer2_matrix.png} 
     \caption{Layer 2 Confusion Matrix. By isolating the high-yield sub-universe, the model achieves superior separation between complex strategic states.}
     \label{fig:layer2_matrix}
 \end{figure}
@@ -293,7 +293,7 @@ To interpret the internal logic of the Strategist model, a SHAP contribution ana
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\textwidth]{fig_layer2_shap_dna.png} 
+    \includegraphics[width=0.6\textwidth]{figures/fig_layer2_shap_dna.png} 
     \caption{Hierarchical Strategic DNA Atlas: Feature contributions for Layer 2 decision classes. Teal bars indicate a positive contribution to class probability; Gray bars indicate a negative contribution.}
     \label{fig:layer2_shap_dna}
 \end{figure}
@@ -316,7 +316,7 @@ To measure the operational impact of the architectural pivot, a final performanc
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_shadow_mode_results.png} 
+    \includegraphics[width=\textwidth]{figures/fig_shadow_mode_results.png} 
     \caption{Shadow Mode Performance Results. The left plot measures total cumulative yield (\$), while the right plot measures strategic efficiency via the mean EPH Index. The Cascade architecture matches the expert’s efficiency while maximizing total value capture.}
     \label{fig:shadow_mode}
 \end{figure}

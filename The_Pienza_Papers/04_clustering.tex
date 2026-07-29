@@ -49,7 +49,7 @@ Finally, before establishing the final matrix, physics-based variables (\textit{
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_feature_importance_l1.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_feature_importance_l1.png} 
     \caption{Feature Importance on the 19 Master Dimensions (L1 Regularization). The plot illustrates the absolute magnitude of the coefficients surviving the Lasso penalty. The clear dominance of \texttt{log\_time\_to\_pickup\_sec} and \texttt{log\_upfront\_fare} confirms the Agent's primary sensitivity to immediate operational cost and financial reward.}
     \label{fig:l1_importance}
 \end{figure}
@@ -64,7 +64,7 @@ Dimensionality reduction was modest, requiring 13 components to preserve 90\% of
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{pca_scree_plot.png}
+    \includegraphics[width=0.7\textwidth]{figures/pca_scree_plot.png}
     \caption{PCA Scree Plot. The gradual slope confirms a high-dimensional system where no single component explains more than 15\% of the total variance.}
     \label{fig:scree_plot}
 \end{figure}
@@ -81,19 +81,19 @@ The first three components, explaining $\approx 40\%$ of the variance, define th
      \centering
      \begin{subfigure}[b]{0.32\textwidth}
          \centering
-         \includegraphics[width=\textwidth]{map_market.png}
+         \includegraphics[width=\textwidth]{figures/map_market.png}
          \caption{PC1 vs. PC2: Market Logic}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.32\textwidth}
          \centering
-         \includegraphics[width=\textwidth]{map_efficiency.png}
+         \includegraphics[width=\textwidth]{figures/map_efficiency.png}
          \caption{PC1 vs. PC3: Efficiency Decay}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.32\textwidth}
          \centering
-         \includegraphics[width=\textwidth]{map_structure.png}
+         \includegraphics[width=\textwidth]{figures/map_structure.png}
          \caption{PC2 vs. PC3: Yield Structure}
      \end{subfigure}
         \caption{Strategic Projection: Latent Market Manifolds. Color intensity represents the \texttt{eph\_complete\_index}. The maps deconstruct the interplay between session state, physical scale, and realized yield.}
@@ -125,7 +125,7 @@ A comparative analysis between the \textbf{Elbow Method} and \textbf{Silhouette 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_k_selection.png} 
+    \includegraphics[width=\textwidth]{figures/fig_k_selection.png} 
     \caption{Hyperparameter Tournament ($k$): Elbow Method and Silhouette Score analysis for the "Naked Physics" feature set.}
     \label{fig:k_selection}
 \end{figure}
@@ -168,7 +168,7 @@ A review of the base fare structure across these tiers reveals two distinct algo
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_pricing_physics.png} 
+    \includegraphics[width=\textwidth]{figures/fig_pricing_physics.png} 
     \caption{The Physics of Pricing: Mean yield per minute and kilometer across mission tiers. The dual-axis plot illustrates the systematic decay of distance-based rewards and the U-curve of temporal compensation.}
     \label{fig:pricing_physics}
 \end{figure}
@@ -184,7 +184,7 @@ To evaluate the economic viability of the discovered archetypes, the analysis me
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_yield_tiers.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_yield_tiers.png} 
     \caption{Yield Variance by Mission Tier. Bars represent the percentage deviation relative to the \$200/hr target. Negative values indicate a yield below the North Star threshold rather than a net financial loss.}
     \label{fig:yield_tiers}
 \end{figure}
@@ -262,7 +262,7 @@ In addition to the Jitter Propagation Errors,  a six-stage \textbf{Human-in-the-
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{pienza_strategic_map.png} 
+    \includegraphics[width=0.92\textwidth]{figures/pienza_strategic_map.png} 
     \caption{Strategic Ground Truth: 72 hand-crafted heuristic polygons defining the Agent's operational zones.}
     \label{fig:pienza_map_v2}
 \end{figure}
@@ -306,7 +306,7 @@ By running HDBSCAN on the rectified dataset, the algorithm identified 44 granula
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{pienza_hdbscan_h3_mapv3.png} 
+    \includegraphics[width=0.92\textwidth]{figures/pienza_hdbscan_h3_mapv3.png} 
     \caption{Topological Machine Truth: HDBSCAN clusters aggregated via H3 hexagons, revealing the organic "Gravity Wells" of the marketplace.}
     \label{fig:hdbscan_observatory_v2}
 \end{figure}

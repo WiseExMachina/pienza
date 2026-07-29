@@ -66,7 +66,7 @@ A Token Lift analysis validated the preprocessing pipeline by identifying words 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{fig_linguistic_signature.png} 
+    \includegraphics[width=0.95\textwidth]{figures/fig_linguistic_signature.png} 
     \caption{The Linguistic Signature of CDMX: Top tokens by Linguistic Lift. Standardized zip codes and distinct landmarks provide the strongest geographic signals for the neural engine.}
     \label{fig:linguistic_signature}
 \end{figure}
@@ -167,19 +167,19 @@ This was resolved by executing a \textbf{Point-in-Polygon (PiP)} spatial join. B
      \centering
      \begin{subfigure}[b]{0.32\textwidth}
          \centering
-         \includegraphics[width=\textwidth]{geo_entropy.png}
+         \includegraphics[width=\textwidth]{figures/geo_entropy.png}
          \caption{Geospatial Entropy.}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.32\textwidth}
          \centering
-         \includegraphics[width=\textwidth]{h3_overlay.png}
+         \includegraphics[width=\textwidth]{figures/h3_overlay.png}
          \caption{Res. 9 vs. Polygon Alignment.}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.32\textwidth}
          \centering
-         \includegraphics[width=\textwidth]{pickup_heatmap.png}
+         \includegraphics[width=\textwidth]{figures/pickup_heatmap.png}
          \caption{Ground Truth Heatmap.}
      \end{subfigure}
         \caption{Geospatial Discovery: Identifying the resolution trade-off between hexagonal grids.}
@@ -210,7 +210,7 @@ The Generator is architected as a conditional dense network designed to transfor
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_generator_v7.jpg} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_generator_v7.jpg} 
     \caption{Technical Architecture of the Pienza Generator v7.}
     \label{fig:generator_arch}
 \end{figure}
@@ -226,7 +226,7 @@ The Discriminator (v7) serves as the adversarial validator within the cGAN frame
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{discri2.jpg} 
+    \includegraphics[width=0.9\textwidth]{figures/discri2.jpg} 
     \caption{Architecture of the Pienza Discriminator v7.}
     \label{fig:discriminator_arch}
 \end{figure}
@@ -249,7 +249,7 @@ Training was executed via synchronized Adam optimizers ($LR=0.0002, \beta_1=0.5$
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{gan_convergence.png} 
+    \includegraphics[width=0.85\textwidth]{figures/gan_convergence.png} 
     \caption{Training Loss Progression. The convergence of the Generator and Discriminator losses indicates a balanced adversarial state, preventing mode collapse and ensuring the synthetic variables remain within realistic operational bounds.}
     \label{fig:gan_convergence}
 \end{figure}
@@ -281,7 +281,7 @@ While classic ML and Deep Learning architectures have a holdout set to test how 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{fig_manifold_financial.png} 
+    \includegraphics[width=0.9\textwidth]{figures/fig_manifold_financial.png} 
     \caption{Financial Physics and Strategic Composition. }
     \label{fig:manifold_financial}
 \end{figure}
@@ -290,7 +290,7 @@ As shown in Figure \ref{fig:manifold_financial}, the top row demonstrates near-t
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{fig_manifold_logistics.png} 
+    \includegraphics[width=0.9\textwidth]{figures/fig_manifold_logistics.png} 
     \caption{Logistical Integrity and Weekly Value Pulse.}
     \label{fig:manifold_logistics}
 \end{figure}
@@ -299,7 +299,7 @@ The scatter plot (bottom-left) demonstrates that the GAN captured the \textit{Ap
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{fig_manifold_circadian.png} 
+    \includegraphics[width=0.9\textwidth]{figures/fig_manifold_circadian.png} 
     \caption{Circadian Value Pulse Verification.}
     \label{fig:manifold_circadian}
 \end{figure}
@@ -368,7 +368,7 @@ This matrix measures the \textbf{Covariance Distortion} introduced by the genera
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{fig_correlation_delta.png} 
+    \includegraphics[width=0.75\textwidth]{figures/fig_correlation_delta.png} 
     \caption{Correlation Delta Matrix: Quantifying Relational Fidelity. The heatmap illustrates the absolute difference in Pearson coefficients between the real and synthetic universes. Values near zero (White/Teal) indicate high preservation of the underlying economic and physical laws.}
     \label{fig:correlation_delta}
 \end{figure}
@@ -465,7 +465,7 @@ However, it must be explicitly noted that a \textbf{Stationary MDP} is a static 
 To define the physical boundaries and navigational constraints of the \textbf{Autonomous Sovereign Zone}, a custom undirected graph was architected using \texttt{networkX}. This model serves as the \textbf{Geofence Blueprint}, transforming the 72 geographic polygons into discrete schematic nodes where an edge exists strictly if a verified, viable road path connects the two areas.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{fig_base_topology.png}
+\includegraphics[width=0.95\textwidth]{figures/fig_base_topology.png}
 \caption{Base Topology: Undirected Graph with "Bubble Effect" Visualization. Nodes represent atomic operational units; edges indicate the \textbf{allowed traversal paths} for a prototype autonomous fleet. The graph highlights the non-Euclidean nature of the city, where geographic proximity does not guarantee topological access.}
 \label{fig:base_topology}
 \end{figure}
@@ -861,7 +861,7 @@ The function was solved using the \textbf{Value Iteration} algorithm with a disc
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{fig_bellman_valuation.png} 
+    \includegraphics[width=0.95\textwidth]{figures/fig_bellman_valuation.png} 
     \caption{The Real Value of Pienza: Comparing Immediate EPH ($R_s$) vs. Total State-Value ($V_s$). The red dashed line indicates the "Myopic Horizon"---the maximum value visible to an agent relying solely on instantaneous signals.}
     \label{fig:bellman_valuation}
 \end{figure}

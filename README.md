@@ -22,8 +22,8 @@ The paper's whole reason for existing was to solve a memory problem. That proble
 
 ## What's in here
 
-- **`The_Pienza_Papers/Pienza_Papers_Scientific.pdf`** — the compiled, canonical version. This is the one to actually read.
-- **`The_Pienza_Papers/Pienza_Papers_Scientific/`** — the LaTeX source: `main.tex` as the root document, chapters `00_introduction` through `07_conclusion`, plus a glossary and appendix, all pulled in via `\input`.
+- **`The_Pienza_Papers/The_Pienza_Papers.pdf`** — the compiled, canonical version. This is the one to actually read.
+- **`The_Pienza_Papers/`** — the LaTeX source, flat: `main.tex` as the root document, chapters `00_introduction` through `07_conclusion` plus a glossary and appendix (all pulled in via `\input`), `references.bib`, and a `figures/` subdirectory holding every image.
 
 Rough shape of the narrative, if you want to jump to a phase:
 
@@ -41,7 +41,7 @@ An earlier companion document — a shorter "Executive" summary version — exis
 
 ## Building it locally
 
-It compiles clean with a standard TeX Live install (`pdflatex` + `biber`, orchestrated via `latexmk`). From `The_Pienza_Papers/Pienza_Papers_Scientific/`:
+It compiles clean with a standard TeX Live install (`pdflatex` + `biber`, orchestrated via `latexmk`). From `The_Pienza_Papers/`:
 
 ```bash
 latexmk -pdf -interaction=nonstopmode main.tex

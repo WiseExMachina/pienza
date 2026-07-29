@@ -101,7 +101,7 @@ To evaluate market viability, four sequential Earnings Per Hour (EPH) metrics we
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_profitability_funnel.png} 
+    \includegraphics[width=\textwidth]{figures/fig_profitability_funnel.png} 
     \caption{Phase III: Yield metrics from initial quote to holistic outcome. Median values drop from a quoted \textbf{\$274/hr} to a realized \textbf{\$116/hr}.}
     \label{fig:profit_funnel}
 \end{figure}
@@ -113,7 +113,7 @@ To quantify the non-linear relationship between traffic friction and potential y
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_median_yield_by_friction.png} 
+    \includegraphics[width=\textwidth]{figures/fig_median_yield_by_friction.png} 
     \caption{Phase III: Yield Performance Across the Friction Spectrum. The plot illustrates the distribution of Median \textbf{EPH Direct} across defined traffic states, establishing the precise financial compensation presented relative to increasing logistical complexity.}
     \label{fig:median_yield_by_friction}
 \end{figure}
@@ -137,7 +137,7 @@ To render heterogeneous product tiers comparable and ensure the framework scales
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_transmutation.png} 
+    \includegraphics[width=\textwidth]{figures/fig_transmutation.png} 
     \caption{Transmutation from Absolute Currency to Value Metric. Plot A illustrates the structural variance between product tiers. Plot B shows the normalized distribution where all tiers are anchored at 1.0, enabling the objective identification of outliers regardless of category.}
     \label{fig:normalization}
 \end{figure}
@@ -149,7 +149,7 @@ By monitoring the distribution of offer quality over the chronological progressi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_mqi_volatility.png} 
+    \includegraphics[width=\textwidth]{figures/fig_mqi_volatility.png} 
     \caption{Market Quality Index (QI) Volatility by Session. The boxplots illustrate the distribution of offer quality for each session. The horizontal baseline at 1.0 represents the global market average. Color-coding (Red to Green) indicates the session-level mean quality ($MQI$).}
     \label{fig:mqi_volatility}
 \end{figure}
@@ -169,7 +169,7 @@ To analyze how environmental variance dictates performance, the operational envi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_strategic_quadrants.png} 
+    \includegraphics[width=\textwidth]{figures/fig_strategic_quadrants.png} 
     \caption{Strategic Quadrant Analysis: Market Quality vs. Velocity. Each observation represents a discrete work session. Data labels indicate the realized session-level Average \texttt{eph\_operational}. The vertical boundary at 20s denotes the median market tempo observed during the campaign.}
     \label{fig:quadrant_analysis}
 \end{figure}
@@ -209,7 +209,7 @@ The decision to reject a viable offer is modeled as a probabilistic bet. The pro
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{fig_playbook_ven_prob.png} 
+    \includegraphics[width=0.9\textwidth]{figures/fig_playbook_ven_prob.png} 
     \caption{The \$200 Strategy Playbook: VEN and Success Probability. Each cell displays the projected financial delta (MXN/hr) and, in parentheses, the empirical probability of encountering a mission $\ge \$200/hr$ within the search investment time. Green regions identify a rational search window; red regions signal yield erosion.}
     \label{fig:ven_playbook}
 \end{figure}
@@ -223,7 +223,7 @@ By simulating the break-even point (VEN = 0) across a range of profitability tar
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{fig_efficient_frontier.png} 
+    \includegraphics[width=0.9\textwidth]{figures/fig_efficient_frontier.png} 
     \caption{The Efficient Frontier: Rational Search Time by Ambition. The plot illustrates the search budget for targets ranging from \$160/hr to \$230/hr across the four market quadrants.}
     \label{fig:efficient_frontier}
 \end{figure}
@@ -247,7 +247,7 @@ Following the acquisition phase, the initial hypothesis regarding the Payout Spr
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{Phase1_Stability_Audit.png}
+    \includegraphics[width=1.0\textwidth]{figures/Phase1_Stability_Audit.png}
     \caption{Phase 1: Financial Stability and Policy Intervention Audit. The 5-mission moving average (red line) shows an anchored operational regime around the 0.84 baseline.}
     \label{fig:stability_audit}
 \end{figure}
@@ -299,7 +299,7 @@ To validate the stability of the baseline model, an analysis on residuals was co
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{Heteroscedasticity_Audit.png}
+    \includegraphics[width=1.0\textwidth]{figures/Heteroscedasticity_Audit.png}
     \caption{Phase 2: Heteroscedasticity Audit. The fanning pattern of the residuals identifies a \textit{Cone of Uncertainty}, where prediction error expands proportionally with the quoted fare.}
     \label{fig:heteroscedasticity_cone}
 \end{figure}
@@ -310,7 +310,7 @@ The 15\% Risk Expansion Band confirms that absolute financial uncertainty scales
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Reality_Check_Matrix.png}
+    \includegraphics[width=0.8\textwidth]{figures/Reality_Check_Matrix.png}
     \caption{The Reality Check Matrix. A significant disparity exists between the high financial synchrony ($r=0.961$) and the lower operational precision ($r=0.813$).}
     \label{fig:reality_check}
 \end{figure}
@@ -326,7 +326,7 @@ To visualize the strategic buffer in action, the relationship between temporal v
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{Response_Curve_Audit.png}
+    \includegraphics[width=1.0\textwidth]{figures/Response_Curve_Audit.png}
     \caption{Phase 3: The Fraud Prevention Mechanism Audit. The response curve remains inelastic within the \textit{Integrity Buffer} (1.0x -- 1.35x), decoupling moderate temporal variance from financial compensation.}
     \label{fig:response_curve}
 \end{figure}
@@ -348,7 +348,7 @@ Where $\Delta T$ represents the \textbf{Temporal Variance} (Actual/Estimated Tim
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{Quadratic_Risk_Model.png}
+    \includegraphics[width=1.0\textwidth]{figures/Quadratic_Risk_Model.png}
     \caption{The Mathematical Threshold of Operational Inelasticity. The lowest point of the parabola identifies the \textit{Tipping Point} at 0.94x, marking the structural floor of the compensation model.}
     \label{fig:quadratic_model}
 \end{figure}

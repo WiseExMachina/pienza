@@ -61,7 +61,7 @@ To finalize the feature matrix for supervised learning, a statistical audit was 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{fig_categorical_audit.png} 
+    \includegraphics[width=\textwidth]{figures/fig_categorical_audit.png} 
     \caption{Categorical Feature Importance Audit: Mutual Information (Left) and Chi-Squared (Right) scores. The audit exposes the dominance of geospatial topology and the failure of several human-engineered abstractions.}
     \label{fig:categorical_audit}
 \end{figure}
@@ -170,7 +170,7 @@ The monolithic \texttt{XGBoost} champion was evaluated using purely autonomous f
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_ablated_matrix.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_ablated_matrix.png} 
     \caption{Normalized Confusion Matrix: Monolithic Architecture. While deterministic rejections remain robust, the model fails to differentiate between nuanced strategic classes.}
     \label{fig:ablated_matrix}
 \end{figure}
@@ -193,7 +193,7 @@ To maximize the capture of behavioral intent, the decision threshold for the \te
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_layer1_matrix_v3.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_layer1_matrix_v3.png} 
     \caption{Layer 1 Confusion Matrix ($T=0.40$). The diagonal illustrates the filter's efficiency in isolating noise. Note the 70.1\% successful capture of the nuanced signal.}
     \label{fig:layer1_matrix}
 \end{figure}
@@ -229,14 +229,14 @@ While ROC-AUC measures discriminatory capacity in balanced datasets, the signifi
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig_layer1_roc.png} 
+        \includegraphics[width=\textwidth]{figures/fig_layer1_roc.png} 
         \caption{ROC Curves: Filtering Power}
         \label{fig:layer1_roc}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig_layer1_pr.png} 
+        \includegraphics[width=\textwidth]{figures/fig_layer1_pr.png} 
         \caption{PR Curves: Precision Stability}
         \label{fig:layer1_pr}
     \end{subfigure}
@@ -268,7 +268,7 @@ To ensure model stability and identify data constraints, a Learning Curve audit 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_layer1_learning.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_layer1_learning.png} 
     \caption{Layer 1 Learning Curve. The narrowing delta between the training and validation scores indicates successful logic convergence, while the upward trajectory of the validation curve suggests a data-starved state.}
     \label{fig:layer1_learning}
 \end{figure}
@@ -298,7 +298,7 @@ To interpret the internal logic of the first-tier filter, a SHAP (Shapley Additi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_layer1_shapv2.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_layer1_shapv2.png} 
     \caption{Layer 1 Signal Drivers. Teal bars indicate features that push an offer into the ``Nuanced'' category for evaluation; gray bars indicate features that drive a deterministic rejection.}
     \label{fig:layer1_shap}
 \end{figure}
@@ -321,7 +321,7 @@ The second stage of the hierarchy resolves the distinctions between strategic re
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_layer2_matrixv2.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_layer2_matrixv2.png} 
     \caption{Layer 2 Confusion Matrix. The model separates nuanced classes with high precision after the removal of deterministic noise.}
     \label{fig:layer2_matrix}
 \end{figure}
@@ -354,14 +354,14 @@ The ROC-AUC and PR-AUC analyses (Figure \ref{fig:layer2_curves}) identify the su
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig_layer2_roc.png} 
+        \includegraphics[width=\textwidth]{figures/fig_layer2_roc.png} 
         \caption{ROC Curves: Separation Capacity}
         \label{fig:layer2_roc}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig_layer2_pr.png} 
+        \includegraphics[width=\textwidth]{figures/fig_layer2_pr.png} 
         \caption{PR Curves: Decision Stability}
         \label{fig:layer2_pr}
     \end{subfigure}
@@ -414,14 +414,14 @@ Although initial results appeared promising, holdout testing revealed that the L
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig_layer2_learning_raw.png} 
+        \includegraphics[width=\textwidth]{figures/fig_layer2_learning_raw.png} 
         \caption{Full Feature Set (Raw)}
         \label{fig:l2_learn_raw}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{fig_layer2_learning_light.png} 
+        \includegraphics[width=\textwidth]{figures/fig_layer2_learning_light.png} 
         \caption{Lightweight Matrix (6 Features)}
         \label{fig:l2_learn_light}
     \end{subfigure}
@@ -455,7 +455,7 @@ To interpret the internal logic the Nuance Engine, a SHAP contribution audit was
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{fig_layer2_shap_dna_v2.png} 
+    \includegraphics[width=0.7\textwidth]{figures/fig_layer2_shap_dna_v2.png} 
     \caption{Hierarchical Strategic DNA Atlas: Feature contributions for Layer 2 decision classes. Teal bars indicate a positive contribution to class probability; gray bars indicate a negative contribution.}
     \label{fig:layer2_shap_dna_v2}
 \end{figure}
@@ -480,7 +480,7 @@ To evaluate the operational impact of the hierarchical architecture, a final per
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{fig_shadow_mode_results_v2.png} 
+    \includegraphics[width=0.85\textwidth]{figures/fig_shadow_mode_results_v2.png} 
     \caption{Shadow Mode Performance: Efficiency Comparison. The plot illustrates the mean EPH Direct achieved across the unseen holdout set.}
     \label{fig:shadow_mode_v2}
 \end{figure}
