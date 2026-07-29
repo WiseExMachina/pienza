@@ -8,6 +8,11 @@ Sube artefactos a GCS bucket pienza-streamlit desde dos fuentes posibles:
 Correr desde Codespaces despues de un Run All que genere artefactos nuevos,
 o cuando se agregue/actualice un asset de frontend.
 
+Cada entrada del MANIFEST sube un archivo suelto por defecto. Una entrada con
+"kind": "dir" sube un directorio completo preservando su estructura relativa
+bajo un prefix de GCS (unica excepcion documentada a la regla de "sin
+subcarpetas" — ver ejemplo del corpus ChromaDB de 0010 mas abajo).
+
 Uso:
     python observatory/scripts/gcs_deploy.py              # sube todo el manifiesto
     python observatory/scripts/gcs_deploy.py --page 0007  # solo los de una pagina
@@ -220,6 +225,17 @@ MANIFEST = [
         "local": "rag_corpus_paper.parquet",
         "gcs":   "rag_corpus_paper.parquet",
     },
+    # 0010 - RAG Assistant (trip-row ChromaDB, candidate #4). "kind": "dir" is
+    # the one deliberate exception to the no-subfolders rule below: a
+    # ChromaDB PersistentClient writes a directory of files (chroma.sqlite3 +
+    # index segments), a structural requirement of the tool, not an accident.
+    # See rag_workflow.md for the full reasoning.
+    {
+        "page": "0010",
+        "local": "chroma_trips",
+        "gcs":   "chroma_trips",
+        "kind":  "dir",
+    },
     # Add entries for other pages here once they're audited
 ]
 
@@ -255,6 +271,26 @@ def upload(bucket, local_path, gcs_name, dry_run=False, force=False):
     return True
 
 
+def upload_dir(bucket, local_dir, gcs_prefix, dry_run=False, force=False):
+    """Uploads every file under local_dir to gs://{BUCKET_NAME}/{gcs_prefix}/...,
+    preserving the relative directory structure. This is the one place in this
+    script that creates GCS "subfolders" — a deliberate exception (ChromaDB's
+    persistent store is structurally a directory, not a single file), not the
+    accidental kind the no-subfolders rule exists to prevent."""
+    if not os.path.isdir(local_dir):
+        print(f"  SKIP (no existe el directorio): {local_dir}")
+        return 0
+    uploaded = 0
+    for root, _, files in os.walk(local_dir):
+        for fname in files:
+            local_path = os.path.join(root, fname)
+            rel_path = os.path.relpath(local_path, local_dir)
+            gcs_name = f"{gcs_prefix}/{rel_path}".replace(os.sep, "/")
+            if upload(bucket, local_path, gcs_name, dry_run=dry_run, force=force):
+                uploaded += 1
+    return uploaded
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--page",    default=None, help="Filtrar por pagina, ej. 0007")
@@ -271,18 +307,20 @@ def main():
     bucket = client.bucket(BUCKET_NAME)
 
     print(f"\nBucket: gs://{BUCKET_NAME}")
-    print(f"Archivos a subir: {len(entries)}")
+    print(f"Entradas a evaluar: {len(entries)}")
     print("-" * 60)
 
     ok = 0
     for e in entries:
         source_dir = SOURCES[e.get("source", "dumped_files")]
         local_path = os.path.join(source_dir, e["local"])
-        if upload(bucket, local_path, e["gcs"], dry_run=args.dry_run, force=args.force):
+        if e.get("kind") == "dir":
+            ok += upload_dir(bucket, local_path, e["gcs"], dry_run=args.dry_run, force=args.force)
+        elif upload(bucket, local_path, e["gcs"], dry_run=args.dry_run, force=args.force):
             ok += 1
 
     print("-" * 60)
-    print(f"{'DRY-RUN' if args.dry_run else 'DONE'}: {ok}/{len(entries)} archivos con cambios reales (de {len(entries)} evaluados)")
+    print(f"{'DRY-RUN' if args.dry_run else 'DONE'}: {ok} archivo(s) con cambios reales")
 
 
 if __name__ == "__main__":

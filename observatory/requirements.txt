@@ -39,3 +39,6 @@ Pillow
 psutil
 requests
 regex
+
+# --- Vector DB (0010 RAG Assistant, trip-serialization corpus) ---
+chromadb
