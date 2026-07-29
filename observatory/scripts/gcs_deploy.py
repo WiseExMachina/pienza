@@ -16,6 +16,8 @@ Uso:
 
 import os
 import sys
+import base64
+import hashlib
 import argparse
 from google.cloud import storage
 
@@ -212,15 +214,38 @@ MANIFEST = [
         "local": "rag_corpus_claude_docs.parquet",
         "gcs":   "rag_corpus_claude_docs.parquet",
     },
+    # 0010 - RAG Assistant (The Pienza Papers, LaTeX source embeddings)
+    {
+        "page": "0010",
+        "local": "rag_corpus_paper.parquet",
+        "gcs":   "rag_corpus_paper.parquet",
+    },
     # Add entries for other pages here once they're audited
 ]
 
 
-def upload(bucket, local_path, gcs_name, dry_run=False):
+def _local_md5_b64(local_path: str) -> str:
+    """Matches the format of GCS blob.md5_hash (base64-encoded MD5) so the two
+    can be compared directly without downloading the remote file."""
+    h = hashlib.md5()
+    with open(local_path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return base64.b64encode(h.digest()).decode("utf-8")
+
+
+def upload(bucket, local_path, gcs_name, dry_run=False, force=False):
     if not os.path.exists(local_path):
         print(f"  SKIP (no existe): {local_path}")
         return False
     size_kb = os.path.getsize(local_path) / 1024
+
+    if not force:
+        remote_blob = bucket.get_blob(gcs_name)  # None if it doesn't exist yet
+        if remote_blob is not None and remote_blob.md5_hash == _local_md5_b64(local_path):
+            print(f"  SIN CAMBIOS  {os.path.basename(local_path)} ({size_kb:.1f} KB) -> gs://{BUCKET_NAME}/{gcs_name}")
+            return False
+
     if dry_run:
         print(f"  DRY-RUN  {os.path.basename(local_path)} ({size_kb:.1f} KB) -> gs://{BUCKET_NAME}/{gcs_name}")
         return True
@@ -234,6 +259,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--page",    default=None, help="Filtrar por pagina, ej. 0007")
     parser.add_argument("--dry-run", action="store_true", help="Mostrar que subiria sin subir")
+    parser.add_argument("--force",   action="store_true", help="Subir todo aunque el MD5 remoto coincida con el local")
     args = parser.parse_args()
 
     entries = [e for e in MANIFEST if args.page is None or e["page"] == args.page]
@@ -252,11 +278,11 @@ def main():
     for e in entries:
         source_dir = SOURCES[e.get("source", "dumped_files")]
         local_path = os.path.join(source_dir, e["local"])
-        if upload(bucket, local_path, e["gcs"], dry_run=args.dry_run):
+        if upload(bucket, local_path, e["gcs"], dry_run=args.dry_run, force=args.force):
             ok += 1
 
     print("-" * 60)
-    print(f"{'DRY-RUN' if args.dry_run else 'DONE'}: {ok}/{len(entries)} archivos procesados")
+    print(f"{'DRY-RUN' if args.dry_run else 'DONE'}: {ok}/{len(entries)} archivos con cambios reales (de {len(entries)} evaluados)")
 
 
 if __name__ == "__main__":

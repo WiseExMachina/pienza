@@ -41,14 +41,31 @@ st.markdown(
 
 PROJECT_ID = "drivers-dilemma"
 CORPUS_BUCKET = "pienza-streamlit"
-CORPUS_FILE = "rag_corpus_claude_docs.parquet"
 TOP_K = 4
-CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+CLAUDE_MODEL = "claude-haiku-4-5"
+
+# Each corpus is its own precomputed parquet (see rag_build_corpus.py /
+# rag_build_corpus_paper.py). More candidates from the 5-source roadmap
+# (see rag_workflow.md §0) get appended here as they're built.
+CORPORA = [
+    {
+        "key": "claude_docs",
+        "label": "Project Docs",
+        "sub": "Markdown corpus",
+        "file": "rag_corpus_claude_docs.parquet",
+    },
+    {
+        "key": "paper",
+        "label": "The Pienza Papers",
+        "sub": "LaTeX source",
+        "file": "rag_corpus_paper.parquet",
+    },
+]
 
 
 @st.cache_data(show_spinner="Loading RAG corpus...")
-def load_corpus():
-    df = fetch_parquet_from_gcp(CORPUS_BUCKET, CORPUS_FILE)
+def load_corpus(corpus_file: str):
+    df = fetch_parquet_from_gcp(CORPUS_BUCKET, corpus_file)
     if df.empty:
         return df, None
     matrix = np.stack(df["embedding"].to_numpy())
@@ -100,26 +117,122 @@ def ask_claude(question: str, chunks) -> str:
     return "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
 
 
-corpus_df, corpus_matrix = load_corpus()
+# ==========================================
+# CORPUS SELECTOR — horizontal stepper (same visual pattern as 0008's
+# ci-stepper), driving hidden st.tabs. More corpora append to CORPORA above,
+# not to this markup.
+# ==========================================
+st.markdown("""
+<style>
+.corpus-stepper { display:flex; align-items:flex-start; gap:0; margin:18px 0 6px 0; }
+.corpus-step {
+  display:flex; flex-direction:column; align-items:center; flex:1;
+  position:relative; cursor:pointer;
+}
+.corpus-step:not(:last-child)::after {
+  content:''; position:absolute; top:14px; left:calc(50% + 14px);
+  width:calc(100% - 28px); height:2px; background:rgba(33,145,140,0.2); z-index:0;
+}
+.corpus-dot {
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(33,145,140,0.12); border:1.5px solid rgba(33,145,140,0.4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.60rem; font-weight:700; color:#21918c;
+  z-index:1; position:relative; flex-shrink:0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.corpus-step:hover .corpus-dot { background:rgba(33,145,140,0.22); border-color:#21918c; }
+.corpus-step-label {
+  font-size:0.68rem; font-weight:600; color:#334155;
+  text-align:center; margin-top:6px; line-height:1.3;
+}
+.corpus-step-sub {
+  font-size:0.60rem; color:#64748b;
+  text-align:center; margin-top:2px; line-height:1.3;
+}
+.corpus-step:hover .corpus-step-label { color:#21918c; }
+.corpus-step.corpus-active .corpus-dot {
+  background:#21918c !important; border-color:#21918c !important; color:#fff !important;
+}
+.corpus-step.corpus-active .corpus-step-label { color:#21918c !important; font-weight:700; }
+</style>
+""" + "<div class=\"corpus-stepper\">" + "".join(
+    f'<div class="corpus-step{" corpus-active" if i == 0 else ""}">'
+    f'<div class="corpus-dot">C{i+1}</div>'
+    f'<div class="corpus-step-label">{c["label"]}</div>'
+    f'<div class="corpus-step-sub">{c["sub"]}</div>'
+    f'</div>'
+    for i, c in enumerate(CORPORA)
+) + "</div>", unsafe_allow_html=True)
 
-if corpus_df is None or corpus_df.empty:
-    st.markdown(
-        """
-        <div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
-             padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
-          <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
-                color:#cc6600;'>⚠ PENDING FIX — Corpus not found</span><br><br>
-          Could not load <code>rag_corpus_claude_docs.parquet</code> from GCS. Confirm the file was
-          uploaded to bucket <code>pienza-streamlit</code>.
-        </div>
-        """,
-        unsafe_allow_html=True,
+st.markdown("""
+<style>
+[data-baseweb="tab-list"] { display:none !important; }
+[data-baseweb="tab-border"] { display:none !important; }
+</style>
+""", unsafe_allow_html=True)
+
+st.components.v1.html("""
+<script>
+setTimeout(function() {
+  var steps = window.parent.document.querySelectorAll('.corpus-step');
+  var allTabs = window.parent.document.querySelectorAll('[data-baseweb="tab"]');
+
+  function setActive(idx) {
+    steps.forEach(function(s) { s.classList.remove('corpus-active'); });
+    if (steps[idx]) steps[idx].classList.add('corpus-active');
+  }
+
+  var initIdx = 0;
+  for (var j = 0; j < allTabs.length; j++) {
+    if (allTabs[j].getAttribute('aria-selected') === 'true') { initIdx = j; break; }
+  }
+  setActive(initIdx);
+
+  steps.forEach(function(step, i) {
+    step.addEventListener('click', function() {
+      var target = allTabs[i];
+      if (target) {
+        var sy = window.parent.scrollY;
+        target.click();
+        setActive(i);
+        setTimeout(function() { window.parent.scrollTo(0, sy); }, 50);
+        setTimeout(function() { window.parent.scrollTo(0, sy); }, 300);
+      }
+    });
+  });
+}, 300);
+</script>
+""", height=0)
+
+
+def _render_corpus_tab(corpus: dict):
+    corpus_df, corpus_matrix = load_corpus(corpus["file"])
+
+    if corpus_df is None or corpus_df.empty:
+        st.markdown(
+            f"""
+            <div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+                 padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+              <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+                    color:#cc6600;'>⚠ PENDING FIX — Corpus not found</span><br><br>
+              Could not load <code>{corpus["file"]}</code> from GCS. Confirm the file was
+              uploaded to bucket <code>pienza-streamlit</code>.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    question = st.text_input(
+        f"Ask a question about {corpus['label']}",
+        placeholder="e.g. what's the anonymization rule for addresses?",
+        key=f"question_{corpus['key']}",
     )
-    st.stop()
 
-question = st.text_input("Ask a question about Project Pienza", placeholder="e.g. what's the anonymization rule for addresses?")
+    if not question:
+        return
 
-if question:
     with st.spinner("Retrieving relevant passages..."):
         t0 = time.perf_counter()
         top_chunks = retrieve(question, corpus_df, corpus_matrix)
@@ -153,3 +266,9 @@ if question:
             """,
             unsafe_allow_html=True,
         )
+
+
+_tabs = st.tabs([c["label"] for c in CORPORA])
+for _tab, _corpus in zip(_tabs, CORPORA):
+    with _tab:
+        _render_corpus_tab(_corpus)
