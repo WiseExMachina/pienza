@@ -157,7 +157,7 @@ def main():
     ids = [str(oid) for oid in df["offer_id"].tolist()]
     metadatas = [
         {
-            "str_product": row.str_product or "",
+            "str_product": _strip_uber(row.str_product),
             "str_action": row.str_action or "",
             "day_type": row.day_type or "",
             "is_vip": bool(row.is_vip),
@@ -170,7 +170,10 @@ def main():
     os.makedirs(CHROMA_DIR, exist_ok=True)
     client = chromadb.PersistentClient(path=CHROMA_DIR)
     client.delete_collection(COLLECTION_NAME) if COLLECTION_NAME in [c.name for c in client.list_collections()] else None
-    collection = client.create_collection(COLLECTION_NAME)
+    # Explicit cosine distance — Chroma's default HNSW space is L2, which
+    # would silently diverge from the cosine similarity used everywhere else
+    # in this pipeline (#1/#2's numpy retrieve()).
+    collection = client.create_collection(COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
 
     for i in range(0, len(sentences), BATCH_SIZE):
         batch_sentences = sentences[i:i + BATCH_SIZE]

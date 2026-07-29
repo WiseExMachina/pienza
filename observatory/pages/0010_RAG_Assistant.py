@@ -5,7 +5,7 @@ import streamlit as st
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
 from config import FAVICON, build_page_title
-from pages._0010_data import CORPORA, CLAUDE_MODEL, load_corpus, retrieve, ask_claude
+from pages._0010_data import CORPORA, CLAUDE_MODEL, load_corpus, retrieve, load_trip_collection, retrieve_trips, ask_claude
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -125,16 +125,25 @@ setTimeout(function() {
 
 
 def _render_corpus_tab(corpus: dict):
-    corpus_df, corpus_matrix = load_corpus(corpus["file"])
+    is_chromadb = corpus.get("kind") == "chromadb"
 
-    if corpus_df is None or corpus_df.empty:
+    if is_chromadb:
+        collection = load_trip_collection()
+        corpus_empty = collection.count() == 0
+        missing_hint = "the ChromaDB store under gcs://pienza-streamlit/chroma_trips/"
+    else:
+        corpus_df, corpus_matrix = load_corpus(corpus["file"])
+        corpus_empty = corpus_df is None or corpus_df.empty
+        missing_hint = f"<code>{corpus['file']}</code>"
+
+    if corpus_empty:
         st.markdown(
             f"""
             <div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
                  padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
               <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
                     color:#cc6600;'>⚠ PENDING FIX — Corpus not found</span><br><br>
-              Could not load <code>{corpus["file"]}</code> from GCS. Confirm the file was
+              Could not load {missing_hint} from GCS. Confirm the file was
               uploaded to bucket <code>pienza-streamlit</code>.
             </div>
             """,
@@ -144,14 +153,15 @@ def _render_corpus_tab(corpus: dict):
 
     question = st.text_input(
         f"Ask a question about {corpus['label']}",
-        placeholder="e.g. what's the anonymization rule for addresses?",
+        placeholder="e.g. what's the anonymization rule for addresses?" if not is_chromadb
+        else "e.g. find trips similar to a surge-priced Comfort ride that got rejected",
         key=f"question_{corpus['key']}",
     )
 
     if question:
         with st.spinner("Retrieving relevant passages..."):
             t0 = time.perf_counter()
-            top_chunks = retrieve(question, corpus_df, corpus_matrix)
+            top_chunks = retrieve_trips(question) if is_chromadb else retrieve(question, corpus_df, corpus_matrix)
             retrieval_ms = (time.perf_counter() - t0) * 1000
 
         with st.spinner("Generating answer..."):

@@ -55,3 +55,28 @@ def download_from_gcs(bucket_name: str, source_blob_name: str, destination_file_
     except Exception as e:
         st.error(f"Failed to download {source_blob_name} from GCP: {e}")
         raise e
+
+
+def download_prefix_from_gcs(bucket_name: str, gcs_prefix: str, destination_dir: str) -> None:
+    """
+    Downloads every blob under gcs_prefix into destination_dir (local /tmp
+    storage), preserving the relative structure — the download-side counterpart
+    to gcs_deploy.py's upload_dir(). Used for multi-file artifacts like a
+    ChromaDB persistent store (chroma.sqlite3 + index segment directories),
+    which can't be read directly from GCS the way a single blob can.
+    """
+    import os
+    try:
+        client = _storage_client()
+        bucket = client.bucket(bucket_name)
+        blobs = list(bucket.list_blobs(prefix=gcs_prefix))
+        for blob in blobs:
+            if blob.name.endswith("/"):
+                continue  # skip directory placeholder objects
+            rel_path = blob.name[len(gcs_prefix):].lstrip("/")
+            local_path = os.path.join(destination_dir, rel_path)
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            blob.download_to_filename(local_path)
+    except Exception as e:
+        st.error(f"Failed to download prefix {gcs_prefix} from GCP: {e}")
+        raise e

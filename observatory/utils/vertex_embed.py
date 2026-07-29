@@ -15,7 +15,13 @@ import requests
 VERTEX_REGION = "us-central1"
 VERTEX_MODEL = "text-embedding-004"
 MAX_RETRIES = 6
-BATCH_SIZE = 5  # instances per request — this project's default quota is requests/min, not instances/min
+# instances per request. text-embedding-004's online :predict endpoint has a
+# real hard ceiling here — empirically verified 2026-07-30: 250 succeeds,
+# 251 fails with 400 Bad Request. Kept at 200 (not the exact max) for a
+# small safety margin. The original value of 5 was an overly conservative
+# guess made while first debugging a 429 requests-per-minute quota error —
+# it worked around the quota but was never actually the API's real limit.
+BATCH_SIZE = 200
 
 
 def _access_token(credentials) -> str:

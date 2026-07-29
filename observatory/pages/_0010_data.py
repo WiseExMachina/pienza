@@ -1,10 +1,13 @@
 """Data literals and pure helpers used by 0010_RAG_Assistant.py (Layer 1 extraction)."""
 
+import os
+
 import numpy as np
+import pandas as pd
 import requests
 import streamlit as st
 
-from utils.gcp_client import fetch_parquet_from_gcp
+from utils.gcp_client import fetch_parquet_from_gcp, download_prefix_from_gcs
 from utils.gcp_auth import get_gcp_credentials
 from utils.vertex_embed import embed_text
 
@@ -13,21 +16,36 @@ CORPUS_BUCKET = "pienza-streamlit"
 TOP_K = 4
 CLAUDE_MODEL = "claude-haiku-4-5"
 
-# Each corpus is its own precomputed parquet (see rag_build_corpus.py /
-# rag_build_corpus_paper.py). More candidates from the 5-source roadmap
-# (see rag_workflow.md §0) get appended here as they're built.
+CHROMA_GCS_PREFIX = "chroma_trips"
+CHROMA_LOCAL_DIR = "/tmp/chroma_trips"
+CHROMA_COLLECTION_NAME = "trip_offers"
+
+# Each corpus is its own precomputed artifact. "kind": "parquet" (default)
+# loads a flat parquet + numpy cosine similarity (rag_build_corpus.py /
+# rag_build_corpus_paper.py). "kind": "chromadb" loads a persistent ChromaDB
+# store instead (rag_build_vectordb_trips.py) — row-to-text serialization
+# over BigQuery, candidate #4 in rag_workflow.md §0. More candidates from the
+# 5-source roadmap append here as they're built.
 CORPORA = [
     {
         "key": "claude_docs",
         "label": "Project Docs",
         "sub": "Markdown corpus",
         "file": "rag_corpus_claude_docs.parquet",
+        "kind": "parquet",
     },
     {
         "key": "paper",
         "label": "The Pienza Papers",
         "sub": "LaTeX source",
         "file": "rag_corpus_paper.parquet",
+        "kind": "parquet",
+    },
+    {
+        "key": "trips",
+        "label": "Trip Records",
+        "sub": "ChromaDB — serialized rows",
+        "kind": "chromadb",
     },
 ]
 
@@ -47,6 +65,43 @@ def retrieve(question: str, df, matrix, k: int = TOP_K):
     sims = matrix @ query_vec / (np.linalg.norm(matrix, axis=1) * np.linalg.norm(query_vec) + 1e-10)
     top_idx = np.argsort(-sims)[:k]
     return df.iloc[top_idx].assign(similarity=sims[top_idx])
+
+
+@st.cache_resource(show_spinner="Loading trip vector DB...")
+def load_trip_collection():
+    """Downloads the ChromaDB persistent store from GCS to /tmp (once per
+    session — the repo's GCS-only rule: never read a checked-in local copy,
+    always fetch fresh from the bucket) and returns the live collection."""
+    import chromadb
+
+    if not os.path.exists(os.path.join(CHROMA_LOCAL_DIR, "chroma.sqlite3")):
+        download_prefix_from_gcs(CORPUS_BUCKET, CHROMA_GCS_PREFIX, CHROMA_LOCAL_DIR)
+    client = chromadb.PersistentClient(path=CHROMA_LOCAL_DIR)
+    return client.get_collection(CHROMA_COLLECTION_NAME)
+
+
+def retrieve_trips(question: str, k: int = TOP_K):
+    """Same retrieval contract as retrieve() (returns source_file/heading/
+    text/similarity columns) so ask_claude() and the page's rendering code
+    work unchanged regardless of which corpus kind is active."""
+    credentials = get_gcp_credentials()
+    query_vec = embed_text(question, PROJECT_ID, credentials)
+    collection = load_trip_collection()
+    res = collection.query(query_embeddings=[query_vec], n_results=k)
+
+    docs = res["documents"][0]
+    metas = res["metadatas"][0]
+    ids = res["ids"][0]
+    # Chroma's cosine space returns distance = 1 - cosine_similarity.
+    similarities = [1 - d for d in res["distances"][0]]
+
+    return pd.DataFrame({
+        "chunk_id": ids,
+        "source_file": ["v_ML_Supervised"] * len(ids),
+        "heading": [m.get("str_product", "") for m in metas],
+        "text": docs,
+        "similarity": similarities,
+    })
 
 
 def ask_claude(question: str, chunks) -> str:
