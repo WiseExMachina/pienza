@@ -252,10 +252,25 @@ for row_start in range(0, len(NAV_MODULES), 3):
 
 st.markdown("---")
 
+# --- 6.5. A LOOK AHEAD: AI ENGINEERING (deliberately not a 10th grid card — the
+# nine modules above are a sequential progression, this is a separate track) ---
+with st.container(key="rag-lookahead-card"):
+    st.markdown(
+        "<div class='ingestion-title'>A Look Ahead: AI Engineering</div>"
+        f"<div class='ingestion-heading'>{nav_icon('message-square')}RAG Assistant</div>"
+        "<div class='ingestion-body'>A small Retrieval-Augmented Generation assistant grounded in this "
+        "project's own documentation — embeddings via Vertex AI, retrieval via cosine similarity, and "
+        "generation via the Claude API.</div>",
+        unsafe_allow_html=True,
+    )
+    st.page_link("pages/0010_RAG_Assistant.py", label="Explore Module", use_container_width=True)
+
+st.markdown("---")
+
 # --- 7. PROJECT DISCLAIMER ---
 st.markdown(
     "<div style='text-align:center;color:#94a3b8;font-size:0.75rem;font-style:italic;"
-    "line-height:1.6;max-width:900px;margin:0 auto;'>"
+    "line-height:1.6;'>"
     "Project Pienza and all associated materials are the product of an independent research "
     "initiative, aimed at formalizing sequential decision boundaries in stochastic environments. "
     "The dataset and presented architecture are fully operational and derived from authentic, "
@@ -270,3 +285,5 @@ st.markdown(
     "</div>",
     unsafe_allow_html=True,
 )
+
+st.markdown("---")

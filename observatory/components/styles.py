@@ -262,6 +262,33 @@ h4 {
     box-shadow: 0 10px 20px rgba(0,0,0,0.06);
     border-color: #21918c;
 }
+/* main.py's "A Look Ahead" panel — a st.container(key=...) so the page_link
+   Explore Module button renders inside the same bordered box as the text,
+   instead of falling outside it like a bare unwrapped page_link would. */
+.st-key-rag-lookahead-card {
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 40px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+.st-key-rag-lookahead-card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    border-color: #21918c;
+}
+.st-key-rag-lookahead-card [data-testid="stPageLink"] a {
+    background: #f0f2f6;
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: center;
+    text-decoration: none !important;
+}
+.st-key-rag-lookahead-card [data-testid="stPageLink"] a p {
+    text-align: center;
+}
 .ingestion-title {
     font-size: 0.8rem;
     font-weight: 700;
