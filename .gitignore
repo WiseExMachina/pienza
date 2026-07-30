@@ -8,8 +8,9 @@ service-account.json
 **/.streamlit/*
 !**/.streamlit/config.toml
 /secrets/
-/.claude/
 /.CV.MD
+/.claude/worktrees/
+/.claude/scheduled_tasks.lock
 /_archive/
 /STORY.md
 

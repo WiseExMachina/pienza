@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(timeout 20 streamlit run main.py --server.headless true --server.port 8597)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8597/Acquisition_Pipelines)",
+      "Read(//tmp/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path',''); (p.startswith('observatory/scripts/') or p.startswith('observatory/utils/') or '/observatory/scripts/' in p or '/observatory/utils/' in p) and print(json.dumps({'systemMessage': 'RECORDATORIO: archivo nuevo en scripts/utils detectado (' + p + ') -> confirma si files_dict.md necesita una entrada nueva.', 'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': 'RECORDATORIO para Claude: se creo un archivo nuevo en scripts/utils (' + p + '). Preguntale al usuario si hay que agregar una entrada en files_dict.md.'}}))\""
+          }
+        ]
+      }
+    ]
+  }
+}
