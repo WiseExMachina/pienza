@@ -163,6 +163,14 @@ observatory/
 
 <br>
 
+## On the Use of Claude Code
+
+This project is developed in close collaboration with Claude Code. The setup includes two project-level `CLAUDE.md` files (root and `observatory/`), along with custom commands, skills, hooks, and rules that codify project conventions and workflows. Deeper documentation of decisions, tech debt, and working conventions lives in a dedicated `claude_docs/` directory.
+
+As of this README's last publication, this Claude Code setup is undergoing a refactor to formalize these conventions more rigorously.
+
+<br>
+
 ## License & Access
 
 The code in this repository is released under the MIT License.
