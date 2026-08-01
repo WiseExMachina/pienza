@@ -118,9 +118,16 @@ SYSTEM_PROMPT = (
     "modeling ride-hailing offer/trip data, with an emphasis on demonstrating correct "
     "diagnosis of RAG vs. NLG vs. Text-to-SQL for a given business problem rather than "
     "applying RAG reflexively wherever an LLM is involved.\n\n"
-    "You answer questions about exactly one of three corpora at a time, selected by the "
-    "user via a tab on the page — never mix content across corpora even if a prior turn "
-    "in this same conversation touched a different one:\n"
+    "This specific conversation thread is scoped to exactly ONE corpus: {corpus_label}. "
+    "Every question in this thread, including this one, is answered using ONLY chunks "
+    "retrieved from {corpus_label} — you never receive context from, and cannot answer "
+    "about, the project's other corpora in this thread. If asked what you can help with, "
+    "describe {corpus_label} specifically (using retrieved context if any is relevant, "
+    "otherwise a brief general description from below) — do NOT describe the other "
+    "corpora or imply this conversation can answer questions about them; the user "
+    "switches corpus by selecting a different tab on the page, which starts a separate "
+    "conversation thread, not by asking this one to switch.\n\n"
+    "For reference, the three corpora this project has (only {corpus_label} applies here):\n"
     "1. Project Docs — this repository's own markdown documentation (conventions, "
     "architecture notes, tech debt, deployment canon).\n"
     "2. The Pienza Papers — a LaTeX-sourced technical paper describing the project's "
@@ -214,10 +221,27 @@ SYSTEM_PROMPT = (
 )
 
 
-def _claude_request(messages: list[dict], max_tokens: int = 1024) -> dict:
+SUMMARY_SYSTEM_PROMPT = (
+    "You concisely extend a running summary of an earlier conversation with one new "
+    "question/answer exchange. Keep the result a few sentences at most — this summary "
+    "exists only to preserve conversational continuity for a chat assistant, not to be "
+    "a complete record."
+)
+
+
+def _claude_request(messages: list[dict], system: str, max_tokens: int = 1024, tools: list[dict] | None = None) -> dict:
     api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         return {"error": "ANTHROPIC_API_KEY missing from secrets — cannot generate an answer."}
+
+    payload = {
+        "model": CLAUDE_MODEL,
+        "max_tokens": max_tokens,
+        "system": system,
+        "messages": messages,
+    }
+    if tools:
+        payload["tools"] = tools
 
     resp = requests.post(
         "https://api.anthropic.com/v1/messages",
@@ -226,12 +250,7 @@ def _claude_request(messages: list[dict], max_tokens: int = 1024) -> dict:
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
         },
-        json={
-            "model": CLAUDE_MODEL,
-            "max_tokens": max_tokens,
-            "system": SYSTEM_PROMPT,
-            "messages": messages,
-        },
+        json=payload,
         timeout=30,
     )
     if resp.status_code != 200:
@@ -257,7 +276,11 @@ def compact_if_needed(history: list[dict], summary: str) -> tuple[list[dict], st
             f"Current summary: {new_summary or '(none yet)'}\n\n"
             f"New exchange:\nQ: {turn['question']}\nA: {turn['answer']}"
         )
-        data = _claude_request([{"role": "user", "content": prompt}], max_tokens=256)
+        data = _claude_request(
+            [{"role": "user", "content": prompt}],
+            system=SUMMARY_SYSTEM_PROMPT,
+            max_tokens=256,
+        )
         if "error" not in data:
             new_summary = "".join(
                 b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
@@ -266,8 +289,14 @@ def compact_if_needed(history: list[dict], summary: str) -> tuple[list[dict], st
     return keep, new_summary
 
 
-def ask_claude(question: str, chunks, history: list[dict] | None = None, summary: str = "") -> tuple[str, str]:
-    """Returns (answer, updated_summary)."""
+def ask_claude(
+    question: str, chunks, corpus_label: str, history: list[dict] | None = None, summary: str = ""
+) -> tuple[str, str]:
+    """Returns (answer, updated_summary). corpus_label scopes the system prompt to
+    the single corpus this conversation thread is actually retrieving from (e.g.
+    "Project Docs") — without this, Claude answers meta-questions like "what can I
+    ask?" by reciting all 3 corpora as if this one thread could switch between them,
+    which reads as agentic corpus-routing that doesn't actually exist."""
     history = history or []
     history, summary = compact_if_needed(history, summary)
 
@@ -284,9 +313,115 @@ def ask_claude(question: str, chunks, history: list[dict] | None = None, summary
         messages.append({"role": "assistant", "content": turn["answer"]})
     messages.append({"role": "user", "content": f"Context:\n\n{context}\n\nQuestion: {question}"})
 
-    data = _claude_request(messages)
+    system = SYSTEM_PROMPT.format(corpus_label=corpus_label)
+    data = _claude_request(messages, system=system)
     if "error" in data:
         return data["error"], summary
 
     answer = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
     return answer, summary
+
+
+AGENTIC_SYSTEM_PROMPT = (
+    "You are the agentic router for Project Pienza's RAG Assistant page. Unlike the "
+    "manual-retrieval mode elsewhere on this page (where the user picks a corpus tab "
+    "themselves), here YOU decide which corpus to query based on the question — this "
+    "is real tool-use routing, not a cosmetic label.\n\n"
+    "There are three corpora, each exposed to you as a tool:\n"
+    "1. query_claude_docs — Project Docs: this repository's own markdown documentation "
+    "(conventions, architecture notes, tech debt, deployment canon).\n"
+    "2. query_paper — The Pienza Papers: a LaTeX-sourced technical paper describing the "
+    "project's design and modeling decisions in long-form prose.\n"
+    "3. query_trips — Trip Records: individual BigQuery rows from a ride-hailing offers "
+    "view, serialized into natural-language sentences describing single trip offers "
+    "(fare, product type, offer outcome, driver state, etc.).\n\n"
+    "For every question, call exactly ONE of these tools — the one most likely to "
+    "contain the answer — before responding. Do not answer from your own knowledge "
+    "without calling a tool first, and do not call more than one tool for a single "
+    "question (if a question genuinely spans multiple corpora, answer using the single "
+    "best-matching one and say plainly that the rest is out of scope for this answer).\n\n"
+    "Once you have the tool's retrieved passages, answer using ONLY that context — same "
+    "grounding discipline as the manual-retrieval mode: never your own general knowledge, "
+    "say so plainly if the retrieved context doesn't answer the question, always cite the "
+    "source_file of the passage(s) used. Prior conversation turns (and any summary of "
+    "older turns) exist only for conversational continuity, never as a factual source.\n\n"
+    "Keep answers concise and directly responsive. You do not need to explain your "
+    "routing choice unless asked — the corpus you queried is already shown to the user "
+    "separately in the interface."
+)
+
+
+def _retrieve_for_corpus(corpus_key: str, question: str):
+    """Dispatches to the same retrieve()/retrieve_trips() + load_corpus()/
+    load_trip_collection() helpers the manual-retrieval tabs already use, looked
+    up by corpus key instead of hardcoded per tab. Returns (chunks_df, corpus_label)."""
+    corpus = next(c for c in CORPORA if c["key"] == corpus_key)
+    if corpus["kind"] == "chromadb":
+        return retrieve_trips(question), corpus["label"]
+    df, matrix = load_corpus(corpus["file"])
+    return retrieve(question, df, matrix), corpus["label"]
+
+
+AGENTIC_TOOLS = [
+    {
+        "name": f"query_{c['key']}",
+        "description": f"Search {c['label']} ({c['sub']}) for information relevant to the question.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"question": {"type": "string"}},
+            "required": ["question"],
+        },
+    }
+    for c in CORPORA
+]
+
+
+def ask_claude_agentic(question: str, history: list[dict] | None = None, summary: str = ""):
+    """Real tool-use routing: Claude itself picks which corpus to query, instead of
+    the user picking a tab. Returns (answer, updated_summary, corpus_label, chunks).
+    MVP scope: exactly one tool call per question — no multi-tool aggregation or
+    parallel execution (logged to tech debt as a deliberate future enhancement)."""
+    history = history or []
+    history, summary = compact_if_needed(history, summary)
+
+    messages = []
+    if summary:
+        messages.append({"role": "user", "content": f"Summary of earlier conversation: {summary}"})
+        messages.append({"role": "assistant", "content": "Understood, I'll keep that context in mind."})
+    for turn in history:
+        messages.append({"role": "user", "content": turn["question"]})
+        messages.append({"role": "assistant", "content": turn["answer"]})
+    messages.append({"role": "user", "content": question})
+
+    data = _claude_request(messages, system=AGENTIC_SYSTEM_PROMPT, tools=AGENTIC_TOOLS)
+    if "error" in data:
+        return data["error"], summary, "", pd.DataFrame(columns=["source_file", "heading", "text", "similarity"])
+
+    if data.get("stop_reason") != "tool_use":
+        answer = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
+        return answer, summary, "", pd.DataFrame(columns=["source_file", "heading", "text", "similarity"])
+
+    tool_block = next(b for b in data["content"] if b.get("type") == "tool_use")
+    corpus_key = tool_block["name"].removeprefix("query_")
+    tool_question = tool_block["input"].get("question", question)
+    chunks, corpus_label = _retrieve_for_corpus(corpus_key, tool_question)
+
+    tool_result_text = "\n\n".join(
+        f"[Source: {row.source_file} — {row.heading}]\n{row.text}" for row in chunks.itertuples()
+    )
+    messages.append({"role": "assistant", "content": data["content"]})
+    messages.append({
+        "role": "user",
+        "content": [{
+            "type": "tool_result",
+            "tool_use_id": tool_block["id"],
+            "content": tool_result_text or "No results found.",
+        }],
+    })
+
+    data2 = _claude_request(messages, system=AGENTIC_SYSTEM_PROMPT, tools=AGENTIC_TOOLS)
+    if "error" in data2:
+        return data2["error"], summary, corpus_label, chunks
+
+    answer = "".join(b.get("text", "") for b in data2.get("content", []) if b.get("type") == "text")
+    return answer, summary, corpus_label, chunks

@@ -838,3 +838,69 @@ conversacion donde se explico el trade-off de reranking (retrieve wide,
 rerank narrow) para el RAG Assistant de Pienza (0010).
 
 ---
+
+## 2026-08-01 — Retrieval jerarquico (hierarchical retrieval / RAPTOR)
+
+Chunking plano con overlap resuelve cortes arbitrarios de tamano (una idea
+partida a la mitad por un limite de caracteres), pero no resuelve dependencias
+narrativas de largo alcance -- ej. un libro cronologico donde el capitulo 8
+depende de algo establecido en el capitulo 2. El overlap solo cubre parrafos
+adyacentes, no capitulos lejanos entre si.
+
+Retrieval jerarquico ataca esto con dos capas de indice en vez de una:
+
+1. Capa gruesa: se generan resumenes (via LLM) de unidades grandes (capitulos,
+   o grupos de capitulos), se embeben esos resumenes -- un indice chico que
+   representa el mapa general del corpus.
+2. Capa fina: el corpus tambien esta cortado en chunks chicos y precisos,
+   como en chunking normal.
+3. Retrieval en dos pasos: primero se busca contra la capa de resumenes
+   (rapido, barato, identifica la region relevante -- ej. capitulo 8),
+   despues el retrieval fino corre solo dentro de esa region ya filtrada,
+   no contra todo el corpus de chunks chicos.
+
+RAPTOR (Recursive Abstractive Processing for Tree-Organized Retrieval) es la
+version formal/recursiva de esta idea: agrupa chunks similares, resume el
+grupo, agrupa esos resumenes, resume otra vez -- construye un arbol de
+multiples niveles en vez de solo dos capas fijas. La version de dos capas
+(resumen de capitulo + chunk fino) es el caso base valido de la misma familia.
+
+**Contexto:** Se disparo al discutir chunking de un libro cronologico con
+capitulos (dependencias implicitas entre capitulos que el overlap normal no
+cubre), y el usuario propuso espontaneamente una arquitectura de dos capas
+(chunks grandes resumidos + chunks chicos para el retrieval final) que
+resulto ser exactamente el patron real de retrieval jerarquico / RAPTOR.
+
+---
+
+## 2026-08-01 — Semantic chunking (y sus dos usos distintos de cosine similarity)
+
+Structural chunking (lo que usa Pienza en chunk_markdown()) corta por
+estructura ya presente en el documento -- headings ##/###. Barato: no
+necesita ningun embedding para decidir donde cortar, solo regex.
+
+Semantic chunking (tecnica de Greg Kamradt) no confia en la estructura del
+documento, la descubre empiricamente: parte el texto en oraciones, agrupa
+cada oracion con sus vecinas (ventana deslizante), genera un embedding de
+cada grupo, y compara la distancia semantica entre grupos consecutivos --
+donde esa distancia da un salto grande, ahi hay un cambio de tema y ahi se
+pone la frontera del chunk. Mas caro (necesita embeddings solo para decidir
+donde cortar, antes de generar los embeddings finales para retrieval), pero
+mas robusto en documentos sin estructura clara (texto corrido, transcripciones)
+donde structural chunking no tiene ninguna senal de donde cortar.
+
+Punto clave: esto expone dos usos distintos de cosine similarity en momentos
+distintos del pipeline, faciles de confundir porque es la misma matematica:
+(1) durante chunking (offline, una sola vez) -- compara oraciones/grupos
+VECINOS entre si, para decidir fronteras de chunk; (2) durante retrieval
+(cada pregunta) -- compara la QUERY del usuario contra cada chunk ya
+armado, para dar el top-k. Mismo calculo, proposito y momento del pipeline
+completamente distintos.
+
+**Contexto:** Se disparo al leer un fragmento sobre semantic chunking y
+preguntar si eso era lo que Pienza ya implementaba (no lo es -- Pienza usa
+structural chunking por headings), seguido de la pregunta de si el mismo
+cosine similarity se usa dos veces en el pipeline (para cortar y para
+retrieval) -- confirmado que si, pero son dos comparaciones distintas.
+
+---

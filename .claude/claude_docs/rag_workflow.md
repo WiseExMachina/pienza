@@ -1,20 +1,20 @@
 ---
 name: rag-workflow
-description: "RAG/NLG initiative for Neoris interview showcase, restructured for learning-first reading: shared inference mechanism first (Vertex AI embeds, Claude generates, GCS touched once), then per-candidate Inputs/Scripts/Outputs/Deploy/Inference for #1 (markdown) and #2 (paper LaTeX), shared architecture decisions, troubleshooting, roadmap"
+description: "RAG/NLG initiative for Neoris interview showcase, restructured for learning-first reading: shared inference mechanism first (Vertex AI embeds, Claude generates, GCS touched once), then per-candidate Inputs/Scripts/Outputs/Deploy/Inference for #1 (markdown), #2 (paper LaTeX), and #4 (Trip Records, ChromaDB), shared architecture decisions, troubleshooting, roadmap"
 metadata: 
   node_type: memory
   type: project
   originSessionId: ce8f32de-f63b-487a-88b9-e131c495bdae
-  modified: 2026-07-29T20:32:26.263Z
+  modified: 2026-08-01T20:00:00.000Z
 ---
 
 # RAG / NLG Workflow — Neoris interview showcase
 
 Read this file to understand **what happens and why**, not just what was built. Structure:
 §0 the 5-candidate roadmap, §1 the shared inference mechanism (read this first — it's the
-same for every RAG candidate, only the corpus changes), §2+ one section per candidate with
-a fixed 5-part shape (Inputs / Scripts / Outputs / Deploy to GCS / Inference notes),
-§X shared architecture decisions, §Y troubleshooting log, §Z what's next.
+same for every RAG candidate, only the corpus changes), §2-§4 one section per built candidate
+with a fixed 5-part shape (Inputs / Scripts / Outputs / Deploy to GCS / Inference notes),
+§5 shared architecture decisions, §6 UI notes, §7 troubleshooting log, §8 what's next.
 
 ## 0. The 5 candidates
 
@@ -34,7 +34,7 @@ demonstrating a different pattern:
 | 4 | RAG over serialized trip rows (row-to-text) | Classic RAG via row-to-text serialization ("Caso B" in `Agentic_Knowledge.md`) | N structured trip rows are serialized into one descriptive NL sentence each (product, fare bracket, decision, outcome, zone), then embedded — enabling genuine semantic search over otherwise-numeric/categorical data ("find trips similar to X"), the kind of ambiguity a plain `WHERE` can't resolve. Same mechanism as #1/#2 (§1), just a BigQuery-derived corpus instead of documents. |
 | 5 | Text-to-SQL (NL2SQL) | LLM translates a natural-language question into an executable SQL query — **not RAG** | Lets a non-technical user query a relational DB in plain language; the LLM never answers from its own knowledge, the DB does |
 
-**Status:** #1 and #2 built, deployed, verified. #3 retired (see above). #4–#5 are the active sprint.
+**Status:** #1, #2, and #4 built, deployed, verified. #3 retired (see above). #5 is the only remaining active-sprint candidate.
 
 **Graveyard note — deterministic tabular→NL narration (no retrieval, "Caso A"), explicitly not being built:**
 `#4` briefly carried a different definition earlier in this doc — narrating ONE already-known row via exact SQL (`WHERE offer_id = 123`) into prose, with zero retrieval involved (the insurance-claim-summary analogy: the business knows exactly which record it wants, the problem is only presentation). That's a real, named technique (NLG over structured data, distinct from RAG — see `Agentic_Knowledge.md`), and a legitimate insight (companies conflating "we need RAG" with "we actually need NLG"). But it was never what the user meant by `#4`, and at Pienza's scope has no genuine use case behind it beyond demonstrating the technique — same reasoning that retired `#3`. Deliberately not built, kept only as a verbal talking point if the RAG-vs-NLG distinction comes up in the interview.
@@ -200,14 +200,74 @@ CAMBIOS"). This is now the default for every future deploy, not just this corpus
 ### 3.5 Inference
 
 Identical mechanism to §1/§2.4 — the only difference is which parquet gets loaded, driven
-by which corpus tab is selected on the page (see §5 for the selector UI, a cosmetic detail
+by which corpus tab is selected on the page (see §6 for the selector UI, a cosmetic detail
 that doesn't change how retrieval/generation work). Verified locally via `cloudflared`
 tunnel with a real question answered correctly against this corpus.
 
 **Status: DONE locally/Codespaces. Not yet re-verified on Cloud Run production** after
 this change (#1 was re-verified in production; #2 wasn't yet).
 
-## 4. Shared architecture decisions (apply to every RAG candidate, #1 through #3+)
+## 4. RAG #4 — Trip Records (row-to-text serialization over BigQuery, ChromaDB)
+
+### 4.1 Inputs
+
+No local/gitignored source files this time — the corpus comes directly from BigQuery.
+`QUERY` in `rag_build_vectordb_trips.py` joins `v_ML_Supervised` with dimension tables
+(`offer_action`, `product_category`, `reason_primary`, `driver_state_at_request`) to pull
+one row per trip offer. Each row is serialized into one natural-language sentence via
+`row_to_sentence()` — no chunking step at all, since a row is already the right-sized
+atomic unit (see `Agentic_Knowledge.md`'s "1 chunk = 1 row" entry). Uber branding stripped
+(`_strip_uber()`) and fare/address fields obfuscated per the repo-wide anonymization
+protocol before the sentence is ever embedded.
+
+### 4.2 Scripts
+
+| File | Role |
+|---|---|
+| `observatory/scripts/rag_build_vectordb_trips.py` | Offline precompute — BQ query → `row_to_sentence()` → embed via `embed_batch()` → write to a persistent ChromaDB collection instead of a parquet |
+| `observatory/utils/vertex_embed.py` | Same shared wrapper as #1/#2 — `BATCH_SIZE` raised from 5 to 200 while building this candidate, after empirically confirming the real Vertex AI ceiling is 250 instances/request; benefits all 3 candidates since the module is shared |
+| `observatory/scripts/gcs_deploy.py` | Extended with `upload_dir()` — directory-mode uploads (`kind: "dir"` in `MANIFEST`), the one documented exception to the repo's no-subfolders-in-bucket rule, needed because a ChromaDB store is a directory of files, not a single artifact |
+| `observatory/pages/_0010_data.py` | `load_trip_collection()` (`@st.cache_resource`, downloads the ChromaDB directory from GCS to `/tmp` once per session) and `retrieve_trips()` (embeds the query, then queries the live ChromaDB collection) |
+
+Collection created with `metadata={"hnsw:space": "cosine"}` explicitly — Chroma defaults to
+L2/Euclidean distance otherwise, which would have been silently inconsistent with #1/#2's
+numpy cosine retrieval (a real bug caught and fixed during the build, required a full
+rebuild + re-upload).
+
+### 4.3 Outputs
+
+A persistent ChromaDB store, not a parquet: `chroma.sqlite3` (metadata + document text) plus
+HNSW index binaries in UUID-named subdirectories (`data_level0.bin`, `link_lists.bin`,
+`header.bin`, `length.bin`, `index_metadata.pickle`). **4,765 rows** embedded from
+`v_ML_Supervised` (build time: ~4 minutes locally).
+
+### 4.4 Deploy to GCS
+
+Uploaded as a directory to `gs://pienza-streamlit/chroma_trips/` via `gcs_deploy.py`'s new
+`upload_dir()` path (`--page 0010`, dry-run shown and approved before the real upload, as
+with every GCS write in this project).
+
+### 4.5 Inference
+
+Diverges from §1's default mechanism in the retrieval step only — generation (Claude) is
+identical. Instead of loading a parquet into memory and running numpy cosine similarity,
+`load_trip_collection()` downloads the ChromaDB directory once per session (cached), and
+`retrieve_trips()` queries the live collection via Chroma's own HNSW-indexed cosine search
+(`similarity = 1 - distance`, since Chroma returns distance, not similarity, in its cosine
+space). ChromaDB was chosen deliberately for hands-on practice with a real embedded vector
+DB, not because 4,765 rows required one — at this scale, in-memory numpy (§1's default)
+would have worked just as well; the point was demonstrating the technique, same reasoning
+already logged in `Agentic_Knowledge.md`.
+
+**Status: DONE.** Built, deployed, and verified live — including, as of this session,
+correctly selected by name under the page's new Agentic RAG tool-use routing tab (Claude
+picks this corpus for Trip-Records-shaped questions without being told to). **Known open
+item, not yet root-caused:** first load of this tab feels slow — suspects are the
+multi-file sequential GCS download, ChromaDB's own index warm-up, or the usual two-call
+embed+generate latency stacking on a cold session; needs actual profiling before proposing
+a fix (see tech debt).
+
+## 5. Shared architecture decisions (apply to every RAG candidate, #1 through #4+)
 
 - **No LLM/embedding integration existed in the repo before this** (confirmed via
   `grep -rln "anthropic\|import openai\|Claude("` — zero hits repo-wide, before #1).
@@ -231,7 +291,7 @@ this change (#1 was re-verified in production; #2 wasn't yet).
   `Agentic_Knowledge.md`'s "relational vs. vector DB" and "when RAG vs. SQL" entries for
   the general principle behind this call.
 
-## 5. UI notes (cosmetic — doesn't affect how RAG works, kept separate on purpose)
+## 6. UI notes (cosmetic — doesn't affect how RAG works, kept separate on purpose)
 
 The page's corpus picker is a horizontal stepper (numbered dots, active one highlighted
 teal) matching the visual pattern already used on page 0008, driven under the hood by
@@ -241,7 +301,7 @@ never changes. `st.components.v1.html` (used for the stepper's tab-sync script) 
 deprecated by Streamlit (removal after 2026-06-01) — migrate to `st.iframe` eventually, not
 urgent.
 
-## 6. Troubleshooting log (real incidents, also literal interview material)
+## 7. Troubleshooting log (real incidents, also literal interview material)
 
 1. **403 `Lightning dunning decision is deny`** — a pending payment on GCP billing for
    project `drivers-dilemma`. Vertex AI requires active billing, unlike the BigQuery/GCS
@@ -261,14 +321,19 @@ urgent.
    Fixed by always using the Bash tool's native `run_in_background: true` instead of a
    manual subshell — this held reliably every time it was used.
 
-## 7. What's next
+## 8. What's next
 
-Candidates #4–#5 (see §0 — #3 retired, folded into #4) are the active sprint — each new
-candidate gets sections following the same §2/§3 shape (Inputs / Scripts / Outputs / Deploy
-to GCS / Inference notes), pointing back to §1 for the shared mechanism instead of
-re-explaining it where it applies (note: #4/#5 are NLG/text-to-SQL, not classic RAG, so §1
-won't apply verbatim — expect a different mechanism section for each). A weekend pass is
-planned to evaluate the completed RAG set (#1/#2): hallucination behavior, retrieval
-quality, and (where relevant) reranking — see `Agentic_Knowledge.md`'s RAG evaluation
-roadmap entry for the metrics framework (RAGAS: faithfulness, answer relevancy, context
-precision/recall).
+Candidate #4 is now DONE (§4 — see §0, #3 retired). **Candidate #5 (Text-to-SQL) is the
+only remaining candidate**, not yet started — it gets its own section following the same
+5-part shape (Inputs / Scripts / Outputs / Deploy to GCS / Inference notes), pointing back
+to §1 for the shared mechanism where applicable (note: #5 is NL2SQL, not classic RAG, so §1
+won't apply verbatim — expect a different mechanism section). Also not yet documented here:
+conversational memory (sliding window + compaction), the system-prompt rewrite, and the
+Agentic RAG tool-use routing tab added to `0010_RAG_Assistant.py` — these are page-level
+features that apply across all 3 corpora rather than being specific to one candidate, and
+still need a write-up (a natural home would be a new §1.x subsection, since they extend the
+shared inference mechanism itself rather than any one candidate's §2-§4 section). A weekend
+pass is planned to evaluate the completed RAG set (#1/#2/#4): hallucination behavior,
+retrieval quality, and (where relevant) reranking — see `Agentic_Knowledge.md`'s RAG
+evaluation roadmap entry for the metrics framework (RAGAS: faithfulness, answer relevancy,
+context precision/recall).
