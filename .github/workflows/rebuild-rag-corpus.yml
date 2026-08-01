@@ -1,0 +1,36 @@
+name: Rebuild RAG 1 corpus (Project Docs)
+
+on:
+  schedule:
+    # Nightly, ~2am CDMX (UTC-6) -- keeps the RAG #1 corpus (rag_corpus_claude_docs.parquet)
+    # in sync with .claude/claude_docs/ without relying on someone remembering to re-run
+    # rag_build_corpus.py manually. Cost checked before adding this: full rebuild ~$0.008
+    # (Vertex AI text-embedding-004, online pricing), nightly for a month ~$0.23.
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write GCP service account key
+        run: |
+          mkdir -p observatory/.streamlit
+          echo "$GCP_SERVICE_ACCOUNT_KEY" > observatory/.streamlit/service-account.json
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Rebuild corpus (chunk + embed via Vertex AI)
+        run: python observatory/scripts/rag_build_corpus.py
+
+      - name: Upload to GCS (pre-authorized, see CLAUDE.md GCS-only asset policy)
+        run: python observatory/scripts/gcs_deploy.py --page 0010

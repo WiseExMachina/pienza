@@ -8,6 +8,7 @@ from config import FAVICON, build_page_title
 from pages._0010_data import (
     CORPORA, CLAUDE_MODEL, MAX_HISTORY_TURNS, load_corpus, retrieve,
     load_trip_collection, retrieve_trips, ask_claude, ask_claude_agentic,
+    format_token_count,
 )
 
 # ==========================================
@@ -71,6 +72,10 @@ def _render_stepper():
   font-size:0.60rem; color:#64748b;
   text-align:center; margin-top:2px; line-height:1.3;
 }
+.corpus-step-tokens {
+  font-size:0.58rem; color:#94a3b8;
+  text-align:center; margin-top:1px; line-height:1.3;
+}
 .corpus-step:hover .corpus-step-label { color:#21918c; }
 .corpus-step.corpus-active .corpus-dot {
   background:#21918c !important; border-color:#21918c !important; color:#fff !important;
@@ -82,6 +87,7 @@ def _render_stepper():
     f'<div class="corpus-dot">C{i+1}</div>'
     f'<div class="corpus-step-label">{c["label"]}</div>'
     f'<div class="corpus-step-sub">{c["sub"]}</div>'
+    f'<div class="corpus-step-tokens">{format_token_count(c["tokens"])}</div>'
     f'</div>'
     for i, c in enumerate(CORPORA)
 ) + "</div>", unsafe_allow_html=True)

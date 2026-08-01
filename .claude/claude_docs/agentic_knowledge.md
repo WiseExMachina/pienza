@@ -228,8 +228,7 @@ alucina, o retrieval malo que ni con el mejor generador se salva.
 
 **Contexto:** Se disparo al pedir un mapa honesto de que falta por aprender de
 RAG mas alla de lo ya construido en Pienza (retrieval basico via coseno,
-citacion de fuentes, prompt de grounding), pensando en preguntas de un curso o
-entrevista tecnica sobre RAG.
+citacion de fuentes, prompt de grounding).
 
 ---
 
@@ -238,11 +237,11 @@ entrevista tecnica sobre RAG.
 Entrada previa dejaba #4 (tabular -> NL narrado) como diseno verbal-only por
 "sobre-ingenieria a este volumen". El usuario corrigio el marco: el motivo real
 de construirlo no es el volumen de datos de Pienza, es un **insight de
-posicionamiento para la entrevista** — muchas empresas (incluida la que aplica
-a Neoris) asumen que su problema es "RAG" cuando en realidad necesitan **NLG
-sobre datos estructurados** (ver entrada de reportes de siniestros mas arriba),
-o ambos combinados. Saber diagnosticar eso — que la empresa pide la herramienta
-equivocada — es justo el insight de seniority que se quiere demostrar, y
+diagnostico general** — muchas empresas asumen que su problema es "RAG" cuando
+en realidad necesitan **NLG sobre datos estructurados** (ver entrada de
+reportes de siniestros mas arriba), o ambos combinados. Saber diagnosticar eso
+— que la empresa pide la herramienta equivocada — es justo el insight de
+seniority que se quiere demostrar, y
 requiere tener el modulo construido para poder hablar de el con evidencia, no
 solo describirlo.
 
@@ -456,9 +455,8 @@ aqui como un paso previo dentro del mismo pipeline en vez de una eleccion
 binaria entre uno u otro.
 
 **Contexto de ambas entradas:** tecnicas de RAG mas avanzadas mencionadas por
-el usuario en el contexto de aplicaciones de seguros/siniestros (relevante
-para la entrevista de Neoris), complementando el mapa de 4 etapas ya
-documentado.
+el usuario en el contexto de aplicaciones de seguros/siniestros, complementando
+el mapa de 4 etapas ya documentado.
 
 ---
 
@@ -642,8 +640,8 @@ por tarea, porque hace falta un ciclo de pensamiento propio, no solo I/O.
 prompting best practices de Claude, que incluye literalmente el bloque
 `<use_parallel_tool_calls>` — el mismo texto que ya vive, verbatim, en el
 system prompt del propio Claude Code usado en este proyecto. Distincion
-util para la entrevista de Neoris dado el requisito de "automatizacion de
-flujos de desarrollo" y conocimiento de subagents.
+relevante para automatizacion de flujos de desarrollo y conocimiento de
+subagents.
 
 ---
 

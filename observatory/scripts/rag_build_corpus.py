@@ -2,8 +2,10 @@
 RAG Corpus Builder — Project Pienza Observatory
 ================================================
 Offline precompute script (run manually in Codespaces, never at Streamlit runtime).
-Reads assets_ignored/claude_docs/*.md locally, chunks by markdown heading, embeds
-each chunk via Vertex AI text-embedding-004, and writes a single parquet to
+Reads .claude/claude_docs/*.md locally (the canonical, git-tracked documentation
+tree — not assets_ignored/claude_docs/, which is untracked/local-only and no
+longer where the docs actually live), chunks by markdown heading, embeds each
+chunk via Vertex AI text-embedding-004, and writes a single parquet to
 data/dumped_files/rag_corpus_claude_docs.parquet. That parquet (not the raw .md
 files) is what later gets uploaded to GCS via gcs_deploy.py for page 0010 to read.
 
@@ -22,12 +24,14 @@ import google.auth
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from utils.vertex_embed import embed_batch, BATCH_SIZE
 
-DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "assets_ignored", "claude_docs")
+DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", ".claude", "claude_docs")
 OUT_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "dumped_files", "rag_corpus_claude_docs.parquet")
 KEY_PATH = os.path.join(os.path.dirname(__file__), "..", ".streamlit", "service-account.json")
 
-# Excluded: personal/career docs, not project documentation.
-EXCLUDE = {"STAR_stories.md", "neoris_prep.md", "job_tracker.md"}
+# Personal/career docs (STAR_stories.md, job-search material) live under
+# assets_ignored/interview_prep/, outside this tree entirely — nothing left
+# here needs excluding, but keep the set for any future addition.
+EXCLUDE = set()
 
 MAX_CHARS = 1500
 OVERLAP = 150

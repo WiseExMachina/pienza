@@ -50,6 +50,8 @@ For all things BigQuery (project ID, dataset, key tables/views, canonical join p
 
 Any file consumed at runtime by a deployed app (observatory or otherwise) must live in GCS — never read from a local `/workspaces/...` path or from the repo in application code. Notebooks/Codespaces may read `pienza.db` local or BigQuery directly; this restriction is about deployed runtime code, not research environments. Bucket: `pienza-streamlit`, root-level blobs only, no subfolders. **Never run `gcs_deploy.py` or any command that writes to GCS without explicit user permission first** (free tier).
 
+**Scoped exception (2026-08-01):** the nightly RAG #1 corpus-rebuild GitHub Action (`.github/workflows/rebuild-rag-corpus.yml`) is pre-authorized to run `rag_build_corpus.py` + `gcs_deploy.py --page 0010` unattended. This is a fixed, reviewed, single-purpose automated job — not a general loosening of the rule above, which still applies to every ad-hoc/manual `gcs_deploy.py` invocation elsewhere.
+
 Full operational reference — manifest pattern, how to add a file, how to run the script, current per-page GCS status — read `.claude/claude_docs/gcs_deploy.md` in full before touching this pipeline. This is some of the most load-bearing documentation in the project; do not improvise from memory.
 
 ## Placeholder / pending callout pattern

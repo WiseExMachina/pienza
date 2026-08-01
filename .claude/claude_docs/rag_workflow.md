@@ -1,6 +1,6 @@
 ---
 name: rag-workflow
-description: "RAG/NLG initiative for Neoris interview showcase, restructured for learning-first reading: shared inference mechanism first (Vertex AI embeds, Claude generates, GCS touched once), then per-candidate Inputs/Scripts/Outputs/Deploy/Inference for #1 (markdown), #2 (paper LaTeX), and #4 (Trip Records, ChromaDB), shared architecture decisions, troubleshooting, roadmap"
+description: "RAG/NLG architecture initiative for Project Pienza, restructured for learning-first reading: shared inference mechanism first (Vertex AI embeds, Claude generates, GCS touched once), then per-candidate Inputs/Scripts/Outputs/Deploy/Inference for #1 (markdown), #2 (paper LaTeX), and #4 (Trip Records, ChromaDB), shared architecture decisions, troubleshooting, roadmap"
 metadata: 
   node_type: memory
   type: project
@@ -8,7 +8,7 @@ metadata:
   modified: 2026-08-01T20:00:00.000Z
 ---
 
-# RAG / NLG Workflow — Neoris interview showcase
+# RAG / NLG Workflow
 
 Read this file to understand **what happens and why**, not just what was built. Structure:
 §0 the 5-candidate roadmap, §1 the shared inference mechanism (read this first — it's the
@@ -18,9 +18,9 @@ with a fixed 5-part shape (Inputs / Scripts / Outputs / Deploy to GCS / Inferenc
 
 ## 0. The 5 candidates
 
-Interviewing companies in this space are posting AI Engineer / Data Scientist roles
-without a clean, orthogonal definition of the job — the tech is new enough that job specs
-are fuzzy. The strongest way to show seniority isn't to build "RAG" reflexively wherever
+The AI Engineer / Data Scientist space is still fuzzy on where RAG actually applies —
+the tech is new enough that role definitions haven't converged. The strongest way to show
+seniority isn't to build "RAG" reflexively wherever
 text shows up — it's to correctly diagnose **which** pattern a given business problem
 actually needs, including cases where a company thinks it needs RAG but actually needs
 NLG (or both). Five concrete candidates were scoped against Pienza's own data, each
@@ -37,7 +37,7 @@ demonstrating a different pattern:
 **Status:** #1, #2, and #4 built, deployed, verified. #3 retired (see above). #5 is the only remaining active-sprint candidate.
 
 **Graveyard note — deterministic tabular→NL narration (no retrieval, "Caso A"), explicitly not being built:**
-`#4` briefly carried a different definition earlier in this doc — narrating ONE already-known row via exact SQL (`WHERE offer_id = 123`) into prose, with zero retrieval involved (the insurance-claim-summary analogy: the business knows exactly which record it wants, the problem is only presentation). That's a real, named technique (NLG over structured data, distinct from RAG — see `Agentic_Knowledge.md`), and a legitimate insight (companies conflating "we need RAG" with "we actually need NLG"). But it was never what the user meant by `#4`, and at Pienza's scope has no genuine use case behind it beyond demonstrating the technique — same reasoning that retired `#3`. Deliberately not built, kept only as a verbal talking point if the RAG-vs-NLG distinction comes up in the interview.
+`#4` briefly carried a different definition earlier in this doc — narrating ONE already-known row via exact SQL (`WHERE offer_id = 123`) into prose, with zero retrieval involved (the insurance-claim-summary analogy: the business knows exactly which record it wants, the problem is only presentation). That's a real, named technique (NLG over structured data, distinct from RAG — see `Agentic_Knowledge.md`), and a legitimate insight (companies conflating "we need RAG" with "we actually need NLG"). But it was never what the user meant by `#4`, and at Pienza's scope has no genuine use case behind it beyond demonstrating the technique — same reasoning that retired `#3`. Deliberately not built, kept only as a talking point for the RAG-vs-NLG distinction.
 
 ## 1. How inference actually works, end to end (read this first)
 
@@ -76,7 +76,7 @@ one to Vertex AI (embed the question), one to Anthropic (generate the answer). G
 touched once per page load, never per question. The retrieval step (comparing vectors) is
 pure local computation — no API, no cost, no latency worth mentioning at this corpus size.
 
-**One-line answer for the interview, if asked "walk me through what happens when someone
+**One-line summary, if asked "walk me through what happens when someone
 asks a question":** *"Two API calls per question — Vertex AI embeds the question into a
 vector, then an in-memory cosine-similarity search over the precomputed corpus finds the
 closest chunks, and those chunks get handed to Claude as context to generate the answer.
@@ -87,10 +87,12 @@ separate, stateless steps."*
 
 ### 2.1 Inputs
 
-`assets_ignored/claude_docs/*.md` — the project's own internal documentation (architecture
-notes, decision logs, memory mirrors). Local-only, gitignored, never public. 30 files
-existed at build time; 3 excluded as personal/career content (`STAR_stories.md`,
-`neoris_prep.md`, `job_tracker.md`). **27 files** made the final corpus.
+`.claude/claude_docs/*.md` — the project's own canonical, git-tracked documentation
+(architecture notes, decision logs, tech debt, session ledger). **Rebuilt 2026-08-01**,
+repointed from a stale `assets_ignored/claude_docs/*.md` (untracked, predated the CLAUDE2
+reorg — see tech debt). Personal/career content (`STAR_stories.md`, job-search material)
+lives entirely outside this tree under `assets_ignored/interview_prep/`, so nothing needs
+excluding here anymore; the whole tree is public-facing project documentation by design.
 
 Privacy note: the output parquet's `text` column holds plain readable chunk text, not just
 an opaque vector — if it ever lands in a public GCS location, that text is effectively
@@ -301,7 +303,7 @@ never changes. `st.components.v1.html` (used for the stepper's tab-sync script) 
 deprecated by Streamlit (removal after 2026-06-01) — migrate to `st.iframe` eventually, not
 urgent.
 
-## 7. Troubleshooting log (real incidents, also literal interview material)
+## 7. Troubleshooting log (real incidents)
 
 1. **403 `Lightning dunning decision is deny`** — a pending payment on GCP billing for
    project `drivers-dilemma`. Vertex AI requires active billing, unlike the BigQuery/GCS

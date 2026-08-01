@@ -5,12 +5,12 @@ automáticamente al invocar `/end`.
 
 ## 2026-08-01 (sesion 3)
 
-- Sesion de tutoria conceptual pura (sin cambios de codigo) tras un mock interview con Claude.AI que revelo huecos de teoria RAG: temperature vs top-k de sampling (distinto del top-k de retrieval), hybrid search (dense + sparse/BM25), reranking con cross-encoder (por que es caro -- forward pass por candidato -- y el patron retrieve wide/rerank narrow), trade-off chunk size vs k, one-shot vs Agentic RAG, y MCP como capa de plomeria estandarizada para exponer fuentes de datos a un agente
+- Sesion de tutoria conceptual pura (sin cambios de codigo) tras un ejercicio de repaso que revelo huecos de teoria RAG: temperature vs top-k de sampling (distinto del top-k de retrieval), hybrid search (dense + sparse/BM25), reranking con cross-encoder (por que es caro -- forward pass por candidato -- y el patron retrieve wide/rerank narrow), trade-off chunk size vs k, one-shot vs Agentic RAG, y MCP como capa de plomeria estandarizada para exponer fuentes de datos a un agente
 - Se reviso el codigo real de 0010_RAG_Assistant.py y _0010_data.py en vivo para confirmar (no asumir): no hay memoria conversacional (cada pregunta es una llamada aislada a ask_claude()), y el payload de la API no manda temperature (usa el default 1.0, desalineado con el system prompt)
 - Se agregaron 4 items nuevos a tech_debt.md: memoria conversacional con gestion de context window/costos (prioridad top del usuario), query rewriting (ligado al anterior), fix de temperature (trivial, un-liner), y se corrigio el skill /knowledge para apuntar a la ruta canonica nueva (.claude/claude_docs/agentic_knowledge.md en vez de la vieja assets_ignored/)
 - Se agregaron 2 entradas nuevas a agentic_knowledge.md: reranking (mecanica de cross-encoder y por que retrieve-wide/rerank-narrow) y chunk size vs top-k como trade-off, no variable libre
 - Se armo una lista tentativa de todo el trabajo de RAG pendiente para manana (fixes a 0010, documentar #4 en rag_workflow.md, construir candidato #5 Text-to-SQL) mas fin de semana (evaluacion de RAG -- confirmado por el usuario como mandatory, no opcional -- y exploracion de LangChain)
-- Charla breve de perspectiva de carrera: validacion de que el conocimiento de primeros principios (no memorizar terminologia) es la barra correcta para la entrevista del lunes, dado que es su primer trabajo en tech y sin experiencia paga en RAG
+- Charla breve de perspectiva de aprendizaje: validacion de que el conocimiento de primeros principios (no memorizar terminologia) es la barra correcta a la hora de defender tecnicamente el diseno del RAG
 
 ## 2026-08-01 (sesion 2)
 
@@ -23,11 +23,11 @@ automáticamente al invocar `/end`.
 
 ## 2026-08-01
 
-- Sesión de EPAM/Neoris interview prep: lectura guiada de la documentación oficial de Claude Code (features-overview, tools-reference, prompting best practices) con quiz de multiple choice intercalado (20/20 en la ronda final sobre prompt engineering)
+- Sesión de estudio tecnico: lectura guiada de la documentación oficial de Claude Code (features-overview, tools-reference, prompting best practices) con quiz de multiple choice intercalado (20/20 en la ronda final sobre prompt engineering)
 - Refactor completo de CLAUDE.md: split en CLAUDE.md raíz (131 líneas, navegacional) + observatory/CLAUDE.md nuevo (67 líneas) + .claude/claude_docs/ (21 archivos) + .claude/rules/mermaid-diagrams.md, todo construido primero en un sandbox (CLAUDE2/) y promovido solo tras un diff-check exhaustivo contra el original
 - Reorganización completa de claude_docs: 25 archivos originales clasificados uno por uno (movidos, fusionados, o occam'd con razón documentada), incluyendo dos misses reales atrapados en la verificación final (project_roadmap.md y placeholder.md nunca procesados)
 - tech_debt.md unificado: se fusionaron tech_debt_claude.md (Claude) y project_tech_debt.md (usuario, TD0001+) en un solo doc canónico con Claude teniendo ahora permiso de escritura, historias completas preservadas
-- Separación de contenido personal: nuevo assets_ignored/interview_prep/ para STAR_stories.md y todo lo específico de Neoris, manteniéndolo fuera de .claude/claude_docs/ que ahora es público/tracked
+- Separación de contenido personal: nuevo assets_ignored/interview_prep/ para STAR_stories.md y material de busqueda de empleo, manteniéndolo fuera de .claude/claude_docs/ que ahora es público/tracked
 - README.md actualizado con una sección técnica real sobre el uso de Claude Code en el proyecto, reemplazando el placeholder puesto antes del sprint
 - Nuevos comandos creados: /acknowledge, /plain, /brainstorming, /star
 
@@ -42,7 +42,7 @@ automáticamente al invocar `/end`.
 
 ## 2026-07-30
 
-- Se definio la taxonomia de 5 candidatos RAG/NLG para el showcase de Neoris (RAG sobre MD, RAG sobre el paper, RAG sobre BQ texto libre, NLG tabular/reverse-RAG, text-to-SQL), documentada con el insight central de no usar RAG a huevo y saber diagnosticar RAG vs NLG segun el problema de negocio
+- Se definio la taxonomia de 5 candidatos RAG/NLG para el proyecto (RAG sobre MD, RAG sobre el paper, RAG sobre BQ texto libre, NLG tabular/reverse-RAG, text-to-SQL), documentada con el insight central de no usar RAG a huevo y saber diagnosticar RAG vs NLG segun el problema de negocio
 - Se construyo el candidato #2: extraccion de los .tex del paper desde la rama paper-dev via git show (sin checkout), stripper de LaTeX nuevo (latex_strip.py), embeddings via Vertex AI, subida a GCS con gcs_deploy.py mejorado para saltar archivos sin cambios (comparacion MD5)
 - Se agrego un selector de corpus tipo stepper horizontal en 0010_RAG_Assistant.py (mismo patron visual que 0008), y luego se refactorizo la pagina para cumplir la regla de separacion View/Model del Observatory, creando _0010_data.py
 - Se reescribio rag_workflow.md dos veces por feedback directo: primero para dejar clara la mecanica de inferencia en vivo (Vertex AI solo embebe, Claude solo genera, GCS se toca una vez por sesion no por pregunta), luego con estructura fija Inputs/Scripts/Outputs/Deploy a GCS/Inferencia por cada candidato
@@ -60,7 +60,7 @@ automáticamente al invocar `/end`.
 
 ## 2026-07-29
 
-- Se construyo el RAG MVP de punta a punta para el showcase de la entrevista de Neoris: script offline rag_build_corpus.py (chunking + embeddings via Vertex AI text-embedding-004 REST) y la nueva pagina 0010_RAG_Assistant.py (retrieval por coseno + generacion via Claude API REST)
+- Se construyo el RAG MVP de punta a punta: script offline rag_build_corpus.py (chunking + embeddings via Vertex AI text-embedding-004 REST) y la nueva pagina 0010_RAG_Assistant.py (retrieval por coseno + generacion via Claude API REST)
 - Se resolvieron tres bugs de infraestructura en cadena: billing pendiente (403 dunning), rol IAM no encontrable tras el rebrand de Vertex AI a Agent Platform, y rate limit 429 arreglado con batching + retry/backoff
 - Se subio el parquet del corpus a GCS (pienza-streamlit) y se inyecto ANTHROPIC_API_KEY a Cloud Run via patch_cloud_run.py sin tocar la imagen desplegada
 - Se documento todo el flujo en rag_workflow.md (arquitectura, troubleshooting, seccion de como leer el parquet) y se agrego una historia STAR nueva
@@ -78,8 +78,8 @@ automáticamente al invocar `/end`.
 
 ## 2026-07-28
 
-- Arrancó la prep de entrevista Neoris (AI Engineering, sector siniestros); se creó el roadmap en assets_ignored/claude_docs/neoris_prep.md
-- Se guardó contexto en memoria persistente: rol/entrevista, examen de agente de seguros (90, cedula pendiente), y la regla de ensenar-no-solo-ejecutar para esta prep
+- Arrancó la prep tecnica del proyecto (AI Engineering, sector siniestros); se creó el roadmap en assets_ignored/claude_docs/neoris_prep.md
+- Se guardó contexto en memoria persistente: examen de agente de seguros (90, cedula pendiente), y la regla de ensenar-no-solo-ejecutar para esta prep
 - Auditoria del ecosistema Claude Code de Pienza: confirmado que solo existian settings.local.json (proyecto) y settings.json (global, effortLevel low); no habia commands, hooks, skills ni subagents propios
 - Se formalizaron 6 slash commands reales: hello (prueba de concepto), cloudflared (levanta Streamlit + tunel publico, antes vivia como skill autonomo y se movio a command por control explicito), commit-msg (reglas de commit de CLAUDE.md), start (lee CLAUDE.md), end y debrief (este mismo ledger)
 - Se probo el flujo cloudflared end to end: tunel levantado, verificado, y cerrado a peticion

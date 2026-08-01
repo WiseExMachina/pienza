@@ -26,6 +26,12 @@ CHROMA_COLLECTION_NAME = "trip_offers"
 # store instead (rag_build_vectordb_trips.py) — row-to-text serialization
 # over BigQuery, candidate #4 in rag_workflow.md §0. More candidates from the
 # 5-source roadmap append here as they're built.
+# "tokens" is a static estimate (chars/4, this project's documented MVP proxy
+# — see rag_build_corpus.py) computed from the corpus artifact at build time,
+# not recalculated at page load: recomputing it live would mean eagerly
+# loading all 3 corpora (including downloading the ChromaDB directory from
+# GCS) just to render the stepper, before the user has even picked a tab.
+# Update this number by hand after rebuilding a corpus.
 CORPORA = [
     {
         "key": "claude_docs",
@@ -33,6 +39,7 @@ CORPORA = [
         "sub": "Markdown corpus",
         "file": "rag_corpus_claude_docs.parquet",
         "kind": "parquet",
+        "tokens": 81_642,
     },
     {
         "key": "paper",
@@ -40,14 +47,20 @@ CORPORA = [
         "sub": "LaTeX source",
         "file": "rag_corpus_paper.parquet",
         "kind": "parquet",
+        "tokens": 53_716,
     },
     {
         "key": "trips",
         "label": "Trip Records",
         "sub": "ChromaDB — serialized rows",
         "kind": "chromadb",
+        "tokens": 339_722,
     },
 ]
+
+
+def format_token_count(n: int) -> str:
+    return f"~{n / 1000:.0f}K tokens" if n >= 1000 else f"~{n} tokens"
 
 
 @st.cache_data(show_spinner="Loading RAG corpus...")
