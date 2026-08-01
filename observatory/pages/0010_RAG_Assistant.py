@@ -5,7 +5,10 @@ import streamlit as st
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
 from config import FAVICON, build_page_title
-from pages._0010_data import CORPORA, CLAUDE_MODEL, load_corpus, retrieve, load_trip_collection, retrieve_trips, ask_claude
+from pages._0010_data import (
+    CORPORA, CLAUDE_MODEL, MAX_HISTORY_TURNS, load_corpus, retrieve,
+    load_trip_collection, retrieve_trips, ask_claude,
+)
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -151,11 +154,65 @@ def _render_corpus_tab(corpus: dict):
         )
         return
 
-    question = st.text_input(
+    history_key = f"history_{corpus['key']}"
+    summary_key = f"summary_{corpus['key']}"
+    if history_key not in st.session_state:
+        st.session_state[history_key] = []
+    if summary_key not in st.session_state:
+        st.session_state[summary_key] = ""
+
+    st.markdown(
+        f"""
+        <div style="font-size:0.72rem;color:#64748b;margin:4px 0 10px;line-height:1.5;">
+        <span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">
+        Last {MAX_HISTORY_TURNS} turns are kept verbatim. Older turns are compacted into a
+        running summary via a small extra Haiku call, instead of being dropped — this
+        simulates the context/cost management a higher-traffic deployment would need,
+        not something this corpus size actually requires.
+        </span></span> Conversational memory: sliding window of {MAX_HISTORY_TURNS} turns + compaction
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if st.session_state[history_key]:
+        if st.button("Clear conversation", key=f"clear_{corpus['key']}"):
+            st.session_state[history_key] = []
+            st.session_state[summary_key] = ""
+            st.rerun()
+
+    for turn in st.session_state[history_key]:
+        with st.chat_message("user"):
+            st.write(turn["question"])
+        with st.chat_message("assistant"):
+            st.markdown(
+                f"""
+                <div class="bento-card" style="margin-top:4px;">
+                  <div class="bento-desc" style="font-size:0.95rem;color:#1a1a1a;line-height:1.7;">{turn["answer"]}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.caption(
+                f"Retrieval: {turn['retrieval_ms']:.0f} ms · Generation: {turn['generation_ms']:.0f} ms "
+                f"· Model: {CLAUDE_MODEL}"
+            )
+            with st.expander("Retrieved sources"):
+                for row in turn["chunks"].itertuples():
+                    st.markdown(
+                        f"""
+                        <div class="bento-card" style="margin-bottom:8px;">
+                          <span class="story-pill">{row.source_file}</span>
+                          <span style="font-size:0.75rem;color:#94a3b8;margin-left:8px;">similarity {row.similarity:.2f}</span>
+                          <div style="font-size:0.8rem;color:#475569;margin-top:8px;line-height:1.6;">{row.text[:400]}{"..." if len(row.text) > 400 else ""}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+    question = st.chat_input(
         f"Ask a question about {corpus['label']}",
-        placeholder="e.g. what's the anonymization rule for addresses?" if not is_chromadb
-        else "e.g. find trips similar to a surge-priced Comfort ride that got rejected",
-        key=f"question_{corpus['key']}",
+        key=f"chat_{corpus['key']}",
     )
 
     if question:
@@ -166,32 +223,22 @@ def _render_corpus_tab(corpus: dict):
 
         with st.spinner("Generating answer..."):
             t0 = time.perf_counter()
-            answer = ask_claude(question, top_chunks)
+            answer, updated_summary = ask_claude(
+                question, top_chunks,
+                history=st.session_state[history_key],
+                summary=st.session_state[summary_key],
+            )
             generation_ms = (time.perf_counter() - t0) * 1000
 
-        st.markdown(
-            f"""
-            <div class="bento-card" style="margin-top:12px;">
-              <div class="bento-desc" style="font-size:0.95rem;color:#1a1a1a;line-height:1.7;">{answer}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.caption(f"Retrieval: {retrieval_ms:.0f} ms · Generation: {generation_ms:.0f} ms · Model: {CLAUDE_MODEL}")
-
-        st.markdown("#### Retrieved sources")
-        for row in top_chunks.itertuples():
-            st.markdown(
-                f"""
-                <div class="bento-card" style="margin-bottom:8px;">
-                  <span class="story-pill">{row.source_file}</span>
-                  <span style="font-size:0.75rem;color:#94a3b8;margin-left:8px;">similarity {row.similarity:.2f}</span>
-                  <div style="font-size:0.8rem;color:#475569;margin-top:8px;line-height:1.6;">{row.text[:400]}{"..." if len(row.text) > 400 else ""}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        st.session_state[summary_key] = updated_summary
+        st.session_state[history_key].append({
+            "question": question,
+            "answer": answer,
+            "chunks": top_chunks,
+            "retrieval_ms": retrieval_ms,
+            "generation_ms": generation_ms,
+        })
+        st.rerun()
 
     st.markdown(
         """
