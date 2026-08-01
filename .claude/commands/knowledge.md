@@ -4,7 +4,7 @@ description: Agrega el concepto que se acaba de explicar en la conversacion a Ag
 
 Toma el concepto tecnico (RAG, NLP, despliegue de LLMs, hallucinations, reranking, etc.)
 que se acaba de explicar en el mensaje inmediato anterior de esta conversacion, y agregalo
-como una entrada nueva al final de assets_ignored/claude_docs/Agentic_Knowledge.md.
+como una entrada nueva al final de .claude/claude_docs/agentic_knowledge.md.
 
 Formato de la entrada:
 

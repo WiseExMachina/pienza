@@ -3,6 +3,34 @@
 Bitácora de resúmenes de sesión, más reciente arriba. Cada entrada se agrega
 automáticamente al invocar `/end`.
 
+## 2026-08-01 (sesion 3)
+
+- Sesion de tutoria conceptual pura (sin cambios de codigo) tras un mock interview con Claude.AI que revelo huecos de teoria RAG: temperature vs top-k de sampling (distinto del top-k de retrieval), hybrid search (dense + sparse/BM25), reranking con cross-encoder (por que es caro -- forward pass por candidato -- y el patron retrieve wide/rerank narrow), trade-off chunk size vs k, one-shot vs Agentic RAG, y MCP como capa de plomeria estandarizada para exponer fuentes de datos a un agente
+- Se reviso el codigo real de 0010_RAG_Assistant.py y _0010_data.py en vivo para confirmar (no asumir): no hay memoria conversacional (cada pregunta es una llamada aislada a ask_claude()), y el payload de la API no manda temperature (usa el default 1.0, desalineado con el system prompt)
+- Se agregaron 4 items nuevos a tech_debt.md: memoria conversacional con gestion de context window/costos (prioridad top del usuario), query rewriting (ligado al anterior), fix de temperature (trivial, un-liner), y se corrigio el skill /knowledge para apuntar a la ruta canonica nueva (.claude/claude_docs/agentic_knowledge.md en vez de la vieja assets_ignored/)
+- Se agregaron 2 entradas nuevas a agentic_knowledge.md: reranking (mecanica de cross-encoder y por que retrieve-wide/rerank-narrow) y chunk size vs top-k como trade-off, no variable libre
+- Se armo una lista tentativa de todo el trabajo de RAG pendiente para manana (fixes a 0010, documentar #4 en rag_workflow.md, construir candidato #5 Text-to-SQL) mas fin de semana (evaluacion de RAG -- confirmado por el usuario como mandatory, no opcional -- y exploracion de LangChain)
+- Charla breve de perspectiva de carrera: validacion de que el conocimiento de primeros principios (no memorizar terminologia) es la barra correcta para la entrevista del lunes, dado que es su primer trabajo en tech y sin experiencia paga en RAG
+
+## 2026-08-01 (sesion 2)
+
+- Se corrigio la ubicacion del batch size de embeddings (BATCH_SIZE 5 -> 200) tras confirmar empiricamente que el limite real de la API de Vertex AI es 250 instancias por request, no el valor conservador heredado del primer fix de rate limit
+- Se realizo una auditoria de concept drift entre el CLAUDE.md/claude_docs viejo y el canon nuevo (post-reorg CLAUDE2): se encontro que dos arboles de documentacion (assets_ignored/claude_docs/ y .claude/claude_docs/) quedaron divergiendo en vivo porque se seguia escribiendo en la ruta vieja sin saber que el canon se habia movido
+- Se reconciliaron entradas de tech debt huerfanas hacia el nuevo tech_debt.md canonico, y se decidio dejar assets_ignored/claude_docs/ intacto solo para trazabilidad (gitignoreado, sin mantenimiento activo de aqui en adelante)
+- Se encontro y recupero via git history un snippet CSS perdido (fn-below del patron de tooltip) que el reorg dejo como referencia rota a un archivo inexistente; se reinserto directo en observatory/CLAUDE.md
+- Se confirmo que la regla de STAR stories proactivas no se perdio en el reorg, se formalizo como comando /star con el mismo disparo proactivo explicito
+- Se guardo una preferencia de colaboracion: reportar avance breve entre llamadas a herramientas durante trabajo multi-paso, sin esperar aprobacion para continuar
+
+## 2026-08-01
+
+- Sesión de EPAM/Neoris interview prep: lectura guiada de la documentación oficial de Claude Code (features-overview, tools-reference, prompting best practices) con quiz de multiple choice intercalado (20/20 en la ronda final sobre prompt engineering)
+- Refactor completo de CLAUDE.md: split en CLAUDE.md raíz (131 líneas, navegacional) + observatory/CLAUDE.md nuevo (67 líneas) + .claude/claude_docs/ (21 archivos) + .claude/rules/mermaid-diagrams.md, todo construido primero en un sandbox (CLAUDE2/) y promovido solo tras un diff-check exhaustivo contra el original
+- Reorganización completa de claude_docs: 25 archivos originales clasificados uno por uno (movidos, fusionados, o occam'd con razón documentada), incluyendo dos misses reales atrapados en la verificación final (project_roadmap.md y placeholder.md nunca procesados)
+- tech_debt.md unificado: se fusionaron tech_debt_claude.md (Claude) y project_tech_debt.md (usuario, TD0001+) en un solo doc canónico con Claude teniendo ahora permiso de escritura, historias completas preservadas
+- Separación de contenido personal: nuevo assets_ignored/interview_prep/ para STAR_stories.md y todo lo específico de Neoris, manteniéndolo fuera de .claude/claude_docs/ que ahora es público/tracked
+- README.md actualizado con una sección técnica real sobre el uso de Claude Code en el proyecto, reemplazando el placeholder puesto antes del sprint
+- Nuevos comandos creados: /acknowledge, /plain, /brainstorming, /star
+
 ## 2026-07-30 (sesion 2)
 
 - Se corrigio la definicion del candidato #4: es RAG real via serializacion de filas a lenguaje natural (Caso B, no NLG determinista sin retrieval), y se practico ChromaDB como vector DB embebido a proposito (no por necesidad del volumen), para tener experiencia real con la tecnica

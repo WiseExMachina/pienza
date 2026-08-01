@@ -1,9 +1,9 @@
 ---
-description: Cierra la sesión actual — agrega un resumen de esta sesión, con fecha, a assets_ignored/claude_docs/session_ledger.md
+description: Cierra la sesión actual — agrega un resumen de esta sesión, con fecha, a .claude/claude_docs/session_ledger.md
 ---
 
 Escribe un resumen breve (3-6 bullets) de lo que se hizo en esta sesión de trabajo.
-Agrégalo como una nueva entrada al inicio del cuerpo de assets_ignored/claude_docs/session_ledger.md
+Agrégalo como una nueva entrada al inicio del cuerpo de .claude/claude_docs/session_ledger.md
 (justo debajo del encabezado, entradas más recientes arriba), con este formato:
 
 ## YYYY-MM-DD

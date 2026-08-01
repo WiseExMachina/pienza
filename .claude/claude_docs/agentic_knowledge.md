@@ -750,3 +750,91 @@ prompt aplicaria tambien a un agente de RAG propio construido sobre la API
 cruda de Anthropic.
 
 ---
+
+## 2026-08-01 — Prompt chaining is RAG-adjacent, not RAG-specific
+
+Prompt chaining is a general agentic-design pattern -- breaking a task into
+multiple separate, sequential LLM calls where each call's output becomes a
+real inspectable variable feeding the next call -- not a technique unique to
+RAG. RAG pipelines are simply a common place to apply it, because a RAG
+pipeline already has multiple natural stages that map cleanly onto separate
+calls: query rewriting before retrieval (rephrase a vague question into a
+better search query), reranking after retrieval (a cheap call re-scores
+retrieved chunks before the final generation call), and grounding
+verification after generation (a call that checks every claim in the answer
+against the retrieved chunks). But chaining applies equally to tasks with no
+retrieval at all -- classify-route-specialize for a support ticket triager,
+or plan-execute for a multi-step coding agent. The correct framing: RAG is a
+common home for chaining, chaining is not a RAG-only concept.
+
+**Contexto:** Se disparo despues de una explicacion concreta de chaining
+aplicada al RAG Assistant de Pienza (0010_RAG_Assistant.py: classify corpus
+-> generate -> verify grounding como 3 llamadas separadas en vez de un solo
+prompt gigante), seguido de la pregunta directa del usuario de si chaining es
+canon especificamente para RAGs.
+
+---
+
+## 2026-08-01 — Reranking (retrieve wide, rerank narrow)
+
+Retrieval por embeddings (cosine similarity) es rapido pero aproximado: compara
+vectores de query y chunk calculados por separado, cada uno sin ver al otro, asi
+que no evalua relevancia real para ese par especifico, solo cercania vectorial.
+
+Reranking corrige eso agregando una segunda etapa con un modelo distinto,
+tipicamente un cross-encoder: toma la query y cada chunk candidato juntos, en un
+solo forward pass (no vectores precomputados por separado), y produce un score de
+relevancia directo para ese par. Al ver query+chunk simultaneamente captura
+matices que el embedding puro no puede, pero es mucho mas caro (un forward pass
+completo por candidato) -- por eso solo se aplica sobre el top-k que ya filtro
+retrieval, nunca sobre el corpus completo.
+
+De ahi el patron "retrieve wide, rerank narrow": retrieval trae un top-k grande
+(ej. 50) para maximizar recall (no perder el chunk correcto por una diferencia
+minima de coseno), y rerank lo reordena y recorta a un top-k final chico (ej. 4)
+que es el que realmente llega a generacion. Si retrieval ya trajera solo top-4,
+el reranker no tendria margen de corregir un error de retrieval -- el chunk
+correcto ya se habria quedado fuera antes de que el reranker lo viera. Retrieval
+optimiza recall (barato, amplio); rerank optimiza precision (caro, angosto);
+son objetivos distintos y por eso usan tamanos de k distintos en cada etapa.
+
+**Contexto:** Se disparo revisando el diagrama de "Traditional RAG" que el
+usuario pego (con un paso explicito de Rerank entre Vector Database y
+Augmentation), y la pregunta directa de como funciona mecanicamente el rerank
+y por que conviene correrlo sobre un top-k grande en vez de sobre el top-k
+final chico. Ninguno de los 3 corpus del RAG Assistant de Pienza (0010) tiene
+reranking implementado — es un hueco identificado, no una feature existente.
+
+---
+
+## 2026-08-01 — Chunk size vs. top-k (trade-off, no variable libre)
+
+El tamano de chunk y el valor de k en retrieval estan inversamente relacionados:
+chunks mas grandes cubren mas contenido cada uno, asi que se necesitan menos
+(k mas bajo) para cubrir la misma cantidad de informacion; chunks mas chicos
+cubren menos cada uno, asi que se necesita un k mas alto para la misma cobertura.
+
+Pero esa relacion no significa que se pueda optimizar libremente hacia un
+extremo (chunks gigantes + k=1). Cada extremo tiene su propio costo:
+
+- Chunks grandes + k bajo: menos ruido de piezas irrelevantes, pero cada chunk
+  mezcla varios temas adentro, asi que su embedding es menos preciso (un
+  promedio de varias ideas, no una sola) -- retrieval puede fallar en
+  encontrarlo aunque solo una parte sea relevante. Ademas cada chunk pesa mas
+  tokens, asi que "menos chunks" no siempre significa menos tokens totales.
+- Chunks chicos + k alto: cada chunk es semanticamente mas preciso (una sola
+  idea), pero la respuesta puede quedar partida entre dos chunks separados y
+  ninguno solo tener el contexto completo -- el mismo problema que motiva el
+  Parent Document Retriever (recuperar el chunk chico y preciso, pero
+  adjuntarle el documento padre completo para no perder contexto).
+
+El tamano de chunk optimo no se elige solo para minimizar k -- se elige por
+donde vive el mejor balance entre precision semantica del chunk y no
+fragmentar respuestas que necesitan contexto contiguo.
+
+**Contexto:** Se disparo tras la pregunta directa del usuario de si chunks
+mas grandes permiten un top-k menor que chunks mas chicos, en la misma
+conversacion donde se explico el trade-off de reranking (retrieve wide,
+rerank narrow) para el RAG Assistant de Pienza (0010).
+
+---

@@ -54,7 +54,15 @@ CSS lives in `components/styles.py` (`GLOBAL_CSS`), already injected. Never writ
 ```html
 <span class="fn-wrap"><span class="fn-mark">†</span><span class="fn-tooltip">Footnote text.</span></span>
 ```
-Place immediately after the annotated word/phrase, no space before the `<span>`. For a below-mark variant near a page header, add the `fn-below` modifier — see `.claude/claude_docs/project_design_system.md` for the CSS override snippet.
+Place immediately after the annotated word/phrase, no space before the `<span>`. To drop the tooltip **below** the mark instead of above (e.g. near a page header), add the `fn-below` modifier and inject the override once on that page (not in `GLOBAL_CSS` — this is a per-page opt-in, not baked into the shared stylesheet):
+
+```html
+<style>
+.fn-wrap.fn-below .fn-tooltip { bottom: auto; top: 130%; }
+.fn-wrap.fn-below .fn-tooltip::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #21918c; }
+</style>
+<span class="fn-wrap fn-below"><span class="fn-mark">†</span><span class="fn-tooltip">...</span></span>
+```
 
 ## Feature store schema (0003_Feature_Store.py)
 
