@@ -152,7 +152,7 @@ To prevent UI reruns from tangling with data fetching, the Streamlit codebase us
 observatory/
 ├── assets/                  # static, shareable assets (favicon, HTML maps, geojson)
 ├── components/              # sidebar.py — canonical sidebar; styles.py — GLOBAL_CSS
-├── pages/                   # 000X_Name.py (view) + _000X_data.py (model), 9 pages
+├── pages/                   # 000X_Name.py (view) + _000X_data.py (model), 10 pages
 ├── utils/                   # bq_client.py, gcp_client.py, gcp_auth.py — BigQuery/GCS fetchers + shared credential resolution
 ├── main.py                  # home page, calls build_sidebar()
 ├── config.py                # favicon, accent color, page-title helper, author/GitHub links
