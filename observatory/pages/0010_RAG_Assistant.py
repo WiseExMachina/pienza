@@ -140,6 +140,16 @@ setTimeout(function() {
         height=0,
     )
 
+    st.markdown(
+        """
+        <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
+        <b>C1: Project Docs</b> (<code>.claude/claude_docs/</code>) refreshes automatically —
+        a nightly GitHub Action re-embeds and re-uploads it to stay in sync with the repo.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def _render_corpus_tab(corpus: dict):
     is_chromadb = corpus.get("kind") == "chromadb"

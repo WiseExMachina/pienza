@@ -63,7 +63,7 @@ def format_token_count(n: int) -> str:
     return f"~{n / 1000:.0f}K tokens" if n >= 1000 else f"~{n} tokens"
 
 
-@st.cache_data(show_spinner="Loading RAG corpus...")
+@st.cache_data(show_spinner="Loading RAG corpus...", ttl=86400)
 def load_corpus(corpus_file: str):
     df = fetch_parquet_from_gcp(CORPUS_BUCKET, corpus_file)
     if df.empty:
