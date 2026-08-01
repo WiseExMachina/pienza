@@ -165,9 +165,15 @@ observatory/
 
 ## On the Use of Claude Code
 
-This project is developed in close collaboration with Claude Code. The setup includes two project-level `CLAUDE.md` files (root and `observatory/`), along with custom commands, skills, hooks, and rules that codify project conventions and workflows. Deeper documentation of decisions, tech debt, and working conventions lives in a dedicated `claude_docs/` directory.
+This project is developed in close collaboration with Claude Code. Early on, the `.claude/` configuration was gitignored, kept as an untracked local convenience rather than part of the repository. As the use of Claude Code on this project was formalized, that changed: the setup below is now version-controlled alongside the code, deliberately structured rather than ad hoc:
 
-As of this README's last publication, this Claude Code setup is undergoing a refactor to formalize these conventions more rigorously.
+- **Two-tier `CLAUDE.md`** — a lean root file that orients Claude to the repo and points to deeper resources rather than embedding everything, plus a nested `observatory/CLAUDE.md` that loads only when working inside that subsystem, keeping unrelated context out of scope. Both are kept under 200 lines, per Anthropic's official documentation on context-file length.
+- **`.claude/claude_docs/`** — reference material intentionally kept out of the always-loaded context: a unified tech debt backlog, an incidents log of diagnosed bugs (so they aren't re-debugged), deployment runbooks, prompt engineering conventions, and architecture decision records.
+- **`.claude/rules/`** — path-scoped conventions that load automatically only when Claude touches matching files, instead of loading repo-wide.
+- **Custom commands** (`.claude/commands/`) — for recurring workflows: commit message formatting, session handoffs, and structured knowledge capture from technical decisions made during development.
+
+This setup is itself a work in progress — the last pass (2026-08-01) split a single 460-line context file into this structure; a few items (further de-duplication, formal subagents and hooks) are still open and tracked in the project's own tech debt log.
+
 
 <br>
 
