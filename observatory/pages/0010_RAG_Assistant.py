@@ -5,10 +5,11 @@ import streamlit as st
 from components.sidebar import build_sidebar
 from components.styles import GLOBAL_CSS
 from config import FAVICON, build_page_title
+from _main_data import svg_data_uri
 from pages._0010_data import (
     CORPORA, CLAUDE_MODEL, MAX_HISTORY_TURNS, load_corpus, retrieve,
     load_trip_collection, retrieve_trips, ask_claude, ask_claude_agentic,
-    format_token_count,
+    format_token_count, SYSTEM_PROMPT, REASONING_SYSTEM_PROMPT, SAMPLE_QUESTIONS,
 )
 
 # ==========================================
@@ -34,6 +35,18 @@ st.markdown(
     corpus yourself under <b>Manual Retrieval</b>, or let Claude pick it via tool-use routing
     under <b>Agentic RAG</b>.
     </p>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <style>
+    [data-testid="stChatMessageAvatarUser"],
+    [data-testid="stChatMessageAvatarAssistant"] {
+        background-color: rgba(33,145,140,0.10);
+    }
+    </style>
     """,
     unsafe_allow_html=True,
 )
@@ -140,15 +153,33 @@ setTimeout(function() {
         height=0,
     )
 
-    st.markdown(
-        """
-        <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:24px;'>
-        <b>C1: Project Docs</b> (<code>.claude/claude_docs/</code>) refreshes automatically —
-        a nightly GitHub Action re-embeds and re-uploads it to stay in sync with the repo.
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
+
+CORPUS_REFRESH_NOTE: dict[str, str] = {
+    "claude_docs": (
+        "<b>C1: Project Docs</b> (<code>.claude/claude_docs/</code>) refreshes "
+        "automatically — a nightly GitHub Action re-embeds and re-uploads it to stay "
+        "in sync with the repo."
+    ),
+    "paper": (
+        "<b>C2: The Pienza Papers</b> is sourced from the <code>paper-dev</code> "
+        "branch's <code>.tex</code> chapters (fetched via <code>git show</code>, no "
+        "checkout) — rebuilt manually, not on an automated schedule."
+    ),
+    "trips": (
+        "<b>C3: Trip Records</b> is sourced from BigQuery's "
+        "<code>v_ML_Supervised</code> view, serialized row-to-text and stored in "
+        "ChromaDB — rebuilt manually, not on an automated schedule. "
+        "<span class=\"fn-wrap\"><span class=\"fn-mark\">RAG Limitation</span>"
+        "<span class=\"fn-tooltip\">Top-k retrieval can't answer aggregations "
+        "(ranges, counts, averages) — that needs a full table scan, which is a "
+        "Text-to-SQL problem, not RAG.</span></span>"
+    ),
+    "codebase": (
+        "<b>C4: Codebase</b> is sourced from <code>observatory/</code>'s own Python "
+        "files, AST-chunked per function/class — rebuilt manually, not on an "
+        "automated schedule."
+    ),
+}
 
 
 def _render_corpus_tab(corpus: dict):
@@ -178,27 +209,68 @@ def _render_corpus_tab(corpus: dict):
         )
         return
 
+    st.markdown(
+        f"""
+        <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:8px;'>
+        {CORPUS_REFRESH_NOTE.get(corpus["key"], "")}
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
     history_key = f"history_{corpus['key']}"
     summary_key = f"summary_{corpus['key']}"
+    mode_key = f"mode_{corpus['key']}"
     if history_key not in st.session_state:
         st.session_state[history_key] = []
     if summary_key not in st.session_state:
         st.session_state[summary_key] = ""
+    if mode_key not in st.session_state:
+        st.session_state[mode_key] = "strict"
 
     st.markdown(
-        f"""
-        <div style="font-size:0.72rem;color:#64748b;margin:4px 0 10px;line-height:1.5;">
-        Conversational memory: sliding window of {MAX_HISTORY_TURNS} turns + compaction
-        <span class="fn-wrap"><span class="info-mark">i</span><span class="fn-tooltip">
-        Last {MAX_HISTORY_TURNS} turns are kept verbatim. Older turns are compacted into a
-        running summary via a small extra Haiku call, instead of being dropped — this
-        simulates the context/cost management a higher-traffic deployment would need,
-        not something this corpus size actually requires.
-        </span></span>
-        </div>
+        """
+        <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:8px;'>
+        Toggle between two system prompts: <b>Strict Grounding</b> only answers from
+        retrieved context; <b>Reasoning Mode</b> may extrapolate but must disclose it.
+        Expand below to see the exact system prompt for each mode.
+        </p>
         """,
         unsafe_allow_html=True,
     )
+
+    mode_col1, mode_col2 = st.columns([1, 3])
+    with mode_col1:
+        reasoning_on = st.toggle(
+            "Reasoning Mode",
+            value=(st.session_state[mode_key] == "reasoning"),
+            key=f"toggle_{corpus['key']}",
+        )
+        st.session_state[mode_key] = "reasoning" if reasoning_on else "strict"
+    with mode_col2:
+        active_prompt = REASONING_SYSTEM_PROMPT if reasoning_on else SYSTEM_PROMPT
+        mode_label = "Reasoning Mode" if reasoning_on else "Strict Grounding"
+        st.markdown(
+            f"""
+            <div style="font-size:0.72rem;color:#64748b;margin-top:10px;line-height:1.5;">
+            Active: <b style="color:#21918c;">{mode_label}</b>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with st.expander(f"View system prompt — {mode_label}"):
+        st.markdown(
+            f"""
+            <div style="max-height:350px;overflow-y:auto;overflow-x:hidden;
+                 white-space:pre-wrap;word-wrap:break-word;font-family:monospace;
+                 font-size:0.8rem;line-height:1.5;background:#f8f9fa;border:1px solid #e5e5e5;
+                 border-radius:8px;padding:14px;color:#1a1a1a;">
+            {active_prompt.format(corpus_label=corpus["label"])}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     if st.session_state[history_key]:
         if st.button("Clear conversation", key=f"clear_{corpus['key']}"):
@@ -207,9 +279,9 @@ def _render_corpus_tab(corpus: dict):
             st.rerun()
 
     for turn in st.session_state[history_key]:
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar=svg_data_uri("user")):
             st.write(turn["question"])
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar=svg_data_uri("bot")):
             st.markdown(
                 f"""
                 <div class="bento-card" style="margin-top:4px;">
@@ -235,10 +307,38 @@ def _render_corpus_tab(corpus: dict):
                         unsafe_allow_html=True,
                     )
 
+    st.markdown(
+        f"""
+        <div style="font-size:0.72rem;color:#64748b;margin:14px 0 6px;line-height:1.5;">
+        Start simply by asking Claude "What can I ask?" or expand the example
+        questions below.
+        <br>Conversational memory: sliding window of {MAX_HISTORY_TURNS} turns + compaction
+        <span class="fn-wrap"><span class="info-mark">i</span><span class="fn-tooltip">
+        Last {MAX_HISTORY_TURNS} turns are kept verbatim. Older turns are compacted into a
+        running summary via a small extra Haiku call, instead of being dropped — this
+        simulates the context/cost management a higher-traffic deployment would need,
+        not something this corpus size actually requires.
+        </span></span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    sample_key = f"sample_select_{corpus['key']}"
+    selected_sample = st.selectbox(
+        "Example questions",
+        options=["Choose an example question..."] + SAMPLE_QUESTIONS.get(corpus["key"], []),
+        key=sample_key,
+        label_visibility="collapsed",
+    )
+
     question = st.chat_input(
         f"Ask a question about {corpus['label']}",
         key=f"chat_{corpus['key']}",
     )
+    if selected_sample != "Choose an example question..." and st.session_state.get(f"{sample_key}_prev") != selected_sample:
+        st.session_state[f"{sample_key}_prev"] = selected_sample
+        question = selected_sample
 
     if question:
         with st.spinner("Retrieving relevant passages..."):
@@ -252,6 +352,7 @@ def _render_corpus_tab(corpus: dict):
                 question, top_chunks, corpus["label"],
                 history=st.session_state[history_key],
                 summary=st.session_state[summary_key],
+                mode=st.session_state[mode_key],
             )
             generation_ms = (time.perf_counter() - t0) * 1000
 
@@ -315,9 +416,9 @@ def _render_agentic_tab():
             st.rerun()
 
     for turn in st.session_state[history_key]:
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar=svg_data_uri("user")):
             st.write(turn["question"])
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar=svg_data_uri("bot")):
             if turn["corpus_label"]:
                 st.markdown(
                     f'<span class="story-pill">Queried: {turn["corpus_label"]}</span>',

@@ -902,3 +902,40 @@ cosine similarity se usa dos veces en el pipeline (para cortar y para
 retrieval) -- confirmado que si, pero son dos comparaciones distintas.
 
 ---
+
+## 2026-08-02 — Retrieval es fresco por turno (no acumulativo), y por que RAG top-k no puede responder agregaciones
+
+Dos conceptos relacionados que surgieron juntos:
+
+1. **Cada pregunta en un chat RAG dispara su propio retrieval independiente.**
+   No existe un "top-k inicial" sobre el que luego se hacen sub-preguntas --
+   cada turno nuevo re-embebe la pregunta de ESE turno y vuelve a buscar
+   contra toda la coleccion desde cero. La memoria conversacional (historial
+   de turnos previos) solo viaja como texto en los mensajes para dar
+   continuidad conversacional (resolver pronombres, referencias implicitas),
+   nunca reutiliza o acumula los chunks recuperados en turnos anteriores.
+
+2. **RAG top-k sobre datos tabulares serializados a lenguaje natural (row-to-text)
+   no puede responder preguntas de agregacion.** Si cada fila de una tabla se
+   convierte en una oracion y se embebe, una pregunta como "cual es el rango de
+   fares de las ofertas aceptadas" solo recupera un top-k pequeno (ej. 4 filas)
+   semanticamente similares a esa pregunta -- nunca escanea la tabla completa.
+   El resultado es una respuesta basada en una muestra sesgada por similitud
+   semantica, no un calculo real sobre todos los datos. Esto no es un bug de
+   implementacion, es una limitante de categoria: RAG responde "que dice X
+   sobre Y" (busqueda semantica sobre contenido), no "cual es el min/max/avg/
+   count de X" (agregacion exacta sobre una tabla). Ese segundo tipo de
+   pregunta es exactamente el caso de uso que le corresponde a Text-to-SQL
+   (generar una query SQL real que agregue sobre la tabla completa), no a RAG
+   -- diagnosticar cual de las dos herramientas usar segun la forma de la
+   pregunta es la habilidad central que este proyecto busca demostrar.
+
+**Contexto:** Se disparo al revisar en vivo una conversacion en el tab de
+Trip Records (candidato #4, ChromaDB) donde una pregunta de rango de fares
+devolvio una respuesta correcta pero inutil ("no puedo determinar un rango,
+las 4 filas recuperadas tienen fare redactado") -- llevando a la pregunta de
+si el top-k se comparte entre turnos (no) y por que ese tipo de pregunta es
+estructuralmente dificil para RAG en este corpus (row-to-text + top-k
+pequeno, sin capacidad de agregacion real).
+
+---

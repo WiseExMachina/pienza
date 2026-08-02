@@ -14,6 +14,8 @@ NAV_ICONS: dict[str, str] = {
     "zap": '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
     "send": '<line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>',
     "message-square": '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>',
+    "bot": '<rect x="5" y="8" width="14" height="12" rx="2"></rect><line x1="12" y1="2" x2="12" y2="8"></line><circle cx="12" cy="2" r="1.4" fill="#21918c" stroke="none"></circle><line x1="9" y1="13" x2="9" y2="15"></line><line x1="15" y1="13" x2="15" y2="15"></line><line x1="2" y1="13" x2="5" y2="13"></line><line x1="19" y1="13" x2="22" y2="13"></line>',
+    "user": '<path d="M18.5 20v-1.5a3.3 3.3 0 00-3.3-3.3h-6.4a3.3 3.3 0 00-3.3 3.3V20"></path><circle cx="12" cy="7.5" r="3.3"></circle>',
 }
 
 
@@ -22,6 +24,19 @@ def nav_icon(name: str, size: int = 20) -> str:
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24" '
             f'fill="none" stroke="#21918c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
             f'style="vertical-align:-4px;margin-right:8px;">{NAV_ICONS[name]}</svg>')
+
+
+def svg_data_uri(name: str, size: int = 32) -> str:
+    """Builds a standalone teal SVG icon as a base64 data-URI, keyed by name in
+    NAV_ICONS — for surfaces that require an image path/URL rather than inline
+    HTML (e.g. st.chat_message's avatar= param, which only accepts an emoji,
+    a :material/...: string, or an image reference)."""
+    import base64
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24" '
+           f'fill="none" stroke="#21918c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+           f'{NAV_ICONS[name]}</svg>')
+    b64 = base64.b64encode(svg.encode()).decode()
+    return f"data:image/svg+xml;base64,{b64}"
 
 
 # 9-Module List for the 3x3 Grid: (page path, icon name, title, description)

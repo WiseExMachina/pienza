@@ -4,6 +4,16 @@ Things that have already gone wrong once, with root cause and resolution, so the
 
 ---
 
+## 2026-08-02 — RAG #2 (The Pienza Papers) retrieval misses a relevant passage on the first phrasing, finds it on a rephrase
+
+Observed live (Manual Retrieval, C2 — The Pienza Papers): asking "How the the project managed the bias variance tradeoff?" retrieved passages about hierarchical classification and stratified K-fold, correctly declined to claim they were an explicit bias-variance strategy, and correctly suggested the answer might be in an unretrieved section. The actual bias-variance passage (the lightweight 6-feature model, 23.8% -> 10.6% generalization gap, EPH validation) exists in the corpus but wasn't in the top-k for that phrasing. A same-thread follow-up, "nothing on a lightweight model?", retrieved it correctly and answered in full with citations.
+
+**Root cause not fixed, just diagnosed**: top-k=4 (`TOP_K` in `_0010_data.py`) plain cosine similarity over markdown/LaTeX-heading chunks means a query phrased at the wrong abstraction level ("bias variance tradeoff" as a general ML concept) can miss a chunk that discusses the same idea under different concrete terms ("lightweight model", "generalization gap") without those exact words. This is not a code bug — the model behaved correctly both times (honest "not found" first, grounded answer second) — it's a retrieval-recall gap inherent to single-vector top-k without query expansion/rewriting or hybrid keyword search.
+
+**Not fixed now, deliberately** — logged here and cross-referenced in `tech_debt.md` under the RAG workflow section. Candidates already on record that would help: hybrid search (BM25 + vector, already flagged as a cross-corpus future item) and/or a higher `TOP_K` for corpora with fewer, denser chunks like The Pienza Papers specifically.
+
+---
+
 ## 2026-07-09 — Recurring Streamlit rerun/fragment bug patterns found during the latency pass
 
 Four distinct bug patterns surfaced while doing a page-by-page latency audit of the Observatory. Apply these checks to any page touched going forward, not just the ones already fixed.
