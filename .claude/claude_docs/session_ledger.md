@@ -3,6 +3,15 @@
 Bitácora de resúmenes de sesión, más reciente arriba. Cada entrada se agrega
 automáticamente al invocar `/end`.
 
+## 2026-08-01 (sesion 4)
+
+- Se repointeo el corpus de RAG #1 de assets_ignored/claude_docs/ (viejo, untracked) a .claude/claude_docs/ (canonico), y se scrubbeo framing de certificado/entrevista de 6 archivos que alimentan ese corpus, tras detectar que una respuesta del RAG citaba un certificado educativo y framing de busqueda de empleo
+- Se encontro y arreglo un bug real de Vertex AI en el camino: limite de 20,000 tokens por request (distinto al limite de 250 instancias ya conocido) — embed_batch() en vertex_embed.py ahora sub-divide internamente respetando ambos limites, beneficia a los 3 scripts que la usan
+- Se construyo un GitHub Action nocturno (rebuild-rag-corpus.yml) que rebuildea y sube el corpus de RAG #1 automaticamente, con una excepcion acotada y documentada en CLAUDE.md a la regla de nunca escribir a GCS sin permiso explicito; costo verificado antes de construirlo (~$0.23/mes, despreciable); verificado en vivo end-to-end tras un primer intento fallido por un secret de GitHub guardado vacio
+- Se agrego el tab Agentic RAG a 0010: Claude elige el corpus via tool use real (no cosmetico) en vez de que el usuario pique el stepper; se encontraron y arreglaron 2 bugs de CSS/JS al anidar tabs, y un system prompt enganoso que sonaba agentico sin serlo
+- Se agrego token count real por corpus en el stepper de Manual Retrieval (calculado del artefacto real, no inventado) y un ttl=86400 a load_corpus() para que una instancia de Cloud Run que lleve dias corriendo recoja el rebuild nocturno sin necesitar cold start
+- Se diagnostico una pregunta real de costo de Cloud Run citando el incidente ya documentado (conexiones websocket de pestanas propias dejadas abiertas, no bots) en vez de reinvestigar desde cero
+
 ## 2026-08-01 (sesion 3)
 
 - Sesion de tutoria conceptual pura (sin cambios de codigo) tras un ejercicio de repaso que revelo huecos de teoria RAG: temperature vs top-k de sampling (distinto del top-k de retrieval), hybrid search (dense + sparse/BM25), reranking con cross-encoder (por que es caro -- forward pass por candidato -- y el patron retrieve wide/rerank narrow), trade-off chunk size vs k, one-shot vs Agentic RAG, y MCP como capa de plomeria estandarizada para exponer fuentes de datos a un agente

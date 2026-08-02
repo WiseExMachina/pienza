@@ -225,6 +225,12 @@ MANIFEST = [
         "local": "rag_corpus_paper.parquet",
         "gcs":   "rag_corpus_paper.parquet",
     },
+    # 0010 - RAG Assistant (Codebase corpus, candidate #6, AST-chunked Python source)
+    {
+        "page": "0010",
+        "local": "rag_corpus_codebase.parquet",
+        "gcs":   "rag_corpus_codebase.parquet",
+    },
     # 0010 - RAG Assistant (trip-row ChromaDB, candidate #4). "kind": "dir" is
     # the one deliberate exception to the no-subfolders rule below: a
     # ChromaDB PersistentClient writes a directory of files (chroma.sqlite3 +

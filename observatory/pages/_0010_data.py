@@ -56,6 +56,14 @@ CORPORA = [
         "kind": "chromadb",
         "tokens": 339_722,
     },
+    {
+        "key": "codebase",
+        "label": "Codebase",
+        "sub": "Python source — AST chunked",
+        "file": "rag_corpus_codebase.parquet",
+        "kind": "parquet",
+        "tokens": 250_150,
+    },
 ]
 
 
@@ -340,14 +348,18 @@ AGENTIC_SYSTEM_PROMPT = (
     "manual-retrieval mode elsewhere on this page (where the user picks a corpus tab "
     "themselves), here YOU decide which corpus to query based on the question — this "
     "is real tool-use routing, not a cosmetic label.\n\n"
-    "There are three corpora, each exposed to you as a tool:\n"
+    "There are four corpora, each exposed to you as a tool:\n"
     "1. query_claude_docs — Project Docs: this repository's own markdown documentation "
     "(conventions, architecture notes, tech debt, deployment canon).\n"
     "2. query_paper — The Pienza Papers: a LaTeX-sourced technical paper describing the "
     "project's design and modeling decisions in long-form prose.\n"
     "3. query_trips — Trip Records: individual BigQuery rows from a ride-hailing offers "
     "view, serialized into natural-language sentences describing single trip offers "
-    "(fare, product type, offer outcome, driver state, etc.).\n\n"
+    "(fare, product type, offer outcome, driver state, etc.).\n"
+    "4. query_codebase — Codebase: this project's own Python source (Streamlit pages, "
+    "utils, components, scripts), chunked per-function/class via AST parsing — use this "
+    "for questions about where something is implemented, how a function works, or what "
+    "calls what.\n\n"
     "For every question, call exactly ONE of these tools — the one most likely to "
     "contain the answer — before responding. Do not answer from your own knowledge "
     "without calling a tool first, and do not call more than one tool for a single "
