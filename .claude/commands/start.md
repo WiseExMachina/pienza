@@ -1,5 +1,5 @@
 ---
-description: Carga el contexto inicial del proyecto Pienza — lee assets_ignored/CLAUDE.md completo
+description: Carga el contexto inicial del proyecto Pienza — lee CLAUDE.md (raiz) completo
 ---
 
-Lee assets_ignored/CLAUDE.md completo antes de continuar.
+Lee CLAUDE.md (raiz del repo) completo antes de continuar.

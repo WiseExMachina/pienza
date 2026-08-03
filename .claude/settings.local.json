@@ -7,13 +7,52 @@
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); import re; blocked = bool(re.search(r'git\\\\s+commit', c)); print(json.dumps({'decision': 'block', 'reason': 'BLOQUEADO: Claude nunca ejecuta git commit por su cuenta (regla de CLAUDE.md). Entrega el mensaje de commit y detente; el usuario corre el commit el mismo.'})) if blocked else None\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); c=d.get('tool_input',{}).get('command',''); hit = 'gcs_deploy.py' in c and '--dry-run' not in c; print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'additionalContext': 'RECORDATORIO para Claude: este comando sube archivos a GCS (free tier). Confirma permiso explicito del usuario antes de correr esto sin --dry-run, por regla de CLAUDE.md.'}})) if hit else None\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path',''); (p.startswith('observatory/scripts/') or p.startswith('observatory/utils/') or '/observatory/scripts/' in p or '/observatory/utils/' in p) and print(json.dumps({'systemMessage': 'RECORDATORIO: archivo nuevo en scripts/utils detectado (' + p + ') -> confirma si files_dict.md necesita una entrada nueva.', 'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': 'RECORDATORIO para Claude: se creo un archivo nuevo en scripts/utils (' + p + '). Preguntale al usuario si hay que agregar una entrada en files_dict.md.'}}))\""
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path',''); (p.startswith('observatory/scripts/') or p.startswith('observatory/utils/') or '/observatory/scripts/' in p or '/observatory/utils/' in p) and print(json.dumps({'systemMessage': 'RECORDATORIO: archivo nuevo en scripts/utils detectado (' + p + ') -> confirma si files_dictionary.md necesita una entrada nueva.', 'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': 'RECORDATORIO para Claude: se creo un archivo nuevo en scripts/utils (' + p + '). Preguntale al usuario si hay que agregar una entrada en .claude/claude_docs/files_dictionary.md.'}}))\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path',''); hit = ('/pages/' in p or p.startswith('pages/')) and p.endswith('.py'); print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': 'RECORDATORIO para Claude: se edito una pagina del Observatory (' + p + '). Si muestra upfront_fare, bonus, o direcciones crudas de BigQuery, verifica que se aplique el protocolo de anonimizacion (_obf_fare / _obf_address) por regla de CLAUDE.md.'}})) if hit else None\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json; print(json.dumps({'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext': 'Sesion nueva iniciada. Lee CLAUDE.md (raiz del repo) completo antes de continuar, igual que haria /start.'}}))\""
           }
         ]
       }

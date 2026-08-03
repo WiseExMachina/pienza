@@ -9,6 +9,7 @@ relevante). Antes de escribir cualquier archivo:
    donde este evento deberia vivir, en vez de crear uno nuevo.
 2. Propon EXACTAMENTE: en que archivo (existente o nuevo, con nombre), que seccion,
    y el texto exacto que se agregaria. Muestra el diff/texto propuesto, no lo escribas todavia.
-3. Si el archivo tambien tiene mirror en assets_ignored/claude_docs/, dilo explicitamente.
+3. El canon trackeado en git vive en .claude/claude_docs/ (no assets_ignored/, que ahora
+   solo se usa para STAR_stories.md, personal). Si el archivo relevante vive ahi, dilo.
 4. Espera confirmacion explicita del usuario antes de escribir en cualquier archivo.
 5. No crees un archivo de memoria nuevo si el evento cabe razonablemente en uno existente.

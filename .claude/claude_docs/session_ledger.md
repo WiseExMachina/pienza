@@ -1,7 +1,24 @@
 # Session Ledger
-
 Bitácora de resúmenes de sesión, más reciente arriba. Cada entrada se agrega
 automáticamente al invocar `/end`.
+
+## 2026-08-03 (sesion hooks, verificacion)
+
+- Se probaron uno por uno los 5 hooks nuevos escritos en la sesion anterior (ninguno habia sido confirmado salvo el de files_dictionary)
+- SessionStart confirmado real: el additionalContext inyectado coincidio exactamente con el system-reminder recibido al abrir esta sesion, sin necesitar Reload Window explicito
+- Bloqueo de git commit confirmado: un commit de prueba fue bloqueado con el mensaje esperado (decision block) y nunca se ejecuto
+- Dirty flag confirmado extremo a extremo: un Edit disparo touch /tmp/pienza_session_dirty, el Stop subsecuente aviso correctamente mientras el archivo existia
+- Metodo de verificacion aplicado: usar el sentinel /tmp/pienza_session_dirty como prueba objetiva en vez de confiar solo en la UI, tal como se aprendio en sesion anterior
+- Pendiente para la proxima sesion: confirmar que /end limpia el dirty flag y que un Stop posterior ya no avisa, y probar el hook de anonimizacion en pages/*.py (y opcionalmente el guardrail de gcs_deploy.py con --dry-run)
+
+## 2026-08-03 (sesion hooks)
+
+- Se descubrio la migracion de canon: .claude/claude_docs/ (trackeado en git) reemplaza a assets_ignored/claude_docs/ como fuente de verdad; assets_ignored/ sigue viva solo para STAR_stories.md (personal, no compartido)
+- Se corrigieron las rutas de los commands start, debrief y canonize para apuntar al canon nuevo (CLAUDE.md raiz y .claude/claude_docs/session_ledger.md)
+- Se revisaron los hooks pendientes en tech_debt.md (identificados por el usuario en otro chat: bloqueo de git commit, guardrail de gcs_deploy.py) y se combinaron con la lista original de 6 ideas
+- Se implementaron 5 hooks nuevos en settings.local.json: PreToolUse bloqueando git commit (decision block, regla dura no sugerencia), PreToolUse guardrail en gcs_deploy.py sin --dry-run, PostToolUse verificacion de anonimizacion al editar pages/*.py, SessionStart auto-inyectando la instruccion de leer CLAUDE.md, y Stop recordando correr /end
+- Confirmados funcionando en esta misma sesion (sin necesitar Reload Window esta vez): el hook Stop (se disparo repetidamente al final del turno) y el hook PostToolUse de files_dictionary (confirmado en sesion anterior)
+- Pendiente de confirmar: git commit block, gcs_deploy.py guardrail, SessionStart, y anonimizacion en pages/*.py — ninguno se ha probado todavia en esta sesion
 
 ## 2026-08-03
 
