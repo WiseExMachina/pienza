@@ -1,5 +1,6 @@
 """Data literals and pure helpers used by 0010_RAG_Assistant.py (Layer 1 extraction)."""
 
+import json
 import os
 
 import numpy as np
@@ -7,7 +8,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
-from utils.gcp_client import fetch_parquet_from_gcp, download_prefix_from_gcs
+from utils.gcp_client import fetch_parquet_from_gcp, download_prefix_from_gcs, fetch_bytes_from_gcs
 from utils.gcp_auth import get_gcp_credentials
 from utils.vertex_embed import embed_text
 
@@ -119,12 +120,98 @@ def load_corpus(corpus_file: str):
     return df, matrix
 
 
+@st.cache_data(show_spinner="Loading RAG eval comparison...", ttl=86400)
+def load_eval_comparison():
+    """Reads the offline-computed rag_eval_compare.py output from GCS. Read-only —
+    the RAG Eval tab never runs an eval live, it only displays a precomputed result."""
+    raw = fetch_bytes_from_gcs(CORPUS_BUCKET, "rag_eval_comparison.json")
+    return json.loads(raw)
+
+
 def retrieve(question: str, df, matrix, k: int = TOP_K):
     credentials = get_gcp_credentials()
     query_vec = np.array(embed_text(question, PROJECT_ID, credentials))
     sims = matrix @ query_vec / (np.linalg.norm(matrix, axis=1) * np.linalg.norm(query_vec) + 1e-10)
     top_idx = np.argsort(-sims)[:k]
     return df.iloc[top_idx].assign(similarity=sims[top_idx])
+
+
+@st.cache_resource(show_spinner="Building BM25 index...")
+def _load_bm25_index(corpus_file: str):
+    """Builds a BM25Okapi index over a corpus's chunk text, cached per corpus
+    (BM25Okapi isn't a DataFrame, so it needs its own cache entry alongside
+    load_corpus()'s @st.cache_data). Tokenization is a plain .lower().split() —
+    intentionally simple, matching this project's MVP-first chunking/retrieval
+    style elsewhere (e.g. chunk_markdown()'s heading-based split)."""
+    from rank_bm25 import BM25Okapi
+    df, _ = load_corpus(corpus_file)
+    tokenized = [str(t).lower().split() for t in df["text"].tolist()]
+    return BM25Okapi(tokenized), df
+
+
+def retrieve_hybrid(question: str, df, matrix, k: int = TOP_K, alpha: float = 0.5, corpus_file: str | None = None):
+    """Hybrid retrieval: blends cosine similarity (semantic) with BM25 (lexical/
+    keyword) scores, min-max normalized separately then combined via
+    alpha*cosine + (1-alpha)*bm25. Meant to fix the vocabulary-mismatch gap
+    documented in incidents_log.md (2026-08-02 RAG #2 entry) — a query using
+    different words than the source passage (e.g. "bias variance tradeoff" vs.
+    "lightweight model"/"generalization gap") can miss on pure cosine similarity;
+    BM25's exact keyword matching complements it. alpha=0.5 is an unstudied
+    starting default — the --config hybrid eval run is what should inform tuning
+    it further, not a guess made here.
+
+    Same DataFrame contract as retrieve() (chunk_id/source_file/heading/text/
+    similarity) so ask_claude() and every render call site work unchanged. Trip
+    Records is out of scope (see plan) — ChromaDB doesn't expose a flat corpus
+    text list to build a full BM25 index against without a separate query, so
+    hybrid search here would need a different, narrower "rerank within the
+    ChromaDB-returned candidates" design — not built in this pass."""
+    bm25, bm25_df = _load_bm25_index(corpus_file) if corpus_file else (None, df)
+
+    credentials = get_gcp_credentials()
+    query_vec = np.array(embed_text(question, PROJECT_ID, credentials))
+    cosine_sims = matrix @ query_vec / (np.linalg.norm(matrix, axis=1) * np.linalg.norm(query_vec) + 1e-10)
+
+    bm25_scores = np.array(bm25.get_scores(question.lower().split()))
+
+    def _min_max(x):
+        rng = x.max() - x.min()
+        return (x - x.min()) / rng if rng > 1e-10 else np.zeros_like(x)
+
+    blended = alpha * _min_max(cosine_sims) + (1 - alpha) * _min_max(bm25_scores)
+    top_idx = np.argsort(-blended)[:k]
+    return df.iloc[top_idx].assign(similarity=blended[top_idx])
+
+
+CROSS_ENCODER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+
+@st.cache_resource(show_spinner="Loading cross-encoder reranker...")
+def _load_cross_encoder():
+    """Real local cross-encoder (sentence-transformers), not an LLM-based rerank —
+    a cross-encoder scores (query, passage) pairs jointly via local neural network
+    inference, which is why this needs PyTorch (already present in requirements.txt
+    for other ML pages) unlike query rewriting/hybrid search, which are an API call
+    and pure Python math respectively. cross-encoder/ms-marco-MiniLM-L-6-v2 is a
+    standard, small (~80MB), CPU-friendly reranker, confirmed loading and producing
+    real scores in this environment before being wired in here."""
+    from sentence_transformers import CrossEncoder
+    return CrossEncoder(CROSS_ENCODER_MODEL)
+
+
+def retrieve_with_rerank(question: str, df, matrix, k: int = TOP_K, wide_k: int = 15):
+    """Retrieve wide (wide_k candidates via existing retrieve()), then rerank down
+    to k using a real local cross-encoder — the 'retrieve wide, rerank narrow'
+    pattern already documented conceptually in agentic_knowledge.md, implemented
+    here rather than re-explained. Same DataFrame contract as retrieve()/
+    retrieve_hybrid() (chunk_id/source_file/heading/text/similarity) — the
+    cross-encoder score replaces `similarity` for the returned rows."""
+    wide = retrieve(question, df, matrix, k=wide_k)
+    model = _load_cross_encoder()
+    pairs = [(question, str(row.text)) for row in wide.itertuples()]
+    scores = model.predict(pairs)
+    wide = wide.assign(similarity=scores)
+    return wide.sort_values("similarity", ascending=False).head(k)
 
 
 @st.cache_resource(show_spinner="Loading trip vector DB...")
@@ -312,6 +399,41 @@ SUMMARY_SYSTEM_PROMPT = (
     "exists only to preserve conversational continuity for a chat assistant, not to be "
     "a complete record."
 )
+
+
+REWRITE_SYSTEM_PROMPT = (
+    "You rewrite a follow-up question into a standalone question, using the prior "
+    "conversation turn(s) as context to resolve pronouns and implicit references "
+    "(e.g. 'it', 'that', 'the second one'). Output ONLY the rewritten question — no "
+    "preamble, no explanation, no quotes around it. If the question is already "
+    "standalone (doesn't depend on prior context), return it unchanged."
+)
+
+
+def rewrite_query(question: str, history: list[dict]) -> str:
+    """Rewrites a follow-up question into a standalone one using prior turn(s) as
+    context, via one Haiku call (same _claude_request pattern as compact_if_needed).
+    history: list of {"question": ..., "answer": ...} dicts, most recent last.
+    Pure function — not wired into the live corpus tabs' retrieval call sites; that's
+    a separate promotion step once rag_eval.py's --config query_rewrite run justifies
+    it. Falls back to the raw question on any API error, so a rewrite failure never
+    breaks retrieval — worst case, behaves exactly like no rewrite happened."""
+    if not history:
+        return question
+
+    context_lines = "\n".join(f"Q: {h['question']}\nA: {h.get('answer', '')}" for h in history)
+    prompt = f"Prior conversation:\n{context_lines}\n\nFollow-up question: {question}"
+
+    data = _claude_request(
+        [{"role": "user", "content": prompt}],
+        system=REWRITE_SYSTEM_PROMPT,
+        max_tokens=100,
+    )
+    if "error" in data:
+        return question
+
+    text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
+    return text.strip() or question
 
 
 def _claude_request(messages: list[dict], system: str, max_tokens: int = 1024, tools: list[dict] | None = None) -> dict:

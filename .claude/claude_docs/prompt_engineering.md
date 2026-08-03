@@ -180,7 +180,7 @@ Never apply changes to any page/file the user hasn't specifically pointed at in 
 ## Anonymization (non-negotiable)
 
 Any page displaying raw offer data must obfuscate:
-- `upfront_fare` (and bonus amounts): replace every digit with `█`
+- `upfront_fare` (and bonus amounts): replace every digit with `#` (per-digit style — replaced an earlier `█` block style, see root `CLAUDE.md`'s anonymization protocol for the canonical current version)
 - `pickup_address` / `dropoff_address`: mask street number only, preserve 5-digit zip codes
 
 Use the canonical helpers `_obf_fare()` and `_obf_address()` — do not roll custom versions.

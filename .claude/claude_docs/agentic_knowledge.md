@@ -939,3 +939,65 @@ estructuralmente dificil para RAG en este corpus (row-to-text + top-k
 pequeno, sin capacidad de agregacion real).
 
 ---
+
+## 2026-08-03 — Evaluacion incremental de RAG: medir cada mejora contra un baseline fijo antes de adoptarla
+
+Cuando se agregan tecnicas de mejora a un pipeline de retrieval (query rewriting,
+hybrid search, reranking, etc.), la tentacion es apilarlas todas de una vez porque
+"son buenas practicas conocidas". El problema: sin medicion, no hay forma de saber
+si cada tecnica realmente ayuda EN TU corpus especifico, con TU distribucion de
+preguntas -- las mismas tecnicas que mejoran un caso pueden empeorar otro (ver mas
+abajo, hybrid search es el ejemplo real de este proyecto).
+
+**La metodologia (generica, reusable en cualquier proyecto RAG):**
+
+1. **Golden dataset fijo primero.** Un conjunto de preguntas con respuesta/fuente
+   verificada a mano (no generada por LLM sin revisar), suficientemente grande para
+   ser representativo pero chico para poder verificar cada entrada individualmente.
+   Este proyecto uso 24 preguntas (6 por corpus x 4 corpus).
+
+2. **Medir baseline con el metric set COMPLETO, no solo una metrica.** Nunca "hit-rate
+   nada mas" -- el set minimo defendible es:
+   - Calidad de retrieval: hit-rate, context precision, context recall.
+   - Calidad de generacion: faithfulness (via un juez LLM independiente, ver mas abajo).
+   - Costo: separado por capa (embed/query-time vs. generacion vs. juez -- nunca
+     un numero unico blend que oculte cual proveedor cobra que).
+   - Latencia: media por pregunta.
+
+3. **Agregar UNA tecnica a la vez, re-medir el MISMO metric set.** No cambiar dos
+   cosas en la misma corrida -- si hybrid+rerank se agregan juntos y el numero sube,
+   no se sabe cual de las dos lo causo (o si una compenso a la otra empeorando).
+
+4. **Adoptar solo si el numero real lo justifica -- y documentar los resultados
+   negativos igual de honestamente que los positivos.** No forzar una narrativa de
+   "todo mejora". El punto de medir es poder decir que no.
+
+**LLM-as-a-judge para faithfulness** (no inventado, patron estandar de la industria,
+es el mismo mecanismo que usa RAGAS internamente): una segunda llamada a un LLM
+(en este proyecto, Haiku, separado del modelo que genero la respuesta) califica la
+respuesta generada contra el contexto retrieved -- "esta esta respuesta fundamentada
+en lo que se le dio, o esta alucinando/usando conocimiento externo?". Requiere un
+prompt de juez simple y explicito (rubrica 1-5, criterio claro), no magia.
+
+**Ejemplo real, con numeros, de este proyecto (harness completo en
+`observatory/scripts/rag_eval.py` + `rag_eval_judge.py` + `rag_eval_compare.py`,
+corridas reales documentadas en `assets_ignored/claude_docs/rag_eval.md`):**
+
+| Config | Hit-rate | Faithfulness | Latencia | Decision |
+|---|---|---|---|---|
+| Baseline (top-k=4 cosine) | 95.8% | 4.67/5 | 5301ms | referencia |
+| + Query rewriting | 95.8% standalone / **25%->75%** en follow-ups con pronombres ambiguos | -- | igual | **ADOPTAR** -- unica mejora grande y clara |
+| + Hybrid search (BM25+cosine, alpha=0.5 sin tunear) | **91.7%** (peor) | 4.83/5 | 7206ms | **NO adoptar** -- empeoro hit-rate y costo |
+| + Reranking (cross-encoder local, PyTorch) | 95.8% (empata) | 4.71/5 | 7996ms (+51%) | **Neutral** -- sin ganancia neta medible, mas latencia |
+
+El resultado de hybrid search es el ejemplo mas honesto: es una tecnica "conocida
+que funciona" en la literatura, y en este dataset especifico de 24 preguntas
+EMPEORO el hit-rate. Sin el harness, se hubiera adoptado por default asumiendo
+que ayuda -- el harness lo capturo como una regresion real y evito ese error.
+
+**Contexto:** Se disparo al construir el harness de evaluacion completo de RAG #1
+(Project Docs) en preparacion para una entrevista de trabajo, con el requisito
+explicito de mostrar rigor de evaluacion (no solo "agregue tecnicas de RAG") como
+evidencia de experiencia real con sistemas RAG en produccion.
+
+---

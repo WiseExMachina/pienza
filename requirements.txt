@@ -13,6 +13,8 @@ numpy<2.0.0
 # ==========================================
 pandas
 scipy
+rank_bm25
+sentence-transformers
 SQLAlchemy
 pyarrow
 joblib

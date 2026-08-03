@@ -242,6 +242,14 @@ MANIFEST = [
         "gcs":   "chroma_trips",
         "kind":  "dir",
     },
+    # 0010 - RAG Assistant (RAG Eval tab): aggregated comparison across all 4
+    # retrieval configs (baseline/query_rewrite/hybrid/rerank), built by
+    # rag_eval_compare.py from data/dumped_files/rag_eval_runs/*.json.
+    {
+        "page": "0010",
+        "local": "rag_eval_runs/_comparison.json",
+        "gcs":   "rag_eval_comparison.json",
+    },
     # Add entries for other pages here once they're audited
 ]
 

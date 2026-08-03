@@ -3,6 +3,15 @@
 Bitácora de resúmenes de sesión, más reciente arriba. Cada entrada se agrega
 automáticamente al invocar `/end`.
 
+## 2026-08-03
+
+- Se completo el harness de evaluacion incremental de RAG #1: Fase 1 (query rewriting, ADOPTAR — follow-up hit-rate 25%->75%), Fase 2 (hybrid search BM25+cosine, NO adoptar — regresiono el hit-rate global 95.8%->91.7%, resultado negativo real y documentado sin ocultarlo), Fase 3 (reranking con cross-encoder local via PyTorch, neutral en el agregado pero con ganancia real y localizada en The Pienza Papers, compensada por una regresion real y localizada en Codebase)
+- Se encontro y arreglo un bug real: rag_eval_judge.py no pasaba corpus_file a retrieve_hybrid(), causando un AttributeError en la primera corrida de --config hybrid; se replico el fix ya presente en rag_eval.py
+- Se construyo rag_eval_compare.py (agrega todos los runs JSON en una comparacion por config) y se agrego un desglose per_corpus_comparison tras notar el usuario que la tabla global escondia que The Pienza Papers era el unico corpus con gap real (83.3% vs 95.8% global) — la tab en vivo ahora tiene un selector de corpus, no solo el agregado
+- Se agrego la 3ra tab "RAG Eval" a 0010_RAG_Assistant.py (read-only, lee rag_eval_comparison.json desde GCS), subida con permiso explicito del usuario, y verificada en vivo con Playwright (las 3 tabs renderizan sin errores, el stepper y Agentic RAG no se rompieron)
+- Se documento la metodologia de evaluacion incremental como concepto reusable en agentic_knowledge.md, mas un rag_eval_workflow.md canonico con la decision de adopcion por fase y su razon
+- Se confirmo explicitamente al usuario que Manual Retrieval en produccion sigue en baseline puro (sin las 3 mejoras ni judge call) — el harness completo vive solo en los scripts offline, nunca se conecto a la app en vivo
+
 ## 2026-08-01 (sesion 4)
 
 - Se repointeo el corpus de RAG #1 de assets_ignored/claude_docs/ (viejo, untracked) a .claude/claude_docs/ (canonico), y se scrubbeo framing de certificado/entrevista de 6 archivos que alimentan ese corpus, tras detectar que una respuesta del RAG citaba un certificado educativo y framing de busqueda de empleo

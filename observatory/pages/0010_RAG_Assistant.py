@@ -1,5 +1,6 @@
 import time
 
+import pandas as pd
 import streamlit as st
 
 from components.sidebar import build_sidebar
@@ -10,6 +11,7 @@ from pages._0010_data import (
     CORPORA, CLAUDE_MODEL, MAX_HISTORY_TURNS, load_corpus, retrieve,
     load_trip_collection, retrieve_trips, ask_claude, ask_claude_agentic,
     format_token_count, SYSTEM_PROMPT, REASONING_SYSTEM_PROMPT, SAMPLE_QUESTIONS,
+    load_eval_comparison,
 )
 
 # ==========================================
@@ -470,7 +472,161 @@ def _render_agentic_tab():
         st.rerun()
 
 
-_outer_tabs = st.tabs(["Manual Retrieval", "Agentic RAG"])
+def _render_eval_tab():
+    st.markdown(
+        """
+        <p style='font-size:14px;font-weight:400;color:#475569;line-height:1.7;margin-bottom:8px;'>
+        Offline evaluation harness for RAG #1 (Project Docs corpus): a 24-question golden
+        dataset, measured against a fixed baseline before each incremental retrieval
+        upgrade — query rewriting, hybrid search, reranking — is adopted or rejected.
+        This tab is <b>read-only</b>: it displays a precomputed comparison, it never runs
+        an eval live. Full write-up: <code>.claude/claude_docs/rag_eval_workflow.md</code>.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    try:
+        data = load_eval_comparison()
+    except Exception:
+        st.markdown(
+            """
+            <div style='border-left:6px solid #ffe600;background:#ffff00;border-radius:0 8px 8px 0;
+                 padding:12px 16px;margin-top:10px;font-size:0.80rem;color:#1a1a1a;line-height:1.65;'>
+              <span style='font-size:0.7rem;font-weight:900;text-transform:uppercase;letter-spacing:0.8px;
+                    color:#cc6600;'>⚠ PENDING FIX — Comparison not found</span><br><br>
+              Could not load <code>rag_eval_comparison.json</code> from GCS. Run
+              <code>rag_eval_compare.py</code> and upload it via <code>gcs_deploy.py</code>.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    st.markdown("#### Corpus build cost <span class=\"fn-wrap\"><span class=\"info-mark\">i</span>"
+                "<span class=\"fn-tooltip\">Offline, already paid, historical — the one-time cost "
+                "of embedding each corpus into the vector store. Not repeated per user question."
+                "</span></span>", unsafe_allow_html=True)
+    build_rows = [r for r in data["corpus_build_cost"] if r["corpus_key"] != "TOTAL"]
+    total_row = next((r for r in data["corpus_build_cost"] if r["corpus_key"] == "TOTAL"), None)
+    cols = st.columns(len(build_rows))
+    for col, row in zip(cols, build_rows):
+        with col:
+            st.markdown(
+                f"""
+                <div class="bento-card">
+                  <div class="bento-title">{row['corpus_label']}</div>
+                  <div class="bento-value">${row['build_cost_usd']:.6f}</div>
+                  <div class="bento-desc">{row['tokens']:,} tokens</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    if total_row:
+        st.markdown(
+            f"<div style='font-size:0.75rem;color:#64748b;margin-top:8px;'>"
+            f"Total corpus build cost: <b>${total_row['build_cost_usd']:.6f}</b> "
+            f"({total_row['tokens']:,} tokens)</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        "#### Retrieval config comparison <span class=\"fn-wrap\"><span class=\"info-mark\">i</span>"
+        "<span class=\"fn-tooltip\">Context precision/recall use a single verified ground-truth "
+        "chunk per question (not a multi-passage relevance set) — recall = hit (0/1), "
+        "precision = 1/rank if hit. Embed cost is paid to GCP (Vertex AI); generation and "
+        "judge cost are paid to Anthropic — three separate cost layers, never blended."
+        "</span></span>",
+        unsafe_allow_html=True,
+    )
+    rows = data["config_comparison"]
+    table_df = pd.DataFrame([{
+        "Config": r["config"],
+        "Hit-rate": f"{r['hit_rate']:.1%}" if r["hit_rate"] is not None else "—",
+        "Precision": f"{r['context_precision']:.3f}" if r["context_precision"] is not None else "—",
+        "Recall": f"{r['context_recall']:.3f}" if r["context_recall"] is not None else "—",
+        "Faithfulness": f"{r['faithfulness']:.2f}/5" if r["faithfulness"] is not None else "—",
+        "Latency (ms)": f"{r['mean_latency_ms']:.0f}" if r["mean_latency_ms"] is not None else "—",
+        "Embed $ (GCP)": f"${r['embed_cost_usd']:.6f}" if r["embed_cost_usd"] is not None else "—",
+        "Generation $ (Anthropic)": f"${r['generation_cost_usd']:.6f}" if r["generation_cost_usd"] is not None else "—",
+        "Judge $ (Anthropic)": f"${r['judge_cost_usd']:.6f}" if r["judge_cost_usd"] is not None else "—",
+    } for r in rows])
+    st.dataframe(table_df, hide_index=True, use_container_width=True)
+
+    for r in rows:
+        st.markdown(
+            f"<div style='font-size:0.75rem;color:#334155;margin:4px 0;padding:8px 12px;"
+            f"background:rgba(33,145,140,0.07);border-radius:0 8px 8px 0;border-left:4px solid #21918c;'>"
+            f"<b>{r['config']}</b> — {r['adoption_note']}</div>",
+            unsafe_allow_html=True,
+        )
+
+    per_corpus = data.get("per_corpus_comparison")
+    if per_corpus:
+        st.markdown(
+            "#### Per-corpus breakdown <span class=\"fn-wrap\"><span class=\"info-mark\">i</span>"
+            "<span class=\"fn-tooltip\">The overall row above blends all 4 corpora — a corpus with "
+            "a real retrieval gap (e.g. The Pienza Papers) can hide behind 3 corpora that hit 100%. "
+            "Pick a corpus to see its own numbers per config, 6 questions each.</span></span>",
+            unsafe_allow_html=True,
+        )
+        corpus_labels = {c["key"]: c["label"] for c in CORPORA}
+        available_keys = sorted({k for cfg in per_corpus.values() for k in cfg})
+        selected_corpus = st.selectbox(
+            "Corpus",
+            options=available_keys,
+            format_func=lambda k: corpus_labels.get(k, k),
+            key="eval_corpus_select",
+        )
+        corpus_rows = []
+        for r in rows:
+            cfg = r["config"]
+            pc = per_corpus.get(cfg, {}).get(selected_corpus, {})
+            corpus_rows.append({
+                "Config": cfg,
+                "Hit-rate": f"{pc['hit_rate']:.1%}" if pc.get("hit_rate") is not None else "—",
+                "Precision": f"{pc['context_precision']:.3f}" if pc.get("context_precision") is not None else "—",
+                "Recall": f"{pc['context_recall']:.3f}" if pc.get("context_recall") is not None else "—",
+                "Faithfulness": f"{pc['faithfulness']:.2f}/5" if pc.get("faithfulness") is not None else "—",
+                "Latency (ms)": f"{pc['mean_latency_ms']:.0f}" if pc.get("mean_latency_ms") is not None else "—",
+                "Embed $ (GCP)": f"${pc['embed_cost_usd']:.6f}" if pc.get("embed_cost_usd") is not None else "—",
+                "Generation $ (Anthropic)": f"${pc['generation_cost_usd']:.6f}" if pc.get("generation_cost_usd") is not None else "—",
+                "Judge $ (Anthropic)": f"${pc['judge_cost_usd']:.6f}" if pc.get("judge_cost_usd") is not None else "—",
+            })
+        st.dataframe(pd.DataFrame(corpus_rows), hide_index=True, use_container_width=True)
+
+    followup = data.get("followup_comparison")
+    if followup:
+        st.markdown(
+            "#### Query rewriting — follow-up pairs (the scenario it's designed to fix)",
+            unsafe_allow_html=True,
+        )
+        fcol1, fcol2 = st.columns(2)
+        with fcol1:
+            st.markdown(
+                f"""
+                <div class="bento-card">
+                  <div class="bento-title">Raw follow-up (no rewrite)</div>
+                  <div class="bento-value">{followup['raw_hit_rate']:.0%}</div>
+                  <div class="bento-desc">hit-rate on {followup['n_pairs']} pronoun/reference-ambiguous pairs</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with fcol2:
+            st.markdown(
+                f"""
+                <div class="bento-card">
+                  <div class="bento-title">Rewritten follow-up</div>
+                  <div class="bento-value">{followup['rewritten_hit_rate']:.0%}</div>
+                  <div class="bento-desc">hit-rate after rewrite_query() resolves the reference</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+_outer_tabs = st.tabs(["Manual Retrieval", "Agentic RAG", "RAG Eval"])
 
 with _outer_tabs[0]:
     _render_stepper()
@@ -481,3 +637,6 @@ with _outer_tabs[0]:
 
 with _outer_tabs[1]:
     _render_agentic_tab()
+
+with _outer_tabs[2]:
+    _render_eval_tab()
