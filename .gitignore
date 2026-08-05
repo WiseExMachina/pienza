@@ -13,6 +13,7 @@ service-account.json
 /.claude/scheduled_tasks.lock
 /_archive/
 /STORY.md
+/pida_delivery/
 
 # ==========================================
 # 2. DATA & LARGE FILES (DATA SCIENCE HYGIENE)
